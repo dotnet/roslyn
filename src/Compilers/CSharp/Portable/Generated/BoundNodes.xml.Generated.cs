@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NonConstructorMethodBody,
         ConstructorMethodBody,
         ExpressionWithNullability,
+        WithExpression,
     }
 
 
@@ -7402,6 +7403,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundWithExpression : BoundExpression
+    {
+        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors())
+        {
+
+            RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Receiver = receiver;
+            this.CloneMethod = cloneMethod;
+            this.Arguments = arguments;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public BoundExpression Receiver { get; }
+
+        public MethodSymbol? CloneMethod { get; }
+
+        public ImmutableArray<(Symbol? Member, BoundExpression Expression)> Arguments { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWithExpression(this);
+
+        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type)
+        {
+            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundWithExpression(this.Syntax, receiver, cloneMethod, arguments, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTreeVisitor<A,R>
     {
 
@@ -7784,6 +7823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConstructorMethodBody((BoundConstructorMethodBody)node, arg);
                 case BoundKind.ExpressionWithNullability: 
                     return VisitExpressionWithNullability((BoundExpressionWithNullability)node, arg);
+                case BoundKind.WithExpression: 
+                    return VisitWithExpression((BoundWithExpression)node, arg);
             }
 
             return default(R)!;
@@ -7979,6 +8020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConstructorMethodBody(BoundConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitWithExpression(BoundWithExpression node, A arg) => this.DefaultVisit(node, arg);
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -8170,6 +8212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitWithExpression(BoundWithExpression node) => this.DefaultVisit(node);
     }
 
     internal abstract partial class BoundTreeWalker: BoundTreeVisitor
@@ -9022,6 +9065,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
             this.Visit(node.Expression);
+            return null;
+        }
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            this.Visit(node.Receiver);
             return null;
         }
     }
@@ -10131,6 +10179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, node.NullableAnnotation, type);
+        }
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(receiver, node.CloneMethod, node.Arguments, type);
         }
     }
 
@@ -12361,6 +12415,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return updatedNode;
         }
+
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            MethodSymbol? cloneMethod = GetUpdatedSymbol(node, node.CloneMethod);
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundWithExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, node.Type);
+            }
+            return updatedNode;
+        }
     }
 
     internal sealed class BoundTreeDumperNodeProducer : BoundTreeVisitor<object?, TreeDumperNode>
@@ -14075,6 +14147,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitWithExpression(BoundWithExpression node, object? arg) => new TreeDumperNode("withExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
+            new TreeDumperNode("cloneMethod", node.CloneMethod, null),
+            new TreeDumperNode("arguments", node.Arguments, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

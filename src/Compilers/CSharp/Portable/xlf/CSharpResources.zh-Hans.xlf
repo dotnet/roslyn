@@ -117,6 +117,11 @@
         <target state="translated">"{0}" 类型的表达式不能由 "{1}" 类型的模式进行处理。请使用语言版本 "{2}" 或更高版本，将开放类型与常数模式进行匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ContainingTypeMustDeriveFromWithReturnType">
+        <source>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'Clone' method, '{1}'.</source>
+        <target state="new">The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'Clone' method, '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
@@ -307,6 +312,11 @@
         <target state="translated">“无效的秩说明符: 应为“]”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidWithReceiverType">
+        <source>The receiver of a `with` expression must have a valid non-void type.</source>
+        <target state="new">The receiver of a `with` expression must have a valid non-void type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
         <target state="translated">在 is-type 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
@@ -355,6 +365,11 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoSingleCloneMethod">
+        <source>The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</source>
+        <target state="new">The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -535,6 +550,11 @@
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
         <target state="translated">无法在含有 "in" 或 "out" 类型参数的接口中声明枚举、类和结构。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WithMemberIsNotRecordProperty">
+        <source>All arguments to a `with` expression must be compiler-generated record properties.</source>
+        <target state="new">All arguments to a `with` expression must be compiler-generated record properties.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">

@@ -117,6 +117,11 @@
         <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht von einem Muster vom Typ "{1}" behandelt werden. Verwenden Sie Sprachversion {2} oder höher, um einen offenen Typ mit einem konstanten Muster abzugleichen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ContainingTypeMustDeriveFromWithReturnType">
+        <source>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'Clone' method, '{1}'.</source>
+        <target state="new">The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'Clone' method, '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Der Name "{0}" stimmt nicht mit dem entsprechenden Deconstruct-Parameter "{1}" überein.</target>
@@ -307,6 +312,11 @@
         <target state="translated">"Ungültiger Rangspezifizierer: Erwartet wurde ]</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidWithReceiverType">
+        <source>The receiver of a `with` expression must have a valid non-void type.</source>
+        <target state="new">The receiver of a `with` expression must have a valid non-void type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
         <target state="translated">Es ist unzulässig, den Nullable-Verweistyp "{0}?" in einem is-Ausdruck zu verwenden. Verwenden Sie stattdessen den zugrunde liegenden Typ "{0}".</target>
@@ -355,6 +365,11 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoSingleCloneMethod">
+        <source>The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</source>
+        <target state="new">The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -535,6 +550,11 @@
       <trans-unit id="ERR_VarianceInterfaceNesting">
         <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
         <target state="translated">Enumerationen, Klassen und Strukturen können nicht in Schnittstellen mit Parametern vom Typ "in" oder "out" deklariert werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WithMemberIsNotRecordProperty">
+        <source>All arguments to a `with` expression must be compiler-generated record properties.</source>
+        <target state="new">All arguments to a `with` expression must be compiler-generated record properties.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">

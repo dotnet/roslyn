@@ -2222,6 +2222,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
+        public override BoundNode VisitWithExpression(BoundWithExpression expr)
+        {
+            // PROTOTYPE: This is wrong
+            SetResultType(expr,
+                expr.CloneMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
+                    ?? TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareLocals(node.OuterLocals);
