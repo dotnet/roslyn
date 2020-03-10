@@ -2,48 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal static class FSharpInlineRenameReplacementKindHelpers
+    internal static class VSTypeScriptInlineRenameReplacementKindHelpers
     {
-        public static InlineRenameReplacementKind ConvertTo(FSharpInlineRenameReplacementKind kind)
+        public static InlineRenameReplacementKind ConvertTo(VSTypeScriptInlineRenameReplacementKind kind)
         {
             switch (kind)
             {
-                case FSharpInlineRenameReplacementKind.NoConflict:
+                case VSTypeScriptInlineRenameReplacementKind.NoConflict:
                     {
                         return InlineRenameReplacementKind.NoConflict;
                     }
 
-                case FSharpInlineRenameReplacementKind.ResolvedReferenceConflict:
+                case VSTypeScriptInlineRenameReplacementKind.ResolvedReferenceConflict:
                     {
                         return InlineRenameReplacementKind.ResolvedReferenceConflict;
                     }
 
-                case FSharpInlineRenameReplacementKind.ResolvedNonReferenceConflict:
+                case VSTypeScriptInlineRenameReplacementKind.ResolvedNonReferenceConflict:
                     {
                         return InlineRenameReplacementKind.ResolvedNonReferenceConflict;
                     }
 
-                case FSharpInlineRenameReplacementKind.UnresolvedConflict:
+                case VSTypeScriptInlineRenameReplacementKind.UnresolvedConflict:
                     {
                         return InlineRenameReplacementKind.UnresolvedConflict;
                     }
 
-                case FSharpInlineRenameReplacementKind.Complexified:
+                case VSTypeScriptInlineRenameReplacementKind.Complexified:
                     {
                         return InlineRenameReplacementKind.Complexified;
                     }
@@ -56,11 +52,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    internal class FSharpInlineRenameReplacementInfo : IInlineRenameReplacementInfo
+    internal class VSTypeScriptInlineRenameReplacementInfo : IInlineRenameReplacementInfo
     {
-        private readonly IFSharpInlineRenameReplacementInfo _info;
+        private readonly IVSTypeScriptInlineRenameReplacementInfo _info;
 
-        public FSharpInlineRenameReplacementInfo(IFSharpInlineRenameReplacementInfo info)
+        public VSTypeScriptInlineRenameReplacementInfo(IVSTypeScriptInlineRenameReplacementInfo info)
         {
             _info = info;
         }
@@ -74,16 +70,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
         {
             return _info.GetReplacements(documentId)?.Select(x =>
-                new InlineRenameReplacement(FSharpInlineRenameReplacementKindHelpers.ConvertTo(x.Kind), x.OriginalSpan, x.NewSpan));
+                new InlineRenameReplacement(VSTypeScriptInlineRenameReplacementKindHelpers.ConvertTo(x.Kind), x.OriginalSpan, x.NewSpan));
         }
     }
 
-    internal class FSharpInlineRenameLocationSet : IInlineRenameLocationSet
+    internal class VSTypeScriptInlineRenameLocationSet : IInlineRenameLocationSet
     {
-        private readonly IFSharpInlineRenameLocationSet _set;
+        private readonly IVSTypeScriptInlineRenameLocationSet _set;
         private readonly IList<InlineRenameLocation> _locations;
 
-        public FSharpInlineRenameLocationSet(IFSharpInlineRenameLocationSet set)
+        public VSTypeScriptInlineRenameLocationSet(IVSTypeScriptInlineRenameLocationSet set)
         {
             _set = set;
             _locations = set.Locations?.Select(x => new InlineRenameLocation(x.Document, x.TextSpan)).ToList();
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             var info = await _set.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
-                return new FSharpInlineRenameReplacementInfo(info);
+                return new VSTypeScriptInlineRenameReplacementInfo(info);
             }
             else
             {
@@ -105,11 +101,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    internal class FSharpInlineRenameInfo : IInlineRenameInfo
+    internal class VSTypeScriptInlineRenameInfo : IInlineRenameInfo
     {
-        private readonly IFSharpInlineRenameInfo _info;
+        private readonly IVSTypeScriptInlineRenameInfo _info;
 
-        public FSharpInlineRenameInfo(IFSharpInlineRenameInfo info)
+        public VSTypeScriptInlineRenameInfo(IVSTypeScriptInlineRenameInfo info)
         {
             _info = info;
         }
@@ -128,14 +124,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public string FullDisplayName => _info.FullDisplayName;
 
-        public Glyph Glyph => FSharpGlyphHelpers.ConvertTo(_info.Glyph);
+        public Glyph Glyph => VSTypeScriptGlyphHelpers.ConvertTo(_info.Glyph);
 
         public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
             var set = await _info.FindRenameLocationsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             if (set != null)
             {
-                return new FSharpInlineRenameLocationSet(set);
+                return new VSTypeScriptInlineRenameLocationSet(set);
             }
             else
             {
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
         {
-            return _info.GetConflictEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), replacementText, cancellationToken);
+            return _info.GetConflictEditSpan(new VSTypeScriptInlineRenameLocation(location.Document, location.TextSpan), replacementText, cancellationToken);
         }
 
         public string GetFinalSymbolName(string replacementText)
@@ -155,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
         {
-            return _info.GetReferenceEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), cancellationToken);
+            return _info.GetReferenceEditSpan(new VSTypeScriptInlineRenameLocation(location.Document, location.TextSpan), cancellationToken);
         }
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
@@ -166,33 +162,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
         {
             return _info.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
-        }
-    }
-
-    [Shared]
-    [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp)]
-    internal class FSharpEditorInlineRenameService : IEditorInlineRenameService
-    {
-        private readonly IFSharpEditorInlineRenameService _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpEditorInlineRenameService(IFSharpEditorInlineRenameService service)
-        {
-            _service = service;
-        }
-
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var info = await _service.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-            {
-                return new FSharpInlineRenameInfo(info);
-            }
-            else
-            {
-                return null;
-            }
         }
     }
 }
