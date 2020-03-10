@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
-    public class RenameHandlerTests : AbstractLiveShareRequestHandlerTests
+    public class RenameTests : AbstractLanguageServerProtocolTests
     {
         [WpfFact]
         public async Task TestRenameAsync()
@@ -33,19 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var renameValue = "RENAME";
             var expectedEdits = ranges["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await TestHandleAsync<LSP.RenameParams, LSP.WorkspaceEdit>(solution, CreateRenameParams(renameLocation, renameValue), Methods.TextDocumentRenameName);
+            var results = await RunRenameAsync(solution, renameLocation, renameValue);
             AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
-        }
-
-        private static void AssertDocumentEditsEqual(IList<LSP.Location> expectedRenameLocations, string expectedRenameValue, LSP.TextEdit[] actualEdits)
-        {
-            for (var i = 0; i < expectedRenameLocations.Count; i++)
-            {
-                var expectedLocation = expectedRenameLocations[i];
-                var actualEdit = actualEdits[i];
-                Assert.Equal(expectedLocation.Range, actualEdit.Range);
-                Assert.Equal(expectedRenameValue, actualEdit.NewText);
-            }
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
@@ -55,5 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
                 Position = location.Range.Start,
                 TextDocument = CreateTextDocumentIdentifier(location.Uri)
             };
+
+        private static async Task<WorkspaceEdit> RunRenameAsync(Solution solution, LSP.Location renameLocation, string renamevalue)
+           => await GetLanguageServer(solution).RenameAsync(solution, CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), CancellationToken.None);
     }
 }
