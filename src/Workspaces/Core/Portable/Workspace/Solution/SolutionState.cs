@@ -1101,33 +1101,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the project specified updated to include the 
-        /// specified analyzer reference.
-        /// </summary>
-        public SolutionState AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (analyzerReference == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReference));
-            }
-
-            //PROTOTYPE
-            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
-            {
-                driver = driver.WithGenerators(analyzerReference.GetGenerators());
-                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReference(analyzerReference));
-        }
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
@@ -1151,7 +1124,7 @@ namespace Microsoft.CodeAnalysis
             //PROTOTYPE
             if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
             {
-                driver = driver.WithGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
+                driver = driver.AddGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
                 _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
 
@@ -1180,11 +1153,7 @@ namespace Microsoft.CodeAnalysis
             //PROTOTYPE:
             if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
             {
-                var gensToRemove = analyzerReference.GetGenerators();
-                foreach (var generator in gensToRemove)
-                {
-                    driver = driver.RemoveGenerator(generator);
-                }
+                driver = driver.RemoveGenerators(analyzerReference.GetGenerators());
                 _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
 

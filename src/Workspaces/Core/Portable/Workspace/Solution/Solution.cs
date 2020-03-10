@@ -592,15 +592,7 @@ namespace Microsoft.CodeAnalysis
         /// specified analyzer reference.
         /// </summary>
         public Solution AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-        {
-            var newState = _state.AddAnalyzerReference(projectId, analyzerReference);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
-        }
+            => AddAnalyzerReferences(projectId, ImmutableArray.Create(analyzerReference));
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the

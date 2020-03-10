@@ -115,15 +115,15 @@ namespace Microsoft.CodeAnalysis
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
         }
 
-        public GeneratorDriver WithGenerators(ImmutableArray<ISourceGenerator> generators)
+        public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
             var newState = _state.With(generators: _state.Generators.AddRange(generators));
             return FromState(newState);
         }
 
-        public GeneratorDriver RemoveGenerator(ISourceGenerator generator)
+        public GeneratorDriver RemoveGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.Remove(generator));
+            var newState = _state.With(generators: _state.Generators.RemoveRange(generators));
             return FromState(newState);
         }
 

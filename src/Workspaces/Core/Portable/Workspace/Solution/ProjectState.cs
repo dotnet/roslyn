@@ -697,14 +697,6 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)
-        {
-            Debug.Assert(!this.AnalyzerReferences.Contains(analyzerReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
         public ProjectState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
         {
             Debug.Assert(this.AnalyzerReferences.Contains(analyzerReference));
