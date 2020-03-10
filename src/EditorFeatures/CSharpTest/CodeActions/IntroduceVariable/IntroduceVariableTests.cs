@@ -7328,5 +7328,75 @@ class Bug
     }
 }", index: 1, options: ImplicitTypingEverywhere());
         }
+
+        [WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task DoNotGenerateBetweenElseAndIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+        else if ([|args.Length|] == 0)
+        {
+        }
+    }
+}",
+@"class C
+{
+    static void Main(string[] args)
+    {
+        int {|Rename:length|} = args.Length;
+        if (true)
+        {
+        }
+        else if (length == 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestWhitespaceSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        Foo(1,[| Bar()|]);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}",
+@"public class Class1
+{
+    void M()
+    {
+        object {|Rename:v2|} = Bar();
+        Foo(1, v2);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}");
+        }
     }
 }

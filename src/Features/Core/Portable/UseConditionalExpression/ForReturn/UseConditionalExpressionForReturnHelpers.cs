@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal static class UseConditionalExpressionForReturnHelpers
     {
         public static bool TryMatchPattern(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             out IReturnOperation trueReturn,
             out IReturnOperation falseReturn)

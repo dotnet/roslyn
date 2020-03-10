@@ -11,12 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-#if CODE_STYLE
-    using Resources = CodeStyleFixesResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     internal partial class FixAllState
     {
         internal readonly int CorrelationId = LogAggregator.GetNextId();
@@ -82,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnosticIds.Any(d => d == null))
             {
-                throw new ArgumentException(Resources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
+                throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
             }
 
             this.FixAllProvider = fixAllProvider;

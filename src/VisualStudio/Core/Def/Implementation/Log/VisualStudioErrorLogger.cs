@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
 
             if (ShouldReportCrashDumps(source))
             {
-                WatsonReporter.Report(name, exception);
+                FatalError.ReportWithoutCrash(exception);
             }
         }
 

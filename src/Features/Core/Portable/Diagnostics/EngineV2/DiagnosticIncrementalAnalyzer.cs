@@ -43,11 +43,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IPersistentStorageService PersistentStorageService { get; }
         internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
+        internal HostDiagnosticAnalyzers HostAnalyzers { get; }
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
+            HostDiagnosticAnalyzers hostAnalyzers,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
@@ -55,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
+            HostAnalyzers = hostAnalyzers;
             DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(analyzerInfoCache, PersistentStorageService);
+            _stateManager = new StateManager(hostAnalyzers, PersistentStorageService);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -138,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -162,8 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         documentSet.Clear();
                     }
                 }
-
-                documentSet.Free();
             });
         }
 

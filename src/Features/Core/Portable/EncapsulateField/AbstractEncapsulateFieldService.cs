@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             document = solutionNeedingProperty.GetDocument(document.Id);
 
             var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
-            var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
+            var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
             document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
-                var updatedLinkedRoot = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
+                var updatedLinkedRoot = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
                 var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 solution = updatedLinkedDocument.Project.Solution;
             }
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         internal class Result
