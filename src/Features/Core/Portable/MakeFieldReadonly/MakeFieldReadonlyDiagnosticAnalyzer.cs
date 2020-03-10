@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public MakeFieldReadonlyDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
-                CodeStyleOptions.PreferReadonly,
+                CodeStyleOptions2.PreferReadonly,
                 new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -213,9 +213,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
-        private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            return options.GetOption(CodeStyleOptions.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
+            return options.GetOption(CodeStyleOptions2.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
         }
     }
 }

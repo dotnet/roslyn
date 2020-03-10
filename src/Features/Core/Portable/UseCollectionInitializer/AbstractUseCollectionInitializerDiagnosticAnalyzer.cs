@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-                   CodeStyleOptions.PreferCollectionInitializer,
+                   CodeStyleOptions2.PreferCollectionInitializer,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_collection_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Collection_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var syntaxTree = context.Node.SyntaxTree;
 
             var fadeOutCode = context.GetOption(
-                CodeStyleOptions.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
+                CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
             {
                 return;

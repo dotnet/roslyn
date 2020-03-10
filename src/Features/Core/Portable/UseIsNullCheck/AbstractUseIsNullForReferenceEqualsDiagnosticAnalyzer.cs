@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
-                   CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
+                   CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var option = context.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
             {
                 return;

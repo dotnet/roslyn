@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
-                   CodeStyleOptions.RequireAccessibilityModifiers,
+                   CodeStyleOptions2.RequireAccessibilityModifiers,
                    new LocalizableResourceString(nameof(FeaturesResources.Add_accessibility_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Accessibility_modifiers_required), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             }
 
             var language = syntaxTree.Options.Language;
-            var option = context.GetOption(CodeStyleOptions.RequireAccessibilityModifiers, language);
+            var option = context.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language);
             if (option.Value == AccessibilityModifiersRequired.Never)
             {
                 return;
@@ -47,6 +47,6 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             ProcessCompilationUnit(context, generator, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
         }
 
-        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, SyntaxGenerator generator, CodeStyleOption<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, SyntaxGenerator generator, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
     }
 }

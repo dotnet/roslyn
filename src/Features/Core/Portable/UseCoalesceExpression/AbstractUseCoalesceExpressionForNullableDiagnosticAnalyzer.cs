@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
-                   CodeStyleOptions.PreferCoalesceExpression,
+                   CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;

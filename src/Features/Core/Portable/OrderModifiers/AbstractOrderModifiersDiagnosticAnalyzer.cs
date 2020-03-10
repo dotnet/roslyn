@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
     internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ISyntaxFacts _syntaxFacts;
-        private readonly Option<CodeStyleOption<string>> _option;
+        private readonly Option2<CodeStyleOption2<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
-            Option<CodeStyleOption<string>> option,
+            Option2<CodeStyleOption2<string>> option,
             AbstractOrderModifiersHelpers helpers,
             string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,

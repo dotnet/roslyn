@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-                   CodeStyleOptions.PreferNullPropagation,
+                   CodeStyleOptions2.PreferNullPropagation,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var option = context.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;

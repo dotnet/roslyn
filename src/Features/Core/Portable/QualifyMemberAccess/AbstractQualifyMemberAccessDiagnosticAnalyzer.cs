@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -30,10 +31,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         public override bool OpenFileOnly(OptionSet options)
         {
-            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
+            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, GetLanguageName()).Notification;
+            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, GetLanguageName()).Notification;
+            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, GetLanguageName()).Notification;
+            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions2.QualifyEventAccess, GetLanguageName()).Notification;
 
             return !(qualifyFieldAccessOption == NotificationOption.Warning || qualifyFieldAccessOption == NotificationOption.Error ||
                      qualifyPropertyAccessOption == NotificationOption.Warning || qualifyPropertyAccessOption == NotificationOption.Error ||
@@ -168,24 +169,24 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
     internal static class QualifyMembersHelpers
     {
-        public static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
+        public static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
         {
             switch (symbolKind)
             {
                 case SymbolKind.Field:
-                    return CodeStyleOptions.QualifyFieldAccess;
+                    return CodeStyleOptions2.QualifyFieldAccess;
                 case SymbolKind.Property:
-                    return CodeStyleOptions.QualifyPropertyAccess;
+                    return CodeStyleOptions2.QualifyPropertyAccess;
                 case SymbolKind.Method:
-                    return CodeStyleOptions.QualifyMethodAccess;
+                    return CodeStyleOptions2.QualifyMethodAccess;
                 case SymbolKind.Event:
-                    return CodeStyleOptions.QualifyEventAccess;
+                    return CodeStyleOptions2.QualifyEventAccess;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbolKind);
             }
         }
 
-        internal static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
+        internal static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
         {
             switch (operation)
             {

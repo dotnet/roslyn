@@ -16,20 +16,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
-                [option] As CodeStyleOption(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
+                [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
 
             ProcessMembers(context, generator, [option], compilationUnit.Members)
         End Sub
 
         Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
-                                   [option] As CodeStyleOption(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
+                                   [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
             For Each member In members
                 ProcessMember(context, generator, [option], member)
             Next
         End Sub
 
         Private Sub ProcessMember(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
-                              [option] As CodeStyleOption(Of AccessibilityModifiersRequired), member As StatementSyntax)
+                              [option] As CodeStyleOption2(Of AccessibilityModifiersRequired), member As StatementSyntax)
 
 
             If member.Kind() = SyntaxKind.NamespaceBlock Then

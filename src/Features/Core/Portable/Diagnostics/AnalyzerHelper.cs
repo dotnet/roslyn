@@ -21,6 +21,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if !CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
@@ -108,12 +112,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerConfigOptionSet(configOptions, optionSet);
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, ILanguageSpecificOption<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             return GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken).GetAwaiter().GetResult();
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IPerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             return GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
         }

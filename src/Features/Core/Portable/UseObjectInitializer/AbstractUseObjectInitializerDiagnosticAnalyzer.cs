@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-                   CodeStyleOptions.PreferObjectInitializer,
+                   CodeStyleOptions2.PreferObjectInitializer,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = context.GetOption(CodeStyleOptions.PreferObjectInitializer, language);
+            var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var syntaxTree = context.Node.SyntaxTree;
 
             var fadeOutCode = context.GetOption(
-                CodeStyleOptions.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+                CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
             {
                 return;

@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly Option<CodeStyleOption<bool>> _preferThrowExpressionOption;
+        private readonly Option2<CodeStyleOption2<bool>> _preferThrowExpressionOption;
 
-        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option<CodeStyleOption<bool>> preferThrowExpressionOption, string language)
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    preferThrowExpressionOption,
                    language,

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
         where TDeclaration : SyntaxNode
     {
-        public override Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
+        public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
         public override string DiagnosticId { get; }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             string diagnosticId,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
-            Option<CodeStyleOption<ExpressionBodyPreference>> option,
+            Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
             DiagnosticId = diagnosticId;
@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             return null;
         }
-
 
         protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
             => GetSingleGetAccessor(accessorList)?.Body;

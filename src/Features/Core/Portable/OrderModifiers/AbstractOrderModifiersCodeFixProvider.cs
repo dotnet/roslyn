@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
     internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private readonly ISyntaxFacts _syntaxFacts;
-        private readonly Option<CodeStyleOption<string>> _option;
+        private readonly Option2<CodeStyleOption2<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersCodeFixProvider(
             ISyntaxFacts syntaxFacts,
-            Option<CodeStyleOption<string>> option,
+            Option2<CodeStyleOption2<string>> option,
             AbstractOrderModifiersHelpers helpers)
         {
             _syntaxFacts = syntaxFacts;

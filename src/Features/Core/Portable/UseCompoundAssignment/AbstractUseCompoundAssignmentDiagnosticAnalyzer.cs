@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
-                   CodeStyleOptions.PreferCompoundAssignment,
+                   CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             var assignment = (TAssignmentSyntax)context.Node;
 
             var syntaxTree = assignment.SyntaxTree;
-            var option = context.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, assignment.Language);
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.

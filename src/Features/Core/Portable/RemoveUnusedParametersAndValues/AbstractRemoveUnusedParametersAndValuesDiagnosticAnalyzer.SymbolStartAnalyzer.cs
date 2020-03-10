@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 var location = parameter.Locations[0];
-                var option = analyzerOptions.GetOption(CodeStyleOptions.UnusedParameters, parameter.Language, location.SourceTree, cancellationToken);
+                var option = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, parameter.Language, location.SourceTree, cancellationToken);
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                     !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
