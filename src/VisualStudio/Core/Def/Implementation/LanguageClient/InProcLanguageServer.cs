@@ -110,6 +110,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return _protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
+        [JsonRpcMethod(Methods.TextDocumentRenameName)]
+        public Task<WorkspaceEdit> GetTextDocumentRenameAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var renameParams = input.ToObject<RenameParams>();
+            return _protocol.RenameAsync(_workspace.CurrentSolution, renameParams, _clientCapabilities, cancellationToken);
+        }
+
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]
         public Task<object> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
         {

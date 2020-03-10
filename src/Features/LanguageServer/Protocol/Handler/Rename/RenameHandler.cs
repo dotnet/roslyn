@@ -2,31 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class RenameHandler : ILspRequestHandler<RenameParams, WorkspaceEdit, Solution>
+    [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
     {
-        private readonly IThreadingContext _threadingContext;
-
-        public RenameHandler(IThreadingContext threadingContext)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RenameHandler()
         {
-            _threadingContext = threadingContext;
         }
 
-        public async Task<WorkspaceEdit> HandleAsync(RenameParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var solution = requestContext.Context;
             WorkspaceEdit workspaceEdit = null;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
@@ -34,11 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var renameService = document.Project.LanguageServices.GetService<IEditorInlineRenameService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-                // We need to be on the UI thread to call GetRenameInfo which computes the rename locations.
-                // This is because Roslyn reads the readonly regions of the buffer to compute the locations in the document.
-                // This is typically quick. It's marked configureawait(false) so that the bulk of the rename operation can happen
-                // in background threads.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
