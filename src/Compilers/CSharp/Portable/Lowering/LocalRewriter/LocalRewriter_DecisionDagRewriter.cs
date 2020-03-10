@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -410,53 +412,510 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool GenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
             {
                 Debug.Assert(!loweredNodes.Contains(node));
-
-                // We only generate a switch dispatch if we have two or more value tests in a row
-                if (!(node is BoundTestDecisionDagNode firstTestNode &&
-                     firstTestNode.Test is BoundDagValueTest firstTest &&
-                     firstTestNode.WhenFalse is BoundTestDecisionDagNode whenFalse &&
-                     whenFalse.Test is BoundDagValueTest secondTest &&
-                     !loweredNodes.Contains(whenFalse) &&
-                     !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstTest.Input.Equals(secondTest.Input) &&
-                     firstTest.Input.Type.IsValidV6SwitchGoverningType()))
-                {
-                    // https://github.com/dotnet/roslyn/issues/12509 Could optimize float, double, decimal value switches. For now use if-then-else
+                if (!CanGenerateSwitchDispatch(node, loweredNodes))
                     return false;
-                }
 
-                // Gather up the (value, label) pairs, starting with the first one
-                var cases = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
-                cases.Add((value: firstTest.Value, label: GetDagNodeLabel(firstTestNode.WhenTrue)));
-
-                BoundTestDecisionDagNode previous = firstTestNode;
-                while (previous.WhenFalse is BoundTestDecisionDagNode p &&
-                    p.Test is BoundDagValueTest vd &&
-                    vd.Input.Equals(firstTest.Input) &&
-                    !this._dagNodeLabels.ContainsKey(p) &&
-                    !loweredNodes.Contains(p))
-                {
-                    cases.Add((value: vd.Value, label: GetDagNodeLabel(p.WhenTrue)));
-                    loweredNodes.Add(p);
-                    previous = p;
-                }
-
-                // If we are emitting a hash table based string switch,
-                // we need to generate a helper method for computing
-                // string hash value in <PrivateImplementationDetails> class.
-
-                MethodSymbol stringEquality = null;
-                if (firstTest.Input.Type.SpecialType == SpecialType.System_String)
-                {
-                    EnsureStringHashFunction(cases.Count, node.Syntax);
-                    stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
-                }
-
-                LabelSymbol defaultLabel = GetDagNodeLabel(previous.WhenFalse);
-                var dispatch = new BoundSwitchDispatch(
-                    node.Syntax, _tempAllocator.GetTemp(firstTest.Input), cases.ToImmutableAndFree(), defaultLabel, stringEquality);
-                _loweredDecisionDag.Add(dispatch);
+                var input = ((BoundTestDecisionDagNode)node).Test.Input;
+                ValueDispatchNode n = GatherValueDispatchNodes(node, loweredNodes, input);
+                LowerValueDispatchNode(n, input);
                 return true;
+            }
+
+            private bool CanGenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
+            {
+                switch (node)
+                {
+                    // These are the forms worth optimizing.
+                    case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
+                        return CanDispatch(test1, test2);
+                    case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
+                        return CanDispatch(test1, test2);
+                    default:
+                        // Other cases are just as well done with a single test.
+                        return false;
+                }
+
+                bool CanDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
+                {
+                    if (loweredNodes.Contains(test2))
+                    {
+                        Debug.Assert(this._dagNodeLabels.ContainsKey(test2));
+                        return false;
+                    }
+                    if (this._dagNodeLabels.ContainsKey(test2))
+                        return false;
+                    var t1 = test1.Test;
+                    var t2 = test2.Test;
+                    if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
+                        return false;
+                    if (!(t2 is BoundDagValueTest || t2 is BoundDagRelationalTest))
+                        return false;
+                    if (!t1.Input.Equals(t2.Input))
+                        return false;
+                    return true;
+                }
+            }
+
+            private ValueDispatchNode GatherValueDispatchNodes(
+                BoundDecisionDagNode node,
+                HashSet<BoundDecisionDagNode> loweredNodes,
+                BoundDagTemp input)
+            {
+                IValueSetFactory fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+                return GatherValueDispatchNodes(node, loweredNodes, input, fac);
+            }
+
+            private ValueDispatchNode GatherValueDispatchNodes(
+                BoundDecisionDagNode node,
+                HashSet<BoundDecisionDagNode> loweredNodes,
+                BoundDagTemp input,
+                IValueSetFactory fac)
+            {
+                if (loweredNodes.Contains(node))
+                {
+                    bool foundLabel = this._dagNodeLabels.TryGetValue(node, out LabelSymbol label);
+                    Debug.Assert(foundLabel);
+                    return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                }
+                if (!(node is BoundTestDecisionDagNode testNode && testNode.Test.Input.Equals(input)))
+                {
+                    var label = GetDagNodeLabel(node);
+                    return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                }
+
+                switch (testNode.Test)
+                {
+                    case BoundDagRelationalTest relational:
+                        {
+                            loweredNodes.Add(testNode);
+                            var whenTrue = GatherValueDispatchNodes(testNode.WhenTrue, loweredNodes, input, fac);
+                            var whenFalse = GatherValueDispatchNodes(testNode.WhenFalse, loweredNodes, input, fac);
+                            return ValueDispatchNode.RelationalDispatch.CreateBalanced(testNode.Syntax, relational.Value, relational.OperatorKind, whenTrue: whenTrue, whenFalse: whenFalse);
+                        }
+                    case BoundDagValueTest value:
+                        {
+                            // Gather up the (value, label) pairs, starting with the first one
+                            loweredNodes.Add(testNode);
+                            var cases = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                            cases.Add((value: value.Value, label: GetDagNodeLabel(testNode.WhenTrue)));
+                            BoundTestDecisionDagNode previous = testNode;
+                            while (previous.WhenFalse is BoundTestDecisionDagNode p &&
+                                p.Test is BoundDagValueTest vd &&
+                                vd.Input.Equals(input) &&
+                                !this._dagNodeLabels.ContainsKey(p) &&
+                                !loweredNodes.Contains(p))
+                            {
+                                cases.Add((value: vd.Value, label: GetDagNodeLabel(p.WhenTrue)));
+                                loweredNodes.Add(p);
+                                previous = p;
+                            }
+
+                            var otherwise = GatherValueDispatchNodes(previous.WhenFalse, loweredNodes, input, fac);
+                            return PushEqualityTestsIntoTree(value.Syntax, otherwise, cases.ToImmutableAndFree(), fac);
+                        }
+                    default:
+                        {
+                            var label = GetDagNodeLabel(node);
+                            return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                        }
+                }
+            }
+
+            /// <summary>
+            /// Push the set of equality tests down to the level of the leaves in the value dispatch tree.
+            /// </summary>
+            private ValueDispatchNode PushEqualityTestsIntoTree(
+                SyntaxNode syntax,
+                ValueDispatchNode otherwise,
+                ImmutableArray<(ConstantValue value, LabelSymbol label)> cases,
+                IValueSetFactory fac)
+            {
+                if (cases.IsEmpty)
+                    return otherwise;
+
+                switch (otherwise)
+                {
+                    case ValueDispatchNode.LeafDispatchNode leaf:
+                        return new ValueDispatchNode.SwitchDispatch(syntax, cases, leaf.Label);
+                    case ValueDispatchNode.SwitchDispatch sd:
+                        return new ValueDispatchNode.SwitchDispatch(sd.Syntax, sd.Cases.Concat(cases), sd.Otherwise);
+                    case ValueDispatchNode.RelationalDispatch { Operator: var op, Value: var value, WhenTrue: var whenTrue, WhenFalse: var whenFalse } rel:
+                        var (whenTrueCases, whenFalseCases) = splitCases(cases, op, value);
+                        Debug.Assert(cases.Length == whenTrueCases.Length + whenFalseCases.Length);
+                        whenTrue = PushEqualityTestsIntoTree(syntax, whenTrue, whenTrueCases, fac);
+                        whenFalse = PushEqualityTestsIntoTree(syntax, whenFalse, whenFalseCases, fac);
+                        var result = rel.WithTrueAndFalseChildren(whenTrue: whenTrue, whenFalse: whenFalse);
+                        return result;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(otherwise);
+                }
+
+                (ImmutableArray<(ConstantValue value, LabelSymbol label)> whenTrueCases, ImmutableArray<(ConstantValue value, LabelSymbol label)> whenFalseCases)
+                    splitCases(ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, BinaryOperatorKind op, ConstantValue value)
+                {
+                    var whenTrueBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                    var whenFalseBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                    foreach (var pair in cases)
+                    {
+                        (fac.Related(op.Operator(), pair.value, value) ? whenTrueBuilder : whenFalseBuilder).Add(pair);
+                    }
+
+                    return (whenTrueBuilder.ToImmutableAndFree(), whenFalseBuilder.ToImmutableAndFree());
+                }
+            }
+
+            /// <summary>
+            /// A node in a tree representing the form of a generated decision tree for classifying an input value.
+            /// </summary>
+            private abstract class ValueDispatchNode
+            {
+                protected virtual int Height => 1;
+                public readonly SyntaxNode Syntax;
+
+                public ValueDispatchNode(SyntaxNode syntax) => Syntax = syntax;
+
+                /// <summary>
+                /// A node representing the dispatch by value (equality). This corresponds to a classical C switch
+                /// statement, except that it also handles values of type float, double, decimal, and string.
+                /// </summary>
+                internal class SwitchDispatch : ValueDispatchNode
+                {
+                    public readonly ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases;
+                    public readonly LabelSymbol Otherwise;
+                    public SwitchDispatch(SyntaxNode syntax, ImmutableArray<(ConstantValue value, LabelSymbol label)> dispatches, LabelSymbol otherwise) : base(syntax)
+                    {
+                        this.Cases = dispatches;
+                        this.Otherwise = otherwise;
+                    }
+                    public override string ToString() => "[" + string.Join(",", Cases.Select(c => c.value)) + "]";
+                }
+
+                /// <summary>
+                /// A node representing a final destination that requires no further dispatch.
+                /// </summary>
+                internal class LeafDispatchNode : ValueDispatchNode
+                {
+                    public readonly LabelSymbol Label;
+                    public LeafDispatchNode(SyntaxNode syntax, LabelSymbol Label) : base(syntax) => this.Label = Label;
+                    public override string ToString() => "Leaf";
+                }
+
+                /// <summary>
+                /// A node representing a dispatch based on a relational test of the input value by some constant.
+                /// Nodes of this kind are required to be height-balanced when constructed, so that when the full
+                /// decision tree is produced it generates a balanced tree of comparisons.
+                /// </summary>
+                internal class RelationalDispatch : ValueDispatchNode
+                {
+                    private int _height;
+                    protected override int Height => _height;
+                    public readonly ConstantValue Value;
+                    public readonly BinaryOperatorKind Operator;
+                    /// <summary>The side of the test handling lower values. The true side for &lt; and &lt;=, the false side for > and >=.</summary>
+                    private ValueDispatchNode Left { get; set; }
+                    /// <summary>The side of the test handling higher values. The false side for &lt; and &lt;=, the true side for > and >=.</summary>
+                    private ValueDispatchNode Right { get; set; }
+                    private RelationalDispatch(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right) : base(syntax)
+                    {
+                        this.Value = value;
+                        this.Operator = op;
+                        WithLeftAndRight(left, right);
+                    }
+                    public ValueDispatchNode WhenTrue => IsReversed(Operator) ? Right : Left;
+                    public ValueDispatchNode WhenFalse => IsReversed(Operator) ? Left : Right;
+                    public override string ToString() => $"RelationalDispatch.{Height}({Left} {Operator.Operator()} {Value} {Right})";
+                    private static bool IsReversed(BinaryOperatorKind op) => op.Operator() switch { BinaryOperatorKind.GreaterThan => true, BinaryOperatorKind.GreaterThanOrEqual => true, _ => false };
+
+                    private RelationalDispatch WithLeftAndRight(ValueDispatchNode left, ValueDispatchNode right)
+                    {
+                        // Note that this is a destructive implementation to reduce GC garbage.
+                        // That requires clients to stop using the input node once this has been called.
+
+                        int l = left.Height;
+                        int r = right.Height;
+                        Debug.Assert(Math.Abs(l - r) <= 1);
+
+                        this.Left = left;
+                        this.Right = right;
+                        _height = Math.Max(l, r) + 1;
+                        return this;
+                    }
+
+                    public RelationalDispatch WithTrueAndFalseChildren(ValueDispatchNode whenTrue, ValueDispatchNode whenFalse)
+                    {
+                        if (whenTrue == this.WhenTrue && whenFalse == this.WhenFalse)
+                            return this;
+
+                        Debug.Assert(whenTrue.Height == this.WhenTrue.Height);
+                        Debug.Assert(whenFalse.Height == this.WhenFalse.Height);
+                        var (left, right) = IsReversed(Operator.Operator()) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
+                        return WithLeftAndRight(left, right);
+                    }
+
+                    public static ValueDispatchNode CreateBalanced(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode whenTrue, ValueDispatchNode whenFalse)
+                    {
+                        // Keep the lower numbers on the left and the higher numbers on the right.
+                        var (left, right) = IsReversed(op.Operator()) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
+                        return CreateBalancedCore(syntax, value, op, left: left, right: right);
+                    }
+
+                    private static ValueDispatchNode CreateBalancedCore(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right)
+                    {
+                        // Build a height-balanced tree node that is semantically equivalent to a node with the given parameters.
+                        // See http://www.cs.ecu.edu/karl/3300/spr16/Notes/DataStructure/Tree/balance.html
+
+                        // First, build an approximately balanced left and right bottom-up.
+                        if (left.Height > (right.Height + 1))
+                        {
+                            var l = (RelationalDispatch)left;
+                            var newRight = CreateBalancedCore(syntax, value, op, left: l.Right, right: right);
+                            (syntax, value, op, left, right) = (l.Syntax, l.Value, l.Operator, l.Left, newRight);
+                        }
+                        else if (right.Height > (left.Height + 1))
+                        {
+                            var r = (RelationalDispatch)right;
+                            var newLeft = CreateBalancedCore(syntax, value, op, left: left, right: r.Left);
+                            (syntax, value, op, left, right) = (r.Syntax, r.Value, r.Operator, newLeft, r.Right);
+                        }
+
+                        // That should have brought the two sides within a height difference of two.
+                        Debug.Assert(Math.Abs(left.Height - right.Height) <= 2);
+
+                        // Now see if a final rotation is needed.
+                        #region Rebalance the top of the tree if necessary
+                        if (left.Height == right.Height + 2)
+                        {
+                            var leftDispatch = (RelationalDispatch)left;
+                            if (leftDispatch.Left.Height == right.Height)
+                            {
+                                //
+                                //       z
+                                //      / \                 y
+                                //     x   D               / \
+                                //    / \        -->      x   z
+                                //   A   y               /|   |\
+                                //      / \             A B   C D
+                                //     B   C
+                                //
+                                var x = leftDispatch;
+                                var A = x.Left;
+                                var y = (RelationalDispatch)x.Right;
+                                var B = y.Left;
+                                var C = y.Right;
+                                var D = right;
+                                return y.WithLeftAndRight(x.WithLeftAndRight(A, B), new RelationalDispatch(syntax, value, op, C, D));
+                            }
+                            else
+                            {
+                                Debug.Assert(leftDispatch.Right.Height == right.Height);
+                                //
+                                //       z
+                                //      / \                 y
+                                //     y   D               / \
+                                //    / \        -->      x   z
+                                //   x   C               /|   |\
+                                //  / \                 A B   C D
+                                // A   B
+                                //
+                                var y = leftDispatch;
+                                var x = y.Left;
+                                var C = y.Right;
+                                var D = right;
+                                return y.WithLeftAndRight(x, new RelationalDispatch(syntax, value, op, C, D));
+                            }
+                        }
+                        else if (right.Height == left.Height + 2)
+                        {
+                            var rightDispatch = (RelationalDispatch)right;
+                            if (rightDispatch.Right.Height == left.Height)
+                            {
+                                //
+                                //     x
+                                //    / \                   y
+                                //   A   z                 / \
+                                //      / \      -->      x   z
+                                //     y   D             /|   |\
+                                //    / \               A B   C D
+                                //   B   C
+                                //
+                                var A = left;
+                                var z = rightDispatch;
+                                var y = (RelationalDispatch)z.Left;
+                                var B = y.Left;
+                                var C = y.Right;
+                                var D = z.Right;
+                                return y.WithLeftAndRight(new RelationalDispatch(syntax, value, op, A, B), z.WithLeftAndRight(C, D));
+                            }
+                            else
+                            {
+                                Debug.Assert(rightDispatch.Left.Height == left.Height);
+                                //
+                                //     x
+                                //    / \                   y
+                                //   A   y                 / \
+                                //      / \      -->      x   z
+                                //     B   z             /|   |\
+                                //        / \           A B   C D
+                                //       C   D
+                                //
+                                var A = left;
+                                var y = rightDispatch;
+                                var B = y.Left;
+                                var z = y.Right;
+                                return y.WithLeftAndRight(new RelationalDispatch(syntax, value, op, A, B), z);
+                            }
+                        }
+                        #endregion Rebalance the top of the tree if necessary
+
+                        // that should have been sufficient to balance the tree.
+                        Debug.Assert(Math.Abs(left.Height - right.Height) < 2);
+                        return new RelationalDispatch(syntax, value, op, left: left, right: right);
+                    }
+                }
+            }
+
+            private void LowerValueDispatchNode(
+                ValueDispatchNode n,
+                BoundDagTemp input)
+            {
+                var inputExpression = _tempAllocator.GetTemp(input);
+                LowerValueDispatchNodeCore(n, inputExpression);
+            }
+
+            private void LowerValueDispatchNodeCore(ValueDispatchNode n, BoundExpression input)
+            {
+                switch (n)
+                {
+                    case ValueDispatchNode.LeafDispatchNode leaf:
+                        _loweredDecisionDag.Add(_factory.Goto(leaf.Label));
+                        return;
+                    case ValueDispatchNode.SwitchDispatch eq:
+                        LowerSwitchDispatchNode(eq, input);
+                        return;
+                    case ValueDispatchNode.RelationalDispatch rel:
+                        LowerRelationalDispatchNode(rel, input);
+                        return;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(n);
+                }
+            }
+
+            private void LowerRelationalDispatchNode(ValueDispatchNode.RelationalDispatch rel, BoundExpression input)
+            {
+                var test = MakeRelationalTest(rel.Syntax, input, rel.Operator, rel.Value);
+                if (rel.WhenTrue is ValueDispatchNode.LeafDispatchNode whenTrue)
+                {
+                    LabelSymbol trueLabel = whenTrue.Label;
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, trueLabel, jumpIfTrue: true));
+                    LowerValueDispatchNodeCore(rel.WhenFalse, input);
+                }
+                else if (rel.WhenFalse is ValueDispatchNode.LeafDispatchNode whenFalse)
+                {
+                    LabelSymbol falseLabel = whenFalse.Label;
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
+                    LowerValueDispatchNodeCore(rel.WhenTrue, input);
+                }
+                else
+                {
+                    LabelSymbol falseLabel = _factory.GenerateLabel("sw");
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
+                    LowerValueDispatchNodeCore(rel.WhenTrue, input);
+                    _loweredDecisionDag.Add(_factory.Label(falseLabel));
+                    LowerValueDispatchNodeCore(rel.WhenFalse, input);
+                }
+            }
+
+            /// <summary>
+            /// A comparer for sorting cases containing values of type float, double, or decimal.
+            /// </summary>
+            private sealed class CasesComparer : IComparer
+            {
+                private readonly IValueSetFactory _fac;
+                private readonly BinaryOperatorKind _lessThanOrEqualOperator;
+                public CasesComparer(SpecialType type, BinaryOperatorKind lessThanOrEqualOperator)
+                {
+                    _fac = ValueSetFactory.ForSpecialType(type);
+                    this._lessThanOrEqualOperator = lessThanOrEqualOperator.Operator();
+                }
+
+                int IComparer.Compare(object left, object right)
+                {
+                    var x = (((ConstantValue value, LabelSymbol label))left).value;
+                    var y = (((ConstantValue value, LabelSymbol label))right).value;
+                    Debug.Assert(x.Discriminator switch
+                    {
+                        ConstantValueTypeDiscriminator.Decimal => true,
+                        ConstantValueTypeDiscriminator.Single => true,
+                        ConstantValueTypeDiscriminator.Double => true,
+                        _ => false
+                    });
+                    Debug.Assert(y.Discriminator == x.Discriminator);
+                    // Sort NaN values into the "highest" position so they fall naturally into the last bucket
+                    // when partitioned using less-than.
+                    return
+                        x.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(x.DoubleValue) ? 1 :
+                        y.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(y.DoubleValue) ? -1 :
+                        _fac.Related(_lessThanOrEqualOperator, x, y) ?
+                            (_fac.Related(_lessThanOrEqualOperator, y, x) ? 0 : -1) :
+                        1;
+                }
+            }
+
+            private void LowerSwitchDispatchNode(ValueDispatchNode.SwitchDispatch node, BoundExpression input)
+            {
+                if (input.Type.IsValidV6SwitchGoverningType())
+                {
+                    // If we are emitting a hash table based string switch,
+                    // we need to generate a helper method for computing
+                    // string hash value in <PrivateImplementationDetails> class.
+                    MethodSymbol stringEquality = null;
+                    if (input.Type.SpecialType == SpecialType.System_String)
+                    {
+                        EnsureStringHashFunction(node.Cases.Length, node.Syntax);
+                        stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
+                    }
+
+                    LabelSymbol defaultLabel = node.Otherwise;
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, stringEquality);
+                    _loweredDecisionDag.Add(dispatch);
+                }
+                else
+                {
+                    // The emitter does not know how to produce a "switch" instruction for float, double, or decimal
+                    // (in part because there is no such instruction) so we fake it here by generating a decision tree.
+                    var lessThanOrEqualOperator = input.Type.SpecialType switch
+                    {
+                        SpecialType.System_Single => BinaryOperatorKind.FloatLessThanOrEqual,
+                        SpecialType.System_Double => BinaryOperatorKind.DoubleLessThanOrEqual,
+                        SpecialType.System_Decimal => BinaryOperatorKind.DecimalLessThanOrEqual,
+                        _ => throw ExceptionUtilities.UnexpectedValue(input.Type.SpecialType)
+                    };
+
+                    var cases = node.Cases.ToArray();
+                    Array.Sort(cases, new CasesComparer(input.Type.SpecialType, lessThanOrEqualOperator));
+                    lowerFloatDispatch(0, cases.Length);
+                    void lowerFloatDispatch(int firstIndex, int count)
+                    {
+                        if (count <= 3)
+                        {
+                            for (int i = firstIndex, limit = firstIndex + count; i < limit; i++)
+                            {
+                                _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeValueTest(node.Syntax, input, cases[i].value), cases[i].label, jumpIfTrue: true));
+                            }
+
+                            _loweredDecisionDag.Add(_factory.Goto(node.Otherwise));
+                        }
+                        else
+                        {
+                            int half = count / 2;
+                            var gt = _factory.GenerateLabel("gt");
+                            _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeRelationalTest(node.Syntax, input, lessThanOrEqualOperator, cases[firstIndex + half - 1].value), gt, jumpIfTrue: false));
+                            lowerFloatDispatch(firstIndex, half);
+                            _loweredDecisionDag.Add(_factory.Label(gt));
+                            lowerFloatDispatch(firstIndex + half, count - half);
+                        }
+                    }
+                }
             }
 
             /// <summary>

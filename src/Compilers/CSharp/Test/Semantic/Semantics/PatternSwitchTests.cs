@@ -1151,19 +1151,23 @@ class Program
         M(-0.0);
         M(MakeNaN(0));
         M(MakeNaN(1));
+        M(float.NaN);
     }
-    public static void M(double d)
+    public static void M(object d)
     {
         switch (d)
         {
-            case 0:
+            case 0.0:
                 Console.WriteLine(""zero"");
                 break;
             case double.NaN:
-                Console.WriteLine(""NaN"");
+                Console.WriteLine(""double.NaN"");
                 break;
-            case 1: case 2: case 3: case 4: case 5:
-            case 6: case 7: case 8: case 9: case 10:
+            case float.NaN:
+                Console.WriteLine(""float.NaN"");
+                break;
+            case 1.0: case 2.0: case 3.0: case 4.0: case 5.0:
+            case 6.0: case 7.0: case 8.0: case 9.0: case 10.0:
                 Console.WriteLine(""unexpected"");
                 break;
             default:
@@ -1181,8 +1185,9 @@ class Program
             var expectedOutput =
 @"zero
 zero
-NaN
-NaN";
+double.NaN
+double.NaN
+float.NaN";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

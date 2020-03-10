@@ -50,6 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(value.IsBoolean);
                 return Related(relation, value.BooleanValue);
             }
+
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            {
+                Debug.Assert(relation == BinaryOperatorKind.Equal);
+                return left.BooleanValue == right.BooleanValue;
+            }
         }
     }
 }
