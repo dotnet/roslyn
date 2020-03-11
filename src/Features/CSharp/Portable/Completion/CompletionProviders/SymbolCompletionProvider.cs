@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
             }
 
-            return (bool)_shouldTriggerCompletionInArgumentListsExperiment;
+            return _shouldTriggerCompletionInArgumentListsExperiment.Value;
         }
 
         private async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
