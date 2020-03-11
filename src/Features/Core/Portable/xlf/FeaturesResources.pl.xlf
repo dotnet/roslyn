@@ -458,13 +458,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Parametr „{0}” można usunąć, jeśli nie jest częścią dostarczonego publicznego interfejsu API, ponieważ jego wartość początkowa nie jest nigdy używana</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">Parametr „{0}” można usunąć, jeśli nie jest częścią dostarczonego publicznego interfejsu API, ponieważ jego wartość początkowa nie jest nigdy używana</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">Parametr „{0}” można usunąć, ponieważ jego wartość początkowa nie jest nigdy używana</target>
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="needs-review-translation">Parametr „{0}” można usunąć, ponieważ jego wartość początkowa nie jest nigdy używana</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
@@ -1876,21 +1876,6 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification.</source>
         <target state="translated">Dodaj kwalifikacje „this” lub „Me”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Napraw naruszenie nazwy: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">Naruszenie reguły nazewnictwa: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">Style nazewnictwa</target>
         <note />
       </trans-unit>
       <trans-unit id="from_0">

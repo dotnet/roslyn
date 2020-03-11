@@ -7237,6 +7237,52 @@ class B : A<int
             EOF();
         }
 
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot1()
+        {
+            var text = @"namespace a..b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList2()
         {
@@ -7304,6 +7350,148 @@ class B<X, Y> : A<int
                             {
                                 N(SyntaxKind.IdentifierToken, "Y");
                             }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot2()
+        {
+            var text = @"namespace a
+                    ..b { }";
+
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot3()
+        {
+            var text = @"namespace a..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot4()
+        {
+            var text = @"namespace a
+                    ..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                     }
                     N(SyntaxKind.OpenBraceToken);

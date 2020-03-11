@@ -867,16 +867,6 @@ Do you want to continue?</value>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
-  </data>
-  <data name="Naming_rule_violation_0" xml:space="preserve">
-    <value>Naming rule violation: {0}</value>
-    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
-  </data>
-  <data name="Naming_Styles" xml:space="preserve">
-    <value>Naming Styles</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -1551,10 +1541,10 @@ This version used in: {2}</value>
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
   </data>
   <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</value>
   </data>
   <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed; its initial value is never used</value>
   </data>
   <data name="Merge_with_nested_0_statement" xml:space="preserve">
     <value>Merge with nested '{0}' statement</value>

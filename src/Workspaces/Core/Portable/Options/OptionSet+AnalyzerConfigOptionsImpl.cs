@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _language = language;
             }
 
-            public override bool TryGetValue(string key, out string? value)
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 if (!_optionService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
