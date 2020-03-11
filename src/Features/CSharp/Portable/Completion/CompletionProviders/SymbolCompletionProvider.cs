@@ -153,12 +153,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindToken(characterPosition);
-            if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
+
+            if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
-                return true;
+                return false;
             }
 
-            return false;
+            // Only allow spaces between the end of the token and the trigger character
+            for (var i = token.Span.End; i < characterPosition; i++)
+            {
+                if (text[i] != ' ')
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
