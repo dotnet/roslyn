@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.info!.Value).ToList();
 
             await _endPoint.InvokeAsync(
-                nameof(INewDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync),
+                nameof(IDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync),
                 new object[] { changedInfos },
                 cancellationToken).ConfigureAwait(false);
 
