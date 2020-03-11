@@ -3,7 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     internal enum AccessibilityModifiersRequired
     {

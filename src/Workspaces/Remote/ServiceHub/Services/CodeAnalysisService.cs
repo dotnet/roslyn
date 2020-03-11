@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            // TODO: currently we only use the cache for information that doesn't involve references or packages.
-            // Once we move all analysis OOP we will create the full cache.
-            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
+            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
             StartService();
         }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -17,8 +18,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ExternAliasCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SnippetCompletionProvider))]
+    [Shared]
     internal class ExternAliasCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public ExternAliasCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);

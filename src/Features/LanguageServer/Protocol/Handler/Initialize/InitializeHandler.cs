@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
+        [ImportingConstructor]
+        public InitializeHandler()
+        {
+        }
+
         public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var csharpCompletionService = solution.Workspace.Services.GetRequiredLanguageService<Completion.CompletionService>(LanguageNames.CSharp);
@@ -28,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Capabilities = new ServerCapabilities
                 {
                     DefinitionProvider = true,
+                    RenameProvider = true,
                     ImplementationProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = triggerCharacters },
                     SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
