@@ -1776,6 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // None is a primary tree, just compare ordinals for the trees involved
+                    // PROTOTYPE(SimplePrograms): It feels like we are going to have a problem with this for a speculative code.
                     return Compilation.CompareSyntaxTreeOrdering(node.SyntaxTree, localSymbolLocation.SourceTree) < 0;
                 }
 
