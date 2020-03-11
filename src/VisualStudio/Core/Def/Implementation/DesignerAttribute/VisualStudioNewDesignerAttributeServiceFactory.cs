@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
         private readonly object _gate = new object();
-        private readonly List<RemoteDesignerAttributeArgument> _updateArguments = new List<RemoteDesignerAttributeArgument>();
+        private readonly List<DesignerInfo> _updatedInfos = new List<DesignerInfo>();
         private Task _updateTask = Task.CompletedTask;
         private bool _taskInFlight = false;
 
@@ -156,12 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         Task INewDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync(
-            IList<RemoteDesignerAttributeArgument> arguments, CancellationToken cancellationToken)
+            IList<DesignerInfo> attributeInfos, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 // add our work to the set we'll process in the next batch.
-                _updateArguments.AddRange(arguments);
+                _updatedInfos.AddRange(attributeInfos);
 
                 if (!_taskInFlight)
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<RemoteDesignerAttributeArgument>.GetInstance(out var designerArguments);
+            using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var attributeInfos);
             using var _2 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
             lock (_gate)
@@ -195,16 +195,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // time.  This ensures that if we're batching up multiple notifications for the same
                 // document, that we only bother processing the last one since it should beat out
                 // all the prior ones.
-                for (var i = _updateArguments.Count - 1; i >= 0; i--)
+                for (var i = _updatedInfos.Count - 1; i >= 0; i--)
                 {
-                    var designerArg = _updateArguments[i];
+                    var designerArg = _updatedInfos[i];
                     if (seenDocumentIds.Add(designerArg.DocumentId))
-                        designerArguments.Add(designerArg);
+                        attributeInfos.Add(designerArg);
                 }
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
-                _updateArguments.Clear();
+                _updatedInfos.Clear();
                 _taskInFlight = false;
             }
 
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Now, group all the notifications by project and update all the projects in parallel.
             using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in _updateArguments.GroupBy(a => a.DocumentId.ProjectId))
+            foreach (var group in attributeInfos.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(NotifyProjectSystemAsync(currentSolution, group.Key, group, cancellationToken));
@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private async Task NotifyProjectSystemAsync(
             Solution solution,
             ProjectId projectId,
-            IEnumerable<RemoteDesignerAttributeArgument> arguments,
+            IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
             // Make sure this is a project that our current solution still knows about.
@@ -240,15 +240,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(project, cancellationToken).ConfigureAwait(false);
             var task = cpsUpdateService != null
-                ? NotifyCpsProjectSystemAsync(project, cpsUpdateService, arguments, cancellationToken)
-                : NotifyLegacyProjectSystemAsync(project, arguments, cancellationToken);
+                ? NotifyCpsProjectSystemAsync(project, cpsUpdateService, attributeInfos, cancellationToken)
+                : NotifyLegacyProjectSystemAsync(project, attributeInfos, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
 
         private Task NotifyLegacyProjectSystemAsync(
             Project project,
-            IEnumerable<RemoteDesignerAttributeArgument> arguments,
+            IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
             // Move over to the UI thread and attempt to notify it about all the documents from this
@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
                 try
                 {
-                    NotifyLegacyProjectSystemOnUIThread(project, arguments, cancellationToken);
+                    NotifyLegacyProjectSystemOnUIThread(project, attributeInfos, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private void NotifyLegacyProjectSystemOnUIThread(
             Project project,
-            IEnumerable<RemoteDesignerAttributeArgument> arguments,
+            IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
@@ -294,11 +294,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (hierarchy == null)
                 return;
 
-            foreach (var designerArg in arguments)
+            foreach (var info in attributeInfos)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 NotifyLegacyProjectSystemOnUIThread(
-                    project, designerService, hierarchy, designerArg);
+                    project, designerService, hierarchy, info);
             }
         }
 
@@ -306,11 +306,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Project project,
             IVSMDDesignerService designerService,
             IVsHierarchy hierarchy,
-            RemoteDesignerAttributeArgument designerArg)
+            DesignerInfo info)
         {
             // Make sure this is a document we still know about when OOP notifies us.
 
-            var document = project.GetDocument(designerArg.DocumentId);
+            var document = project.GetDocument(info.DocumentId);
             if (document == null)
                 return;
 
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
             {
                 var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
-                if (string.Equals(currentStringValue, designerArg.Argument, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(currentStringValue, info.Category, StringComparison.OrdinalIgnoreCase))
                     return;
             }
 
@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             {
                 designerService.RegisterDesignViewAttribute(
                     hierarchy, (int)itemId, dwClass: 0,
-                    pwszAttributeValue: designerArg.Argument);
+                    pwszAttributeValue: info.Category);
             }
             catch
             {
@@ -357,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private async Task NotifyCpsProjectSystemAsync(
             Project project,
             IProjectItemDesignerTypeUpdateService updateService,
-            IEnumerable<RemoteDesignerAttributeArgument> arguments,
+            IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -366,10 +366,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-            foreach (var arg in arguments)
+            foreach (var info in attributeInfos)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(project, updateService, arg, cancellationToken));
+                tasks.Add(NotifyCpsProjectSystemAsync(project, updateService, info, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -378,19 +378,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private async Task NotifyCpsProjectSystemAsync(
             Project project,
             IProjectItemDesignerTypeUpdateService updateService,
-            RemoteDesignerAttributeArgument argument,
+            DesignerInfo info,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Make sure we still know about this document that the OOP service is notifying us about.
-            var document = project.GetDocument(argument.DocumentId);
+            var document = project.GetDocument(info.DocumentId);
             if (document == null)
                 return;
 
             try
             {
-                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, argument.Argument).ConfigureAwait(false);
+                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, info.Category).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {

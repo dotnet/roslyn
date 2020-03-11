@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    [ExportIncrementalAnalyzerProvider(Name, new[] { WorkspaceKind.Host }), Shared]
+    // [ExportIncrementalAnalyzerProvider(Name, new[] { WorkspaceKind.Host }), Shared]
     internal class DesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         public const string Name = nameof(DesignerAttributeIncrementalAnalyzerProvider);
