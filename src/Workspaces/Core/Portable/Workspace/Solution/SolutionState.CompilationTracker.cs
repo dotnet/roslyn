@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        inProgressCompilation = await intermediateProjects[0].action.InvokeAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                        inProgressCompilation = await intermediateProjects[0].action.TransformCompilationAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(State.Create(inProgressCompilation, intermediateProjects), solution);

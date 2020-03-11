@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     {
         private abstract partial class CompilationTranslationAction
         {
-            public abstract Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken);
+            public abstract Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
                     _newState = newState;
                 }
 
-                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                     _documents = documents;
                 }
 
-                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     var syntaxTrees = new List<SyntaxTree>(_documents.Length);
                     foreach (var document in _documents)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
                     _documents = documents;
                 }
 
-                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     var syntaxTrees = new List<SyntaxTree>(capacity: _documents.Length);
                     foreach (var document in _documents)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                     _state = state;
                 }
 
-                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentIds.Count);
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                     _options = options;
                 }
 
-                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     return Task.FromResult(oldCompilation.WithOptions(_options));
                 }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
                     _assemblyName = assemblyName;
                 }
 
-                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     return Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
                 }
