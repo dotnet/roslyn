@@ -35,14 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _storage = storageService.GetStorage(workspace.CurrentSolution);
         }
 
-        //public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        //{
-        //    // Clear out the stream associated with the doc.  The next read will not be able to
-        //    // parse this into RemoteDesignerAttributeInfo and will cause us to recompute the
-        //    // information for this doc.
-        //    await _storage.WriteStreamAsync(document, DataKey, new MemoryStream(), cancellationToken).ConfigureAwait(false);
-        //}
-
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDoc: null, cancellationToken);
 
