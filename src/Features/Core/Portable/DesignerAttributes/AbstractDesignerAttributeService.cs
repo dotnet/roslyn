@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             _workspace = workspace;
         }
 
-        protected abstract bool ProcessOnlyFirstTypeDefined();
-        protected abstract IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode root);
+        protected abstract SyntaxNode GetFirstTopLevelClass(SyntaxNode root);
         protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
 
         public async Task<DesignerAttributeResult> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken)
@@ -65,73 +64,49 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
-            // Delay getting any of these until we need them, but hold on to them once we have them.
-            Compilation compilation = null;
-            INamedTypeSymbol designerAttribute = null;
-            SemanticModel model = null;
-
-            string designerAttributeArgument = null;
             var documentHasError = false;
 
             // get type defined in current tree
-            foreach (var typeNode in GetAllTopLevelTypeDefined(root))
+            var typeNode = this.GetFirstTopLevelClass(root);
+            if (HasAttributesOrBaseTypeOrIsPartial(typeNode))
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                if (HasAttributesOrBaseTypeOrIsPartial(typeNode))
+                var designerAttribute = compilation.DesignerCategoryAttributeType();
+                if (designerAttribute == null)
                 {
-                    if (designerAttribute == null)
-                    {
-                        compilation ??= await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    // The DesignerCategoryAttribute doesn't exist. either not applicable or
+                    // no idea on design attribute status, just leave things as it is.
+                    return new DesignerAttributeResult(
+                        designerAttributeArgument: null, containsErrors: false, applicable: false);
+                }
 
-                        designerAttribute = compilation.DesignerCategoryAttributeType();
-                        if (designerAttribute == null)
-                        {
-                            // The DesignerCategoryAttribute doesn't exist. either not applicable or
-                            // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: false);
-                        }
-                    }
+                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                var definedType = (INamedTypeSymbol)model.GetDeclaredSymbol(typeNode, cancellationToken);
 
-                    if (model == null)
+                // walk up type chain
+                foreach (var type in definedType.GetBaseTypesAndThis())
+                {
+                    if (type.IsErrorType())
                     {
-                        model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    }
-
-                    if (!(model.GetDeclaredSymbol(typeNode, cancellationToken) is INamedTypeSymbol definedType))
-                    {
+                        documentHasError = true;
                         continue;
                     }
 
-                    // walk up type chain
-                    foreach (var type in definedType.GetBaseTypesAndThis())
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // if it has designer attribute, set it
+                    var attribute = type.GetAttributes().Where(d => designerAttribute.Equals(d.AttributeClass)).FirstOrDefault();
+                    if (attribute != null && attribute.ConstructorArguments.Length == 1)
                     {
-                        if (type.IsErrorType())
-                        {
-                            documentHasError = true;
-                            continue;
-                        }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // if it has designer attribute, set it
-                        var attribute = type.GetAttributes().Where(d => designerAttribute.Equals(d.AttributeClass)).FirstOrDefault();
-                        if (attribute != null && attribute.ConstructorArguments.Length == 1)
-                        {
-                            designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
-                        }
+                        var designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
+                        return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
                     }
-                }
-
-                // check only first type
-                if (ProcessOnlyFirstTypeDefined())
-                {
-                    break;
                 }
             }
 
-            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
+            return new DesignerAttributeResult(
+                designerAttributeArgument: null, documentHasError, applicable: true);
         }
 
         private static string GetArgumentString(TypedConstant argument)

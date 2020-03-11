@@ -54,11 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        protected override bool ProcessOnlyFirstTypeDefined()
-        {
-            return true;
-        }
-
         protected override bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode)
         {
             if (typeNode is ClassDeclarationSyntax classNode)

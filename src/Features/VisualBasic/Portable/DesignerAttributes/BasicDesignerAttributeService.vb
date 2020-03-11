@@ -53,10 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DesignerAttributes
             Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
         End Function
 
-        Protected Overrides Function ProcessOnlyFirstTypeDefined() As Boolean
-            Return True
-        End Function
-
         Protected Overrides Function HasAttributesOrBaseTypeOrIsPartial(typeNode As SyntaxNode) As Boolean
             Dim type = TryCast(typeNode, ClassBlockSyntax)
             If type IsNot Nothing Then
