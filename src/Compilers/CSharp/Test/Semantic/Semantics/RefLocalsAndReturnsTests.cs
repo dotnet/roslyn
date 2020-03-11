@@ -313,6 +313,60 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
 
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReturnLocalFunction()
+        {
+            var source = @"
+class C {
+    static void M(){
+        ref int M1(in int i) => ref i;
+        ref int M2(in int i) { return ref i; }
+        ref readonly int M3(in int i) => ref i;
+        ref readonly int M4(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,17): warning CS8321: The local function 'M1' is declared but never used
+                    //         ref int M1(in int i) => ref i;
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M1").WithArguments("M1").WithLocation(4, 17),
+                    // (4,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                    //         ref int M1(in int i) => ref i;
+                    Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(4, 37),
+                    // (5,17): warning CS8321: The local function 'M2' is declared but never used
+                    //         ref int M2(in int i) { return ref i; }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M2").WithArguments("M2").WithLocation(5, 17),
+                    // (5,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                    //         ref int M2(in int i) { return ref i; }
+                    Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 43),
+                    // (6,26): warning CS8321: The local function 'M3' is declared but never used
+                    //         ref readonly int M3(in int i) => ref i;
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M3").WithArguments("M3").WithLocation(6, 26),
+                    // (7,26): warning CS8321: The local function 'M4' is declared but never used
+                    //         ref readonly int M4(in int i) { return ref i; }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M4").WithArguments("M4").WithLocation(7, 26)
+);
+        }
+
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReadonlyReturnLocalFunction()
+        {
+            var source = @"
+class C {
+    ref int M(){
+        throw new System.Exception();
+        ref readonly int M1(in int i) => ref i;
+        ref readonly int M2(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (5,26): warning CS8321: The local function 'M1' is declared but never used
+                    //         ref readonly int M1(in int i) => ref i;
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M1").WithArguments("M1").WithLocation(5, 26),
+                    // (6,26): warning CS8321: The local function 'M2' is declared but never used
+                    //         ref readonly int M2(in int i) { return ref i; }
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M2").WithArguments("M2").WithLocation(6, 26));
+        }
+
         [Fact]
         public void ReadonlyFieldRefReassign()
         {

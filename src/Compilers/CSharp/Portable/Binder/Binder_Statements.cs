@@ -3163,9 +3163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
-            RefKind refKind = RefKind.None;
-            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
-            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
+            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out var refKind);
+            BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
             expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
 
