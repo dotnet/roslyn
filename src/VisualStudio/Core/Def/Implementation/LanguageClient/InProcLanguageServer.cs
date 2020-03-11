@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private async Task PublishDiagnosticsAsync(Document document)
+        protected virtual async Task PublishDiagnosticsAsync(Document document)
         {
             var diagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
             var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
