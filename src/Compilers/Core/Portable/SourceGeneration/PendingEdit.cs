@@ -13,14 +13,17 @@ using System.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
+    public delegate bool EditCallback<T>(EditContext context, T edit) where T : PendingEdit;
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
     public abstract class PendingEdit
     {
         internal abstract GeneratorDriverState Commit(GeneratorDriverState state);
 
-        internal abstract bool AcceptedBy(ISourceGenerator generator);
+        internal abstract bool AcceptedBy(GeneratorInfo info);
 
-        internal abstract bool TryApply(ISourceGenerator generator, UpdateContext context);
+        internal abstract bool TryApply(GeneratorInfo info, EditContext context);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
@@ -40,8 +43,8 @@ namespace Microsoft.CodeAnalysis
 
         internal override GeneratorDriverState Commit(GeneratorDriverState state) => state.With(additionalTexts: state.AdditionalTexts.Add(this.AddedText));
 
-        internal override bool AcceptedBy(ISourceGenerator generator) => generator is ITriggeredByAdditionalFileGenerator;
+        internal override bool AcceptedBy(GeneratorInfo info) => info.EditCallback is object;
 
-        internal override bool TryApply(ISourceGenerator generator, UpdateContext context) => ((ITriggeredByAdditionalFileGenerator)generator).UpdateContext(context, this);
+        internal override bool TryApply(GeneratorInfo info, EditContext context) => info.EditCallback!.Invoke(context, this);
     }
 }

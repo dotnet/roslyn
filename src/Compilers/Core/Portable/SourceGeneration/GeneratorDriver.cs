@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(compilation, parseOptions, generators, additionalTexts, ImmutableArray<PendingEdit>.Empty, ImmutableDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.Empty, finalCompilation: null, editsFailed: true);
+            _state = new GeneratorDriverState(compilation, parseOptions, generators, additionalTexts, ImmutableDictionary<ISourceGenerator, GeneratorState>.Empty, ImmutableArray<PendingEdit>.Empty, finalCompilation: null, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
@@ -63,25 +63,31 @@ namespace Microsoft.CodeAnalysis
 
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
-            var sourcesBuilder = PooledDictionary<ISourceGenerator, ImmutableArray<GeneratedSourceText>>.GetInstance();
+            var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
 
             //PROTOTYPE: should be possible to parallelize this
             foreach (var generator in state.Generators)
             {
                 try
                 {
+                    // initialize the generator if needed
+                    GeneratorState generatorState;
+                    if (!state.GeneratorStates.TryGetValue(generator, out generatorState))
+                    {
+                        generatorState = InitializeGenerator(generator, cancellationToken);
+                    }
+
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty));
-
                     generator.Execute(context);
-                    sourcesBuilder.Add(generator, context.AdditionalSources.ToImmutableAndFree());
+                    stateBuilder.Add(generator, generatorState.WithSources(context.AdditionalSources.ToImmutableAndFree()));
                 }
                 catch
                 {
                     //PROTOTYPE: we should issue a diagnostic that the generator failed
                 }
             }
-            state = state.With(sources: sourcesBuilder.ToImmutableDictionaryAndFree());
+            state = state.With(generatorStates: stateBuilder.ToImmutableDictionaryAndFree());
 
             // build the final state, and return 
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
@@ -117,17 +123,18 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.AddRange(generators));
+            // set editsFailed true, as we won't be able to apply edits with a new generator
+            var newState = _state.With(generators: _state.Generators.AddRange(generators), editsFailed: true);
             return FromState(newState);
         }
 
         public GeneratorDriver RemoveGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.RemoveRange(generators));
+            var newState = _state.With(generators: _state.Generators.RemoveRange(generators), generatorStates: _state.GeneratorStates.RemoveRange(generators));
             return FromState(newState);
         }
 
-        public GeneratorDriver WithAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
+        public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts));
             return FromState(newState);
@@ -145,13 +152,14 @@ namespace Microsoft.CodeAnalysis
             var initialState = state;
 
             // see if any generators accept this particular edit
-            foreach (var generator in state.Generators)
+            var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
+            foreach (var (generator, generatorState) in state.GeneratorStates)
             {
-                if (edit.AcceptedBy(generator))
+                if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
-                    var context = new UpdateContext(state.Sources[generator], cancellationToken);
-                    var succeeded = edit.TryApply(generator, context);
+                    var context = new EditContext(generatorState.Sources, cancellationToken);
+                    var succeeded = edit.TryApply(generatorState.Info, context);
                     if (!succeeded)
                     {
                         // we couldn't successfully apply this edit
@@ -160,7 +168,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(sources: state.Sources.SetItem(generator, context.AdditionalSources.ToImmutableAndFree()));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(context.AdditionalSources.ToImmutableAndFree())));
                 }
             }
 
@@ -174,20 +182,35 @@ namespace Microsoft.CodeAnalysis
                 return state;
             }
 
-            var newState = state;
-            foreach (var edit in newState.Edits)
+            foreach (var edit in state.Edits)
             {
-                newState = edit.Commit(newState);
+                state = edit.Commit(state);
             }
-            return newState.With(edits: ImmutableArray<PendingEdit>.Empty, editsFailed: false);
+            return state.With(edits: ImmutableArray<PendingEdit>.Empty, editsFailed: false);
+        }
+
+        private static GeneratorState InitializeGenerator(ISourceGenerator generator, CancellationToken cancellationToken)
+        {
+            GeneratorInfo info = default;
+            try
+            {
+                InitializationContext context = new InitializationContext(cancellationToken);
+                generator.Initialize(context);
+                info = context.InfoBuilder.ToImmutable();
+            }
+            catch
+            {
+                // PROTOTYPE: we should issue a diagnostic when generator intialization fails
+            }
+            return new GeneratorState(info);
         }
 
         private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
         {
             var finalCompilation = compilation;
-            foreach (var (_, sourcesAdded) in state.Sources)
+            foreach (var (_, generatorState) in state.GeneratorStates)
             {
-                foreach (var sourceText in sourcesAdded)
+                foreach (var sourceText in generatorState.Sources)
                 {
                     try
                     {

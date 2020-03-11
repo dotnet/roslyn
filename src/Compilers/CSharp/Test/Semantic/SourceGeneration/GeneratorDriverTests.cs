@@ -40,7 +40,74 @@ class C { }
 
             Assert.Single(outputCompilation.SyntaxTrees);
             Assert.Equal(compilation, outputCompilation);
+        }
 
+        [Fact]
+        public void Generator_Is_Intialized_Before_Running()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation);
+
+            Assert.Equal(1, initCount);
+            Assert.Equal(1, executeCount);
+        }
+
+        [Fact]
+        public void Generator_Is_Not_Initialized_If_Not_Run()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+
+            Assert.Equal(0, initCount);
+            Assert.Equal(0, executeCount);
+        }
+
+        [Fact]
+        public void Generator_Is_Only_Initialized_Once()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+            var generator2 = new SingleFileTestGenerator("public class C { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(outputCompilation, out outputCompilation);
+            driver.RunFullGeneration(outputCompilation, out outputCompilation);
+
+            Assert.Equal(1, initCount);
+            Assert.Equal(3, executeCount);
         }
 
         [Fact]
@@ -353,9 +420,29 @@ class C { }
         {
             context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
+
+        public void Initialize(InitializationContext context)
+        {
+        }
     }
 
-    internal class AdditionalFileAddedGenerator : ISourceGenerator, ITriggeredByAdditionalFileGenerator
+    internal class CallbackGenerator : ISourceGenerator
+    {
+        private readonly Action<InitializationContext> _onInit;
+        private readonly Action<SourceGeneratorContext> _onExecute;
+
+        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute)
+        {
+            _onInit = onInit;
+            _onExecute = onExecute;
+        }
+
+        public void Execute(SourceGeneratorContext context) => _onExecute(context);
+
+        public void Initialize(InitializationContext context) => _onInit(context);
+    }
+
+    internal class AdditionalFileAddedGenerator : ISourceGenerator
     {
         public bool CanApplyChanges { get; set; } = true;
 
@@ -367,7 +454,12 @@ class C { }
             }
         }
 
-        public bool UpdateContext(UpdateContext context, AdditionalFileEdit edit)
+        public void Initialize(InitializationContext context)
+        {
+            context.RegisterForAdditionalFileChanges(UpdateContext);
+        }
+
+        bool UpdateContext(EditContext context, AdditionalFileEdit edit)
         {
             if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
             {
@@ -377,7 +469,7 @@ class C { }
             return false;
         }
 
-        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(GetGeneratedFileName(file.Path)), SourceText.From("", Encoding.UTF8));
+        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
         private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
     }

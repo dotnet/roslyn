@@ -345,7 +345,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AdditionalGenerator", typeNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
@@ -377,6 +377,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public class TestGenerator : ISourceGenerator
         {
             public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+            public void Initialize(InitializationContext context) => throw new NotImplementedException();
         }
 
         public class SomeType
@@ -392,6 +393,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             public class NestedGenerator : ISourceGenerator
             {
                 public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+                public void Initialize(InitializationContext context) => throw new NotImplementedException();
             }
         }
     }
@@ -441,25 +443,26 @@ public class TestAnalyzer : DiagnosticAnalyzer
     public class TestGenerator : ISourceGenerator
     {
         public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
     }
 
     public class TestGeneratorNoAttrib : ISourceGenerator
     {
         public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
-    public class AdditionalGenerator : ITriggeredByAdditionalFileGenerator
+    public class BaseGenerator : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-
-        public virtual bool UpdateContext(UpdateContext context, AdditionalFileEdit edit) => throw new NotImplementedException();
+        public virtual void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
-    public class SubClassedGenerator : AdditionalGenerator
+    public class SubClassedGenerator : BaseGenerator
     {
-        public override bool UpdateContext(UpdateContext context, AdditionalFileEdit edit) => base.UpdateContext(context, edit);
+        public override void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
     }
 
     [Generator]
