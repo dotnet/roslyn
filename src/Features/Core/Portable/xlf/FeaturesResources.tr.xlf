@@ -2100,11 +2100,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Nesne başlatma basitleştirilebilir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">'throw' ifadesi kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">proje {0}</target>
@@ -2238,11 +2233,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Değişken bildirimi satır içine alınabilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Null denetimi kolaylaştırılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
