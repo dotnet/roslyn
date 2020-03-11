@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                     case SymbolKind.Property:
-                        if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                        if (getSlotForFieldOrProperty(member) is int memberSlot &&
                             memberSlot > 0)
                         {
                             var parameterState = state[memberSlot];
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = method.ContainingType;
                 foreach (var member in type.GetMembers(memberName))
                 {
-                    if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                    if (getSlotForFieldOrProperty(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         this.State[memberSlot] = NullableFlowState.MaybeNull;
@@ -671,27 +671,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+
+            int getSlotForFieldOrProperty(Symbol field)
+            {
+                int thisSlot = -1;
+                bool isStatic = field.IsStatic;
+
+                if (!isStatic)
+                {
+                    thisSlot = GetOrCreateSlot(MethodThisParameter);
+                    if (thisSlot < 0)
+                    {
+                        return -1;
+                    }
+                    Debug.Assert(thisSlot > 0);
+                }
+
+                return GetOrCreateSlot(field, isStatic ? 0 : thisSlot);
+            }
         }
 
 #nullable enable
-
-        private int GetSlotForFieldOrProperty(Symbol field)
-        {
-            int thisSlot = -1;
-            bool isStatic = field.IsStatic;
-
-            if (!isStatic)
-            {
-                thisSlot = GetOrCreateSlot(MethodThisParameter);
-                if (thisSlot < 0)
-                {
-                    return -1;
-                }
-                Debug.Assert(thisSlot > 0);
-            }
-
-            return GetOrCreateSlot(field, isStatic ? 0 : thisSlot);
-        }
 
         private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
@@ -3905,10 +3905,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
-            if (method.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference)
-            {
-                ApplyMemberPostConditions(method);
-            }
+            // TODO2
+            ApplyMemberPostConditions(node.ReceiverOpt, method);
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 
@@ -4377,9 +4375,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (method, results, shouldReturnNotNull);
         }
 
-        private void ApplyMemberPostConditions(MethodSymbol method)
+        private void ApplyMemberPostConditions(BoundExpression receiverOpt, MethodSymbol method)
         {
             if (method is null)
+            {
+                return;
+            }
+
+            int receiverSlot =
+                method.IsStatic ? 0 :
+                receiverOpt is null ? -1 :
+                MakeSlot(receiverOpt);
+
+            if (receiverSlot < 0)
             {
                 return;
             }
@@ -4396,26 +4404,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // TODO2 apply in conditional state too?
                     if (IsConditionalState)
                     {
-                        applyMemberPostConditions(type, notNullMembers, ref StateWhenTrue);
-                        applyMemberPostConditions(type, notNullMembers, ref StateWhenFalse);
+                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
+                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
                     }
                     else
                     {
-                        applyMemberPostConditions(type, notNullMembers, ref State);
+                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
                     }
                 }
                 else
                 {
                     Split();
-                    applyMemberPostConditions(type, notNullWhenTrueMembers, ref StateWhenTrue);
-                    applyMemberPostConditions(type, notNullWhenFalseMembers, ref StateWhenFalse);
+                    applyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref StateWhenTrue);
+                    applyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref StateWhenFalse);
                 }
 
                 method = method.OverriddenMethod;
             }
             while (method != null);
 
-            void applyMemberPostConditions(TypeSymbol type, ImmutableArray<string> members, ref LocalState state)
+            void applyMemberPostConditions(int receiverSlot, TypeSymbol type, ImmutableArray<string> members, ref LocalState state)
             {
                 if (members.IsEmpty)
                 {
@@ -4424,11 +4432,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var memberName in members)
                 {
-                    markMembersAsNotNull(type, memberName, ref state);
+                    markMembersAsNotNull(receiverSlot, type, memberName, ref state);
                 }
             }
 
-            void markMembersAsNotNull(TypeSymbol type, string memberName, ref LocalState state)
+            void markMembersAsNotNull(int receiverSlot, TypeSymbol type, string memberName, ref LocalState state)
             {
                 foreach (Symbol member in type.GetMembers(memberName))
                 {
@@ -4436,8 +4444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case SymbolKind.Field:
                         case SymbolKind.Property:
-
-                            if (GetSlotForFieldOrProperty(member) is int memberSlot &&
+                            if (GetOrCreateSlot(member, receiverSlot) is int memberSlot &&
                                 memberSlot > 0)
                             {
                                 state[memberSlot] = NullableFlowState.NotNull;
@@ -7475,16 +7482,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
 
-            if (!IsAnalyzingAttribute &&
-                (property.IsStatic || node.ReceiverOpt is BoundThisReference || node.ReceiverOpt is BoundBaseReference))
+            // TODO2
+            if (!IsAnalyzingAttribute)
             {
                 if (_expressionIsRead)
                 {
-                    ApplyMemberPostConditions(property.GetMethod);
+                    ApplyMemberPostConditions(node.ReceiverOpt, property.GetMethod);
                 }
                 else
                 {
-                    ApplyMemberPostConditions(property.SetMethod);
+                    ApplyMemberPostConditions(node.ReceiverOpt, property.SetMethod);
                 }
             }
 
