@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 {
@@ -33,10 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
         }
 
         protected override ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxNode root)
-        {
-            var compilationUnit = (CompilationUnitSyntax)root;
-            return GetFirstTopLevelClass(compilationUnit.Members);
-        }
+            => GetFirstTopLevelClass(((CompilationUnitSyntax)root).Members);
 
         private ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxList<MemberDeclarationSyntax> members)
         {
