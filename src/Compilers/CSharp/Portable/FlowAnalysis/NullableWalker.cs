@@ -498,16 +498,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (pendingReturn.IsConditionalState)
                 {
-                    if (!IsConstantFalse(expr))
-                    {
-                        // don't check MemberNotWhenTrue state on a 'return false;'
-                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
-                    }
-                    if (!IsConstantTrue(expr))
-                    {
-                        // don't check MemberNotWhenFalse state on a 'return true;'
-                        enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
-                    }
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: true, pendingReturn.StateWhenTrue);
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: false, pendingReturn.StateWhenFalse);
                 }
                 else
                 {
@@ -518,6 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void enforceMemberNotNullWhen(SyntaxNode syntaxOpt, bool sense, LocalState state)
             {
+                if (!state.Reachable)
+                {
+                    return;
+                }
+
                 if (_symbol is MethodSymbol method)
                 {
                     var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
@@ -604,16 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (pendingReturn.IsConditionalState)
                     {
-                        if (!IsConstantFalse(expr))
-                        {
-                            // don't check WhenTrue state on a 'return false;'
-                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
-                        }
-                        if (!IsConstantTrue(expr))
-                        {
-                            // don't check WhenFalse state on a 'return true;'
-                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                        }
+                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: true, stateWhen: pendingReturn.StateWhenTrue);
+                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: false, stateWhen: pendingReturn.StateWhenFalse);
                     }
                     else
                     {
@@ -625,6 +614,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
             {
+                if (!stateWhen.Reachable)
+                {
+                    return;
+                }
+
                 foreach (var parameter in parameters)
                 {
                     if (parameterHasBadState(parameter, sense, stateWhen))
@@ -3905,7 +3899,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
-            // TODO2
             ApplyMemberPostConditions(node.ReceiverOpt, method);
 
             LearnFromEqualsMethod(method, node, receiverType, results);
@@ -4399,20 +4392,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var notNullWhenTrueMembers = method.NotNullWhenTrueMembers;
                 var notNullWhenFalseMembers = method.NotNullWhenFalseMembers;
 
-                if (notNullWhenTrueMembers.IsEmpty && notNullWhenFalseMembers.IsEmpty)
+                if (IsConditionalState)
                 {
-                    // TODO2 apply in conditional state too?
-                    if (IsConditionalState)
-                    {
-                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
-                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
-                    }
-                    else
-                    {
-                        applyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
-                    }
+                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenTrue);
+                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref StateWhenFalse);
                 }
                 else
+                {
+                    applyMemberPostConditions(receiverSlot, type, notNullMembers, ref State);
+                }
+
+                if (!notNullWhenTrueMembers.IsEmpty || !notNullWhenFalseMembers.IsEmpty)
                 {
                     Split();
                     applyMemberPostConditions(receiverSlot, type, notNullWhenTrueMembers, ref StateWhenTrue);
@@ -7482,7 +7472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
 
-            // TODO2
             if (!IsAnalyzingAttribute)
             {
                 if (_expressionIsRead)
