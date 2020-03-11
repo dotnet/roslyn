@@ -136,10 +136,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
                 if (!_taskInFlight)
                 {
-                    // No in-flight task.  Kick one off to process these messages a couple of
-                    // seconds from now.  We always attach the task to the previous one so that
-                    // notifications to the ui follow the same order as the notification the OOP
-                    // server sent to us.
+                    // No in-flight task.  Kick one off to process these messages a second from now.
+                    // We always attach the task to the previous one so that notifications to the ui
+                    // follow the same order as the notification the OOP server sent to us.
                     _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                         _ => NotifyProjectSystemAsync(cancellationToken),
                         cancellationToken,
