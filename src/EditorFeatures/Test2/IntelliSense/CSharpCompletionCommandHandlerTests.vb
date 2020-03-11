@@ -66,7 +66,7 @@ namespace N$$.P
                 Await state.AssertSelectedCompletionItem(displayText:="O", isHardSelected:=False)
             End Using
         End Function
-        
+
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAtEndOfFile(showCompletionInArgumentLists As Boolean) As Task
