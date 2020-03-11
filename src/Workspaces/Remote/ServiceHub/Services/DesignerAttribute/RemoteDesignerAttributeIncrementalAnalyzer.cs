@@ -68,11 +68,13 @@ namespace Microsoft.CodeAnalysis.Remote
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
             var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.info!.Value).ToList();
-
-            await _endPoint.InvokeAsync(
-                nameof(IDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync),
-                new object[] { changedInfos },
-                cancellationToken).ConfigureAwait(false);
+            if (changedInfos.Count > 0)
+            {
+                await _endPoint.InvokeAsync(
+                    nameof(IDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync),
+                    new object[] { changedInfos },
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             // now that we've notified VS, persist all the infos we have (changed or otherwise) back
             // to disk.  We want to do this even when the data is unchanged so that our version
