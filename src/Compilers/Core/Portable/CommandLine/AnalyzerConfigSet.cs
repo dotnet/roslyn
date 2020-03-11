@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -53,8 +58,13 @@ namespace Microsoft.CodeAnalysis
         {
             public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
 
-            public bool Equals(List<Section> x, List<Section> y)
+            public bool Equals([AllowNull] List<Section> x, [AllowNull] List<Section> y)
             {
+                if (x is null || y is null)
+                {
+                    return x is null && y is null;
+                }
+
                 if (x.Count != y.Count)
                 {
                     return false;
@@ -129,7 +139,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (sourcePath == null)
             {
-                throw new System.ArgumentNullException(nameof(sourcePath));
+                throw new ArgumentNullException(nameof(sourcePath));
             }
 
             var treeOptionsBuilder = _treeOptionsPool.Allocate();

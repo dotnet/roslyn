@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -38,6 +41,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (top == null)
             {
                 return;
+            }
+
+            // if there is a const keyword, the refactoring shouldn't show because interpolated string is not const string
+            var declarator = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
+            if (declarator != null)
+            {
+                var generator = SyntaxGenerator.GetGenerator(document);
+                if (generator.GetModifiers(declarator).IsConst)
+                {
+                    return;
+                }
             }
 
             // Currently we can concatenate only full subtrees. Therefore we can't support arbitrary selection. We could

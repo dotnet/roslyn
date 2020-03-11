@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum infoChecksum, ProjectChecksumCollection projectChecksums)
-            : this((object)infoChecksum, projectChecksums)
+        public SolutionStateChecksums(Checksum infoChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums)
+            : this((object)infoChecksum, (object)optionsChecksum, projectChecksums)
         {
         }
 
@@ -22,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         public Checksum Info => (Checksum)Children[0];
-        public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[1];
+        public Checksum Options => (Checksum)Children[1];
+        public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
 
         public async Task FindAsync(
             SolutionState state,
@@ -44,6 +47,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (searchingChecksumsLeft.Remove(Info))
             {
                 result[Info] = state.SolutionAttributes;
+            }
+
+            if (searchingChecksumsLeft.Remove(Options))
+            {
+                result[Options] = state.Options;
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))

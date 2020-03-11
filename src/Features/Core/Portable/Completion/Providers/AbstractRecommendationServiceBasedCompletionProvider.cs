@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -120,12 +122,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
+            var isGeneric = SymbolCompletionItem.GetSymbolIsGeneric(item);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
-            var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = symbols.WhereAsArray(
+                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
+
                 if (bestSymbols.Any())
                 {
                     return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);

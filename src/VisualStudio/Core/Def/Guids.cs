@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -27,9 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
 
         /// <summary>
+        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
+        /// </summary>
+        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
+
+        /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
-        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid("CA719A03-D55C-48F9-85DE-D934346E7F70");
+        public const string CSharpProjectExistsInWorkspaceUIContextString = "CA719A03-D55C-48F9-85DE-D934346E7F70";
+        public static readonly Guid CSharpProjectExistsInWorkspaceUIContext = new Guid(CSharpProjectExistsInWorkspaceUIContextString);
 
         public const string CSharpProjectRootIdString = "C7FEDB89-B36D-4a62-93F4-DC7A95999921";
 
@@ -79,7 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a Visual Basic project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
-        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid("EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275");
+        public const string VisualBasicProjectExistsInWorkspaceUIContextString = "EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275";
+        public static readonly Guid VisualBasicProjectExistsInWorkspaceUIContext = new Guid(VisualBasicProjectExistsInWorkspaceUIContextString);
 
         public static readonly Guid VisualBasicPackageId = new Guid(VisualBasicPackageIdString);
         public static readonly Guid VisualBasicCompilerServiceId = new Guid(VisualBasicCompilerServiceIdString);

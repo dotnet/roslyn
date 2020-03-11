@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -273,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
+            var currentParameterList = destination.GetParameterList();
 
             if (currentParameterList == null)
             {
@@ -652,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CodeGenerationOptions options)
         {
-            var newModifierTokens = ArrayBuilder<SyntaxToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var newModifierTokens);
             CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, options, Accessibility.NotApplicable);
             if (newModifierTokens.Count == 0)
             {
@@ -661,10 +663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // TODO: Move more APIs to use pooled ArrayBuilder
             // https://github.com/dotnet/roslyn/issues/34960
-            var list = newModifierTokens.ToList();
-            newModifierTokens.Free();
-            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
-                .ToSyntaxTokenList();
+            return GetUpdatedDeclarationAccessibilityModifiers(
+                newModifierTokens, modifiersList,
+                modifier => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()));
         }
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)

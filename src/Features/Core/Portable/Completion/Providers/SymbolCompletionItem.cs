@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -57,11 +59,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item.AddProperty("Symbols", EncodeSymbols(symbols));
         }
 
-        public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
-            return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                       .AddProperty("SymbolName", symbol.Name);
+            var isGeneric = symbol.GetArity() > 0;
+
+            item = item
+                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
+                .AddProperty("SymbolName", symbol.Name);
+
+            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -300,29 +307,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
-                AddSymbolNameAndKind, sortText, insertionText,
+                AddSymbolInfo, sortText, insertionText,
                 filterText, supportedPlatforms, properties, tags);
         }
 
         internal static string GetSymbolName(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolName", out var name))
-            {
-                return name;
-            }
-
-            return null;
-        }
+            => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
 
         internal static SymbolKind? GetKind(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("SymbolKind", out var kind))
-            {
-                return (SymbolKind)int.Parse(kind);
-            }
+            => item.Properties.TryGetValue("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
 
-            return null;
-        }
+        internal static bool GetSymbolIsGeneric(CompletionItem item)
+            => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)

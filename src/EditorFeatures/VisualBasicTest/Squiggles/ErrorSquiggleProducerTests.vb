@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -116,7 +118,7 @@ End Class"
                 Dim second = spans(1)
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
-                Assert.Equal(VBFeaturesResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
+                Assert.Equal(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
                 Assert.Equal(Of Integer)(79, first.Span.Start)
                 Assert.Equal(83, first.Span.Length)
 

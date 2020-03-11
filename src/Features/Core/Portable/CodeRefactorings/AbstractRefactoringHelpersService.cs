@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -35,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return ImmutableArray<TSyntaxNode>.Empty;
             }
 
-            var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
             // If user selected only whitespace we don't want to return anything. We could do following:
             //  1) Consider token that owns (as its trivia) the whitespace.
@@ -96,9 +98,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // as long as it is on the first line of such expression (arbitrary heuristic).
 
                 // First we need to get tokens we might potentially be touching, tokenToRightOrIn and tokenToLeft.
-                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocation(
+                var (tokenToRightOrIn, tokenToLeft, location) = await GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
                     document, root, selectionTrimmed, cancellationToken).ConfigureAwait(false);
-
 
                 // In addition to per-node extr also check if current location (if selection is empty) is in a header of higher level
                 // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     // Reason to treat Arguments (and potentially others) as Expression-like: 
                     // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
-                    await AddNodesDeepIn(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+                    await AddNodesDeepInAsync(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocation(
+        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
             Document document,
             SyntaxNode root,
             TextSpan selectionTrimmed,
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
             {
-                var leftNode = tokenToLeft.Parent;
+                SyntaxNode? leftNode = tokenToLeft.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (tokenToRightOrIn != default)
             {
-                var rightNode = tokenToRightOrIn.Parent;
+                SyntaxNode? rightNode = tokenToRightOrIn.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private void AddRelevantNodesForSelection<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, TextSpan selectionTrimmed, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
+            SyntaxNode? selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
             var prevNode = selectionNode;
             do
             {
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        protected virtual async Task AddNodesDeepIn<TSyntaxNode>(
+        protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
             Document document, int position,
             ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -462,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var token = root.FindTokenOnRightOfPosition(position, true);
 
             // traverse upwards and add all parents if of correct type
-            var ancestor = token.Parent;
+            SyntaxNode? ancestor = token.Parent;
             while (ancestor != null)
             {
                 if (ancestor is TSyntaxNode correctTypeNode)

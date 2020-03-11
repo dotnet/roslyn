@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _exprReturnLabel = F.GenerateLabel("exprReturn");
             _exitLabel = F.GenerateLabel("exitLabel");
 
-            _exprRetValue = method.IsGenericTaskReturningAsync(F.Compilation)
+            _exprRetValue = method.IsAsyncReturningGenericTask(F.Compilation)
                 ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
@@ -204,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Call(
                     F.Field(F.This(), _asyncMethodBuilderField),
                     _asyncMethodBuilderMemberCollection.SetResult,
-                    _method.IsGenericTaskReturningAsync(F.Compilation)
+                    _method.IsAsyncReturningGenericTask(F.Compilation)
                         ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
                         : ImmutableArray<BoundExpression>.Empty));
         }
@@ -615,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ExpressionOpt != null)
             {
-                Debug.Assert(_method.IsGenericTaskReturningAsync(F.Compilation));
+                Debug.Assert(_method.IsAsyncReturningGenericTask(F.Compilation));
                 return F.Block(
                     F.Assignment(F.Local(_exprRetValue), (BoundExpression)Visit(node.ExpressionOpt)),
                     F.Goto(_exprReturnLabel));

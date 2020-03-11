@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
@@ -26,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _pipeName = pipeName;
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public async Task<IClientConnection> ListenAsync(CancellationToken cancellationToken)
         {
-            var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
+            var pipeStream = await ListenCoreAsync(cancellationToken).ConfigureAwait(false);
             return new NamedPipeClientConnection(_compilerServerHost, _loggingIdentifier++.ToString(), pipeStream);
         }
 
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
         /// </summary>
         /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> CreateListenTaskCore(CancellationToken cancellationToken)
+        private async Task<NamedPipeServerStream> ListenCoreAsync(CancellationToken cancellationToken)
         {
             // Create the pipe and begin waiting for a connection. This 
             // doesn't block, but could fail in certain circumstances, such

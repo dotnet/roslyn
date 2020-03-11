@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 semanticModel, info, regexType, methodNamesOfInterest);
         }
 
-        public static bool IsDefinitelyNotPattern(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        public static bool IsDefinitelyNotPattern(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
             {
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxToken token, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxToken token, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             if (HasRegexLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
             {
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxTriviaList list, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             foreach (var trivia in list)
             {
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxTrivia trivia, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return (true, options);
         }
 
-        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent.Parent);
 
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// where at least one (but not necessarily more) of the parameters should be treated as a
         /// pattern.
         /// </summary>
-        private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFactsService syntaxFacts)
+        private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFacts syntaxFacts)
         {
             var result = syntaxFacts.IsCaseSensitive
                 ? new HashSet<string>()
@@ -356,7 +358,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return RegexOptions.None;
         }
 
-        private string GetNameOfType(SyntaxNode typeNode, ISyntaxFactsService syntaxFacts)
+        private string GetNameOfType(SyntaxNode typeNode, ISyntaxFacts syntaxFacts)
         {
             if (syntaxFacts.IsQualifiedName(typeNode))
             {

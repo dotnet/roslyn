@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
+        public abstract bool TryGetEscapeCharacter(char ch, out char escapedChar);
+
         protected abstract bool IsStringLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
@@ -131,42 +133,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
             var offset = token.SpanStart;
-            try
+
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                for (var index = startIndexInclusive; index < endIndexExclusive;)
+                if (tokenText[index] == '"' &&
+                    tokenText[index + 1] == '"')
                 {
-                    if (tokenText[index] == '"' &&
-                        tokenText[index + 1] == '"')
-                    {
-                        result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
-                        index += 2;
-                    }
-                    else if (escapeBraces &&
-                             (tokenText[index] == '{' || tokenText[index] == '}'))
-                    {
-                        if (!TryAddBraceEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
-
-                        index += result.Last().Span.Length;
-                    }
-                    else
-                    {
-                        result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                        index++;
-                    }
+                    result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
+                    index += 2;
                 }
+                else if (escapeBraces &&
+                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                {
+                    if (!TryAddBraceEscape(result, tokenText, offset, index))
+                    {
+                        return default;
+                    }
 
-                return CreateVirtualCharSequence(
-                    tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+                    index += result.Last().Span.Length;
+                }
+                else
+                {
+                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
+                    index++;
+                }
             }
-            finally
-            {
-                result.Free();
-            }
+
+            return CreateVirtualCharSequence(
+                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
         protected static VirtualCharSequence CreateVirtualCharSequence(

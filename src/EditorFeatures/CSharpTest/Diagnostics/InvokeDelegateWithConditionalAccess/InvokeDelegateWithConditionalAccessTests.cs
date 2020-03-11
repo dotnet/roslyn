@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -754,6 +756,136 @@ class C
         {
             return v();
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithLambdaInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = () => {};
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = () => {};
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithLambdaInitializer2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = (() => {});
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = (() => {});
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestForWithAnonymousMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = delegate {};
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = delegate {};
+        v?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestWithMethodReference()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = Console.WriteLine;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Action v = Console.WriteLine;
+        v?.Invoke();
     }
 }");
         }

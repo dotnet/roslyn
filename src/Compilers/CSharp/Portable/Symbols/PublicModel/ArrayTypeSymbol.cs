@@ -1,20 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal sealed class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
     {
         private readonly Symbols.ArrayTypeSymbol _underlying;
-        private ITypeSymbol _lazyElementType;
+        private ITypeSymbol? _lazyElementType;
 
         public ArrayTypeSymbol(Symbols.ArrayTypeSymbol underlying, CodeAnalysis.NullableAnnotation nullableAnnotation)
             : base(nullableAnnotation)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers => _underlying.ElementTypeWithAnnotations.CustomModifiers;
 
-        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol other)
+        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol? other)
         {
             return this.Equals(other as ArrayTypeSymbol, CodeAnalysis.SymbolEqualityComparer.Default);
         }
@@ -72,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitArrayType(this);
         }
 
+        [return: MaybeNull]
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitArrayType(this);

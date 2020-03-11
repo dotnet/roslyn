@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get saved global <see cref="CustomAsset"/> associated with given <paramref name="value"/>
         /// </summary>
-        CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken);
+        CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken);
 
         /// <summary>
         /// Remove saved global <see cref="CustomAsset"/> associated with given <paramref name="value"/>
@@ -49,6 +51,6 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        ValueTask<IReadOnlyDictionary<Checksum, RemotableData>?> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

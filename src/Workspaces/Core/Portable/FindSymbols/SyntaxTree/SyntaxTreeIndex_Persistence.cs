@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -75,9 +77,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-                this.WriteTo(writer);
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                {
+                    WriteTo(writer);
+                }
 
                 stream.Position = 0;
                 return await storage.WriteStreamAsync(document, PersistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);

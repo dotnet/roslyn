@@ -43,10 +43,30 @@ if(TARGET_ARCH_NAME STREQUAL "armel")
   endif()
 endif()
 
-set(CMAKE_SYSROOT "${CROSS_ROOTFS}")
-set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
-set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
-set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
+if("$ENV{__DistroRid}" MATCHES "android.*")
+    if(TARGET_ARCH_NAME STREQUAL "arm")
+        set(ANDROID_ABI armeabi-v7a)
+    elseif(TARGET_ARCH_NAME STREQUAL "arm64")
+        set(ANDROID_ABI arm64-v8a)
+    endif()
+
+    # extract platform number required by the NDK's toolchain
+    string(REGEX REPLACE ".*\\.([0-9]+)-.*" "\\1" ANDROID_PLATFORM "$ENV{__DistroRid}")
+
+    set(ANDROID_TOOLCHAIN clang)
+    set(FEATURE_EVENT_TRACE 0) # disable event trace as there is no lttng-ust package in termux repository
+    set(CMAKE_SYSTEM_LIBRARY_PATH "${CROSS_ROOTFS}/usr/lib")
+    set(CMAKE_SYSTEM_INCLUDE_PATH "${CROSS_ROOTFS}/usr/include")
+
+    # include official NDK toolchain script
+    include(${CROSS_ROOTFS}/../build/cmake/android.toolchain.cmake)
+else()
+    set(CMAKE_SYSROOT "${CROSS_ROOTFS}")
+
+    set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
+    set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
+    set(CMAKE_ASM_COMPILER_EXTERNAL_TOOLCHAIN "${CROSS_ROOTFS}/usr")
+endif()
 
 # Specify link flags
 
@@ -63,7 +83,7 @@ endif()
 
 # Specify compile options
 
-if(TARGET_ARCH_NAME MATCHES "^(arm|armel|arm64)$")
+if(TARGET_ARCH_NAME MATCHES "^(arm|armel|arm64)$" AND NOT "$ENV{__DistroRid}" MATCHES "android.*")
   set(CMAKE_C_COMPILER_TARGET ${TOOLCHAIN})
   set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN})
   set(CMAKE_ASM_COMPILER_TARGET ${TOOLCHAIN})
@@ -71,7 +91,17 @@ endif()
 
 if(TARGET_ARCH_NAME MATCHES "^(arm|armel)$")
   add_compile_options(-mthumb)
-  add_compile_options(-mfpu=vfpv3)
+  if (NOT DEFINED CLR_ARM_FPU_TYPE)
+    set (CLR_ARM_FPU_TYPE vfpv3)
+  endif (NOT DEFINED CLR_ARM_FPU_TYPE)
+
+  add_compile_options (-mfpu=${CLR_ARM_FPU_TYPE})
+  if (NOT DEFINED CLR_ARM_FPU_CAPABILITY)
+    set (CLR_ARM_FPU_CAPABILITY 0x7)
+  endif (NOT DEFINED CLR_ARM_FPU_CAPABILITY)
+
+  add_definitions (-DCLR_ARM_FPU_CAPABILITY=${CLR_ARM_FPU_CAPABILITY})
+
   if(TARGET_ARCH_NAME STREQUAL "armel")
     add_compile_options(-mfloat-abi=softfp)
     if(DEFINED TIZEN_TOOLCHAIN)

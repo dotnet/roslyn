@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,11 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
+        private static readonly TestParameters CSharpLatest =
+            new TestParameters(parseOptions: TestOptions.Regular);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         private TestParameters CSharp6Implicit => CSharp6.WithOptions(this.PreferImplicitTypeWithInfo());
         private TestParameters CSharp6Explicit => CSharp6.WithOptions(this.PreferExplicitTypeWithInfo());
+        private TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(this.PreferImplicitTypeWithInfo());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -1411,6 +1417,53 @@ class Program
 chosenSymbols: null);
         }
 
+        [WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogInheritedMembers()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+    [||]
+}",
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Derived derived &&
+               C == derived.C &&
+               B == derived.B &&
+               A == derived.A;
+    }
+}",
+chosenSymbols: null);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGenerateOperators1()
         {
@@ -2174,6 +2227,117 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPublicSystemHashCodeOtherProject()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+using System;
+
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(j);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestInternalSystemHashCode()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
@@ -2433,6 +2597,103 @@ class Program
 {
     int [|a|];
 }");
+        }
+
+        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+#nullable enable
+using System;
+
+namespace N
+{
+    public class C[||]
+    {
+        public int X;
+    }
+}",
+@"
+#nullable enable
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    public class C
+    {
+        public int X;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is C c &&
+                   X == c.X;
+        }
+
+        public static bool operator ==(C? left, C? right)
+        {
+            return EqualityComparer<C>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(C? left, C? right)
+        {
+            return !(left == right);
+        }
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: CSharpLatestImplicit);
+        }
+
+        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+#nullable enable
+using System;
+
+namespace N
+{
+    public struct C[||]
+    {
+        public int X;
+    }
+}",
+@"
+#nullable enable
+using System;
+
+namespace N
+{
+    public struct C
+    {
+        public int X;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is C c &&
+                   X == c.X;
+        }
+
+        public static bool operator ==(C left, C right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(C left, C right)
+        {
+            return !(left == right);
+        }
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: CSharpLatestImplicit);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -116,13 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption<TOptionKind>> analyze,
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
-                var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet == null)
-                {
-                    return;
-                }
-
-                var optionValue = optionSet.GetOption(provider._option);
+                var optionValue = options.GetOption(provider._option, syntaxTree, cancellationToken);
                 var severity = GetOptionSeverity(optionValue);
                 switch (severity)
                 {

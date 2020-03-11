@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return new MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult, options, localFunction);
                 }
 
-                return Contract.FailWithReturn<CSharpCodeGenerator>("Unknown selection");
+                throw ExceptionUtilities.UnexpectedValue(selectionResult);
             }
 
             protected CSharpCodeGenerator(
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 foreach (var statement in statements)
                 {
-                    if (!(statement is LocalDeclarationStatementSyntax declarationStatement))
+                    if (!(statement is LocalDeclarationStatementSyntax declarationStatement) || declarationStatement.Declaration.Variables.FullSpan.IsEmpty)
                     {
                         // if given statement is not decl statement.
                         yield return statement;
@@ -819,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
-                var namingPreferences = this.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+                var namingPreferences = this.Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
                 var localFunctionPreferences = namingPreferences.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
 
                 var namingRules = namingPreferences.Rules.NamingRules;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -45,11 +47,24 @@ namespace AnalyzerRunner
                     cts.Cancel();
                 };
 
-            MSBuildLocator.RegisterDefaults();
+            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+            // installations on .NET Core. We use the one with the most recent version.
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+
+#if NETCOREAPP
+            // Since we do not inherit msbuild.deps.json when referencing the SDK copy
+            // of MSBuild and because the SDK no longer ships with version matched assemblies, we
+            // register an assembly loader that will load assemblies from the msbuild path with
+            // equal or higher version numbers than requested.
+            LooseVersionAssemblyLoader.Register(msBuildInstance.MSBuildPath);
+#endif
+
+            MSBuildLocator.RegisterInstance(msBuildInstance);
 
             var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(options);
             var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(options);
-            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers)
+            var codeRefactoringRunner = new CodeRefactoringRunner(options);
+            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers && !codeRefactoringRunner.HasRefactorings)
             {
                 WriteLine("No analyzers found", ConsoleColor.Red);
                 PrintHelp();
@@ -64,9 +79,15 @@ namespace AnalyzerRunner
                 ProfileOptimization.SetProfileRoot(options.ProfileRoot);
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            var stopwatch = PerformanceTracker.StartNew();
             var properties = new Dictionary<string, string>
             {
+#if NETCOREAPP
+                // This property ensures that XAML files will be compiled in the current AppDomain
+                // rather than a separate one. Any tasks isolated in AppDomains or tasks that create
+                // AppDomains will likely not work due to https://github.com/Microsoft/MSBuildLocator/issues/16.
+                { "AlwaysCompileMarkupFilesInSeparateDomain", bool.FalseString },
+#endif
                 // Use the latest language version to force the full set of available analyzers to run on the project.
                 { "LangVersion", "latest" },
             };
@@ -81,15 +102,25 @@ namespace AnalyzerRunner
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
 
+                foreach (var workspaceDiagnostic in workspace.Diagnostics)
+                {
+                    if (workspaceDiagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                    {
+                        Console.WriteLine(workspaceDiagnostic.Message);
+                    }
+                }
+
                 foreach (var projectId in projectIds)
                 {
                     solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
                 }
 
-                Console.WriteLine($"Loaded solution in {stopwatch.ElapsedMilliseconds}ms");
+                Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
 
                 if (options.ShowStats)
                 {
+                    stopwatch = PerformanceTracker.StartNew();
+
                     List<Project> projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
 
                     Console.WriteLine("Number of projects:\t\t" + projects.Count);
@@ -100,6 +131,39 @@ namespace AnalyzerRunner
                     Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
                     Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
                     Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
+
+                    Console.WriteLine($"Statistics gathered in {stopwatch.GetSummary(preciseMemory: true)}");
+                }
+
+                if (options.ShowCompilerDiagnostics)
+                {
+                    var projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
+
+                    var diagnosticStatistics = new Dictionary<string, (string description, DiagnosticSeverity severity, int count)>();
+                    foreach (var project in projects)
+                    {
+                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        foreach (var diagnostic in compilation.GetDiagnostics(cancellationToken))
+                        {
+                            diagnosticStatistics.TryGetValue(diagnostic.Id, out var existing);
+                            var description = existing.description;
+                            if (string.IsNullOrEmpty(description))
+                            {
+                                description = diagnostic.Descriptor?.Title.ToString();
+                                if (string.IsNullOrEmpty(description))
+                                {
+                                    description = diagnostic.Descriptor?.MessageFormat.ToString();
+                                }
+                            }
+
+                            diagnosticStatistics[diagnostic.Id] = (description, diagnostic.Descriptor.DefaultSeverity, existing.count + 1);
+                        }
+                    }
+
+                    foreach (var pair in diagnosticStatistics)
+                    {
+                        Console.WriteLine($"  {pair.Value.severity} {pair.Key}: {pair.Value.count} instances ({pair.Value.description})");
+                    }
                 }
 
                 Console.WriteLine("Pausing 5 seconds before starting analysis...");
@@ -107,6 +171,7 @@ namespace AnalyzerRunner
 
                 await incrementalAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
                 await diagnosticAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
+                await codeRefactoringRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
         }
 

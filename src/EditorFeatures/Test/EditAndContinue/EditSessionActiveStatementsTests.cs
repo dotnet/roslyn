@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableArray<ActiveStatementDebugInfo> activeStatements,
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
                 Func<Solution, Solution> adjustSolution = null,
-                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesDebuggee)
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
             {
                 var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
@@ -544,7 +546,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => r.Spans.IsDefault ? "out-of-sync" : "[" + string.Join(",", r.Spans) + "]"));
 
             // document got synchronized:
-            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesDebuggee);
+            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesBuildOutput);
 
             baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 

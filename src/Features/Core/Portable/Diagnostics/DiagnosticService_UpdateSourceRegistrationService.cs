@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -10,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
+        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
         public DiagnosticService()
         {
             // we use registry service rather than doing MEF import since MEF import method can have race issue where

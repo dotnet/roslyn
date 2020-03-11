@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -503,9 +506,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return node;
         }
 
-        protected static IList<SyntaxToken> GetUpdatedDeclarationAccessibilityModifiers(IList<SyntaxToken> newModifierTokens, SyntaxTokenList modifiersList, Func<SyntaxToken, bool> isAccessibilityModifier)
+        protected static SyntaxTokenList GetUpdatedDeclarationAccessibilityModifiers(
+            ArrayBuilder<SyntaxToken> newModifierTokens, SyntaxTokenList modifiersList,
+            Func<SyntaxToken, bool> isAccessibilityModifier)
         {
-            var updatedModifiersList = new List<SyntaxToken>();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var updatedModifiersList);
             var anyAccessModifierSeen = false;
             foreach (var modifier in modifiersList)
             {
@@ -539,14 +544,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (!anyAccessModifierSeen)
             {
-                updatedModifiersList.InsertRange(0, newModifierTokens);
+                for (var i = newModifierTokens.Count - 1; i >= 0; i--)
+                {
+                    updatedModifiersList.Insert(0, newModifierTokens[i]);
+                }
             }
             else
             {
                 updatedModifiersList.AddRange(newModifierTokens);
             }
 
-            return updatedModifiersList;
+            return updatedModifiersList.ToSyntaxTokenList();
         }
     }
 }

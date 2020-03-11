@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -13,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
     /// <summary>
     /// provide asset from given map at the creation
     /// </summary>
-    internal class SimpleAssetSource : AssetSource
+    internal sealed class SimpleAssetSource : AssetSource
     {
         private readonly IReadOnlyDictionary<Checksum, object> _map;
 
@@ -32,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
             {
                 if (_map.TryGetValue(checksum, out var data))
                 {
-                    list.Add(ValueTuple.Create(checksum, data));
+                    list.Add((checksum, data));
                 }
                 else
                 {
-                    Debug.Fail($"Unable to find asset for {checksum}");
+                    throw ExceptionUtilities.UnexpectedValue(checksum);
                 }
             }
 

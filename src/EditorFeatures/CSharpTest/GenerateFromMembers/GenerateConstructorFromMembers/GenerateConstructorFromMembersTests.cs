@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1352,10 +1354,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionBeforeIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int [||]a;
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1363,10 +1374,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionAfterIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int a[||];
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1439,12 +1459,32 @@ chosenSymbols: null);
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestMultiplePartialFieldSelection3()
+        public async Task TestMultiplePartialFieldSelection3_1()
         {
             await TestInRegularAndScriptAsync(
 @"class Z
 {
     int [|a|] = 2, b = 3;
+}",
+@"class Z
+{
+    int a = 2, b = 3;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection3_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a = 2, b|] = 3;
 }",
 @"class Z
 {

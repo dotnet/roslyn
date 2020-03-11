@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -65,14 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 // We need to check for non-trivia XML text tokens after $$ that match the expected end tag text.
 
                 if (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) &&
-                    token.Parent.IsParentKind(SyntaxKind.XmlElement))
+                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax parentElement) &&
+                    !HasFollowingEndTagTrivia(parentElement, token))
                 {
-                    var parentElement = token.Parent.Parent as XmlElementSyntax;
-
-                    if (!HasFollowingEndTagTrivia(parentElement, token))
-                    {
-                        CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
-                    }
+                    CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
                 }
             }
         }

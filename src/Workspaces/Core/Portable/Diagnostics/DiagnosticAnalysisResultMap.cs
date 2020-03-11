@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -15,10 +17,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     {
         public static DiagnosticAnalysisResultMap<TKey, TValue> Create<TKey, TValue>(
             ImmutableDictionary<TKey, TValue> analysisResult,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo,
-            ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>> exceptions)
+            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         {
-            return new DiagnosticAnalysisResultMap<TKey, TValue>(analysisResult, telemetryInfo, exceptions);
+            return new DiagnosticAnalysisResultMap<TKey, TValue>(analysisResult, telemetryInfo);
         }
     }
 
@@ -26,21 +27,17 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     {
         public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new DiagnosticAnalysisResultMap<TKey, TValue>(
             ImmutableDictionary<TKey, TValue>.Empty,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty,
-            ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>>.Empty);
+            ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
 
         public readonly ImmutableDictionary<TKey, TValue> AnalysisResult;
         public readonly ImmutableDictionary<TKey, AnalyzerTelemetryInfo> TelemetryInfo;
-        public readonly ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>> Exceptions;
 
         public DiagnosticAnalysisResultMap(
             ImmutableDictionary<TKey, TValue> analysisResult,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo,
-            ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>> exceptions)
+            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         {
             AnalysisResult = analysisResult;
             TelemetryInfo = telemetryInfo;
-            Exceptions = exceptions;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -67,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static bool GetIsPartial(IMethodSymbol method)
             => GetIsPartial(GetInfo(method));
 
-        public static bool GetIsAsync(IMethodSymbol method)
-            => GetIsAsync(GetInfo(method));
+        public static bool GetIsAsyncMethod(IMethodSymbol method)
+            => GetIsAsyncMethod(GetInfo(method));
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationMethodInfo info)
             => info?._statements ?? ImmutableArray<SyntaxNode>.Empty;
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private static bool GetIsPartial(CodeGenerationMethodInfo info)
             => info != null && info._isPartial;
 
-        private static bool GetIsAsync(CodeGenerationMethodInfo info)
+        private static bool GetIsAsyncMethod(CodeGenerationMethodInfo info)
             => info != null && info._isAsync;
     }
 }

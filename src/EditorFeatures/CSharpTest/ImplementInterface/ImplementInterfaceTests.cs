@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1823,18 +1825,18 @@ class A : IReadOnlyList<int>
     {
         get
         {
-            return ((IReadOnlyList<int>)field).Count;
+            return ((IReadOnlyCollection<int>)field).Count;
         }
     }
 
     public IEnumerator<int> GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return ((IEnumerable<int>)field).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return field.GetEnumerator();
     }
 }",
 index: 1);
@@ -1868,7 +1870,7 @@ class A : IReadOnlyList<int>
     {
         get
         {
-            return ((IReadOnlyList<int>)field).Count;
+            return ((IReadOnlyCollection<int>)field).Count;
         }
     }
 
@@ -1876,12 +1878,12 @@ class A : IReadOnlyList<int>
 
     public IEnumerator<int> GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return ((IEnumerable<int>)field).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IReadOnlyList<int>)field).GetEnumerator();
+        return field.GetEnumerator();
     }
 }",
 index: 1);
@@ -6666,7 +6668,7 @@ class Issue2785<T> : IList<object>
     {
         get
         {
-            return ((IList<object>)innerList).Count;
+            return ((ICollection<object>)innerList).Count;
         }
     }
 
@@ -6674,33 +6676,33 @@ class Issue2785<T> : IList<object>
     {
         get
         {
-            return ((IList<object>)innerList).IsReadOnly;
+            return ((ICollection<object>)innerList).IsReadOnly;
         }
     }
 
     public void Add(object item)
     {
-        ((IList<object>)innerList).Add(item);
+        ((ICollection<object>)innerList).Add(item);
     }
 
     public void Clear()
     {
-        ((IList<object>)innerList).Clear();
+        ((ICollection<object>)innerList).Clear();
     }
 
     public bool Contains(object item)
     {
-        return ((IList<object>)innerList).Contains(item);
+        return ((ICollection<object>)innerList).Contains(item);
     }
 
     public void CopyTo(object[] array, int arrayIndex)
     {
-        ((IList<object>)innerList).CopyTo(array, arrayIndex);
+        ((ICollection<object>)innerList).CopyTo(array, arrayIndex);
     }
 
     public IEnumerator<object> GetEnumerator()
     {
-        return ((IList<object>)innerList).GetEnumerator();
+        return ((IEnumerable<object>)innerList).GetEnumerator();
     }
 
     public int IndexOf(object item)
@@ -6715,7 +6717,7 @@ class Issue2785<T> : IList<object>
 
     public bool Remove(object item)
     {
-        return ((IList<object>)innerList).Remove(item);
+        return ((ICollection<object>)innerList).Remove(item);
     }
 
     public void RemoveAt(int index)
@@ -6725,7 +6727,7 @@ class Issue2785<T> : IList<object>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return ((IList<object>)innerList).GetEnumerator();
+        return ((IEnumerable)innerList).GetEnumerator();
     }
 }",
 index: 1);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1178,6 +1180,41 @@ class Program
     void M()
     {
         ref readonly var value = ref i;
+    }
+}");
+        }
+
+        [WorkItem(26213, "https://github.com/dotnet/roslyn/issues/26213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestFieldAccessesOnLeftOfDot()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IFaceServiceClient
+{
+    void DetectAsync();
+}
+
+public class Repro
+{
+    private static IFaceServiceClient [|faceServiceClient|] = null;
+
+    public static void Run()
+    {
+        faceServiceClient.DetectAsync();
+    }
+}",
+@"interface IFaceServiceClient
+{
+    void DetectAsync();
+}
+
+public class Repro
+{
+    private static readonly IFaceServiceClient faceServiceClient = null;
+
+    public static void Run()
+    {
+        faceServiceClient.DetectAsync();
     }
 }");
         }

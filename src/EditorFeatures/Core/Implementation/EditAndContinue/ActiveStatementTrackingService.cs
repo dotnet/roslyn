@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var lastCommittedSolution = _editSession.DebuggingSession.LastCommittedSolution;
                     var currentSolution = _editSession.DebuggingSession.Workspace.CurrentSolution;
-                    var activeSpansToTrack = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance();
+                    using var _ = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance(out var activeSpansToTrack);
 
                     foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
                     {
@@ -228,8 +230,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             TrackActiveSpansNoLock(baseDocument, document, snapshot, documentActiveStatements);
                         }
                     }
-
-                    activeSpansToTrack.Free();
 
                     _service.OnTrackingSpansChanged(leafChanged: true);
                 }

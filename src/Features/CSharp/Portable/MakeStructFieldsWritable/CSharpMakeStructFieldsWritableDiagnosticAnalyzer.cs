@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
+            new LocalizableResourceString(nameof(FeaturesResources.Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            isUnnecessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -131,14 +133,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
-            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, getSemanticModel, out info);
-
-        private bool IsDiagnosticSuppressed(string id, Location location, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
         {
-            Debug.Assert(id != null);
-            Debug.Assert(location != null);
+            info = default;
 
-            info = default(SuppressMessageInfo);
+            if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+            {
+                // SuppressMessage attributes do not apply to compiler diagnostics.
+                return false;
+            }
+
+            var id = diagnostic.Id;
+            var location = diagnostic.Location;
 
             if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {
