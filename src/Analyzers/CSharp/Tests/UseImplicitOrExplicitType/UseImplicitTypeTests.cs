@@ -2656,5 +2656,71 @@ class C
     }     
 }", options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(32088, "https://github.com/dotnet/roslyn/issues/32088")]
+        public async Task DoNotSuggestVarOnDeclarationExpressionWithInferredTupleNames()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+static class Program
+{
+    static void Main(string[] args)
+    {
+        if (!_data.TryGetValue(0, [|out List<(int X, int Y)>|] value))
+            return;
+
+        var x = value.FirstOrDefault().X;
+    }
+
+    private static Dictionary<int, List<(int, int)>> _data =
+        new Dictionary<int, List<(int, int)>>();
+}", parameters: new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(32088, "https://github.com/dotnet/roslyn/issues/32088")]
+        public async Task DoSuggestVarOnDeclarationExpressionWithMatchingTupleNames()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+static class Program
+{
+    static void Main(string[] args)
+    {
+        if (!_data.TryGetValue(0, [|out List<(int X, int Y)>|] value))
+            return;
+
+        var x = value.FirstOrDefault().X;
+    }
+
+    private static Dictionary<int, List<(int X, int Y)>> _data =
+        new Dictionary<int, List<(int, int)>>();
+}",
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+static class Program
+{
+    static void Main(string[] args)
+    {
+        if (!_data.TryGetValue(0, out var value))
+            return;
+
+        var x = value.FirstOrDefault().X;
+    }
+
+    private static Dictionary<int, List<(int X, int Y)>> _data =
+        new Dictionary<int, List<(int, int)>>();
+}",
+options: ImplicitTypeEverywhere());
+        }
     }
 }

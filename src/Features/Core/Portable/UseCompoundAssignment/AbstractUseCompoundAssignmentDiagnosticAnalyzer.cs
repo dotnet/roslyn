@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment,
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
 
+            assignmentRight = _syntaxFacts.WalkDownParentheses(assignmentRight);
+
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
             if (!(assignmentRight is TBinaryExpressionSyntax binaryExpression))
