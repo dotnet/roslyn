@@ -4430,6 +4430,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (Symbol member in type.GetMembers(memberName))
                 {
+                    if (member.IsStatic)
+                    {
+                        receiverSlot = 0;
+                    }
+
                     switch (member.Kind)
                     {
                         case SymbolKind.Field:
