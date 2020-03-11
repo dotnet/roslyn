@@ -1767,11 +1767,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">应限定成员访问。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">向“{0}”报表添加大括号。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">启用</target>

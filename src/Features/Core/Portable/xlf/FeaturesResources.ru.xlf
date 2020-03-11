@@ -2020,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">Variadic SignatureHelpItem должен иметь хотя бы один параметр.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Добавить фигурные скобки</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">Заменить "{0}" методом</target>

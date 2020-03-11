@@ -2020,11 +2020,6 @@ Questa versione è usata {2}</target>
         <target state="translated">L'elemento SignatureHelpItem variadic deve avere almeno un parametro.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Aggiungi parentesi graffe</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
         <target state="translated">Sostituisci '{0}' con il metodo</target>
