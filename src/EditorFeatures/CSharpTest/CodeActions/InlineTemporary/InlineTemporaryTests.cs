@@ -3561,7 +3561,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = t?.Something().First()?.ToArray();
+            var identity = (t?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3627,7 +3627,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+            var identity = ((t?.Something2())()?.Something().First())?.ToArray();
         }
 
         return null;

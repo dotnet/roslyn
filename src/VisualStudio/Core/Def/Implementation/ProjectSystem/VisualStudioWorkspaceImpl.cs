@@ -528,7 +528,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
         {
             return analyzerReference.FullPath;
         }
@@ -1661,7 +1661,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             projectIdsChanged.Add(projectIdToRetarget);
 
                             GetReferenceInfo_NoLock(projectIdToRetarget).ConvertedProjectReferences.Add(
-                                (reference.FilePath, projectReference));
+                                (reference.FilePath!, projectReference));
 
                             // We have converted one, but you could have more than one reference with different aliases
                             // that we need to convert, so we'll keep going
