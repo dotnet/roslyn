@@ -9,6 +9,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     internal interface INewDesignerAttributeService : IWorkspaceService
     {
+        /// <summary>
+        /// Called by a host to let this service know that it should start background
+        /// analysis of the workspace to determine which classes are designable.
+        /// </summary>
         void Start(CancellationToken cancellationToken);
     }
 }

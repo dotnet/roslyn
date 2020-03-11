@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -146,29 +145,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestDesignerAttributes()
-        {
-            var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
-                class Test { }";
+        //[Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        //public async Task TestDesignerAttributes()
+        //{
+        //    var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
+        //        class Test { }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+        //    using (var workspace = TestWorkspace.CreateCSharp(code))
+        //    {
+        //        var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
 
-                var solution = workspace.CurrentSolution;
+        //        var solution = workspace.CurrentSolution;
 
-                var result = await client.TryRunRemoteAsync<DesignerAttributeResult>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    solution,
-                    new[] { solution.Projects.First().DocumentIds.First() },
-                    callbackTarget: null,
-                    CancellationToken.None);
+        //        var result = await client.TryRunRemoteAsync<DesignerAttributeResult>(
+        //            WellKnownServiceHubServices.CodeAnalysisService,
+        //            nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+        //            solution,
+        //            new[] { solution.Projects.First().DocumentIds.First() },
+        //            callbackTarget: null,
+        //            CancellationToken.None);
 
-                Assert.Equal("Form", result.Value.DesignerAttributeArgument);
-            }
-        }
+        //        Assert.Equal("Form", result.Value.DesignerAttributeArgument);
+        //    }
+        //}
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronizeGlobalAssets()
