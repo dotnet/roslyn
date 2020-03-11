@@ -293,6 +293,11 @@ class C
                 Await state.AssertSelectedSignatureHelpItem("void C.M()")
                 Assert.Equal(4, state.GetSignatureHelpItems().Count)
 
+                If showCompletionInArgumentLists Then
+                    Await state.AssertCompletionSession()
+                    state.SendEscape()
+                End If
+
                 state.SendUpKey()
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
 
@@ -335,7 +340,8 @@ class C
                 state.SendTypeChars("1, ")
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
 
-                If (showCompletionInArgumentLists) Then
+                If showCompletionInArgumentLists Then
+                    Await state.AssertCompletionSession()
                     state.SendEscape()
                 End If
 
