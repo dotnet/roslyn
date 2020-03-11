@@ -161,14 +161,12 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
 function Ensure-DotnetSdk() {
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $dotnetTestPath = Join-Path $dotnetInstallDir "dotnet.exe"
-  if (Test-Path -Path $dotnetTestPath)
-  {
+  if (Test-Path -Path $dotnetTestPath) {
     return $dotnetTestPath
   }
 
   $dotnetTestPath = Join-Path $dotnetInstallDir "dotnet"
-  if (Test-Path -Path $dotnetTestPath)
-  {
+  if (Test-Path -Path $dotnetTestPath) {
     return $dotnetTestPath
   }
 

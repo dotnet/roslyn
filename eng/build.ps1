@@ -605,8 +605,7 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
 
-  if ($testVsi)
-  {
+  if ($testVsi) {
     . (Join-Path $PSScriptRoot "build-utils-win.ps1")
   }
 
