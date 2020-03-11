@@ -39,7 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>();
 
         /// <summary>
-        /// Created on demand when we startup.
+        /// Our connections to the remote OOP server. Created on demand when we startup and then
+        /// kept around for the lifetime of this service.
         /// </summary>
         private RemoteHostClient _client;
         private KeepAliveSession _keepAliveSession;
