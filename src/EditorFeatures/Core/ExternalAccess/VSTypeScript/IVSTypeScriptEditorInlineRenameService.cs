@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -130,6 +131,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// The glyph for the symbol being renamed, for use in displaying information to the user.
         /// </summary>
         VSTypeScriptGlyph Glyph { get; }
+
+        /// <summary>
+        /// The locations of the symbol being renamed.
+        /// </summary>
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
 
         /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text

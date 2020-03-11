@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public string FullDisplayName => _info.FullDisplayName;
 
         public Glyph Glyph => VSTypeScriptGlyphHelpers.ConvertTo(_info.Glyph);
+
+        public ImmutableArray<DocumentSpan> DefinitionLocations => _info.DefinitionLocations;
 
         public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
