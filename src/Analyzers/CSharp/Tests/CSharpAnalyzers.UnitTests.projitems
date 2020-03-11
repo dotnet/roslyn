@@ -15,6 +15,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
