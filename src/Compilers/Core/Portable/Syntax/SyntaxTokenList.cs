@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Debug.Assert(list[0].Node is object);
-            return new SyntaxTokenList(null, list[0].Node!.CreateList(list.Select(n => n.Node!)), 0, 0);
+            return new SyntaxTokenList(null, list[0].Node!.CreateList(list.Select(n => n.RequiredNode)), 0, 0);
         }
 
         /// <summary>
