@@ -1873,11 +1873,6 @@ Continuare?</target>
         <target state="translated">Imposta il metodo come sincrono</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Aggiunge la qualificazione 'this' o 'Me'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">da {0}</target>

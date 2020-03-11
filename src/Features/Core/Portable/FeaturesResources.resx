@@ -864,9 +864,6 @@ Do you want to continue?</value>
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous</value>
   </data>
-  <data name="Add_this_or_Me_qualification" xml:space="preserve">
-    <value>Add 'this' or 'Me' qualification.</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
