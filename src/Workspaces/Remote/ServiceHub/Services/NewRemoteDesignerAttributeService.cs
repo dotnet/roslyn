@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.Services
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class NewRemoteDesignerAttributeService : ServiceBase, IRemoteNewDesignerAttributeService
     {
