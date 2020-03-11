@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // reset the temp-stream, write the info value into it, then write that into the
                 // storage system.
                 memoryStream.Position = 0;
-                using var writer = new ObjectWriter(memoryStream);
+                using var writer = new ObjectWriter(memoryStream, leaveOpen: true);
                 info.Value.WriteTo(writer, projectVersion);
 
                 memoryStream.Position = 0;

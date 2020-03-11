@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 cancellationToken).ConfigureAwait(false);
         }
 
-        Task INewDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync(
+        public Task RegisterDesignerAttributesAsync(
             IList<DesignerInfo> attributeInfos, CancellationToken cancellationToken)
         {
             lock (_gate)
