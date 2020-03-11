@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                         _ => NotifyProjectSystemAsync(cancellationToken),
                         cancellationToken,
-                        2000/*ms*/,
+                        1000/*ms*/,
                         TaskContinuationOptions.RunContinuationsAsynchronously,
                         TaskScheduler.Default);
                     _taskInFlight = true;

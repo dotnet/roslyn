@@ -142,16 +142,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task PersistLatestInfosAsync(VersionStamp projectVersion, (Document, DesignerInfo? info, bool changed)[] latestInfos, CancellationToken cancellationToken)
         {
-            var memoryStream = new MemoryStream();
             foreach (var (doc, info, _) in latestInfos)
             {
+                // Skip documents that didn't change contents/version at all.  No point in writing
+                // back out the exact same data as before.
                 if (info == null)
                     continue;
 
-                // reset the temp-stream, write the info value into it, then write that into the
-                // storage system.
-                memoryStream.Position = 0;
-                using var writer = new ObjectWriter(memoryStream, leaveOpen: true);
+                using var memoryStream = new MemoryStream();
+                using var writer = new ObjectWriter(memoryStream);
+
                 info.Value.WriteTo(writer, projectVersion);
 
                 memoryStream.Position = 0;
