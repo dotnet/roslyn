@@ -2000,21 +2000,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Parámetros:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Agregar casos que faltan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Agregar ambos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Agregar caso predeterminado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">El elemento variádico SignatureHelpItem debe tener al menos un parámetro.</target>
