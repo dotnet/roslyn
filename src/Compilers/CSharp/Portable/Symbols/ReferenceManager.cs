@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
                     // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
                     var implicitReferenceResolutions = compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions ??
-                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference>.Empty;
+                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?>.Empty;
 
                     BoundInputAssembly[] bindingResult = Bind(
                         compilation,
@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
+                public override bool IsMatchingAssembly(AssemblySymbol? candidateAssembly)
                 {
                     return IsMatchingAssembly(candidateAssembly as PEAssemblySymbol);
                 }
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
+                public override bool IsMatchingAssembly(AssemblySymbol? candidateAssembly)
                 {
                     var retargeting = candidateAssembly as RetargetingAssemblySymbol;
                     AssemblySymbol? asm;
