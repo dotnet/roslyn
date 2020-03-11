@@ -217,6 +217,23 @@ public class C
             await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"));
         }
 
+        [Fact, WorkItem(2690, "https://github.com/dotnet/wpf/issues/2690")]
+        public async Task XamlGeneratedNamespaceWorkaround()
+        {
+            var source = @"
+namespace XamlGeneratedNamespace {
+    public sealed class GeneratedInternalTypeHelper
+    {
+    }
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         [Fact]
         public async Task SimpleMissingMember_CSharp()
         {
