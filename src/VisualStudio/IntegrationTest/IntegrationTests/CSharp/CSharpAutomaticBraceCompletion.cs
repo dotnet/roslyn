@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Log;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -349,8 +350,7 @@ class Bar<U>
 
             if (showCompletionInArgumentLists)
             {
-                // TODO: Why does this sleep make the test pass?
-                // Thread.Sleep(1000);
+                Assert.False(VisualStudio.Editor.IsCompletionActive());
             }
 
             VisualStudio.Editor.SendKeys(
@@ -661,8 +661,7 @@ class Program
 
             if (showCompletionInArgumentLists)
             {
-                // TODO: Why does this sleep make the test pass?
-                // Thread.Sleep(1000);
+                Assert.True(VisualStudio.Editor.IsCompletionActive());
             }
 
             VisualStudio.Editor.SendKeys(";");
