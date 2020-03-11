@@ -4,7 +4,8 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+
 {
     internal interface IVSTypeScriptInlineRenameReplacementInfo
     {
