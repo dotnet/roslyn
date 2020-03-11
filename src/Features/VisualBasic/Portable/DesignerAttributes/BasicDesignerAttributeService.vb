@@ -24,47 +24,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DesignerAttributes
     End Class
 
     Friend Class BasicDesignerAttributeService
-        Inherits AbstractDesignerAttributeService
+        Inherits AbstractDesignerAttributeService(Of ClassBlockSyntax)
 
         Public Sub New(workspace As Workspace)
             MyBase.New(workspace)
         End Sub
 
-        Protected Overrides Function GetAllTopLevelTypeDefined(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            Dim compilationUnit = TryCast(node, CompilationUnitSyntax)
-            If compilationUnit Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
-            End If
-
-            Return compilationUnit.Members.SelectMany(AddressOf GetAllTopLevelTypeDefined)
+        Protected Overrides Function GetFirstTopLevelClass(root As SyntaxNode) As ClassBlockSyntax
+            Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
+            Return GetFirstTopLevelClass(compilationUnit.Members)
         End Function
 
-        Private Overloads Function GetAllTopLevelTypeDefined(member As StatementSyntax) As IEnumerable(Of SyntaxNode)
-            Dim namespaceMember = TryCast(member, NamespaceBlockSyntax)
-            If namespaceMember IsNot Nothing Then
-                Return namespaceMember.Members.SelectMany(AddressOf GetAllTopLevelTypeDefined)
-            End If
+        Private Overloads Function GetFirstTopLevelClass(members As SyntaxList(Of StatementSyntax)) As ClassBlockSyntax
+            For Each member In members
+                If TypeOf member Is NamespaceBlockSyntax Then
+                    Dim classNode = GetFirstTopLevelClass(DirectCast(member, NamespaceBlockSyntax).Members)
+                    If classNode IsNot Nothing Then
+                        Return classNode
+                    End If
+                ElseIf TypeOf member Is ClassBlockSyntax Then
+                    Dim classNode = DirectCast(member, ClassBlockSyntax)
+                    Return classNode
+                End If
+            Next
 
-            Dim type = TryCast(member, ClassBlockSyntax)
-            If type IsNot Nothing Then
-                Return SpecializedCollections.SingletonEnumerable(Of SyntaxNode)(type)
-            End If
-
-            Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+            Return Nothing
         End Function
 
-        Protected Overrides Function HasAttributesOrBaseTypeOrIsPartial(typeNode As SyntaxNode) As Boolean
-            Dim type = TryCast(typeNode, ClassBlockSyntax)
-            If type IsNot Nothing Then
-                ' VB can't actually use any syntactic tricks to limit the types we need to look at.
-                ' VB allows up to one partial declaration omit the 'Partial' keyword; so the presence
-                ' or absence of attributes, base types, or the 'Partial' keyword doesn't mean anything.
-                ' If this is a ClassBlockSyntax node, we're going to have to bind.
-
-                Return True
-            End If
-
-            Return False
+        Protected Overrides Function HasAttributesOrBaseTypeOrIsPartial(type As ClassBlockSyntax) As Boolean
+            ' VB can't actually use any syntactic tricks to limit the types we need to look at.
+            ' VB allows up to one partial declaration omit the 'Partial' keyword; so the presence
+            ' or absence of attributes, base types, or the 'Partial' keyword doesn't mean anything.
+            ' If this is a ClassBlockSyntax node, we're going to have to bind.
+            Return type IsNot Nothing
         End Function
     End Class
 End Namespace

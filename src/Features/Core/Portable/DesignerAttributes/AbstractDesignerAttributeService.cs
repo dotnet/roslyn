@@ -12,7 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal abstract class AbstractDesignerAttributeService : IDesignerAttributeService
+    internal abstract class AbstractDesignerAttributeService<TClassDeclarationSyntax>
+        : IDesignerAttributeService
+        where TClassDeclarationSyntax : SyntaxNode
     {
         // we hold onto workspace to make sure given input (Document) belong to right workspace.
         // since remote host is from workspace service, different workspace can have different expectation
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             _workspace = workspace;
         }
 
-        protected abstract SyntaxNode GetFirstTopLevelClass(SyntaxNode root);
-        protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
+        protected abstract TClassDeclarationSyntax GetFirstTopLevelClass(SyntaxNode root);
+        protected abstract bool HasAttributesOrBaseTypeOrIsPartial(TClassDeclarationSyntax typeNode);
 
         public async Task<DesignerAttributeResult> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken)
         {

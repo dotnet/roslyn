@@ -25,45 +25,43 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
             => new CSharpDesignerAttributeService(languageServices.WorkspaceServices.Workspace);
     }
 
-    internal class CSharpDesignerAttributeService : AbstractDesignerAttributeService
+    internal class CSharpDesignerAttributeService : AbstractDesignerAttributeService<ClassDeclarationSyntax>
     {
-        public CSharpDesignerAttributeService(Workspace workspace) : base(workspace)
+        public CSharpDesignerAttributeService(Workspace workspace)
+            : base(workspace)
         {
         }
 
-        protected override IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode node)
+        protected override ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxNode root)
         {
-            if (!(node is CompilationUnitSyntax compilationUnit))
-            {
-                return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            }
-
-            return compilationUnit.Members.SelectMany(GetAllTopLevelTypeDefined);
+            var compilationUnit = (CompilationUnitSyntax)root;
+            return GetFirstTopLevelClass(compilationUnit.Members);
         }
 
-        private IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(MemberDeclarationSyntax member)
+        private ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxList<MemberDeclarationSyntax> members)
         {
-            switch (member)
+            foreach (var member in members)
             {
-                case NamespaceDeclarationSyntax namespaceMember:
-                    return namespaceMember.Members.SelectMany(GetAllTopLevelTypeDefined);
-                case ClassDeclarationSyntax type:
-                    return SpecializedCollections.SingletonEnumerable<SyntaxNode>(type);
+                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                {
+                    var classNode = GetFirstTopLevelClass(namespaceDeclaration.Members);
+                    if (classNode != null)
+                        return classNode;
+                }
+                else if (member is ClassDeclarationSyntax classDeclaration)
+                {
+                    return classDeclaration;
+                }
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return null;
         }
 
-        protected override bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode)
+        protected override bool HasAttributesOrBaseTypeOrIsPartial(ClassDeclarationSyntax classNode)
         {
-            if (typeNode is ClassDeclarationSyntax classNode)
-            {
-                return classNode.AttributeLists.Count > 0 ||
-                    classNode.BaseList != null ||
-                    classNode.Modifiers.Any(SyntaxKind.PartialKeyword);
-            }
-
-            return false;
+            return classNode.AttributeLists.Count > 0 ||
+                classNode.BaseList != null ||
+                classNode.Modifiers.Any(SyntaxKind.PartialKeyword);
         }
     }
 }
