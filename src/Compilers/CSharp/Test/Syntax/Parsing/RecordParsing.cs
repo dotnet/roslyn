@@ -784,9 +784,9 @@ class C
 
             UsingExpression(text);
 
-            N(SyntaxKind.SwitchExpression);
+            N(SyntaxKind.WithExpression);
             {
-                N(SyntaxKind.WithExpression);
+                N(SyntaxKind.SwitchExpression);
                 {
                     N(SyntaxKind.InvocationExpression);
                     {
@@ -800,11 +800,11 @@ class C
                             N(SyntaxKind.CloseParenToken);
                         }
                     }
-                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.SwitchKeyword);
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.WithKeyword);
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
