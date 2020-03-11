@@ -4,9 +4,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.
