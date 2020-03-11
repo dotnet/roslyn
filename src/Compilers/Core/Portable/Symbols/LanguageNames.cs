@@ -28,5 +28,13 @@ namespace Microsoft.CodeAnalysis
         /// F# is not a supported compile target for the Roslyn compiler.
         /// </remarks>
         public const string FSharp = "F#";
+
+        /// <summary>
+        /// The common name used for the TypeScript language.
+        /// </summary>
+        /// <remarks>
+        /// TypeScript is not a supported compile target for the Roslyn compiler.
+        /// </remarks>
+        public const string TypeScript = "TypeScript";
     }
 }

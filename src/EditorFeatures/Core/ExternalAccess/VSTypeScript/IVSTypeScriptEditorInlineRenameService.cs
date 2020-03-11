@@ -5,21 +5,23 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    internal readonly struct VSTypeScriptInlineRenameLocation
+    internal readonly struct VSTypeScriptInlineRenameLocationWrapper
     {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
+        private readonly InlineRenameLocation _underlyingObject;
 
-        public VSTypeScriptInlineRenameLocation(Document document, TextSpan textSpan)
+        public VSTypeScriptInlineRenameLocationWrapper(InlineRenameLocation underlyingObject)
         {
-            this.Document = document;
-            this.TextSpan = textSpan;
+            _underlyingObject = underlyingObject;
         }
+
+        public Document Document => _underlyingObject.Document;
+        public TextSpan TextSpan => _underlyingObject.TextSpan;
     }
 
     internal enum VSTypeScriptInlineRenameReplacementKind
@@ -31,18 +33,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         Complexified,
     }
 
-    internal readonly struct VSTypeScriptInlineRenameReplacement
+    internal readonly struct VSTypeScriptInlineRenameReplacementWrapper
     {
-        public VSTypeScriptInlineRenameReplacementKind Kind { get; }
-        public TextSpan OriginalSpan { get; }
-        public TextSpan NewSpan { get; }
+        private readonly InlineRenameReplacement _underlyingObject;
 
-        public VSTypeScriptInlineRenameReplacement(VSTypeScriptInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan)
+        public VSTypeScriptInlineRenameReplacementWrapper(InlineRenameReplacement underlyingObject)
         {
-            this.Kind = kind;
-            this.OriginalSpan = originalSpan;
-            this.NewSpan = newSpan;
+            _underlyingObject = underlyingObject;
         }
+
+        public VSTypeScriptInlineRenameReplacementKind Kind => VSTypeScriptInlineRenameReplacementKindHelpers.ConvertFrom(_underlyingObject.Kind);
+        public TextSpan OriginalSpan => _underlyingObject.OriginalSpan;
+        public TextSpan NewSpan => _underlyingObject.NewSpan;
     }
 
     internal interface IVSTypeScriptInlineRenameReplacementInfo
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// <summary>
         /// Returns all the replacements that need to be performed for the specified document.
         /// </summary>
-        IEnumerable<VSTypeScriptInlineRenameReplacement> GetReplacements(DocumentId documentId);
+        IEnumerable<VSTypeScriptInlineRenameReplacementWrapper> GetReplacements(DocumentId documentId);
     }
 
     internal interface IVSTypeScriptInlineRenameLocationSet
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// has entered in the inline rename session.  These are the locations are all relative
         /// to the solution when the inline rename session began.
         /// </summary>
-        IList<VSTypeScriptInlineRenameLocation> Locations { get; }
+        IList<VSTypeScriptInlineRenameLocationWrapper> Locations { get; }
 
         /// <summary>
         /// Returns the set of replacements and their possible resolutions if the user enters the
@@ -141,13 +143,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// Returns the actual span that should be edited in the buffer for a given rename reference
         /// location.
         /// </summary>
-        TextSpan GetReferenceEditSpan(VSTypeScriptInlineRenameLocation location, CancellationToken cancellationToken);
+        TextSpan GetReferenceEditSpan(VSTypeScriptInlineRenameLocationWrapper location, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the actual span that should be edited in the buffer for a given rename conflict
         /// location.
         /// </summary>
-        TextSpan? GetConflictEditSpan(VSTypeScriptInlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
+        TextSpan? GetConflictEditSpan(VSTypeScriptInlineRenameLocationWrapper location, string replacementText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determine the set of locations to rename given the provided options. May be called 
@@ -167,5 +169,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
+    }
+
+    /// <summary>
+    /// Language service that allows a language to participate in the editor's inline rename feature.
+    /// </summary>
+    internal interface IVSTypeScriptEditorInlineRenameService
+    {
+        Task<IVSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
