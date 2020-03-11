@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
     /// reporting results back to the host.
     /// </summary>
-    internal interface IRemoteNewDesignerAttributeService
+    internal interface IRemoteDesignerAttributeService
     {
         Task ScanForDesignerAttributesAsync(CancellationToken cancellation);
     }

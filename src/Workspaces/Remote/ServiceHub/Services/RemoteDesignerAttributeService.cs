@@ -20,9 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class NewRemoteDesignerAttributeService : ServiceBase, IRemoteNewDesignerAttributeService
+    internal partial class RemoteDesignerAttributeService : ServiceBase, IRemoteDesignerAttributeService
     {
-        public NewRemoteDesignerAttributeService(
+        public RemoteDesignerAttributeService(
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {

@@ -152,13 +152,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.NewRemoteDesignerAttributeService,
+                WellKnownServiceHubServices.RemoteDesignerAttributeService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
             if (_keepAliveSession == null)
                 return;
 
             var success = await _keepAliveSession.TryInvokeAsync(
-                nameof(IRemoteNewDesignerAttributeService.ScanForDesignerAttributesAsync),
+                nameof(IRemoteDesignerAttributeService.ScanForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
