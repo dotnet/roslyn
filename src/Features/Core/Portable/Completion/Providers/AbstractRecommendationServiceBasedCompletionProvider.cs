@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -70,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
-            if (!preselect &&
-                completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
-                context.IsOnArgumentListBracketOrComma &&
-                (completionContext.Trigger.Character == ' ' || completionContext.Trigger.Character == '(' || completionContext.Trigger.Character == '['))
+            if (ShouldSoftSelectInArgumentList(completionContext, context, preselect))
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
             }
@@ -95,6 +93,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 supportedPlatforms: supportedPlatformData);
+        }
+
+        private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, SyntaxContext context, bool preselect)
+        {
+            return !preselect &&
+                completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                context.IsOnArgumentListBracketOrComma &&
+                IsArgumentListTriggerCharacter(completionContext.Trigger.Character);
+        }
+
+        private static bool IsArgumentListTriggerCharacter(char character)
+        {
+            return character == ' ' || character == '(' || character == '[';
         }
 
         protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
