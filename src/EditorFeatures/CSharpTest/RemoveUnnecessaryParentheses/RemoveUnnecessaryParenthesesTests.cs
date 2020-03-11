@@ -2420,5 +2420,30 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     };
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [WorkItem(26311, "https://github.com/dotnet/roslyn/issues/26311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesesAroundDefaultLiteral()
+        {
+            await TestAsync(
+    @"class C
+{
+    void M()
+    {
+        bool f = false;
+
+        string s2 = f ? """" : $$(default);
+    }
+}",
+    @"class C
+{
+    void M()
+    {
+        bool f = false;
+
+        string s2 = f ? """" : default;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }

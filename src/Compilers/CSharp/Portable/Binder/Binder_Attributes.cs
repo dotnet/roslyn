@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // its value depends on the values of conditional symbols, which in turn depends on the source file where the attribute is applied.
 
                     Debug.Assert(!attribute.HasErrors);
+                    Debug.Assert(attribute.AttributeClass is object);
                     HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteDiagnostics);
                     diagnostics.Add(attributeSyntax, useSiteDiagnostics);
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert((object)attributeType != null);
             Debug.Assert(!attributeType.IsErrorType());
 
             if (attributeType.IsConditional)

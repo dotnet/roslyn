@@ -141,4 +141,23 @@
   <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
     <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
+  <data name="A_source_file_is_missing_a_required_header" xml:space="preserve">
+    <value>A source file is missing a required header.</value>
+  </data>
+  <data name="The_file_header_is_missing_or_not_located_at_the_top_of_the_file" xml:space="preserve">
+    <value>The file header is missing or not located at the top of the file</value>
+  </data>
+  <data name="A_source_file_contains_a_header_that_does_not_match_the_required_text" xml:space="preserve">
+    <value>A source file contains a header that does not match the required text</value>
+  </data>
+  <data name="The_file_header_does_not_match_the_required_text" xml:space="preserve">
+    <value>The file header does not match the required text</value>
+  </data>
+  <data name="Naming_rule_violation_0" xml:space="preserve">
+    <value>Naming rule violation: {0}</value>
+    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
+  </data>
+  <data name="Naming_Styles" xml:space="preserve">
+    <value>Naming Styles</value>
+  </data>
 </root>

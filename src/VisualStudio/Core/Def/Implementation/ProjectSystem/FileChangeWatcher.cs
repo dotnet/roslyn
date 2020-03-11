@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -122,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class Context : IVsFreeThreadedFileChangeEvents2, IContext
         {
             private readonly FileChangeWatcher _fileChangeWatcher;
-            private readonly string _directoryFilePathOpt;
+            private readonly string? _directoryFilePath;
             private readonly IFileWatchingToken _noOpFileWatchingToken;
 
             /// <summary>
@@ -133,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly HashSet<FileWatchingToken> _activeFileWatchingTokens = new HashSet<FileWatchingToken>();
             private uint _directoryWatchCookie;
 
-            public Context(FileChangeWatcher fileChangeWatcher, string directoryFilePath)
+            public Context(FileChangeWatcher fileChangeWatcher, string? directoryFilePath)
             {
                 _fileChangeWatcher = fileChangeWatcher;
                 _noOpFileWatchingToken = new FileWatchingToken();
@@ -145,12 +151,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         directoryFilePath += "\\";
                     }
 
-                    _directoryFilePathOpt = directoryFilePath;
+                    _directoryFilePath = directoryFilePath;
 
                     _fileChangeWatcher.EnqueueWork(
                         async service =>
                         {
-                            _directoryWatchCookie = await service.AdviseDirChangeAsync(_directoryFilePathOpt, watchSubdirectories: true, this).ConfigureAwait(false);
+                            _directoryWatchCookie = await service.AdviseDirChangeAsync(_directoryFilePath, watchSubdirectories: true, this).ConfigureAwait(false);
                         });
                 }
             }
@@ -172,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         // Since we put all of our work in a queue, we know that if we had tried to advise file or directory changes,
                         // it must have happened before now
-                        if (_directoryFilePathOpt != null)
+                        if (_directoryFilePath != null)
                         {
                             await service.UnadviseDirChangeAsync(_directoryWatchCookie).ConfigureAwait(false);
                         }
@@ -188,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IFileWatchingToken EnqueueWatchingFile(string filePath)
             {
                 // If we already have this file under our path, we don't have to do additional watching
-                if (_directoryFilePathOpt != null && filePath.StartsWith(_directoryFilePathOpt))
+                if (_directoryFilePath != null && filePath.StartsWith(_directoryFilePath))
                 {
                     return _noOpFileWatchingToken;
                 }
@@ -230,10 +236,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
             {
-                return service.UnadviseFileChangeAsync(typedToken.Cookie.Value);
+                return service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
             }
 
-            public event EventHandler<string> FileChanged;
+            public event EventHandler<string>? FileChanged;
 
             int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
             {

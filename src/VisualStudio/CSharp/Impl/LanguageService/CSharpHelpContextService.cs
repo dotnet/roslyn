@@ -244,6 +244,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private bool TryGetTextForContextualKeyword(SyntaxToken token, out string text)
         {
+            if (token.Text == "nameof")
+            {
+                text = Keyword("nameof");
+                return true;
+            }
+
             if (token.IsContextualKeyword())
             {
                 switch (token.Kind())

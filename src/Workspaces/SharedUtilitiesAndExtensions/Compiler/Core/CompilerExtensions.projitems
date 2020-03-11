@@ -273,6 +273,21 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Capitalization.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\EditorConfig\EditorConfigNamingStyleParser_SymbolSpec.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyle.WordSpanEnumerable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyle.WordSpanEnumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStyleRules.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\AccessibilityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\MutableNamingStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\NamingStylePreferences.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractDocumentationCommentService.cs" />
@@ -352,6 +367,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SimpleTaskQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpecializedTasks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WordSimilarityChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringEscapeEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringSlice.cs" />
@@ -407,6 +423,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.GetHashCodeVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.ParameterSymbolEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolEquivalenceComparer.SignatureTypeSymbolEquivalenceComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticAnalyzerCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
