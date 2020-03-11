@@ -5,31 +5,31 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.DesignerAttributes;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
-using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote.Services
 {
-    // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : IRemoteNewDesignerAttributeService
+    internal partial class NewRemoteDesignerAttributeService : ServiceBase, IRemoteNewDesignerAttributeService
     {
+        public NewRemoteDesignerAttributeService(
+            Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
+        {
+            StartService();
+        }
+
         public Task ScanForDesignerAttributesAsync(CancellationToken cancellation)
         {
             return RunServiceAsync(() =>
@@ -69,24 +69,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly RemoteEndPoint _endPoint;
         private readonly Workspace _workspace;
-        private readonly IPersistentStorageService2 _storageService;
         private readonly IPersistentStorage _storage;
 
         public NewDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint, Workspace workspace)
         {
             _endPoint = endPoint;
             _workspace = workspace;
-            _storageService = _workspace.Services.GetRequiredService<IPersistentStorageService2>();
-            _storage = _storageService.GetStorage(workspace.CurrentSolution);
+            var storageService = _workspace.Services.GetRequiredService<IPersistentStorageService>();
+            _storage = storageService.GetStorage(workspace.CurrentSolution);
         }
 
-        public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        {
-            // Clear out the stream associated with the doc.  The next read will not be able to
-            // parse this into RemoteDesignerAttributeInfo and will cause us to recompute the
-            // information for this doc.
-            await _storage.WriteStreamAsync(document, DataKey, new MemoryStream(), cancellationToken).ConfigureAwait(false);
-        }
+        //public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        //{
+        //    // Clear out the stream associated with the doc.  The next read will not be able to
+        //    // parse this into RemoteDesignerAttributeInfo and will cause us to recompute the
+        //    // information for this doc.
+        //    await _storage.WriteStreamAsync(document, DataKey, new MemoryStream(), cancellationToken).ConfigureAwait(false);
+        //}
 
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDoc: null, cancellationToken);
@@ -96,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Remote
             // don't need to reanalyze file if just a method body was edited.  That can't
             // affect designer attributes.
             if (bodyOpt != null)
+                return Task.CompletedTask;
+
+            // When we register our analyzer we will get called into for every document to
+            // 'reanalyze' them all.  Ignore those as we would prefer to analyze the project
+            // en-mass.
+            if (reasons.Contains(PredefinedInvocationReasons.Reanalyze))
                 return Task.CompletedTask;
 
             return AnalyzeProjectAsync(document.Project, document, cancellationToken);

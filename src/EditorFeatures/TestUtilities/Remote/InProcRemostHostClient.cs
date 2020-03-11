@@ -167,6 +167,7 @@ namespace Roslyn.Test.Utilities.Remote
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubServices.NewRemoteDesignerAttributeService, (s, p) => new NewRemoteDesignerAttributeService(s, p));
                 RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 

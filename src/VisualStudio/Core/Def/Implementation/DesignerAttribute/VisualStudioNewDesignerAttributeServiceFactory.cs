@@ -78,6 +78,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>();
 
         /// <summary>
+        /// Created on demand when we startup.
+        /// </summary>
+        private RemoteHostClient _client;
+        private KeepAliveSession _keepAliveSession;
+
+        /// <summary>
         /// cache designer from UI thread
         /// 
         /// access this field through <see cref="GetDesignerServiceOnForegroundThread"/>
@@ -139,19 +145,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            _client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (_client == null)
                 return;
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
+            _keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(
+                WellKnownServiceHubServices.NewRemoteDesignerAttributeService,
+                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            if (_keepAliveSession == null)
+                return;
 
-            var success = await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.CodeAnalysisService,
+            var success = await _keepAliveSession.TryInvokeAsync(
                 nameof(IRemoteNewDesignerAttributeService.ScanForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
-                callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
         }
 
