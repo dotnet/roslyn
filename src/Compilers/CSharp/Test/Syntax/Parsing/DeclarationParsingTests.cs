@@ -7360,6 +7360,65 @@ class B<X, Y> : A<int
             EOF();
         }
 
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void TestExtraneousColonInBaseList()
+        {
+            var tree = UsingNode(@"
+class A : B : C
+{
+}
+", TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
+                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 1),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
         public void TestNamespaceWithDotDot2()
         {
