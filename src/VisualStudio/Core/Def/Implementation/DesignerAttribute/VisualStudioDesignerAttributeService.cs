@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,22 +37,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         // cache the update service for cps projects. Computed on demand (slow), but then cached for
         // quick responses after that.
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService> _cpsProjects
-            = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>();
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
+            = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteHostClient _client;
-        private KeepAliveSession _keepAliveSession;
+        private RemoteHostClient? _client;
+        private KeepAliveSession? _keepAliveSession;
 
         /// <summary>
         /// cache designer from UI thread
         /// 
         /// access this field through <see cref="GetDesignerServiceOnForegroundThread"/>
         /// </summary>
-        private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
+        private IVSMDDesignerService? _dotNotAccessDirectlyDesigner;
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
@@ -283,6 +285,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (document == null)
                 return;
 
+            if (document.FilePath == null)
+                return;
+
             var itemId = hierarchy.TryGetItemId(document.FilePath);
             if (itemId == VSConstants.VSITEMID_NIL)
                 return;
@@ -314,8 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private IVSMDDesignerService GetDesignerServiceOnForegroundThread()
         {
             AssertIsForeground();
-            return _dotNotAccessDirectlyDesigner ??= _serviceProvider.GetService(typeof(SVSMDDesignerService)) as IVSMDDesignerService;
-
+            return _dotNotAccessDirectlyDesigner ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
         }
 
         private async Task NotifyCpsProjectSystemAsync(
@@ -364,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private async Task<IProjectItemDesignerTypeUpdateService> GetUpdateServiceIfCpsProjectAsync(
+        private async Task<IProjectItemDesignerTypeUpdateService?> GetUpdateServiceIfCpsProjectAsync(
             Project project, CancellationToken cancellationToken)
         {
             var projectId = project.Id;
@@ -379,12 +383,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _cpsProjects.TryAdd(projectId, updateService);
             return updateService;
 
-            IProjectItemDesignerTypeUpdateService ComputeUpdateService()
+            IProjectItemDesignerTypeUpdateService? ComputeUpdateService()
             {
                 if (!_workspace.IsCPSProject(project))
                     return null;
 
-                var vsProject = (IVsProject)_workspace.GetHierarchy(project.Id);
+                var vsProject = (IVsProject?)_workspace.GetHierarchy(project.Id);
+                if (vsProject == null)
+                    return null;
+
                 if (ErrorHandler.Failed(vsProject.GetItemContext((uint)VSConstants.VSITEMID.Root, out var projectServiceProvider)))
                     return null;
 
