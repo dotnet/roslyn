@@ -279,7 +279,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             DesignerInfo info)
         {
             // Make sure this is a document we still know about when OOP notifies us.
-
             var document = project.GetDocument(info.DocumentId);
             if (document == null)
                 return;
