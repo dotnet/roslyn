@@ -315,13 +315,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private IVSMDDesignerService GetDesignerServiceOnForegroundThread()
         {
             AssertIsForeground();
+            return _dotNotAccessDirectlyDesigner ??= _serviceProvider.GetService(typeof(SVSMDDesignerService)) as IVSMDDesignerService;
 
-            if (_dotNotAccessDirectlyDesigner != null)
-                return _dotNotAccessDirectlyDesigner;
-
-            _dotNotAccessDirectlyDesigner = _serviceProvider.GetService(typeof(SVSMDDesignerService)) as IVSMDDesignerService;
-
-            return _dotNotAccessDirectlyDesigner;
         }
 
         private async Task NotifyCpsProjectSystemAsync(
