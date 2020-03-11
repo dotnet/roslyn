@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,57 +19,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteDesignerAttributeService : ServiceBase, IRemoteDesignerAttributeService
+    internal class RemoteDesignerAttributeIncrementalAnalyzer : IncrementalAnalyzerBase
     {
-        public RemoteDesignerAttributeService(
-            Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream)
-        {
-            StartService();
-        }
-
-        public Task ScanForDesignerAttributesAsync(CancellationToken cancellation)
-        {
-            return RunServiceAsync(() =>
-            {
-                var workspace = SolutionService.PrimaryWorkspace;
-                var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new NewDesignerAttributeIncrementalAnalyzerProvider(this.EndPoint);
-
-                registrationService.AddAnalyzerProvider(
-                    analyzerProvider,
-                    new IncrementalAnalyzerProviderMetadata(
-                        nameof(NewDesignerAttributeIncrementalAnalyzerProvider),
-                        highPriorityForActiveFile: false,
-                        workspaceKinds: WorkspaceKind.RemoteWorkspace));
-
-                return Task.CompletedTask;
-            }, cancellation);
-        }
-    }
-
-    internal class NewDesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
-    {
-        private readonly RemoteEndPoint _endPoint;
-
-        public NewDesignerAttributeIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
-        {
-            _endPoint = endPoint;
-        }
-
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new NewDesignerAttributeIncrementalAnalyzer(_endPoint, workspace);
-    }
-
-    internal class NewDesignerAttributeIncrementalAnalyzer : IncrementalAnalyzerBase
-    {
-        private const string DataKey = "data";
+        private const string DataKey = "DesignerAttributeData";
 
         private readonly RemoteEndPoint _endPoint;
         private readonly Workspace _workspace;
         private readonly IPersistentStorage _storage;
 
-        public NewDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint, Workspace workspace)
+        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint, Workspace workspace)
         {
             _endPoint = endPoint;
             _workspace = workspace;
