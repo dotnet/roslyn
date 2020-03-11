@@ -24,32 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DesignerAttributes
     End Class
 
     Friend Class BasicDesignerAttributeService
-        Inherits AbstractDesignerAttributeService(Of ClassBlockSyntax)
+        Inherits AbstractDesignerAttributeService(Of
+            CompilationUnitSyntax,
+            NamespaceBlockSyntax,
+            ClassBlockSyntax)
 
         Public Sub New(workspace As Workspace)
             MyBase.New(workspace)
         End Sub
-
-        Protected Overrides Function GetFirstTopLevelClass(root As SyntaxNode) As ClassBlockSyntax
-            Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
-            Return GetFirstTopLevelClass(compilationUnit.Members)
-        End Function
-
-        Private Overloads Function GetFirstTopLevelClass(members As SyntaxList(Of StatementSyntax)) As ClassBlockSyntax
-            For Each member In members
-                If TypeOf member Is NamespaceBlockSyntax Then
-                    Dim classNode = GetFirstTopLevelClass(DirectCast(member, NamespaceBlockSyntax).Members)
-                    If classNode IsNot Nothing Then
-                        Return classNode
-                    End If
-                ElseIf TypeOf member Is ClassBlockSyntax Then
-                    Dim classNode = DirectCast(member, ClassBlockSyntax)
-                    Return classNode
-                End If
-            Next
-
-            Return Nothing
-        End Function
 
         Protected Overrides Function HasAttributesOrBaseTypeOrIsPartial(type As ClassBlockSyntax) As Boolean
             ' VB can't actually use any syntactic tricks to limit the types we need to look at.

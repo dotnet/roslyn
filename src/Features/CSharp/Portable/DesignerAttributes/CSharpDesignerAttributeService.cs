@@ -22,33 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
             => new CSharpDesignerAttributeService(languageServices.WorkspaceServices.Workspace);
     }
 
-    internal class CSharpDesignerAttributeService : AbstractDesignerAttributeService<ClassDeclarationSyntax>
+    internal class CSharpDesignerAttributeService : AbstractDesignerAttributeService<
+        CompilationUnitSyntax,
+        NamespaceDeclarationSyntax,
+        ClassDeclarationSyntax>
     {
         public CSharpDesignerAttributeService(Workspace workspace)
             : base(workspace)
         {
-        }
-
-        protected override ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxNode root)
-            => GetFirstTopLevelClass(((CompilationUnitSyntax)root).Members);
-
-        private ClassDeclarationSyntax GetFirstTopLevelClass(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            foreach (var member in members)
-            {
-                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
-                {
-                    var classNode = GetFirstTopLevelClass(namespaceDeclaration.Members);
-                    if (classNode != null)
-                        return classNode;
-                }
-                else if (member is ClassDeclarationSyntax classDeclaration)
-                {
-                    return classDeclaration;
-                }
-            }
-
-            return null;
         }
 
         protected override bool HasAttributesOrBaseTypeOrIsPartial(ClassDeclarationSyntax classNode)
