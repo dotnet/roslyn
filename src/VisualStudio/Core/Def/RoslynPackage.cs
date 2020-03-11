@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -154,6 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
+
+            var designerAttributeService = _workspace.Services.GetService<INewDesignerAttributeService>();
+            designerAttributeService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
