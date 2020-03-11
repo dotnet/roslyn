@@ -9,11 +9,12 @@ using Roslyn.Utilities;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
-    [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.TypeScript)]
+    [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
     internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
     {
         private readonly IVSTypeScriptEditorInlineRenameService _service;

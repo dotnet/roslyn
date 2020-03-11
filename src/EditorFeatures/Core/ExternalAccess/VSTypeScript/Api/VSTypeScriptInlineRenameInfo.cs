@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal sealed class VSTypeScriptInlineRenameInfo : IInlineRenameInfo
     {

@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal sealed class VSTypeScriptInlineRenameReplacementInfo : IInlineRenameReplacementInfo
     {
