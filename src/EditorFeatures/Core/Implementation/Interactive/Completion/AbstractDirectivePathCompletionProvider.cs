@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             return true;
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create(':', '\\', '/', '"');
+
         private static string GetPathThroughLastSlash(string quotedPath, int quotedPathStart, int position)
         {
             Contract.ThrowIfTrue(quotedPath[0] != '"');

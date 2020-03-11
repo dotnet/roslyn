@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -34,5 +35,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
         {
             return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
         }
+
+        /// <summary>
+        /// Pulled from https://github.com/dotnet/fsharp/blob/master/vsintegration/src/FSharp.Editor/Completion/FileSystemCompletion.fs#L140
+        /// but this is incredibly fragile.
+        /// </summary>
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('"', '\\', ',', '/');
     }
 }

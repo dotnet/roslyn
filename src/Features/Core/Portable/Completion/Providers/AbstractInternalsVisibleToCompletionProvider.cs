@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('\"');
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try

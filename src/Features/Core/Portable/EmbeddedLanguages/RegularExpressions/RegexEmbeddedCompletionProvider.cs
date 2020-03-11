@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('\\', '[', '(', '{');
+
         private bool IsTriggerCharacter(char ch)
         {
             switch (ch)

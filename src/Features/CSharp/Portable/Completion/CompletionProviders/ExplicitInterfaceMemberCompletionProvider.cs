@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return text[characterPosition] == '.';
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('.');
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -68,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
+        internal static ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('.', '#', '>', ':');
+
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word.
@@ -75,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
                 (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
         }
+
+        internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');
 
         private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)
         {

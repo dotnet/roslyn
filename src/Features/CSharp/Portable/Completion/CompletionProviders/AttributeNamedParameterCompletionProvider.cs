@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.PossibleTriggerCharacters;
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try

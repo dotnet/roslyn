@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
+        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create(' ', '[', '(', '~');
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try

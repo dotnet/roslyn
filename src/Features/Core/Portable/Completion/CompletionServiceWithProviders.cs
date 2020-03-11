@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -85,6 +87,11 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return _importedProviders;
+        }
+
+        internal override ImmutableArray<CompletionProvider> GetCompletionProviders()
+        {
+            return GetAllProviders(ImmutableHashSet<string>.Empty);
         }
 
         private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
@@ -248,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     if (ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
                     {
                         triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                        Debug.Assert(ValidatePossibleTriggerCharacterSet(triggeredProviders, document, text, caretPosition));
                         if (triggeredProviders.Length == 0)
                         {
                             triggeredProviders = providers;
@@ -309,6 +317,33 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false),
                 (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
+        }
+
+        private bool ValidatePossibleTriggerCharacterSet(IEnumerable<CompletionProvider> triggeredProviders, Document document, SourceText text, int caretPosition)
+        {
+            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            if (caretPosition > 0 && syntaxFactsService != null)
+            {
+                // The trigger character has already been inserted before the current caret position.
+                var character = text[caretPosition - 1];
+
+                // Identifier characters are not part of the possible trigger character set, so don't validate them.
+                var isIdentifierCharacter = syntaxFactsService.IsIdentifierStartCharacter(character) || syntaxFactsService.IsIdentifierEscapeCharacter(character);
+                if (isIdentifierCharacter)
+                {
+                    return true;
+                }
+
+                // Only verify against built in providers.  3rd party ones do not necessarily implement the possible trigger characters API.
+                triggeredProviders = triggeredProviders.Where(p => GetBuiltInProviders().Contains(p));
+                foreach (var provider in triggeredProviders)
+                {
+                    Debug.Assert(provider.PossibleTriggerCharacters.Contains(character),
+                        $"the character {character} is not a valid trigger character for {provider.Name}");
+                }
+            }
+
+            return true;
         }
 
         private static bool HasAnyItems(CompletionContext cc)
