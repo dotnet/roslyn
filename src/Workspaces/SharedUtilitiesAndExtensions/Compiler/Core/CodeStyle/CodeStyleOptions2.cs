@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     notificationOpt ??= NotificationOption2.Silent;
                 }
 
-                if (notificationOpt != null)
+                if (notificationOpt is object)
                 {
                     Debug.Assert(s_accessibilityModifiersRequiredMap.ContainsKey(value));
                     return new CodeStyleOption2<AccessibilityModifiersRequired>(s_accessibilityModifiersRequiredMap.GetValueOrDefault(value), notificationOpt);
