@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                return GetActions(document, state, cancellationToken);
+                return await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false);
             }
         }
     }

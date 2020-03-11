@@ -504,6 +504,36 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")]
+        [WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithOverriddenProperty()
+        {
+            var markup = @"
+cusing System;
+
+class BaseAttribute : Attribute
+{
+    public virtual string Name { get; set; }
+}
+
+class DerivedAttribute : BaseAttribute
+{
+    public override string Name { get; set; }
+}
+
+[[|Derived($$|])]
+class C
+{
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+        }
+
         #endregion
 
         #region "Setting fields and arguments"

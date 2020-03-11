@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       Return Contract.FailWithReturn(Of SyntaxToken)("shouldn't reach here")
+                                       throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzers(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -304,8 +304,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer) ||
-                analyzer == FileContentLoadAnalyzer.Instance)
+            if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
@@ -321,6 +320,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // once we support editorconfig fully, third party can use this
                 // ability as well and we can remove this kind special treatment on builtin
                 // analyzer.
+                return true;
+            }
+
+            if (analyzer is DiagnosticSuppressor)
+            {
+                // Always execute diagnostic suppressors.
                 return true;
             }
 

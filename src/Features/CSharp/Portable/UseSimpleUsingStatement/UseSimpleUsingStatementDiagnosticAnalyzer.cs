@@ -115,13 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

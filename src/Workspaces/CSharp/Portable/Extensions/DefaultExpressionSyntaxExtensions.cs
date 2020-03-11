@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -19,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool CanReplaceWithDefaultLiteral(
             this DefaultExpressionSyntax defaultExpression,
             CSharpParseOptions parseOptions,
-            OptionSet options,
+            bool preferSimpleDefaultExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
-                !options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value)
+                !preferSimpleDefaultExpression)
             {
                 return false;
             }
@@ -38,9 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool? CanReplaceWithDefaultLiteralFast(
             DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (defaultExpression.IsParentKind(SyntaxKind.EqualsValueClause))
+            if (defaultExpression.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValueClause))
             {
-                var equalsValueClause = (EqualsValueClauseSyntax)defaultExpression.Parent;
                 var typeSyntax = GetTypeSyntax(equalsValueClause);
 
                 if (typeSyntax != null)
@@ -69,14 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GetTypeSyntax(EqualsValueClauseSyntax equalsValueClause)
         {
             if (equalsValueClause.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                equalsValueClause.Parent.IsParentKind(SyntaxKind.VariableDeclaration))
+                equalsValueClause.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax declaration))
             {
-                var declaration = (VariableDeclarationSyntax)equalsValueClause.Parent.Parent;
                 return declaration.Type;
             }
-            else if (equalsValueClause.IsParentKind(SyntaxKind.Parameter))
+            else if (equalsValueClause.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
             {
-                var parameter = (ParameterSyntax)equalsValueClause.Parent;
                 return parameter.Type;
             }
 

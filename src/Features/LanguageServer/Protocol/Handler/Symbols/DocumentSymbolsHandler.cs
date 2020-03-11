@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
+        [ImportingConstructor]
+        public DocumentSymbolsHandler()
+        {
+        }
+
         public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
             ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

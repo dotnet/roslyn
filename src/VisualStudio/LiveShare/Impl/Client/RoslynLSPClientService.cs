@@ -154,6 +154,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.CSharpProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new CSharpLSPClientLifeTimeService();
@@ -171,6 +176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        public VisualBasicLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.VisualBasicProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new VisualBasicLSPClientLifeTimeService();
@@ -188,6 +198,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        public TypeScriptLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.TypeScriptProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new TypeScriptLSPClientLifeTimeService();

@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(SolutionAttributes attributes, IEnumerable<ProjectInfo>? projects)
+        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects)
         {
             Attributes = attributes;
-            Projects = projects.ToImmutableReadOnlyListOrEmpty();
+            Projects = projects;
         }
 
         /// <summary>
@@ -57,38 +57,12 @@ namespace Microsoft.CodeAnalysis
             string? filePath = null,
             IEnumerable<ProjectInfo>? projects = null)
         {
-            return new SolutionInfo(new SolutionAttributes(id, version, filePath), projects);
-        }
-
-        private SolutionInfo With(
-            SolutionAttributes? attributes = null,
-            IEnumerable<ProjectInfo>? projects = null)
-        {
-            var newAttributes = attributes ?? Attributes;
-            var newProjects = projects ?? Projects;
-
-            if (newAttributes == Attributes &&
-                newProjects == Projects)
-            {
-                return this;
-            }
-
-            return new SolutionInfo(newAttributes, newProjects);
-        }
-
-        internal SolutionInfo WithVersion(VersionStamp version)
-        {
-            return With(attributes: new SolutionAttributes(Attributes.Id, version, Attributes.FilePath));
-        }
-
-        internal SolutionInfo WithFilePath(string? filePath)
-        {
-            return With(attributes: new SolutionAttributes(Attributes.Id, Attributes.Version, filePath));
-        }
-
-        internal SolutionInfo WithProjects(IEnumerable<ProjectInfo> projects)
-        {
-            return With(projects: projects);
+            return new SolutionInfo(
+                new SolutionAttributes(
+                    id ?? throw new ArgumentNullException(nameof(id)),
+                    version,
+                    filePath),
+                projects.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projects)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
@@ -98,8 +72,10 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal class SolutionAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class SolutionAttributes : IChecksummedObject, IObjectWritable
         {
+            private Checksum? _lazyChecksum;
+
             /// <summary>
             /// The unique Id of the solution.
             /// </summary>
@@ -117,7 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath)
             {
-                Id = id ?? throw new ArgumentNullException(nameof(id));
+                Id = id;
                 Version = version;
                 FilePath = filePath;
             }
@@ -149,19 +125,8 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
             }
 
-            private Checksum? _lazyChecksum;
             Checksum IChecksummedObject.Checksum
-            {
-                get
-                {
-                    if (_lazyChecksum == null)
-                    {
-                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
-                    }
-
-                    return _lazyChecksum;
-                }
-            }
+                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
         }
     }
 }

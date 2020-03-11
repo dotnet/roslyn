@@ -50,11 +50,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuildCompleted()
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -115,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuildCompleted()
 
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -140,10 +140,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 source.OnSolutionBuildCompleted()
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -193,7 +193,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuildCompleted()
 
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -222,7 +222,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuildCompleted()
 
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -251,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuildCompleted()
 
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -284,7 +284,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuildCompleted()
 
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 ' error is considered live error, so event shouldn't be raised
                 Assert.False(called)
@@ -305,7 +305,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 AddHandler source.BuildProgressChanged, Sub(o, progress)
                                                             If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
@@ -316,10 +316,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                         End Sub
 
                 source.AddNewErrors(projectId2, GetDiagnosticData(projectId2))
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 source.OnSolutionBuildCompleted()
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -366,13 +366,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                        End Sub
 
                 source.AddNewErrors(project.Id, diagnostic)
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 source.OnSolutionBuildCompleted()
-                Await waiter.CreateExpeditedWaitTask()
+                Await waiter.ExpeditedWaitAsync()
 
                 Dim diagnosticServiceWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
-                Await diagnosticServiceWaiter.CreateExpeditedWaitTask()
+                Await diagnosticServiceWaiter.ExpeditedWaitAsync()
             End Using
         End Function
 
@@ -435,11 +435,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
+            Private ReadOnly _hostAnalyzers As HostDiagnosticAnalyzers
 
             Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing,
                            Optional analyzers As ImmutableArray(Of AnalyzerReference) = Nothing)
                 _data = data.NullToEmpty
-                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache(analyzers.NullToEmpty)
+                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
+                _hostAnalyzers = New HostDiagnosticAnalyzers(analyzers.NullToEmpty)
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -451,6 +453,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get
                     Return _analyzerInfoCache
+                End Get
+            End Property
+
+            Public ReadOnly Property HostAnalyzers As HostDiagnosticAnalyzers Implements IDiagnosticAnalyzerService.HostAnalyzers
+                Get
+                    Return _hostAnalyzers
                 End Get
             End Property
 

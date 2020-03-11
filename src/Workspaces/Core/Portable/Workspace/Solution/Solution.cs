@@ -839,6 +839,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(text));
             }
 
+            // TODO: should we validate file path?
+            // https://github.com/dotnet/roslyn/issues/41940
+
             var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
             return this.AddAnalyzerConfigDocuments(ImmutableArray.Create(info));
         }
@@ -883,7 +886,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveDocument(documentId);
+            CheckContainsDocument(documentId);
+            return RemoveDocumentsImpl(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified documents.
+        /// </summary>
+        public Solution RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckContainsDocuments(documentIds);
+            return RemoveDocumentsImpl(documentIds);
+        }
+
+        private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -897,7 +915,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAdditionalDocument(documentId);
+            CheckContainsAdditionalDocument(documentId);
+            return RemoveAdditionalDocumentsImpl(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified additional documents.
+        /// </summary>
+        public Solution RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckContainsAdditionalDocuments(documentIds);
+            return RemoveAdditionalDocumentsImpl(documentIds);
+        }
+
+        private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAdditionalDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -906,9 +939,27 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
-            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
+            CheckContainsAnalyzerConfigDocument(documentId);
+            return RemoveAnalyzerConfigDocumentsImpl(ImmutableArray.Create(documentId));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>s.
+        /// </summary>
+        public Solution RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            CheckContainsAnalyzerConfigDocuments(documentIds);
+            return RemoveAnalyzerConfigDocumentsImpl(documentIds);
+        }
+
+        private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocuments(documentIds);
             if (newState == _state)
             {
                 return this;
@@ -922,6 +973,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentName(DocumentId documentId, string name)
         {
+            CheckContainsDocument(documentId);
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             var newState = _state.WithDocumentName(documentId, name);
             if (newState == _state)
             {
@@ -935,9 +993,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
-        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string> folders)
+        public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string>? folders)
         {
-            var newState = _state.WithDocumentFolders(documentId, folders);
+            CheckContainsDocument(documentId);
+
+            var newState = _state.WithDocumentFolders(documentId,
+                folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders)));
+
             if (newState == _state)
             {
                 return this;
@@ -949,11 +1011,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the specified file path.
         /// </summary>
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): SolutionState.WithDocumentFilePath will throw if
-        // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
-        // document back to null?
         public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
         {
+            CheckContainsDocument(documentId);
+
+            // TODO (https://github.com/dotnet/roslyn/issues/37125): 
+            // We *do* support null file paths. Why can't you switch a document back to null?
+            // See DocumentState.GetSyntaxTreeFilePath
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             var newState = _state.WithDocumentFilePath(documentId, filePath);
             if (newState == _state)
             {
@@ -969,6 +1038,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            CheckContainsDocument(documentId);
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithDocumentText(documentId, text, mode);
             if (newState == _state)
             {
@@ -984,6 +1065,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithAdditionalDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            CheckContainsAdditionalDocument(documentId);
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithAdditionalDocumentText(documentId, text, mode);
             if (newState == _state)
             {
@@ -993,14 +1086,24 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
         public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
             if (newState == _state)
             {
@@ -1016,6 +1119,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            CheckContainsDocument(documentId);
+
+            if (textAndVersion == null)
+            {
+                throw new ArgumentNullException(nameof(textAndVersion));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
@@ -1031,6 +1146,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            CheckContainsAdditionalDocument(documentId);
+
+            if (textAndVersion == null)
+            {
+                throw new ArgumentNullException(nameof(textAndVersion));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithAdditionalDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
@@ -1040,14 +1167,24 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// and version specified.
         /// </summary>
         public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            if (textAndVersion == null)
+            {
+                throw new ArgumentNullException(nameof(textAndVersion));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
@@ -1063,6 +1200,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            CheckContainsDocument(documentId);
+
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithDocumentSyntaxRoot(documentId, root, mode);
             if (newState == _state)
             {
@@ -1078,6 +1227,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentSourceCodeKind(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
+            CheckContainsDocument(documentId);
+
+#pragma warning disable CS0618 // Interactive is obsolete but this method accepts it for backward compatibility.
+            if (sourceCodeKind == SourceCodeKind.Interactive)
+            {
+                sourceCodeKind = SourceCodeKind.Script;
+            }
+#pragma warning restore CS0618
+
+            if (!sourceCodeKind.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
+            }
+
             var newState = _state.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
             if (newState == _state)
             {
@@ -1093,16 +1256,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
-            return WithDocumentTextLoader(documentId, loader, text: null, mode: mode);
+            CheckContainsDocument(documentId);
+
+            if (loader == null)
+            {
+                throw new ArgumentNullException(nameof(loader));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
+            return UpdateDocumentTextLoader(documentId, loader, text: null, mode: mode);
         }
 
-        internal Solution WithDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
+        internal Solution UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
         {
-            var newState = _state.WithDocumentTextLoader(documentId, loader, text, mode);
-            if (newState == _state)
-            {
-                return this;
-            }
+            var newState = _state.UpdateDocumentTextLoader(documentId, loader, text, mode);
+
+            // Note: state is currently not reused.
+            // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
+            Debug.Assert(newState != _state);
 
             return new Solution(newState);
         }
@@ -1113,11 +1288,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
-            var newState = _state.WithAdditionalDocumentTextLoader(documentId, loader, mode);
-            if (newState == _state)
+            CheckContainsAdditionalDocument(documentId);
+
+            if (loader == null)
             {
-                return this;
+                throw new ArgumentNullException(nameof(loader));
             }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
+            var newState = _state.UpdateAdditionalDocumentTextLoader(documentId, loader, mode);
+
+            // Note: state is currently not reused.
+            // If UpdateAdditionalDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
+            Debug.Assert(newState != _state);
 
             return new Solution(newState);
         }
@@ -1128,11 +1315,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
-            var newState = _state.WithAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
-            if (newState == _state)
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            if (loader == null)
             {
-                return this;
+                throw new ArgumentNullException(nameof(loader));
             }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
+            var newState = _state.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
+
+            // Note: state is currently not reused.
+            // If UpdateAnalyzerConfigDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
+            Debug.Assert(newState != _state);
 
             return new Solution(newState);
         }
@@ -1217,8 +1416,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with all the documents specified updated to have the same specified text.
         /// </summary>
-        public Solution WithDocumentText(IEnumerable<DocumentId> documentIds, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        public Solution WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         {
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (!mode.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+
             var newState = _state.WithDocumentText(documentIds, text, mode);
             if (newState == _state)
             {
@@ -1284,6 +1498,84 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new Solution(newState);
+        }
+
+        private void CheckContainsDocument([NotNull] DocumentId? documentId)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (!ContainsDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+        }
+
+        private void CheckContainsDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            if (documentIds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            foreach (var documentId in documentIds)
+            {
+                CheckContainsDocument(documentId);
+            }
+        }
+
+        private void CheckContainsAdditionalDocument([NotNull] DocumentId? documentId)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (!ContainsAdditionalDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+        }
+
+        private void CheckContainsAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            if (documentIds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            foreach (var documentId in documentIds)
+            {
+                CheckContainsAdditionalDocument(documentId);
+            }
+        }
+
+        private void CheckContainsAnalyzerConfigDocument([NotNull] DocumentId? documentId)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (!ContainsAnalyzerConfigDocument(documentId))
+            {
+                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            }
+        }
+
+        private void CheckContainsAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            if (documentIds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            foreach (var documentId in documentIds)
+            {
+                CheckContainsAnalyzerConfigDocument(documentId);
+            }
         }
     }
 }

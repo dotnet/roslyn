@@ -8,4 +8,16 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Microsoft.CodeAnalysis.CodeFixes</Import_RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" Link="CodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
+  </ItemGroup>
 </Project>

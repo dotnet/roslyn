@@ -9,8 +9,8 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
-                var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                 context.RegisterSyntaxNodeAction(
                     nodeContext => AnalyzeNode(nodeContext, ienumerableType),
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
@@ -71,17 +71,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var syntaxTree = objectCreationExpression.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
-            if (option == null || !option.Value)
+            var option = context.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
+            if (!option.Value)
             {
                 // not point in analyzing if the option is off.
                 return;
@@ -96,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                semanticModel, GetSyntaxFactsService(), objectCreationExpression, cancellationToken);
+                semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
             {
@@ -110,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             {
                 return;
@@ -126,25 +119,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 additionalLocations: locations,
                 properties: null));
 
-            FadeOutCode(context, optionSet, matches.Value, locations);
+            FadeOutCode(context, matches.Value, locations);
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
-            OptionSet optionSet,
             ImmutableArray<TExpressionStatementSyntax> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = optionSet.GetOption(
+            var fadeOutCode = context.GetOption(
                 CodeStyleOptions.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
             {
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
             {
@@ -156,9 +148,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                         match.SpanStart, arguments[0].SpanStart));
 
+                    RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
                     context.ReportDiagnostic(Diagnostic.Create(
                         UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
+                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
                     context.ReportDiagnostic(Diagnostic.Create(
                         UnnecessaryWithoutSuggestionDescriptor,
                         Location.Create(syntaxTree, TextSpan.FromBounds(
@@ -169,6 +163,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
     }
 }

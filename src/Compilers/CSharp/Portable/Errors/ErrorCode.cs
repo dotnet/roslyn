@@ -1755,8 +1755,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes = 8769,
 
         WRN_DoesNotReturnMismatch = 8770,
+        ERR_NoOutputDirectory = 8771,
 
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
+
+        ERR_ConditionalOnLocalFunction = 8783,
+
+        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
+        ERR_ExpressionTreeContainsRangeExpression = 8792,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
