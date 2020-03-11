@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl) && delegateDecl.Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.TypeParameter, out TypeParameterSyntax? typeParameter) && typeParameter.Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -453,13 +453,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.Parent.IsKind(SyntaxKind.LabeledStatement))
+            if (token.Parent.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax? statement) &&
+                statement.Identifier == token)
             {
-                var statement = (LabeledStatementSyntax)token.Parent;
-                if (statement.Identifier == token)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Ensure that the text and value text are the same. Otherwise, the identifier might

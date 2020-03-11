@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class AssignOutParametersAboveReturnCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
     {
+        [ImportingConstructor]
+        public AssignOutParametersAboveReturnCodeFixProvider()
+        {
+        }
+
         protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -41,6 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<SyntaxNode> statements)
         {
             var generator = editor.Generator;
+
+            if (exprOrStatement is LocalFunctionStatementSyntax { ExpressionBody: { } localFunctionExpressionBody })
+            {
+                // Expression-bodied local functions report CS0177 on the method name instead of the expression.
+                // Reassign exprOrStatement so the code fix implementation works as it does for other expression-bodied
+                // members.
+                exprOrStatement = localFunctionExpressionBody.Expression;
+            }
 
             var parent = exprOrStatement.Parent;
             if (parent.IsEmbeddedStatementOwner())

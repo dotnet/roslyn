@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
+            var syntaxTree = operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(operation.Syntax.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferSystemHashCode, operation.Language);
+            var option = context.Options.GetOption(CodeStyleOptions.PreferSystemHashCode, operation.Language, syntaxTree, cancellationToken);
             if (option?.Value != true)
             {
                 return;

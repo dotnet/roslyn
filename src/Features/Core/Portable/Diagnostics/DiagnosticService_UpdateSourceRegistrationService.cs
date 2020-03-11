@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
+        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
         public DiagnosticService()
         {
             // we use registry service rather than doing MEF import since MEF import method can have race issue where

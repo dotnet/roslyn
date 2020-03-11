@@ -8,6 +8,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Internal.Log
@@ -249,11 +250,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             Dim node = token.Parent
 
+            Dim optionService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IOptionService)()
+            Dim options = documentOptions.AsAnalyzerConfigOptions(optionService, node?.Language)
+
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, optionSet:=documentOptions))
+                                    Formatter.GetDefaultFormattingRules(document), node, options))
                 node = node.Parent
             End While
 
@@ -264,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private Class NoAnchorFormatterRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAnchorIndentationOperationAction)
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 ' no anchor/relative formatting
                 Return
             End Sub

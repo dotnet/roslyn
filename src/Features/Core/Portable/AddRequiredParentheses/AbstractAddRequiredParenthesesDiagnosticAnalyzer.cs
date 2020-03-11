@@ -81,14 +81,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);
             if (parent == null || !IsBinaryLike(parent))
@@ -111,8 +103,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = optionSet.GetOption(parentPrecedence, binaryLike.Language);
-            if (preference?.Value != ParenthesesPreference.AlwaysForClarity)
+            var preference = context.GetOption(parentPrecedence, binaryLike.Language);
+            if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
             }
@@ -128,6 +120,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context, binaryLike, precedence, preference.Notification.Severity,
                 additionalLocations, equivalenceKey, includeInFixAll: true);
         }
+
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax? binaryLikeOpt, int precedence,
             ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,

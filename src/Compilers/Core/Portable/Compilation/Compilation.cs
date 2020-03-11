@@ -2136,7 +2136,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream? xmlDocumentationStream,
             Stream? win32ResourcesStream,
-            string outputNameOverride,
+            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
@@ -2732,7 +2732,7 @@ namespace Microsoft.CodeAnalysis
                 pePdbFilePath = null;
             }
 
-            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
+            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !RoslynString.IsNullOrEmpty(pePdbFilePath))
             {
                 pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }

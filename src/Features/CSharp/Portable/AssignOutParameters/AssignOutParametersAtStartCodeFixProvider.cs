@@ -16,12 +16,23 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class AssignOutParametersAtStartCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
     {
+        [ImportingConstructor]
+        public AssignOutParametersAtStartCodeFixProvider()
+        {
+        }
+
         protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
         {
             // Don't offer if we're already the starting statement of the container. This case will
             // be handled by the AssignOutParametersAboveReturnCodeFixProvider class.
             if (location is ExpressionSyntax)
             {
+                return;
+            }
+
+            if (location is LocalFunctionStatementSyntax { ExpressionBody: { } })
+            {
+                // This is an expression-bodied local function, which is also handled by the other code fix.
                 return;
             }
 

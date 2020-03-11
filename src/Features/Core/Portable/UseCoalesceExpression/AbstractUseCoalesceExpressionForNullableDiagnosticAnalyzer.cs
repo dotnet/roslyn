@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
         }
@@ -49,21 +49,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
+
+            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            if (!option.Value)
             {
                 return;
             }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
-            if (option == null || !option.Value)
-            {
-                return;
-            }
-
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
