@@ -2565,7 +2565,7 @@ class MyClass : BaseClass
     {
         MyClass param1 = new MyClass();
         int newparam = 1;
-         
+
         [|MyFunc|](param1, newparam);
     }
 
