@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    internal interface INewDesignerAttributeService : IWorkspaceService
+    internal interface IDesignerAttributeService : IWorkspaceService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background
