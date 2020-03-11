@@ -72,8 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IAsynchronousOperationListener _listener;
 
-        // cache whether a project is cps project or not. Computed on demand (slow), but then cached
-        // for quick responses after that.
+        // cache the update service for cps projects. Computed on demand (slow), but then cached for
+        // quick responses after that.
         private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService> _cpsProjects
             = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>();
 
@@ -112,15 +112,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
-            {
                 _cpsProjects.TryRemove(e.ProjectId, out _);
-            }
         }
 
         void INewDesignerAttributeService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        private async Task StartAsync(CancellationToken cancellationToken)
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
@@ -157,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public Task RegisterDesignerAttributesAsync(
+        Task INewDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync(
             IList<RemoteDesignerAttributeArgument> arguments, CancellationToken cancellationToken)
         {
             lock (_gate)
@@ -174,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                         _ => NotifyProjectSystemAsync(cancellationToken),
                         cancellationToken,
-                        2000,
+                        2000/*ms*/,
                         TaskContinuationOptions.RunContinuationsAsynchronously,
                         TaskScheduler.Default);
                     _taskInFlight = true;
@@ -188,27 +186,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<RemoteDesignerAttributeArgument>.GetInstance(out var attributeArguments);
+            using var _1 = ArrayBuilder<RemoteDesignerAttributeArgument>.GetInstance(out var designerArguments);
+            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+
             lock (_gate)
             {
-                // grab the entire set of notifications so far so we can process them.
-                attributeArguments.AddRange(_updateArguments);
-                _updateArguments.Clear();
+                // walk the set of updates in reverse, and ignore documents if we see them a second
+                // time.  This ensures that if we're batching up multiple notifications for the same
+                // document, that we only bother processing the last one since it should beat out
+                // all the prior ones.
+                for (var i = _updateArguments.Count - 1; i >= 0; i--)
+                {
+                    var designerArg = _updateArguments[i];
+                    if (seenDocumentIds.Add(designerArg.DocumentId))
+                        designerArguments.Add(designerArg);
+                }
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
+                _updateArguments.Clear();
                 _taskInFlight = false;
             }
 
+            // Reconcile all the notifications against the latest workspace solution we have.  This
+            // is technically racey as OOP may have computed against a different solution.  However,
+            // we should normally always reach a fixed point as we continually receive updates from
+            // OOP when teh solution changes that we should normally be able to map to this
+            // solution.
             var currentSolution = _workspace.CurrentSolution;
 
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            // Now, group all the notifications by project and update all the projects in parallel.
+            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var group in _updateArguments.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(NotifyProjectSystemAsync(currentSolution, group.Key, group, cancellationToken));
             }
 
+            // Wait until all project updates have happened before processing the next batch.
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
@@ -218,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             IEnumerable<RemoteDesignerAttributeArgument> arguments,
             CancellationToken cancellationToken)
         {
+            // Make sure this is a project that our current solution still knows about.
             var project = solution.GetProject(projectId);
             if (project == null)
                 return;
@@ -235,6 +251,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             IEnumerable<RemoteDesignerAttributeArgument> arguments,
             CancellationToken cancellationToken)
         {
+            // Move over to the UI thread and attempt to notify it about all the documents from this
+            // particular project at once. Use a task completion source here so we can kick over to
+            // the UI thread, but still ensure that our caller knows when we complete.
             var completionSource = new TaskCompletionSource<bool>();
 
             _notificationService.RegisterNotification(() =>
