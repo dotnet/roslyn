@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
                    CodeStyleOptions.PreferNullPropagation,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

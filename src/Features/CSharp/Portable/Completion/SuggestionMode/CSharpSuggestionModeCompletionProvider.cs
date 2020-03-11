@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,8 +20,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
+    [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectInitializerCompletionProvider))]
+    [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
+        [ImportingConstructor]
+        public CSharpSuggestionModeCompletionProvider()
+        {
+        }
+
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
     internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
     {
-        private const string TakeTopEquivalenceKey = nameof(TakeTopEquivalenceKey);
-        private const string TakeBottomEquivalenceKey = nameof(TakeBottomEquivalenceKey);
-        private const string TakeBothEquivalenceKey = nameof(TakeBothEquivalenceKey);
+        internal const string TakeTopEquivalenceKey = nameof(TakeTopEquivalenceKey);
+        internal const string TakeBottomEquivalenceKey = nameof(TakeBottomEquivalenceKey);
+        internal const string TakeBothEquivalenceKey = nameof(TakeBothEquivalenceKey);
 
         private static readonly int s_mergeConflictLength = "<<<<<<<".Length;
 

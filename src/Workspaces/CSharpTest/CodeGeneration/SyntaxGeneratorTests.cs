@@ -2219,7 +2219,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.DestructorDeclaration("c"), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.MethodDeclaration("m"), allModifiers)));
 
             Assert.Equal(
@@ -2231,11 +2231,11 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("i") }, Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(

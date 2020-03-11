@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 
@@ -59,8 +61,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the reference name matches the definition identity.</returns>
         public bool ReferenceMatchesDefinition(string referenceDisplayName, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(null, referenceDisplayName, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(reference: null, referenceDisplayName, definition, unificationApplied: out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -71,8 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if the reference identity matches the definition identity.</returns>
         public bool ReferenceMatchesDefinition(AssemblyIdentity reference, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: false) != ComparisonResult.NotEquivalent;
+            return Compare(reference, referenceDisplayName: null, definition, unificationApplied: out _, ignoreVersion: false) != ComparisonResult.NotEquivalent;
         }
 
         /// <summary>
@@ -82,12 +82,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="definition">Definition identity.</param>
         public ComparisonResult Compare(AssemblyIdentity reference, AssemblyIdentity definition)
         {
-            bool unificationApplied;
-            return Compare(reference, null, definition, out unificationApplied, ignoreVersion: true);
+            return Compare(reference, referenceDisplayName: null, definition, unificationApplied: out _, ignoreVersion: true);
         }
 
         // internal for testing
-        internal ComparisonResult Compare(AssemblyIdentity reference, string referenceDisplayName, AssemblyIdentity definition, out bool unificationApplied, bool ignoreVersion)
+        internal ComparisonResult Compare(AssemblyIdentity? reference, string? referenceDisplayName, AssemblyIdentity definition, out bool unificationApplied, bool ignoreVersion)
         {
             Debug.Assert((reference != null) ^ (referenceDisplayName != null));
             unificationApplied = false;

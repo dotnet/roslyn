@@ -10,7 +10,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
     {
@@ -39,11 +43,8 @@ namespace Microsoft.CodeAnalysis.Options
                 // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
                 return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
-            else
-            {
-                return Contract.FailWithReturn<(object, bool)>(
-                    $"{nameof(NamingStylePreferenceEditorConfigStorageLocation)} can only be called with {nameof(PerLanguageOption<NamingStylePreferences>)}<{nameof(NamingStylePreferences)}>.");
-            }
+
+            throw ExceptionUtilities.UnexpectedValue(type);
         }
     }
 }

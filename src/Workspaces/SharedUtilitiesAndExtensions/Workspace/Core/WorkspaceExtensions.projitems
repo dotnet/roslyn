@@ -50,8 +50,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameInvalidIdentifierAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />

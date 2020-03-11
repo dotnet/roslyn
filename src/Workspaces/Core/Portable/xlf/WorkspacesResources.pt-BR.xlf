@@ -77,16 +77,6 @@
         <target state="translated">As opções não vieram da Solução especificada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
-        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
-        <target state="translated">O prefixo '{0}' não coincide com prefixo esperado '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefix_0_is_not_expected">
-        <source>Prefix '{0}' is not expected</source>
-        <target state="translated">O prefixo '{0}' não é esperado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Somente Refatoração</target>
@@ -1512,11 +1502,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Caminho especificado deve ser absoluto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">Conversão é redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
         <target state="translated">Nome pode ser simplificado.</target>
@@ -1782,11 +1767,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">O acesso de membro deve ser qualificado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Adicionar chaves à instrução '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Habilitar</target>
@@ -1817,110 +1797,10 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">O leitor de desserialização para '{0}' lê o número incorreto de valores.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">Pascal Case</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">Método Abstract</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">Método Assíncrono</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">Começa com I</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="new">Class</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="new">Delegate</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="new">Enum</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="new">Event</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="new">Interface</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">Membros Sem Campo</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">Método Privado</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">Campo Privado ou Interno</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">Campo Privado ou Estático Interno</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="new">Property</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">Campo Protegido ou Público</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">Campo Estático</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">Método Estático</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="new">Struct</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">Tipos</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">método</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">Prefixo ausente: '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
@@ -1932,49 +1812,9 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">NENHUM</target>
         <note />
       </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">Sufixo ausente: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">Essas palavras não iniciais devem começar com uma letra maiúscula: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Sugestão</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">Essas palavras não iniciais devem começar com uma letra minúscula: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">Essas palavras não podem conter caracteres minúsculos: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">Essas palavras não podem conter caracteres maiúsculos: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">Essas palavras devem começar com caracteres maiúsculos: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">A primeira palavra, '{0}', deve começar com um caractere maiúsculo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">A primeira palavra, '{0}', deve começar com um caractere minúsculo</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">

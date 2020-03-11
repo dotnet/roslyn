@@ -138,9 +138,6 @@
   <data name="Simplify_all_occurrences" xml:space="preserve">
     <value>Simplify all occurrences</value>
   </data>
-  <data name="Remove_Unnecessary_Usings" xml:space="preserve">
-    <value>Remove Unnecessary Usings</value>
-  </data>
   <data name="lambda_expression" xml:space="preserve">
     <value>&lt;lambda expression&gt;</value>
   </data>
@@ -278,9 +275,6 @@
   </data>
   <data name="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above" xml:space="preserve">
     <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
-  </data>
-  <data name="Using_directive_is_unnecessary" xml:space="preserve">
-    <value>Using directive is unnecessary.</value>
   </data>
   <data name="try_block" xml:space="preserve">
     <value>try block</value>
@@ -466,18 +460,6 @@
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
-  <data name="Use_explicit_type_instead_of_var" xml:space="preserve">
-    <value>Use explicit type instead of 'var'</value>
-  </data>
-  <data name="Use_explicit_type" xml:space="preserve">
-    <value>Use explicit type</value>
-  </data>
-  <data name="use_var_instead_of_explicit_type" xml:space="preserve">
-    <value>use 'var' instead of explicit type</value>
-  </data>
-  <data name="Use_implicit_type" xml:space="preserve">
-    <value>Use implicit type</value>
-  </data>
   <data name="Autoselect_disabled_due_to_namespace_declaration" xml:space="preserve">
     <value>Autoselect disabled due to namespace declaration.</value>
   </data>
@@ -612,12 +594,6 @@
   <data name="Make_ref_struct" xml:space="preserve">
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
-    <value>Convert switch statement to expression</value>
-  </data>
-  <data name="Use_switch_expression" xml:space="preserve">
-    <value>Use 'switch' expression</value>
   </data>
   <data name="Misplaced_using_directive" xml:space="preserve">
     <value>Misplaced using directive</value>

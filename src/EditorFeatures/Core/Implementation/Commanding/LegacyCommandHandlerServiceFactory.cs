@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commanding
     [Export(typeof(ICommandHandlerServiceFactory))]
     internal sealed class LegacyCommandHandlerServiceFactory : ICommandHandlerServiceFactory
     {
+        [ImportingConstructor]
         public LegacyCommandHandlerServiceFactory()
         {
         }

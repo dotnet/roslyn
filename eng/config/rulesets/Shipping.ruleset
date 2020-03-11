@@ -109,7 +109,6 @@
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
     <Rule Id="RS0033" Action="None" /> <!-- Importing constructor should be [Obsolete] -->
-    <Rule Id="RS0034" Action="None" /> <!-- 'type_name' is MEF-exported and should have a single importing constructor of the correct form -->
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />

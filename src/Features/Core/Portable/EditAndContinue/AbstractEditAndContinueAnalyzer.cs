@@ -2134,7 +2134,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance, distinguishRefFromOut: true);
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
+            AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: false);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
         {
@@ -2738,6 +2739,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var attribute in attributes)
             {
+                RoslynDebug.Assert(attribute.AttributeClass is object); // TODO2
                 if (attribute.AttributeClass.Equals(lazyLayoutAttribute) && attribute.ConstructorArguments.Length == 1)
                 {
                     var layoutValue = attribute.ConstructorArguments.Single().Value;
