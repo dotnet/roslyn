@@ -50,7 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Our connections to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteHostClient? _client;
         private KeepAliveSession? _keepAliveSession;
 
         /// <summary>
@@ -110,13 +109,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            _client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (_client == null)
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
                 return;
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(
+            _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteDesignerAttributeService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
             if (_keepAliveSession == null)
