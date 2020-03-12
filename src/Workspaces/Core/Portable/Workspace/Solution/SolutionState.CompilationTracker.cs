@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis
                         ? baseCompilation.Clone()
                         : baseCompilation;
 
-                    var intermediateProjects = state is InProgressState
-                        ? ((InProgressState)state).IntermediateProjects
+                    var intermediateProjects = state is InProgressState inProgressState
+                        ? inProgressState.IntermediateProjects
                         : ImmutableArray.Create<(ProjectState, CompilationTranslationAction)>();
 
                     var newIntermediateProjects = translate == null
