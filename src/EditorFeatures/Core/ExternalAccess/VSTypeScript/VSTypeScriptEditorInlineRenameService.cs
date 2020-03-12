@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
     internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
     {
-        private readonly IVSTypeScriptEditorInlineRenameService _service;
+        private readonly Lazy<IVSTypeScriptEditorInlineRenameService> _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptEditorInlineRenameService(IVSTypeScriptEditorInlineRenameService service)
+        public VSTypeScriptEditorInlineRenameService(Lazy<IVSTypeScriptEditorInlineRenameService> service)
         {
             Contract.ThrowIfNull(service);
             _service = service;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var info = await _service.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var info = await _service.Value.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
                 return new VSTypeScriptInlineRenameInfo(info);
