@@ -92,6 +92,11 @@
         <target state="translated">Ожидаемая задача не возвращает значение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
@@ -135,6 +140,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">Настройка серьезности {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -443,38 +458,18 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Параметр "{0}" можно удалить, если он не является частью предоставленного общедоступного API. Начальное значение этого параметра никогда не используется.</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">Параметр "{0}" можно удалить, если он не является частью предоставленного общедоступного API. Начальное значение этого параметра никогда не используется.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">Параметр "{0}" можно удалить, его начальное значение никогда не используется.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Закрытый член «{0}» может быть удален как значение, присвоенное него никогда не читал.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Закрытый член «{0}» не используется.</target>
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="needs-review-translation">Параметр "{0}" можно удалить, его начальное значение никогда не используется.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Изменение исходного файла {0} помешает сеанса отладки продолжения из-за внутренней ошибки: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">Закрытый метод "{0}" можно удалить, так как он никогда не вызывается.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">Частное свойство "{0}" можно преобразовать в метод, так как его метод доступа get никогда не вызывается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -502,16 +497,6 @@
         <target state="translated">Удалить избыточные операторы назначения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Удалить непрочитанные закрытые члены</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Удалить неиспользуемый член</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">Удалите неиспользуемый параметр</target>
@@ -527,14 +512,14 @@
         <target state="translated">Удалить неиспользуемый параметр "{0}", если он не является частью предоставляемого общедоступного API</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Удалите неиспользуемые закрытые члены</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -561,6 +546,11 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -1598,11 +1588,6 @@ Do you want to continue?</source>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Удалить ненужное приведение</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Упрощение имен</target>
@@ -1891,21 +1876,6 @@ Do you want to continue?</source>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification.</source>
         <target state="translated">Добавьте квалификацию "this" или "Me".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Устраните нарушение имени: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">Нарушение правила именования: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">Стили именования</target>
         <note />
       </trans-unit>
       <trans-unit id="from_0">
@@ -2558,11 +2528,6 @@ This version used in: {2}</source>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">Создать конструктор в "{0}" (без полей)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Добавьте заголовок файла</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

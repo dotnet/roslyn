@@ -13,12 +13,12 @@ using Roslyn.Utilities;
 namespace Roslyn.Hosting.Diagnostics.Waiters
 {
     [Export, Shared]
-    public class TestingOnly_WaitingService
+    internal class TestingOnly_WaitingService
     {
         private readonly AsynchronousOperationListenerProvider _provider;
 
         [ImportingConstructor]
-        private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
+        public TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;
         }
@@ -40,11 +40,11 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             if (waitForWorkspaceFirst)
             {
                 // at least wait for the workspace to finish processing everything.
-                var task = workspaceWaiter.CreateExpeditedWaitTask();
+                var task = workspaceWaiter.ExpeditedWaitAsync();
                 task.Wait(cancellationTokenSource.Token);
             }
 
-            var waitTask = featureWaiter.CreateExpeditedWaitTask();
+            var waitTask = featureWaiter.ExpeditedWaitAsync();
             WaitForTask(waitTask, cancellationTokenSource.Token);
 
             // Debugging trick: don't let the listeners collection get optimized away during execution.

@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(request);
-            if (string.IsNullOrEmpty(methodName))
-            {
-                Contract.Fail("Invalid method name");
-            }
+            Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
             var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));

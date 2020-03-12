@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly string _assemblyName;
         private readonly Type _hostObjectType;
         private readonly VersionStamp _version;
-        private readonly string _filePath;
         private readonly string _outputFilePath;
         private readonly string _defaultNamespace;
 
@@ -35,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IEnumerable<TestHostDocument> AdditionalDocuments;
         public IEnumerable<TestHostDocument> AnalyzerConfigDocuments;
         public IEnumerable<ProjectReference> ProjectReferences;
+        private string _filePath;
 
         public string Name
         {
@@ -123,6 +123,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return _filePath;
             }
         }
+
+        internal void OnProjectFilePathChanged(string filePath)
+            => _filePath = filePath;
 
         public string OutputFilePath
         {
@@ -344,28 +347,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public ProjectInfo ToProjectInfo()
         {
             return ProjectInfo.Create(
-                this.Id,
-                this.Version,
-                this.Name,
-                this.AssemblyName,
-                this.Language,
-                this.FilePath,
-                this.OutputFilePath,
-                outputRefFilePath: null,
-                defaultNamespace: null,
-                this.CompilationOptions,
-                this.ParseOptions,
-                this.Documents.Select(d => d.ToDocumentInfo()),
-                this.ProjectReferences,
-                this.MetadataReferences,
-                this.AnalyzerReferences,
-                this.AdditionalDocuments.Select(d => d.ToDocumentInfo()),
-                this.AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
-                this.IsSubmission,
-                this.HostObjectType,
-                hasAllInformation: true,
-                runAnalyzers: true)
-                .WithDefaultNamespace(this.DefaultNamespace);
+                Id,
+                Version,
+                Name,
+                AssemblyName,
+                Language,
+                FilePath,
+                OutputFilePath,
+                CompilationOptions,
+                ParseOptions,
+                Documents.Select(d => d.ToDocumentInfo()),
+                ProjectReferences,
+                MetadataReferences,
+                AnalyzerReferences,
+                AdditionalDocuments.Select(d => d.ToDocumentInfo()),
+                IsSubmission,
+                HostObjectType)
+                .WithAnalyzerConfigDocuments(AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()))
+                .WithDefaultNamespace(DefaultNamespace);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

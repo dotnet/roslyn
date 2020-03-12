@@ -64,8 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
-                    Contract.Fail("Can't reach here");
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(e.Kind);
             }
         }
 

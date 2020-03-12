@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 Imports Microsoft.CodeAnalysis.Options
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
         ''' <summary>
         ''' For testing purposes only.
         ''' </summary>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
         Friend Sub New(pickMembersService_forTesting As IPickMembersService)
             MyBase.New(pickMembersService_forTesting)
         End Sub

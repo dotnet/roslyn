@@ -137,12 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            var builder = ArrayBuilder<T>.GetInstance();
+            using var _ = ArrayBuilder<T>.GetInstance(out var builder);
             FillWithIntervalsThatMatch(start, length, testInterval, builder, in introspector, stopAfterFirst: true);
-
-            var result = builder.Count > 0;
-            builder.Free();
-            return result;
+            return builder.Count > 0;
         }
 
         private ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(

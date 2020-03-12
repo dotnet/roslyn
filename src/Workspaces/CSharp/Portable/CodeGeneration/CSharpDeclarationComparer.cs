@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // for REPL, don't mess with order, just put new one at the end.
                     return 1;
                 default:
-                    Contract.Fail("Syntax nodes x and y are not declarations");
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(x.Kind());
             }
         }
 

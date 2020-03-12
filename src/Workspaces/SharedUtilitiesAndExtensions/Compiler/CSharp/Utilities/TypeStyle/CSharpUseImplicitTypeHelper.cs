@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,8 +14,10 @@ using Microsoft.CodeAnalysis.Simplification;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle;
 #else
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -106,11 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
                 typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
-
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
@@ -336,9 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
                         var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpression))
                         {
-                            expression = ((ParenthesizedExpressionSyntax)expression).WalkDownParentheses();
+                            expression = parenExpression.WalkDownParentheses();
                         }
 
                         if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))

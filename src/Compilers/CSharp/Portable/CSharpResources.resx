@@ -6019,4 +6019,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTargetTypedObjectCreation" xml:space="preserve">
     <value>target-typed object creation</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+    <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
+    <value>An expression tree may not contain a from-end index ('^') expression.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
+    <value>An expression tree may not contain a range ('..') expression.</value>
+  </data>
 </root>

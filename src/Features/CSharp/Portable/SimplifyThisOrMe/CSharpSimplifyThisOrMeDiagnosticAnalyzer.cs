@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
 
         protected override bool CanSimplifyTypeNameExpression(
             SemanticModel model, MemberAccessExpressionSyntax node, OptionSet optionSet,
