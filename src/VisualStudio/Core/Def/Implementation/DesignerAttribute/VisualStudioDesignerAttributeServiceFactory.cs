@@ -4,11 +4,9 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
 
             return new VisualStudioDesignerAttributeService(
-                _threadingContext, _serviceProvider, workspace);
+                workspace, _threadingContext, _serviceProvider);
         }
     }
 }

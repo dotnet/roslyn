@@ -58,10 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer atttributes.
-        /// Only access 
-        /// access this field through <see cref="GetDesignerServiceOnForegroundThread"/>
         /// </summary>
-        private IVSMDDesignerService? _dotNotAccessDirectlyDesigner;
+        private IVSMDDesignerService? _legacyDesignerService;
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
@@ -248,10 +246,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (project == null)
                 return;
 
+            // Delegate to the CPS or legacy notification services as necessary.
             var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            var task = cpsUpdateService != null
-                ? NotifyCpsProjectSystemAsync(project, cpsUpdateService, attributeInfos, cancellationToken)
-                : NotifyLegacyProjectSystemAsync(project, attributeInfos, cancellationToken);
+            var task = cpsUpdateService == null
+                ? NotifyLegacyProjectSystemAsync(project, attributeInfos, cancellationToken)
+                : NotifyCpsProjectSystemAsync(project, cpsUpdateService, attributeInfos, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
@@ -267,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             AssertIsForeground();
 
-            var designerService = GetDesignerServiceOnForegroundThread();
+            var designerService = _legacyDesignerService ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
             if (designerService == null)
                 return;
 
@@ -325,12 +324,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 //
                 // just swallow it. don't crash VS.
             }
-        }
-
-        private IVSMDDesignerService GetDesignerServiceOnForegroundThread()
-        {
-            AssertIsForeground();
-            return _dotNotAccessDirectlyDesigner ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
         }
 
         private async Task NotifyCpsProjectSystemAsync(
