@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis
                 return Volatile.Read(ref _stateDoNotAccessDirectly);
             }
 
-            private void WriteState(State state, SolutionState solution)
+            private void WriteState(State state, SolutionServices solutionServices)
             {
-                if (solution._solutionServices.SupportsCachingRecoverableObjects)
+                if (solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solution._solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.Compilation?.GetValueOrNull());
+                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.Compilation?.GetValueOrNull());
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
+            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -365,12 +365,12 @@ namespace Microsoft.CodeAnalysis
                                 // okay, move to full declaration state. do this so that declaration only compilation never
                                 // realize symbols.
                                 var declarationOnlyCompilation = state.DeclarationOnlyCompilation.Clone();
-                                WriteState(new FullDeclarationState(declarationOnlyCompilation), solution);
+                                WriteState(new FullDeclarationState(declarationOnlyCompilation), solutionServices);
                                 return declarationOnlyCompilation;
                             }
 
                             // We've got nothing.  Build it from scratch :(
-                            return await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
+                            return await BuildDeclarationCompilationFromScratchAsync(solutionServices, cancellationToken).ConfigureAwait(false);
                         }
 
                         if (state is FullDeclarationState)
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         // We must have an in progress compilation. Build off of that.
-                        return await BuildDeclarationCompilationFromInProgressAsync(solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                        return await BuildDeclarationCompilationFromInProgressAsync(solutionServices, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var compilation = await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var compilation = await BuildDeclarationCompilationFromScratchAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                SolutionState solution, CancellationToken cancellationToken)
+                SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis
                     compilation = compilation.AddSyntaxTrees(trees);
                     trees.Free();
 
-                    WriteState(new FullDeclarationState(compilation), solution);
+                    WriteState(new FullDeclarationState(compilation), solutionServices);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<Compilation> BuildDeclarationCompilationFromInProgressAsync(
-                SolutionState solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
+                SolutionServices solutionServices, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis
                         inProgressCompilation = await intermediateProjects[0].action.TransformCompilationAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
-                        this.WriteState(State.Create(inProgressCompilation, intermediateProjects), solution);
+                        this.WriteState(State.Create(inProgressCompilation, intermediateProjects), solutionServices);
                     }
 
                     return inProgressCompilation;
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis
 
                     compilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(compilation, newReferences, metadataReferenceToProjectId);
 
-                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), compilation, hasSuccessfullyLoaded), solution);
+                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), compilation, hasSuccessfullyLoaded), solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
                 }
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
                         // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
-                        var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
                         solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
                         if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out var reference))
