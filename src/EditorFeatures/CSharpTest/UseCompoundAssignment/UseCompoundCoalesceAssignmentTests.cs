@@ -112,5 +112,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     private string Goo => this.goo ??= new string('c', 42);
 }");
         }
+
+        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNullableValueType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void Goo()
+    {
+        int? a = null;
+        var x = a [||]?? (a = 1);
+    }
+}",
+@"class Program
+{
+    void Goo()
+    {
+        int? a = null;
+        var x = a ??= 1;
+    }
+}");
+        }
     }
 }
