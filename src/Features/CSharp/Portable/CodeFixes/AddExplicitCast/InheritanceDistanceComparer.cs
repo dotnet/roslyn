@@ -9,6 +9,27 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
+    /// <summary>
+    /// Sort types by inheritance distance from the base type in ascending order, i.e., less specific type 
+    /// has higher priority because it has less probability to make mistakes
+    /// <para/>
+    /// For example:
+    /// class Base { }
+    /// class Derived1 : Base { }
+    /// class Derived2 : Derived1 { }
+    /// 
+    /// void Foo(Derived1 d1) { }
+    /// void Foo(Derived2 d2) { }
+    /// 
+    /// Base b = new Derived1();
+    /// Foo([||]b);
+    /// 
+    /// operations:
+    /// 1. Convert type to 'Derived1'
+    /// 2. Convert type to 'Derived2'
+    /// 
+    /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
+    /// </summary>
     internal sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
     {
         private readonly ITypeSymbol _baseType;
@@ -58,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             var conversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, type);
 
-            // If the node has the explicit conversion operator, then it has the shortest distance,
+            // If the node has the explicit conversion operator, then it has the shortest distance
             // since explicit conversion operator is defined by users and has the highest priority 
             var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistanceRecursive(type);
             return distance;

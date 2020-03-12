@@ -213,10 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             static void SortTypesByInheritanceDistance(
                 SemanticModel semanticModel, ITypeSymbol targetNodeType,
                 ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
-            {
-                var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
-                mutablePotentialConversionTypes.Sort(comparer);
-            }
+                => mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
         }
 
         /// <summary>
@@ -307,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
-            return IsAvailableExpression(semanticModel, root, argumentList, newArguments, targetArgument);
+            return AreApplicableInvocationArguments(semanticModel, root, argumentList, newArguments, targetArgument);
         }
 
         private static bool FindCorrespondingParameterByName(
@@ -325,11 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return false;
         }
 
-        private static bool IsAvailableExpression(
+        private static bool AreApplicableInvocationArguments(
             SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax oldArgumentList,
             List<ArgumentSyntax> newArguments, SyntaxNode targetNode)
         {
-            var separatedSyntaxList = new SeparatedSyntaxList<ArgumentSyntax>().AddRange(newArguments);
+            var separatedSyntaxList = SyntaxFactory.SeparatedList(newArguments);
             var newRoot = root.ReplaceNode(oldArgumentList, oldArgumentList.WithArguments(separatedSyntaxList));
 
             var newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorsOrThis<ArgumentListSyntax>().FirstOrDefault();
