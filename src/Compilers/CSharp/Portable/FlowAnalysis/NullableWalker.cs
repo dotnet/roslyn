@@ -3740,7 +3740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
                     && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name
-                    && !method.IsExplicitInterfaceImplementation()))
+                    && !anyOverriddenMethodHasExplicitImplementation(method)))
             {
                 return;
             }
@@ -3763,6 +3763,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arguments.Length == 1);
                 learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
                 return;
+            }
+
+            static bool anyOverriddenMethodHasExplicitImplementation(MethodSymbol method)
+            {
+                for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = method.OverriddenMethod)
+                {
+                    if (overriddenMethod.IsExplicitInterfaceImplementation)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol receiverType, WellKnownMember wellKnownMember)
@@ -3796,7 +3809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (implementationMethod.ContainingType.IsInterface)
                     {
-                        // this doesn't make sense because an interface can only explicitly implement a method from its base interface.
+                        // this method cannot be called directly from source because an interface can only explicitly implement a method from its base interface.
                         return false;
                     }
 
@@ -3837,6 +3850,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         baseType = baseType.BaseTypeNoUseSiteDiagnostics;
                         // the implementation method must be contained in this 'baseType' or one of its bases.
                         Debug.Assert(baseType is object);
+                    }
+
+                    // now 'baseType == implementationMethod.ContainingType', so if 'method' is
+                    // contained in that same type we should advance 'method' one more time.
+                    if (method is object && baseType.Equals(method.ContainingType))
+                    {
+                        method = method.OverriddenMethod;
                     }
                 }
 
