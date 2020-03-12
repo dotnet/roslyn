@@ -22,6 +22,11 @@
         <target state="new">Member access should be qualified.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_cases">
+        <source>Add missing cases</source>
+        <target state="new">Add missing cases</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
         <target state="new">Naming Styles</target>
@@ -35,6 +40,11 @@
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
         <target state="new">Null check can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Populate_switch">
+        <source>Populate switch</source>
+        <target state="new">Populate switch</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">

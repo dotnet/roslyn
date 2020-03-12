@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_missing_cases,
+                        AnalyzersResources.Add_missing_cases,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: false,
                             cancellationToken: c)),
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_default_case,
+                        CodeFixesResources.Add_default_case,
                         c => FixAsync(document, diagnostic,
                             addCases: false, addDefaultCase: true,
                             cancellationToken: c)),
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_both,
+                        CodeFixesResources.Add_both,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: true,
                             cancellationToken: c)),
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 cancellationToken: cancellationToken);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

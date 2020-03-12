@@ -1757,11 +1757,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Avertissement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Remplir une instruction switch</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Activer</target>

@@ -1995,21 +1995,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Parametreler:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Eksik durumları ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Her ikisini de ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Varsayılan durum ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Bağımsız değişken içeren SignatureHelpItem en az bir parametreye sahip olmalıdır.</target>

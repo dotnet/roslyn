@@ -172,4 +172,10 @@
   <data name="Naming_Styles" xml:space="preserve">
     <value>Naming Styles</value>
   </data>
+  <data name="Add_missing_cases" xml:space="preserve">
+    <value>Add missing cases</value>
+  </data>
+  <data name="Populate_switch" xml:space="preserve">
+    <value>Populate switch</value>
+  </data>
 </root>
