@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     internal class VisualStudioDesignerAttributeService
         : ForegroundThreadAffinitizedObject, IDesignerAttributeService, IDesignerAttributeServiceCallback
     {
+        private readonly VisualStudioWorkspaceImpl _workspace;
+
         /// <summary>
         /// Used so we can switch over to the UI thread for communicating with legacy projects that
         /// require that.
@@ -39,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Used to acquire the legacy project designer service.
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
-        private readonly VisualStudioWorkspaceImpl _workspace;
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -56,8 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
 
         /// <summary>
-        /// 
-        /// 
+        /// Cached designer service for notifying legacy projects about designer atttributes.
+        /// Only access 
         /// access this field through <see cref="GetDesignerServiceOnForegroundThread"/>
         /// </summary>
         private IVSMDDesignerService? _dotNotAccessDirectlyDesigner;
@@ -70,14 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private bool _taskInFlight = false;
 
         public VisualStudioDesignerAttributeService(
+            VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
-            IServiceProvider serviceProvider,
-            VisualStudioWorkspaceImpl workspace)
+            IServiceProvider serviceProvider)
             : base(threadingContext)
         {
+            _workspace = workspace;
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
-            _workspace = workspace;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
