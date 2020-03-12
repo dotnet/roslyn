@@ -4,15 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface IRazorDocumentContainer
+    internal enum RazorExcerptMode
     {
-        public string FilePath { get; }
-
-        public TextLoader GetTextLoader(string filePath);
-
-        public IRazorSpanMappingService GetMappingService();
-
-        public IRazorDocumentExcerptService GetExcerptService();
-
+        SingleLine,
+        Tooltip
     }
 }

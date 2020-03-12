@@ -3,26 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface IRazorDocumentExcerptService
-    {
-        Task<RazorExcerptResult?> TryExcerptAsync(Document document, TextSpan span, RazorExcerptMode mode, CancellationToken cancellationToken);
-    }
-
-    internal enum RazorExcerptMode
-    {
-        SingleLine,
-        Tooltip
-    }
-
-    internal struct RazorExcerptResult
+    internal readonly struct RazorExcerptResult
     {
         public readonly SourceText Content;
 

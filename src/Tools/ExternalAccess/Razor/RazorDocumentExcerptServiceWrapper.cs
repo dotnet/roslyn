@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal class DelegatingRazorDocumentExcerptService : IDocumentExcerptService
+    internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
     {
         private readonly IRazorDocumentExcerptService _razorDocumentExcerptService;
 
-        public DelegatingRazorDocumentExcerptService(IRazorDocumentExcerptService razorDocumentExcerptService)
+        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptService razorDocumentExcerptService)
         {
             _razorDocumentExcerptService = razorDocumentExcerptService ?? throw new ArgumentNullException(nameof(razorDocumentExcerptService));
         }

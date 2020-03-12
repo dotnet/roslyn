@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal class DelegatingRazorSpanMappingService : ISpanMappingService
+    internal sealed class RazorSpanMappingServiceWrapper : ISpanMappingService
     {
         private readonly IRazorSpanMappingService _razorSpanMappingService;
 
-        public DelegatingRazorSpanMappingService(IRazorSpanMappingService razorSpanMappingService)
+        public RazorSpanMappingServiceWrapper(IRazorSpanMappingService razorSpanMappingService)
         {
             _razorSpanMappingService = razorSpanMappingService ?? throw new ArgumentNullException(nameof(razorSpanMappingService));
         }

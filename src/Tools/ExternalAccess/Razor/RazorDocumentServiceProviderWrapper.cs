@@ -2,33 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal class DocumentServiceProvider : IDocumentServiceProvider, IDocumentOperationService
+    internal sealed class RazorDocumentServiceProviderWrapper : IDocumentServiceProvider, IDocumentOperationService
     {
-        private readonly IRazorDocumentContainer _documentContainer;
+        private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
         private readonly object _lock;
 
-        private DelegatingRazorSpanMappingService _spanMappingService;
-        private DelegatingRazorDocumentExcerptService _excerptService;
+        private RazorSpanMappingServiceWrapper _spanMappingService;
+        private RazorDocumentExcerptServiceWrapper _excerptService;
 
-        public DocumentServiceProvider()
-            : this(null)
+        public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
-        }
-
-        public DocumentServiceProvider(IRazorDocumentContainer documentContainer)
-        {
-            _documentContainer = documentContainer;
+            _innerDocumentServiceProvider = innerDocumentServiceProvider ?? throw new ArgumentNullException(nameof(innerDocumentServiceProvider));
 
             _lock = new object();
         }
 
-        public bool CanApplyChange => false;
+        public bool CanApplyChange => _innerDocumentServiceProvider.CanApplyChange;
 
-        public bool SupportDiagnostics => false;
+        public bool SupportDiagnostics => _innerDocumentServiceProvider.SupportDiagnostics;
 
         public TService GetService<TService>() where TService : class, IDocumentService
         {
@@ -40,8 +36,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     {
                         if (_spanMappingService == null)
                         {
-                            var razorMappingService = _documentContainer.GetMappingService();
-                            _spanMappingService = new DelegatingRazorSpanMappingService(razorMappingService);
+                            var razorMappingService = _innerDocumentServiceProvider.GetService<IRazorSpanMappingService>();
+                            _spanMappingService = new RazorSpanMappingServiceWrapper(razorMappingService);
                         }
                     }
                 }
@@ -57,8 +53,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     {
                         if (_excerptService == null)
                         {
-                            var excerptService = _documentContainer.GetExcerptService();
-                            _excerptService = new DelegatingRazorDocumentExcerptService(excerptService);
+                            var excerptService = _innerDocumentServiceProvider.GetService<IRazorDocumentExcerptService>();
+                            _excerptService = new RazorDocumentExcerptServiceWrapper(excerptService);
                         }
                     }
                 }
