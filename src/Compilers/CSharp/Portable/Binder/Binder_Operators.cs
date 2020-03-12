@@ -699,16 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            if (operatorToken.Kind() != SyntaxKind.EqualsEqualsToken && operatorToken.Kind() != SyntaxKind.ExclamationEqualsToken)
-            {
-                if (left.IsLiteralDefault() || right.IsLiteralDefault())
-                {
-                    // other than == and !=, binary operators are disallowed on `default` literal
-                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, "default");
-                    return;
-                }
-            }
-
+            bool isEquality = operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken;
             switch (left, right)
             {
                 case ({ Kind: BoundKind.UnconvertedObjectCreationExpression }, _):
@@ -716,6 +707,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 case (_, { Kind: BoundKind.UnconvertedObjectCreationExpression }):
                     Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, right.Display);
+                    return;
+                case ({ Kind: BoundKind.DefaultLiteral }, _) when !isEquality:
+                case (_, { Kind: BoundKind.DefaultLiteral }) when !isEquality:
+                    // other than == and !=, binary operators are disallowed on `default` literal
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, "default");
                     return;
                 case ({ Kind: BoundKind.DefaultLiteral }, { Kind: BoundKind.DefaultLiteral }):
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text, left.Display, right.Display);
