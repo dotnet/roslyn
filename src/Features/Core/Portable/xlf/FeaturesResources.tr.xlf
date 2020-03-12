@@ -1873,11 +1873,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Metodu zaman uyumlu hale getir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">'this' veya 'Me' niteliği ekle.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">Şuradan: {0}</target>
@@ -2000,29 +1995,9 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Parametreler:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Eksik durumları ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Her ikisini de ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Varsayılan durum ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Bağımsız değişken içeren SignatureHelpItem en az bir parametreye sahip olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Küme ayracı ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2103,11 +2078,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
         <target state="translated">Nesne başlatma basitleştirilebilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">'throw' ifadesi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2243,11 +2213,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Değişken bildirimi satır içine alınabilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Null denetimi kolaylaştırılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

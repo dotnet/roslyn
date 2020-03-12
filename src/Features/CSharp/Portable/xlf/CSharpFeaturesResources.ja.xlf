@@ -727,11 +727,6 @@
         <target state="translated">メソッドを非同期にする (void を維持)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">this' を追加します。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名前&gt;</target>

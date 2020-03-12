@@ -1812,11 +1812,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Convertir Sub en asincrónico</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Agregar "Me."</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Usar comprobación "Is Nothing"</target>

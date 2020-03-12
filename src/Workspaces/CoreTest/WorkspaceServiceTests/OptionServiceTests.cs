@@ -4,7 +4,10 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -160,6 +163,54 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
             Assert.NotSame(optionSet, newOptionSet);
             Assert.NotEqual(optionSet, newOptionSet);
+        }
+
+        [Fact]
+        public void TestChangedOptions()
+        {
+            // Apply a serializable changed option to the option service
+            // and verify that serializable options snapshot contains this changed option.
+            TestChangedOptionsCore(
+                GenerationOptions.PlaceSystemNamespaceFirst,
+                optionProvider: new GenerationOptionsProvider(),
+                isSerializable: true);
+
+            // Apply a non-serializable changed option to the option service
+            // and verify that serializable options snapshot does not contain this changed option
+            TestChangedOptionsCore(
+                new PerLanguageOption<bool>("Test Feature", "Test Name", defaultValue: true),
+                optionProvider: new TestOptionService.TestOptionsProvider(),
+                isSerializable: false);
+
+            return;
+
+            static void TestChangedOptionsCore(PerLanguageOption<bool> option, IOptionProvider optionProvider, bool isSerializable)
+            {
+                var optionService = TestOptionService.GetService(optionProvider);
+                var optionSet = optionService.GetOptions();
+                var optionKey = new OptionKey(option, LanguageNames.CSharp);
+
+                var currentOptionValue = optionSet.GetOption(option, LanguageNames.CSharp);
+                var newOptionValue = !currentOptionValue;
+                var newOptionSet = optionSet.WithChangedOption(optionKey, newOptionValue);
+
+                optionService.SetOptions(newOptionSet);
+                var isOptionSet = (bool?)optionService.GetOptions().GetOption(optionKey);
+                Assert.Equal(newOptionValue, isOptionSet);
+
+                var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+                var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+                var changedOptions = serializableOptionSet.GetChangedOptions();
+                if (isSerializable)
+                {
+                    var changedOptionKey = Assert.Single(changedOptions);
+                    Assert.Equal(optionKey, changedOptionKey);
+                }
+                else
+                {
+                    Assert.Empty(changedOptions);
+                }
+            }
         }
     }
 }

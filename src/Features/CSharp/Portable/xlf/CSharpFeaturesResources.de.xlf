@@ -727,11 +727,6 @@
         <target state="translated">Methode als asynchron definieren ("void" beibehalten)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">"this." hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Name&gt;</target>

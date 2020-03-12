@@ -1873,11 +1873,6 @@ Do you want to continue?</source>
         <target state="translated">Преобразовать метод в синхронный</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Добавьте квалификацию "this" или "Me".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">из {0}</target>
@@ -2000,29 +1995,9 @@ This version used in: {2}</source>
         <target state="translated">Параметры:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Добавить отсутствующие варианты</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Добавить оба</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Добавить вариант по умолчанию</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Variadic SignatureHelpItem должен иметь хотя бы один параметр.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Добавить фигурные скобки</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2103,11 +2078,6 @@ This version used in: {2}</source>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
         <target state="translated">Инициализацию объекта можно упростить.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Использовать выражение "throw"</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2243,11 +2213,6 @@ This version used in: {2}</source>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Объявление переменной может быть встроенным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Проверку значения NULL можно упростить.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

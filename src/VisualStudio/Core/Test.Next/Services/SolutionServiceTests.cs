@@ -513,7 +513,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var sessionId = 0;
             var storage = new AssetStorage();
             _ = new SimpleAssetSource(storage, map);
-            var remoteWorkspace = new RemoteWorkspace();
+            var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
 
             return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
         }
