@@ -671,10 +671,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            int getSlotForFieldOrProperty(Symbol field)
+            int getSlotForFieldOrProperty(Symbol member)
             {
+                if (member.Kind != SymbolKind.Field &&
+                    member.Kind != SymbolKind.Property)
+                {
+                    return -1;
+                }
+
                 int thisSlot = -1;
-                bool isStatic = field.IsStatic;
+                bool isStatic = member.IsStatic;
 
                 if (!isStatic)
                 {
@@ -686,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(thisSlot > 0);
                 }
 
-                return GetOrCreateSlot(field, isStatic ? 0 : thisSlot);
+                return GetOrCreateSlot(member, isStatic ? 0 : thisSlot);
             }
         }
 

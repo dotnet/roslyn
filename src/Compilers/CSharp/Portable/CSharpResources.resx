@@ -5513,10 +5513,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Member may not have a null value when exiting.</value>
   </data>
   <data name="WRN_MemberNotNullBadMember" xml:space="preserve">
-    <value>Field or property '{0}' cannot be used in this attribute because it is a member of a base type.</value>
+    <value>Member '{0}' cannot be used in this attribute.</value>
   </data>
   <data name="WRN_MemberNotNullBadMember_Title" xml:space="preserve">
-    <value>Field or property cannot be used in this attribute because it is a member of a base type.</value>
+    <value>Member cannot be used in this attribute.</value>
   </data>
   <data name="WRN_MemberNotNullWhen" xml:space="preserve">
     <value>Member '{0}' may not have a null value when exiting with `{1}`.</value>
