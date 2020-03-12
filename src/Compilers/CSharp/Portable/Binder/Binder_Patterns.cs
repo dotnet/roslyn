@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
-            return new BoundDiscardPattern(node, inputType);
+            return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
         }
 
         private BoundPattern BindConstantPatternWithFallbackToTypePattern(
@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
-                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors || constantValueOpt is null);
+                return new BoundConstantPattern(
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedExpression.Type ?? inputType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
-                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, hasErrors);
+                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
         }
 
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindPatternDesignation(
                 node.Designation, boundDeclType.TypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol? variableSymbol, out BoundExpression? variableAccess);
-            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
+            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, declType, hasErrors);
         }
 
         private BoundTypeExpression BindTypeForPattern(
@@ -638,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         deconstructDiagnostics.Free();
                         BindITupleSubpatterns(positionalClause, patternsBuilder, permitDesignations, diagnostics);
                         deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, inputType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, inputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -670,7 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType, hasErrors: hasErrors);
+                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
+                convertedType: boundDeclType?.Type ?? inputType, hasErrors: hasErrors);
         }
 
         private MethodSymbol? BindDeconstructSubpatterns(
@@ -961,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DiscardDesignation:
                     {
-                        return new BoundDiscardPattern(node, inputType);
+                        return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
@@ -974,7 +976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
-                            variableSymbol, variableAccess, boundOperandType, isVar: true, inputType: inputType, hasErrors: hasErrors);
+                            variableSymbol, variableAccess, boundOperandType, isVar: true,
+                            inputType: inputType, convertedType: inputType, hasErrors: hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -1011,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Use that and forget any errors from trying to bind Deconstruct.
                                 deconstructDiagnostics.Free();
                                 BindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics);
-                                return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), strippedInputType, hasErrors);
+                                return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), strippedInputType, iTupleType, hasErrors);
                             }
                             else
                             {
@@ -1035,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundRecursivePattern(
                             syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                             deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                            isExplicitNotNullTest: false, inputType: inputType, hasErrors: hasErrors);
+                            isExplicitNotNullTest: false, inputType: inputType, convertedType: inputType, hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {
@@ -1190,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var patternType = BindTypeForPattern(node.Type, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
-            return new BoundTypePattern(node.Type, patternType, isExplicitNotNullTest, inputType, hasErrors);
+            return new BoundTypePattern(node, patternType, isExplicitNotNullTest, inputType, patternType.Type, hasErrors);
         }
 
         private BoundPattern BindRelationalPattern(
@@ -1234,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValueOpt = ConstantValue.Bad;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, hasErrors);
+            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, value.Type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {
@@ -1276,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const bool permitDesignations = false; // prevent designators under 'not'
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-            return new BoundNegatedPattern(node, subPattern, inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, convertedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(
@@ -1291,7 +1294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             permitDesignations = permitDesignations & !isDisjunction; // prevent designators under 'or'
             var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
             var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-            return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType, hasErrors);
+            // PROTOTYPE(ngafter): this is just a placeholder until the code to handle converted types is merged from another PR
+            var convertedType = isDisjunction ? inputType : right.ConvertedType;
+            return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType, convertedType, hasErrors);
         }
     }
 }

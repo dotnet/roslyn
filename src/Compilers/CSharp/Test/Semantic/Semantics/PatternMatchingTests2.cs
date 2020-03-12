@@ -671,7 +671,7 @@ class Program
         if (t is ValueTuple<int>(int z4)) { }           // ok
     }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (t is (int x)) { }                           // error 1

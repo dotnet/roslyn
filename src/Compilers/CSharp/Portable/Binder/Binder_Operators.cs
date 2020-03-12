@@ -2794,7 +2794,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var hasErrors = node.Right.HasErrors || constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-                    var boundConstantPattern = new BoundConstantPattern(node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, hasErrors) { WasCompilerGenerated = true };
+                    var boundConstantPattern = new BoundConstantPattern(
+                        node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, convertedExpression.Type ?? operand.Type, hasErrors)
+                    { WasCompilerGenerated = true };
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
