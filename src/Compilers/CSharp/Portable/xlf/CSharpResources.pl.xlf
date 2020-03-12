@@ -22,7 +22,7 @@
         <target state="translated">Aby użyć elementu „@$” zamiast elementu „$@” w interpolowanym ciągu dosłownym, użyj wersji języka „{0}” lub nowszej.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
         <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />
