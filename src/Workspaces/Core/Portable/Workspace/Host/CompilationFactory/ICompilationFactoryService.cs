@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface ICompilationFactoryService : ILanguageService
     {
         Compilation CreateCompilation(string assemblyName, CompilationOptions options);
-        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType);
+        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
         CompilationOptions GetDefaultCompilationOptions();
     }
 }

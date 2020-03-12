@@ -530,14 +530,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     return compilationFactory.CreateSubmissionCompilation(
                         this.ProjectState.AssemblyName,
-                        this.ProjectState.CompilationOptions,
+                        this.ProjectState.CompilationOptions!,
                         this.ProjectState.HostObjectType);
                 }
                 else
                 {
                     return compilationFactory.CreateCompilation(
                         this.ProjectState.AssemblyName,
-                        this.ProjectState.CompilationOptions);
+                        this.ProjectState.CompilationOptions!);
                 }
             }
 
