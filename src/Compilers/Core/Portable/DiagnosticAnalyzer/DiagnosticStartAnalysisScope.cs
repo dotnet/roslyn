@@ -203,11 +203,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Issue with enforcing nullability attributes in OHI https://github.com/dotnet/roslyn/issues/42169
 #pragma warning disable CS8765 // Type of parameter doesn't match overridden member because of nullability attributes.
         internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull] [NotNullWhen(true)] out TValue value)
+#pragma warning restore CS8765
         {
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
         }
-#pragma warning restore CS8765
     }
 
     /// <summary>
