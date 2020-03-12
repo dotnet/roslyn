@@ -324,6 +324,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IGroupingExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\IntegerUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReferenceCountedDisposable.cs" />

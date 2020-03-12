@@ -198,6 +198,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
     }
 
+    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentRenameName)]
+    internal class TypeScriptRenameHandlerShim : AbstractLiveShareHandlerShim<RenameParams, WorkspaceEdit>
+    {
+        [ImportingConstructor]
+        public TypeScriptRenameHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers, Methods.TextDocumentRenameName)
+        {
+        }
+    }
+
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
     internal class TypeScriptWorkspaceSymbolsHandlerShim : AbstractLiveShareHandlerShim<WorkspaceSymbolParams, SymbolInformation[]>
     {

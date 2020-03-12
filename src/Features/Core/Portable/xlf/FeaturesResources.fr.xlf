@@ -1873,11 +1873,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">Rendre la méthode synchrone</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Ajoutez la qualification 'this' ou 'Me'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">de {0}</target>
@@ -2000,29 +1995,9 @@ Version utilisée dans : {2}</target>
         <target state="translated">Paramètres :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Ajouter les instructions case manquantes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Ajouter les deux</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Ajouter une instruction case par défaut</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">L'élément SignatureHelpItem variadique doit avoir au moins un paramètre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Ajouter des accolades</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2103,11 +2078,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
         <target state="translated">L'initialisation de l'objet peut être simplifiée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Utiliser l'expression 'throw'</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2243,11 +2213,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">La déclaration de variable peut être inlined</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Le contrôle de valeurs Null peut être simplifié</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

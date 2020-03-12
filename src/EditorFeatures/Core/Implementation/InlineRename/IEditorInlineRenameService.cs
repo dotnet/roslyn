@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -241,6 +240,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// an inline rename
         /// </summary>
         InlineRenameFileRenameInfo GetFileRenameInfo();
+
+        // TO-DO: Move property to IInlineRenameInfo once Typescript moves to the correct IVT layering
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1077984
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
     }
 
     /// <summary>

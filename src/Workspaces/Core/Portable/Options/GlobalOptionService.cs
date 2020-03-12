@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _visualBasicEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
 
         private ImmutableDictionary<OptionKey, object?> _currentValues;
+        private ImmutableHashSet<OptionKey> _changedOptionKeys;
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         [ImportingConstructor]
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Options
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
+            _changedOptionKeys = ImmutableHashSet<OptionKey>.Empty;
         }
 
         private static ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> CreateLazySerializableOptionsByLanguage(IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
@@ -209,7 +211,8 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
             var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
-            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues);
+            var changedOptionsKeys = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
+            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeys);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
@@ -282,6 +285,12 @@ namespace Microsoft.CodeAnalysis.Options
             return value;
         }
 
+        private void SetOptionCore(OptionKey optionKey, object? newValue)
+        {
+            _currentValues = _currentValues.SetItem(optionKey, newValue);
+            _changedOptionKeys = _changedOptionKeys.Add(optionKey);
+        }
+
         public void SetOptions(OptionSet optionSet)
         {
             var changedOptionKeys = optionSet switch
@@ -309,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Options
                     // The value is actually changing, so update
                     changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
 
-                    _currentValues = _currentValues.SetItem(optionKey, setValue);
+                    SetOptionCore(optionKey, setValue);
 
                     foreach (var serializer in _optionSerializers)
                     {
@@ -338,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                _currentValues = _currentValues.SetItem(optionKey, newValue);
+                SetOptionCore(optionKey, newValue);
             }
 
             UpdateRegisteredWorkspacesAndRaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) });

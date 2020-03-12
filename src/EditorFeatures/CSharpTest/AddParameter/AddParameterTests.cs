@@ -2550,5 +2550,42 @@ class Rsrp
 ";
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
         }
+
+        [WorkItem(39270, "https://github.com/dotnet/roslyn/issues/39270")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestWithArgThatHasImplicitConversionToParamType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        [|MyFunc|](param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1) { }
+}",
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        MyFunc(param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1, int newparam) { }
+}");
+        }
     }
 }

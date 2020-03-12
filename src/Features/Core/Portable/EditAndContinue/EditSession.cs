@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             if (edit.Kind == SemanticEditKind.Insert)
                             {
-                                allAddedSymbols.Add(edit.NewSymbol);
+                                allAddedSymbols.Add(edit.NewSymbol!);
                             }
                         }
                     }

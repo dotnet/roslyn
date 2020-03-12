@@ -1873,11 +1873,6 @@ Deseja continuar?</target>
         <target state="translated">Tornar o método síncrono</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Adicionar a qualificação 'this' ou 'Me'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">de {0}</target>
@@ -2000,29 +1995,9 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Parâmetros:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Adicionar casos ausentes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Adicionar ambos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Adicionar caso padrão</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Variadic SignatureHelpItem deve ter pelo menos um parâmetro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Adicionar chaves</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2103,11 +2078,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
         <target state="translated">A inicialização do objeto pode ser simplificada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Use a expressão 'throw'</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2243,11 +2213,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">A declaração de variável pode ser embutida</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">A seleção nula pode ser simplificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
