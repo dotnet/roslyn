@@ -18,18 +18,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDesignerAttributeServiceFactory(
             IThreadingContext threadingContext,
-            Shell.SVsServiceProvider serviceProvider,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            Shell.SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
-            _listenerProvider = listenerProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -38,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
 
             return new VisualStudioDesignerAttributeService(
-                _threadingContext, _serviceProvider, _listenerProvider, workspace);
+                _threadingContext, _serviceProvider, workspace);
         }
     }
 }

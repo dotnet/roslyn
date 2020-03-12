@@ -41,11 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IServiceProvider _serviceProvider;
         private readonly VisualStudioWorkspaceImpl _workspace;
 
-        // cache the update service for cps projects. Computed on demand (slow), but then cached for
-        // quick responses after that.
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
-            = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
-
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
@@ -53,7 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private KeepAliveSession? _keepAliveSession;
 
         /// <summary>
-        /// cache designer from UI thread
+        /// Cache from project to the CPS designer service for it.  Computed on demand (which
+        /// requires using the UI thread), but then cached for all subsequent notifications about
+        /// that project.
+        /// </summary>
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
+            = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
+
+        /// <summary>
+        /// 
         /// 
         /// access this field through <see cref="GetDesignerServiceOnForegroundThread"/>
         /// </summary>
