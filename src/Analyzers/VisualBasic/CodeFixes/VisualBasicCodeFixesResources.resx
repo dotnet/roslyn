@@ -120,4 +120,7 @@
   <data name="Remove_Unnecessary_Imports" xml:space="preserve">
     <value>Remove Unnecessary Imports</value>
   </data>
+  <data name="Add_Me" xml:space="preserve">
+    <value>Add 'Me.'</value>
+  </data>
 </root>
