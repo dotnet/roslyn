@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,
-            MetadataReferenceResolver resolverOpt,
+            MetadataReferenceResolver? resolverOpt,
             MetadataImportOptions importOptions,
             bool supersedeLowerVersions,
             [In, Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,

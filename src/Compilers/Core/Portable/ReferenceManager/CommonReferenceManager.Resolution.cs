@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             [Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<(string, string), MetadataReference>? boundReferenceDirectiveMap,
+            [NotNull] out IDictionary<(string, string), MetadataReference>? boundReferenceDirectiveMap,
             out ImmutableArray<MetadataReference> boundReferenceDirectives,
             out ImmutableArray<AssemblyData> assemblies,
             out ImmutableArray<PEModule> modules,
@@ -774,10 +774,10 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             DiagnosticBag diagnostics,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<(string, string), MetadataReference>? boundReferenceDirectives,
+            [NotNull] out IDictionary<(string, string), MetadataReference>? boundReferenceDirectives,
             out ImmutableArray<Location> referenceDirectiveLocations)
         {
-            boundReferenceDirectives = null;
+            boundReferenceDirectives = null!;
 
             ArrayBuilder<MetadataReference> referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             ArrayBuilder<Location>? referenceDirectiveLocationsBuilder = null;

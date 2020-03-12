@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases();
 
-        internal abstract MetadataReference? GetMetadataReference(IAssemblySymbolInternal assemblySymbol);
+        internal abstract MetadataReference? GetMetadataReference(IAssemblySymbolInternal? assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
         internal abstract ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> ImplicitReferenceResolutions { get; }
     }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<UnifiedAssembly<TAssemblySymbol>> _lazyUnifiedAssemblies;
 
-        public CommonReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic> observedMetadata)
+        public CommonReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic>? observedMetadata)
         {
             Debug.Assert(simpleAssemblyName != null);
             Debug.Assert(identityComparer != null);
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol. 
         /// </summary>
-        internal override MetadataReference? GetMetadataReference(IAssemblySymbolInternal assemblySymbol)
+        internal override MetadataReference? GetMetadataReference(IAssemblySymbolInternal? assemblySymbol)
         {
             foreach (var entry in ReferencedAssembliesMap)
             {
