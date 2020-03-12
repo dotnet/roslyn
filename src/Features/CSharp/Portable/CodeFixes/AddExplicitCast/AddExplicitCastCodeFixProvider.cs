@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return;
 
             var hasSolution = TryGetTargetTypeInfo(
-                semanticModel, diagnostic.Id, targetNode, cancellationToken,
+                semanticModel, root, diagnostic.Id, targetNode, cancellationToken,
                 out var nodeType, out var potentialConversionTypes);
             if (!hasSolution)
             {
@@ -111,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         private static SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
-            // TODO: castExpression.WithAdditionalAnnotations(Simplifier.Annotation) 
-            // - the Simplifier doesn't remove the redundant cast from the expression
+            // TODO:
+            // the Simplifier doesn't remove the redundant cast from the expression
             // Issue link: https://github.com/dotnet/roslyn/issues/41500
             var castExpression = targetNode.Cast(conversionType).WithAdditionalAnnotations(Simplifier.Annotation);
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
@@ -139,8 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// False, if the target node has no conversion type.
         /// </returns>
         private static bool TryGetTargetTypeInfo(
-            SemanticModel semanticModel, string diagnosticId, SyntaxNode targetNode, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out ITypeSymbol? targetNodeType, out ImmutableArray<ITypeSymbol> potentialConversionTypes)
+            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, ExpressionSyntax targetNode,
+            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetNodeType,
+            out ImmutableArray<ITypeSymbol> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
 
@@ -170,30 +172,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (CanArgumentTypesBeConvertedToParameterTypes(
-                            semanticModel, argumentList.Arguments,
-                            candidateSymbol.Parameters, targetArgument,
-                            cancellationToken, out var paramIndex))
+                    if (CanArgumentTypesBeConvertedToParameterTypesTest(
+                        semanticModel, root, argumentList, candidateSymbol.Parameters, targetArgument,
+                        cancellationToken, out var targetArgumentConversionType))
                     {
-                        var correspondingParameter = candidateSymbol.Parameters[paramIndex];
-                        var argumentConversionType = correspondingParameter.Type;
-
-                        if (correspondingParameter.IsParams
-                            && correspondingParameter.Type is IArrayTypeSymbol arrayType
-                            && !(targetNodeType is IArrayTypeSymbol))
-                        {
-                            // target argument is matched to the parameter with keyword params
-                            argumentConversionType = arrayType.ElementType;
-                        }
-
-                        mutablePotentialConversionTypes.Add(argumentConversionType);
+                        mutablePotentialConversionTypes.Add(targetArgumentConversionType);
                     }
                 }
 
                 // Sort the potential conversion types by inheritance distance, so that
                 // operations are in order and user can choose least specific types(more accurate)
-                var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
-                mutablePotentialConversionTypes.Sort(comparer);
+                SortTypesByInheritanceDistance(semanticModel, targetNodeType, mutablePotentialConversionTypes);
             }
 
             using var __ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
@@ -206,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // Derived d = [||]new Base();
                 // It is always invalid except the target node has explicit conversion operator or is numeric.
                 if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
-                    && !(commonConversion.IsUserDefined || commonConversion.IsNumeric))
+                    && !commonConversion.IsUserDefined)
                 {
                     continue;
                 }
@@ -220,6 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             // clear up duplicate types
             potentialConversionTypes = validPotentialConversionTypes.Distinct().ToImmutableArray();
             return !potentialConversionTypes.IsEmpty;
+
+            static void SortTypesByInheritanceDistance(
+                SemanticModel semanticModel, ITypeSymbol targetNodeType,
+                ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
+            {
+                var comparer = new InheritanceDistanceComparer(semanticModel, targetNodeType);
+                mutablePotentialConversionTypes.Sort(comparer);
+            }
         }
 
         /// <summary>
@@ -241,43 +238,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// *DoSomething(1, [||]b)* because int and string are not ancestor-descendant relationship. Thus,
         /// Derived2 is not a potential conversion type.
         /// 
-        /// <param name="arguments"> The arguments of invocation expression</param>
+        /// <param name="argumentList"> The argument list of invocation expression</param>
         /// <param name="parameters"> The parameters of function</param>
         /// <param name="targetArgument"> The target argument that contains target node</param>
-        /// <param name="targetParamIndex"> Output the corresponding parameter index of the target arugment if function returns true</param>
+        /// <param name="targetArgumentConversionType"> Output the corresponding parameter type of
+        /// the target arugment if function returns true</param>
         /// <returns>
-        /// True, if arguments and parameters match perfectly.
+        /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
         /// False, otherwise.
         /// </returns>
-        // TODO: May need an API to replace this function,
-        // link: https://github.com/dotnet/roslyn/issues/42149
-        private static bool CanArgumentTypesBeConvertedToParameterTypes(
-            SemanticModel semanticModel, SeparatedSyntaxList<ArgumentSyntax> arguments,
+        private static bool CanArgumentTypesBeConvertedToParameterTypesTest(
+            SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax argumentList,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument,
-            CancellationToken cancellationToken, out int targetParamIndex)
+            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
         {
-            // return invalid index if not all argument types can be converted to corresponding parameter types
-            targetParamIndex = -1;
+            targetArgumentConversionType = null;
+
+            // No conversion happens under this case
             if (parameters.Length == 0)
                 return false;
 
-            // We have analyzed every argument and tried to make it correspond to a particular parameter. 
-            // We must now answer the following questions:
-            //
-            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
-            // (2) Is there any argument without a corresponding parameter?
-            // (3) Was there any named argument that specified a parameter that was already
-            //     supplied with a positional parameter?
-            // (4) Is there any non-optional parameter without a corresponding argument?
-            // (5) Is there any named argument that were specified twice?
-            //
-            // If the answer to any of there questions is "yes" then the method is not applicable.
-            // The answer to (5) is always "No" since if there are named argument that were specified
-            // twice, it wouldn't report error CS1503, and it cannot trigger this code fixer
-
-            var matchedTypes = new bool[parameters.Length]; // default value is false
-            var paramsMatchedByArray = false; // the parameter with keyword params can be either matched by an array type or a variable number of arguments
-            var inOrder = true; // assume the arguments are in order by default
+            var arguments = argumentList.Arguments;
+            var newArguments = new List<ArgumentSyntax>();
 
             for (var i = 0; i < arguments.Count; i++)
             {
@@ -289,96 +271,75 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 if (nameSyntax != null)
                 {
                     var name = nameSyntax.Identifier.ValueText;
-                    if (!FindCorrespondingParameterByName(name, parameters, ref inOrder, ref parameterIndex))
+                    if (!FindCorrespondingParameterByName(name, parameters, ref parameterIndex))
                         return false;
-
-                    bool FindCorrespondingParameterByName(string name, ImmutableArray<IParameterSymbol> parameters, ref bool inOrder, ref int parameterIndex)
-                    {
-                        for (var j = 0; j < parameters.Length; j++)
-                        {
-                            if (name.Equals(parameters[j].Name))
-                            {
-                                // Check if the argument is in order with parameters.
-                                // If the argument breaks the order, the rest arguments of matched functions must have names
-                                if (i != j)
-                                    inOrder = false;
-                                parameterIndex = j;
-                                return true;
-                            }
-                        }
-
-                        // rule (2)
-                        return false;
-                    }
                 }
 
-                // The argument is either in order with parameters, or have a matched name with parameters
-                var argType = semanticModel.GetTypeInfo(arguments[i].Expression, cancellationToken);
+                // The argument is either in order with parameters, or have a matched name with parameters.
+                // "argumentType.Type" could be null when "augumentExpression" is lambada expression.
+                var augumentExpression = arguments[i].Expression;
+                var argumentType = semanticModel.GetTypeInfo(augumentExpression, cancellationToken);
+                var parameterType = parameters[parameterIndex].Type;
 
-                // TODO: https://github.com/dotnet/roslyn/issues/42235
-                // The type of lambda function is null, but it probably can be matched to its corresponding parameter 
-                // Keep an eye on the identifier that is syntax and semantic true but the type is null.
-                if (argType.Type == null)
-                    return false;
-
-                // rule (1)
-                if (!inOrder && nameSyntax is null)
-                    return false;
-
-                // The type of argument must be convertible to the type of parameter
-                if (!parameters[parameterIndex].IsParams
-                    && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                if (parameters[parameterIndex].IsParams
+                    && parameters.Last().Type is IArrayTypeSymbol paramsType
+                    && (semanticModel.ClassifyConversion(augumentExpression, paramsType.ElementType).Exists
+                    || (argumentType.Type is object
+                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType.Type, paramsType.ElementType).Exists)))
                 {
-                    // rule (3)
-                    if (matchedTypes[parameterIndex])
-                        return false;
-                    matchedTypes[parameterIndex] = true;
+                    newArguments.Add(arguments[i].WithExpression(augumentExpression.Cast(paramsType.ElementType)));
+
+                    if (arguments[i].Equals(targetArgument))
+                        targetArgumentConversionType = paramsType.ElementType;
                 }
-                else if (parameters[parameterIndex].IsParams
-                    && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, parameters[parameterIndex].Type).Exists)
+                else if (semanticModel.ClassifyConversion(augumentExpression, parameterType).Exists
+                    || (argumentType.Type is object
+                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType.Type, parameterType).Exists))
                 {
-                    // The parameter with keyword params takes an array type, then it cannot be matched more than once
-                    // rule (3)
-                    if (matchedTypes[parameterIndex])
-                        return false;
-                    matchedTypes[parameterIndex] = true;
-                    paramsMatchedByArray = true;
-                }
-                else if (parameters[parameterIndex].IsParams
-                         && parameters.Last().Type is IArrayTypeSymbol paramsType
-                         && semanticModel.Compilation.ClassifyCommonConversion(argType.Type, paramsType.ElementType).Exists)
-                {
-                    // The parameter with keyword params can take a *variable* number of arguments,
-                    // compare its element type with the argument's type.
+                    newArguments.Add(arguments[i].WithExpression(augumentExpression.Cast(parameterType)));
 
-                    // rule (3)
-                    if (matchedTypes[parameterIndex] && paramsMatchedByArray)
-                        return false;
-                    matchedTypes[parameterIndex] = true;
-                    paramsMatchedByArray = false;
+                    if (arguments[i].Equals(targetArgument))
+                        targetArgumentConversionType = parameterType;
                 }
                 else
                 {
-                    // rule (2)
                     return false;
                 }
-
-                if (targetArgument.Equals(arguments[i]))
-                    targetParamIndex = parameterIndex;
             }
 
-            // mark all optional parameters as matched
-            // rule (4)
-            for (var i = 0; i < parameters.Length; i++)
+            return IsAvailableExpression(semanticModel, root, argumentList, newArguments, targetArgument);
+        }
+
+        private static bool FindCorrespondingParameterByName(
+            string argumentName, ImmutableArray<IParameterSymbol> parameters, ref int parameterIndex)
+        {
+            for (var j = 0; j < parameters.Length; j++)
             {
-                if (parameters[i].IsOptional || parameters[i].IsParams)
+                if (argumentName.Equals(parameters[j].Name))
                 {
-                    matchedTypes[i] = true;
+                    parameterIndex = j;
+                    return true;
                 }
             }
 
-            // rule (4)
-            return matchedTypes.All(a => a);
+            return false;
+        }
+
+        private static bool IsAvailableExpression(
+            SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax oldArgumentList,
+            List<ArgumentSyntax> newArguments, SyntaxNode targetNode)
+        {
+            var separatedSyntaxList = new SeparatedSyntaxList<ArgumentSyntax>().AddRange(newArguments);
+            var newRoot = root.ReplaceNode(oldArgumentList, oldArgumentList.WithArguments(separatedSyntaxList));
+
+            var newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorsOrThis<ArgumentListSyntax>().FirstOrDefault();
+            if (newArgumentListNode.Parent is SyntaxNode newExpression)
+            {
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(newExpression.SpanStart, newExpression,
+                    SpeculativeBindingOption.BindAsExpression);
+                return symbolInfo.Symbol != null;
+            }
+            return false;
         }
 
         protected override async Task FixAllAsync(
@@ -396,7 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 (semanticModel, currentRoot, targetNode) =>
                 {
                     // All diagnostics have the same error code
-                    if (TryGetTargetTypeInfo(semanticModel, diagnostics[0].Id, targetNode, cancellationToken, out var nodeType, out var potentialConversionTypes)
+                    if (TryGetTargetTypeInfo(semanticModel, currentRoot, diagnostics[0].Id, targetNode,
+                        cancellationToken, out var nodeType, out var potentialConversionTypes)
                         && potentialConversionTypes.Length == 1)
                     {
                         return ApplyFix(currentRoot, targetNode, potentialConversionTypes[0]);

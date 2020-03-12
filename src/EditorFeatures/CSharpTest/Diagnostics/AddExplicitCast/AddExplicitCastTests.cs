@@ -808,6 +808,132 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task LambdaFunction5_ReturnStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    Action<Derived> Foo() {
+        return [||](Base b) => { };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task LambdaFunction6_Arguments()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, Action<Derived> action) { }
+    void Foo() {
+        Base b = new Derived();
+        M([||]b, (Derived d) => { });
+    }
+}",
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, Action<Derived> action) { }
+    void Foo() {
+        Base b = new Derived();
+        M((Derived)b, (Derived d) => { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task LambdaFunction7_Arguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, Action<Derived> action) { }
+    void Foo() {
+        Base b = new Derived();
+        M([||]b, (Base base) => { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task LambdaFunction8_Arguments()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, params Action<Derived>[] action) { }
+    void Foo() {
+        Base b1 = new Derived();
+        M([||]b1, (Derived d) => { }, (Derived d) => { });
+    }
+}",
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, params Action<Derived>[] action) { }
+    void Foo() {
+        Base b1 = new Derived();
+        M((Derived)b1, (Derived d) => { }, (Derived d) => { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task LambdaFunction9_Arguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    class Base {}
+    class Derived : Base {}
+
+    void M(Derived d, params Action<Derived>[] action) { }
+    void Foo() {
+        Base b1 = new Derived();
+        M([||]b1, action: new Action<Derived>[0], (Derived d) => { }, (Derived d) => { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task InheritInterfaces1()
         {
             await TestInRegularAndScriptAsync(
@@ -1284,7 +1410,7 @@ class Program
     {
         static public explicit operator Derived(Test t) { return new Derived();  }
     }
-    void M(Dervied d) { }
+    void M(Derived d) { }
     void Foo() {
         M([||]new Base());
     }
@@ -1326,23 +1452,21 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task ObjectInitializer7_NumericType()
+        public async Task ObjectInitializer7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
             @"
-using System;
 class Program
 {
-    void M() {
-        int i = [||]new Double();
+    class Base { }
+    class Derived : Base { }
+    class Test
+    {
+        static public explicit operator Derived(Test t) { return new Derived();  }
     }
-}",
-            @"
-using System;
-class Program
-{
-    void M() {
-        int i = (int)new Double();
+    void M(Derveed d) { }
+    void Foo() {
+        M([||]new Base());
     }
 }");
         }
