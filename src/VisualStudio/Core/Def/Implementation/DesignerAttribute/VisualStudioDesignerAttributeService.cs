@@ -376,15 +376,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Project project, CancellationToken cancellationToken)
         {
             var projectId = project.Id;
-            if (_cpsProjects.TryGetValue(projectId, out var value))
-                return value;
+            if (!_cpsProjects.TryGetValue(projectId, out var updateService))
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                this.AssertIsForeground();
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            this.AssertIsForeground();
+                updateService = ComputeUpdateService();
+                _cpsProjects.TryAdd(projectId, updateService);
+            }
 
-            var updateService = ComputeUpdateService();
-            _cpsProjects.TryAdd(projectId, updateService);
             return updateService;
 
             IProjectItemDesignerTypeUpdateService? ComputeUpdateService()
