@@ -79,7 +79,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Data produced by OOP that we want to process in our next update task.
         /// </summary>
         private readonly List<DesignerInfo> _updatedInfos = new List<DesignerInfo>();
+
+        /// <summary>
+        /// Task kicked off to do the next batch of processing of <see cref="_updatedInfos"/>. These
+        /// tasks form a chain so that the next task only processes when the previous one completes.
+        /// </summary>
         private Task _updateTask = Task.CompletedTask;
+
+        /// <summary>
+        /// Whether or not there is an existing task in flight that will process the current batch
+        /// of <see cref="_updatedInfos"/>.  If there is an existing in flight task, we don't need 
+        /// to kick off a new one if we receive more notifications before it runs.
+        /// </summary>
         private bool _taskInFlight = false;
 
         #endregion
@@ -139,6 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (_keepAliveSession == null)
                 return;
 
+            // Now kick off scanning in the OOP process.
             var success = await _keepAliveSession.TryInvokeAsync(
                 nameof(IRemoteDesignerAttributeService.ScanForDesignerAttributesAsync),
                 solution: null,
@@ -146,6 +158,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
         public Task RegisterDesignerAttributesAsync(
             IList<DesignerInfo> attributeInfos, CancellationToken cancellationToken)
         {
@@ -177,7 +192,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var attributeInfos);
-            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+            AddInfosAndResetQueue(attributeInfos);
+
+            // Reconcile all the notifications against the latest workspace solution we have.  This
+            // is technically racey as OOP may have computed against a different solution.  However,
+            // we should normally always reach a fixed point as we continually receive updates from
+            // OOP when the solution changes that we should normally be able to map to this
+            // solution.
+            var currentSolution = _workspace.CurrentSolution;
+
+            // Now, group all the notifications by project and update all the projects in parallel.
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var group in attributeInfos.GroupBy(a => a.DocumentId.ProjectId))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tasks.Add(NotifyProjectSystemAsync(currentSolution, group.Key, group, cancellationToken));
+            }
+
+            // Wait until all project updates have happened before processing the next batch.
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private void AddInfosAndResetQueue(ArrayBuilder<DesignerInfo> attributeInfos)
+        {
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
             lock (_gate)
             {
@@ -197,24 +235,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 _updatedInfos.Clear();
                 _taskInFlight = false;
             }
-
-            // Reconcile all the notifications against the latest workspace solution we have.  This
-            // is technically racey as OOP may have computed against a different solution.  However,
-            // we should normally always reach a fixed point as we continually receive updates from
-            // OOP when teh solution changes that we should normally be able to map to this
-            // solution.
-            var currentSolution = _workspace.CurrentSolution;
-
-            // Now, group all the notifications by project and update all the projects in parallel.
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in attributeInfos.GroupBy(a => a.DocumentId.ProjectId))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(currentSolution, group.Key, group, cancellationToken));
-            }
-
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task NotifyProjectSystemAsync(
