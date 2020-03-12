@@ -655,8 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultSignature = signature;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool leftDefault = left.IsLiteralDefaultOrTypelessNew();
-                    bool rightDefault = right.IsLiteralDefaultOrTypelessNew();
+                    bool leftDefault = left.IsLiteralDefault();
+                    bool rightDefault = right.IsLiteralDefault();
                     foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
