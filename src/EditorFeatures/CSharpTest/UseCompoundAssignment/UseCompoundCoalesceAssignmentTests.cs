@@ -131,7 +131,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     void Goo()
     {
         int? a = null;
-        var x = a ??= 1;
+        var x = (int?)(a ??= 1);
+    }
+}");
+        }
+
+        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestCastIfWouldAffectSemantics()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void M(int a) { }
+    static void M(int? a) { }
+
+    static void Main()
+    {
+        int? a = null;
+        M(a [||]?? (a = 1));
+    }
+}",
+@"using System;
+class C
+{
+    static void M(int a) { }
+    static void M(int? a) { }
+
+    static void Main()
+    {
+        int? a = null;
+        M((int?)(a ??= 1));
+    }
+}");
+        }
+
+        [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestDoNotCastIfNotNecessary()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    static void M(int? a) { }
+
+    static void Main()
+    {
+        int? a = null;
+        M(a [||]?? (a = 1));
+    }
+}",
+@"using System;
+class C
+{
+    static void M(int? a) { }
+
+    static void Main()
+    {
+        int? a = null;
+        M(a ??= 1);
     }
 }");
         }

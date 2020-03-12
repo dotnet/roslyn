@@ -45,16 +45,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxKinds = syntaxFacts.SyntaxKinds;
 
             foreach (var diagnostic in diagnostics)
             {
                 var coalesce = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+                // changing from `x ?? (x = y)` to `x ??= y` can change the type.  Specifically,
+                // with nullable value types (`int?`) it could change from `int?` to `int`.
+                //
+                // Add an explicit cast to the original type to ensure semantics are preserved. 
+                // Simplification engine can then remove it if it's not necessary.
+                var type = semanticModel.GetTypeInfo(coalesce, cancellationToken).Type;
 
                 editor.ReplaceNode(coalesce,
                     (currentCoalesceNode, generator) =>
@@ -64,15 +73,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                         var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
 
                         var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
-                        return SyntaxFactory.AssignmentExpression(
+                        var finalAssignment = SyntaxFactory.AssignmentExpression(
                             SyntaxKind.CoalesceAssignmentExpression,
                             assignment.Left,
                             compoundOperator.WithTriviaFrom(assignment.OperatorToken),
                             assignment.Right);
+
+                        return type == null || type.IsErrorType()
+                            ? finalAssignment
+                            : generator.CastExpression(type, finalAssignment);
                     });
             }
-
-            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
