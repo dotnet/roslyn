@@ -1128,7 +1128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new MetadataReference? GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            
             return base.GetMetadataReference(assemblySymbol);
         }
 
