@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
 #pragma warning disable 0618
             // We need to keep supporting built-in providers for a while longer since this is a public API.
+            // https://github.com/dotnet/roslyn/issues/42367
             var builtin = GetBuiltInProviders();
 #pragma warning restore 0618
 
