@@ -156,7 +156,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
 
-            var designerAttributeService = _workspace.Services.GetService<INewDesignerAttributeService>();
+            // Load the designer attribute service and tell it to start watching the solution for
+            // designable files.
+            var designerAttributeService = _workspace.Services.GetService<IDesignerAttributeService>();
             designerAttributeService.Start(this.DisposalToken);
         }
 
