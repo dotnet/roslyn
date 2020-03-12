@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 return;
 
             var coalesceLeft = coalesceExpression.Left;
-            var coalesceReft = coalesceExpression.Right;
+            var coalesceRight = coalesceExpression.Right;
 
-            if (!(coalesceReft is ParenthesizedExpressionSyntax parenthesizedExpr))
+            if (!(coalesceRight is ParenthesizedExpressionSyntax parenthesizedExpr))
                 return;
 
             if (!(parenthesizedExpr.Expression is AssignmentExpressionSyntax assignment))
