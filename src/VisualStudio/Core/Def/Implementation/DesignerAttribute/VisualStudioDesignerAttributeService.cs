@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IAsynchronousOperationListener _listener;
 
         // cache the update service for cps projects. Computed on demand (slow), but then cached for
         // quick responses after that.
@@ -71,15 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public VisualStudioDesignerAttributeService(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
-            IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace)
             : base(threadingContext)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
             _workspace = workspace;
-
-            _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttribute);
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
