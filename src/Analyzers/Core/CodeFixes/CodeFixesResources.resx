@@ -123,4 +123,10 @@
   <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
     <value>Fix Name Violation: {0}</value>
   </data>
+  <data name="Add_both" xml:space="preserve">
+    <value>Add both</value>
+  </data>
+  <data name="Add_default_case" xml:space="preserve">
+    <value>Add default case</value>
+  </data>
 </root>
