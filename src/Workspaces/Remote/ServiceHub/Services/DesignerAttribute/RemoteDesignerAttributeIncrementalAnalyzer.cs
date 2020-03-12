@@ -8,10 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -169,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // We either haven't computed the designer info, or our data was out of date.  We need
             // So recompute here.  Figure out what the current category is, and if that's different
             // from what we previously stored.
-            var category = await ComputeDesignerAttributeCategoryAsync(
+            var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                 designerCategoryType, document, cancellationToken).ConfigureAwait(false);
             var info = new DesignerInfo
             {
@@ -178,86 +176,6 @@ namespace Microsoft.CodeAnalysis.Remote
             };
 
             return (document, info, changed: category != persisted.category);
-        }
-
-        private async Task<string?> ComputeDesignerAttributeCategoryAsync(
-            INamedTypeSymbol? designerCategoryType,
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            // simple case.  If there's no DesignerCategory type in this compilation, then there's
-            // definitely no designable types.  Just immediately bail out.
-            if (designerCategoryType == null)
-                return null;
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            // Legacy behavior.  We only register the designer info for the first non-nested class
-            // in the file.
-            var firstClass = FindFirstNonNestedClass(
-                syntaxFacts, syntaxFacts.GetMembersOfCompilationUnit(root), cancellationToken);
-            if (firstClass == null)
-                return null;
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var firstClassType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstClass, cancellationToken);
-            return TryGetDesignerCategory(firstClassType, designerCategoryType, cancellationToken);
-        }
-
-        private string? TryGetDesignerCategory(
-            INamedTypeSymbol classType,
-            INamedTypeSymbol designerCategoryType,
-            CancellationToken cancellationToken)
-        {
-            foreach (var type in classType.GetBaseTypesAndThis())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // if it has designer attribute, set it
-                var attribute = type.GetAttributes().FirstOrDefault(d => designerCategoryType.Equals(d.AttributeClass));
-                if (attribute != null && attribute.ConstructorArguments.Length == 1)
-                {
-                    return GetArgumentString(attribute.ConstructorArguments[0]);
-                }
-            }
-
-            return null;
-        }
-
-        private static SyntaxNode? FindFirstNonNestedClass(
-            ISyntaxFactsService syntaxFacts, SyntaxList<SyntaxNode> members, CancellationToken cancellationToken)
-        {
-            foreach (var member in members)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (syntaxFacts.IsNamespaceDeclaration(member))
-                {
-                    var firstClass = FindFirstNonNestedClass(
-                        syntaxFacts, syntaxFacts.GetMembersOfNamespaceDeclaration(member), cancellationToken);
-                    if (firstClass != null)
-                        return firstClass;
-                }
-                else if (syntaxFacts.IsClassDeclaration(member))
-                {
-                    return member;
-                }
-            }
-
-            return null;
-        }
-
-        private static string? GetArgumentString(TypedConstant argument)
-        {
-            if (argument.Type == null ||
-                argument.Type.SpecialType != SpecialType.System_String ||
-                argument.IsNull ||
-                !(argument.Value is string stringValue))
-            {
-                return null;
-            }
-
-            return stringValue.Trim();
         }
     }
 }
