@@ -23,14 +23,24 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private const string DataKey = "DesignerAttributeData";
 
-        private readonly RemoteEndPoint _endPoint;
         private readonly Workspace _workspace;
+
+        /// <summary>
+        /// Channel back to VS to inform it of the designer attributes we discover.
+        /// </summary>
+        private readonly RemoteEndPoint _endPoint;
+
+        /// <summary>
+        /// Storage where we can keep track of what we know about the project and have informed VS
+        /// (and the project systems) about.
+        /// </summary>
         private readonly IPersistentStorage _storage;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteEndPoint endPoint, Workspace workspace)
+        public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
-            _endPoint = endPoint;
             _workspace = workspace;
+            _endPoint = endPoint;
+
             var storageService = _workspace.Services.GetRequiredService<IPersistentStorageService>();
             _storage = storageService.GetStorage(workspace.CurrentSolution);
         }
@@ -59,6 +69,10 @@ namespace Microsoft.CodeAnalysis.Remote
             if (!project.SupportsCompilation)
                 return;
 
+            // We need to reanalyze the project whenever it (or any of its dependencies) have
+            // changed.  We need to know about dependencies since if a downstream project adds the
+            // DesignerCategory attribute to a class, that can affect us when we examine the classes
+            // in this project.
             var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             var latestInfos = await ComputeLatestInfosAsync(
