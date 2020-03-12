@@ -29,9 +29,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     internal class VisualStudioDesignerAttributeService
         : ForegroundThreadAffinitizedObject, IDesignerAttributeService, IDesignerAttributeServiceCallback
     {
+        /// <summary>
+        /// Used so we can switch over to the UI thread for communicating with legacy projects that
+        /// require that.
+        /// </summary>
         private readonly IThreadingContext _threadingContext;
+
+        /// <summary>
+        /// Used to acquire the legacy project designer service.
+        /// </summary>
         private readonly IServiceProvider _serviceProvider;
-        private readonly IForegroundNotificationService _notificationService;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IAsynchronousOperationListener _listener;
 
@@ -64,14 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public VisualStudioDesignerAttributeService(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace)
             : base(threadingContext)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
-            _notificationService = notificationService;
             _workspace = workspace;
 
             _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttribute);
@@ -218,44 +223,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await task.ConfigureAwait(false);
         }
 
-        private Task NotifyLegacyProjectSystemAsync(
+        private async Task NotifyLegacyProjectSystemAsync(
             Project project,
             IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
-            // Move over to the UI thread and attempt to notify it about all the documents from this
-            // particular project at once. Use a task completion source here so we can kick over to
-            // the UI thread, but still ensure that our caller knows when we complete.
-            var completionSource = new TaskCompletionSource<bool>();
+            // legacy project system can only be talked to on the UI thread.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            _notificationService.RegisterNotification(() =>
-            {
-                AssertIsForeground();
-
-                try
-                {
-                    NotifyLegacyProjectSystemOnUIThread(project, attributeInfos, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                {
-                }
-                finally
-                {
-                    completionSource.SetResult(true);
-                }
-            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
-
-            return completionSource.Task;
-        }
-
-        private void NotifyLegacyProjectSystemOnUIThread(
-            Project project,
-            IEnumerable<DesignerInfo> attributeInfos,
-            CancellationToken cancellationToken)
-        {
             AssertIsForeground();
 
             var designerService = GetDesignerServiceOnForegroundThread();
@@ -280,6 +256,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             IVsHierarchy hierarchy,
             DesignerInfo info)
         {
+            this.AssertIsForeground();
+
             // Make sure this is a document we still know about when OOP notifies us.
             var document = project.GetDocument(info.DocumentId);
             if (document == null)

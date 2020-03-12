@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
@@ -26,12 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public VisualStudioDesignerAttributeServiceFactory(
             IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
-            _notificationService = notificationService;
             _listenerProvider = listenerProvider;
         }
 
@@ -41,8 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
 
             return new VisualStudioDesignerAttributeService(
-                _threadingContext, _serviceProvider, _notificationService,
-                _listenerProvider, workspace);
+                _threadingContext, _serviceProvider, _listenerProvider, workspace);
         }
     }
 }
