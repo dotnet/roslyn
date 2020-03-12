@@ -727,11 +727,6 @@
         <target state="translated">메서드를 비동기로 설정(void 유지)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">this'를 추가합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;이름&gt;</target>

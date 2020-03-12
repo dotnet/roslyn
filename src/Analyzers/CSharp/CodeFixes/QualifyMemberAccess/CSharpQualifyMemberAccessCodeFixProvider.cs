@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
             }
         }
 
-        protected override string GetTitle() => CSharpFeaturesResources.Add_this;
+        protected override string GetTitle() => CSharpCodeFixesResources.Add_this;
     }
 }

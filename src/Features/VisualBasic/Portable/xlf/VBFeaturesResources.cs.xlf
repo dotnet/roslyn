@@ -1812,11 +1812,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">Převést na asynchronní proceduru Sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Přidejte položku Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Použít kontrolu „Is Nothing“</target>

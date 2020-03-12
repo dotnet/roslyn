@@ -15,6 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
