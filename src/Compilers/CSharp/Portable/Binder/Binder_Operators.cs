@@ -700,29 +700,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
             bool isEquality = operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken;
-            switch (left, right)
+            switch (left.Kind, right.Kind)
             {
-                case ({ Kind: BoundKind.UnconvertedObjectCreationExpression }, _):
-                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, left.Display);
-                    return;
-                case (_, { Kind: BoundKind.UnconvertedObjectCreationExpression }):
-                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, right.Display);
-                    return;
-                case ({ Kind: BoundKind.DefaultLiteral }, _) when !isEquality:
-                case (_, { Kind: BoundKind.DefaultLiteral }) when !isEquality:
+                case (BoundKind.DefaultLiteral, _) when !isEquality:
+                case (_, BoundKind.DefaultLiteral) when !isEquality:
                     // other than == and !=, binary operators are disallowed on `default` literal
                     Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, "default");
                     return;
-                case ({ Kind: BoundKind.DefaultLiteral }, { Kind: BoundKind.DefaultLiteral }):
+                case (BoundKind.DefaultLiteral, BoundKind.DefaultLiteral):
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text, left.Display, right.Display);
                     return;
-                case ({ Kind: BoundKind.DefaultLiteral }, { Type: TypeParameterSymbol _ }):
+                case (BoundKind.DefaultLiteral, _) when right.Type is TypeParameterSymbol:
                     Debug.Assert(!right.Type.IsReferenceType);
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
                     return;
-                case ({ Type: TypeParameterSymbol _ }, { Kind: BoundKind.DefaultLiteral }):
+                case (_, BoundKind.DefaultLiteral) when left.Type is TypeParameterSymbol:
                     Debug.Assert(!left.Type.IsReferenceType);
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
+                    return;
+                case (BoundKind.UnconvertedObjectCreationExpression, _):
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, left.Display);
+                    return;
+                case (_, BoundKind.UnconvertedObjectCreationExpression):
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, operatorToken.Text, right.Display);
                     return;
             }
 
