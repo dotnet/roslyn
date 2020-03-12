@@ -299,9 +299,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// The decision for whether to provide preselected items can be contextual, e.g. based on trigger character and syntax location
         /// </summary>
         protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
-        {
-            return Task.FromResult(true);
-        }
+            => SpecializedTasks.True;
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
