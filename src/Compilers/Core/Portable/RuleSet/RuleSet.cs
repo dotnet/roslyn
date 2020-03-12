@@ -141,10 +141,11 @@ namespace Microsoft.CodeAnalysis
 
                 // Recursively get the effective ruleset of the included file, in case they in turn
                 // contain includes.
-                var effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
+                RuleSet? effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
 
                 // Apply the includeAction on this ruleset.
-                effectiveRuleset = effectiveRuleset.WithEffectiveAction(ruleSetInclude.Action)!;
+                effectiveRuleset = effectiveRuleset.WithEffectiveAction(ruleSetInclude.Action);
+                Debug.Assert(effectiveRuleset is object);
 
                 // If the included ruleset's global option is stricter, then make that the effective option.
                 if (IsStricterThan(effectiveRuleset.GeneralDiagnosticOption, effectiveGeneralOption))
