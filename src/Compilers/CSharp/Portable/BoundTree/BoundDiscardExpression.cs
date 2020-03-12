@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(type.Type);
         }
 
-        public BoundDiscardExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        public BoundDiscardExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
         {
             if (diagnosticsOpt != null)
             {

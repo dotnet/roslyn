@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundConversion { Conversion: { Kind: var kind }, Operand: var o } when
                         (kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable) &&
-                        expr.Type!.IsNullableType() && expr.Type!.StrippedType().Equals(o.Type, TypeCompareKind.AllIgnoreOptions):
+                        expr.Type is { } exprType && exprType.IsNullableType() && exprType.StrippedType().Equals(o.Type, TypeCompareKind.AllIgnoreOptions):
                     return IsLikeTupleExpression(o, out tuple);
                 default:
                     tuple = null;
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                     return MakeValueOrDefaultTemp(o, temps, effects);
                 case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var nested }, Operand: var o } conv when
-                        expr.Type!.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
+                        expr.Type is { } exprType && exprType.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && nested[0] is { IsTupleConversion: true } tupleConversion:
                     {
                         Debug.Assert(expr.Type is { });
                         var operand = MakeValueOrDefaultTemp(o, temps, effects);

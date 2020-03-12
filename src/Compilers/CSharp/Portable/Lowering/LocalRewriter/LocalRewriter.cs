@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             int containingMethodOrdinal,
             BoundStatement rootStatement,
-            NamedTypeSymbol containingType,
+            NamedTypeSymbol? containingType,
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private PEModuleBuilder EmitModule
+        private PEModuleBuilder? EmitModule
         {
             get { return _factory.CompilationState.ModuleBuilderOpt; }
         }
@@ -687,11 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var syntax = initializer.Syntax;
-
-            if (syntax is ExpressionSyntax && syntax?.Parent!.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
+            if (syntax is ExpressionSyntax { Parent: { } parent } && parent.Kind() == SyntaxKind.EqualsValueClause) // Should be the initial value.
             {
-                Debug.Assert(syntax.Parent.Parent is { });
-                switch (syntax.Parent.Parent.Kind())
+                Debug.Assert(parent.Parent is { });
+                switch (parent.Parent.Kind())
                 {
                     case SyntaxKind.VariableDeclarator:
                     case SyntaxKind.PropertyDeclaration:

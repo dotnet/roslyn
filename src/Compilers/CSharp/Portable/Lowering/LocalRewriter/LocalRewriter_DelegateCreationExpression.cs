@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Argument.Kind == BoundKind.MethodGroup)
             {
                 var mg = (BoundMethodGroup)node.Argument;
-                var method = node.MethodOpt!;
+                var method = node.MethodOpt;
+                Debug.Assert(method is { });
                 var oldSyntax = _factory.Syntax;
                 _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                 var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt)!;

@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool IsInTryBlock(BoundFixedStatement boundFixed)
         {
-            SyntaxNode node = boundFixed.Syntax.Parent!;
+            SyntaxNode? node = boundFixed.Syntax.Parent;
+            Debug.Assert(node is { });
             while (node != null)
             {
                 switch (node.Kind())
@@ -141,16 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CatchClause:
                         // If we're in the catch of a try-catch-finally, then
                         // we're still in the scope of the try-finally handler.
-                        if (((TryStatementSyntax)node.Parent!).Finally != null)
+                        Debug.Assert(node.Parent is TryStatementSyntax);
+                        if (((TryStatementSyntax)node.Parent).Finally != null)
                         {
                             return true;
                         }
                         goto case SyntaxKind.FinallyClause;
                     case SyntaxKind.FinallyClause:
                         // Skip past the enclosing try to avoid a false positive.
-                        node = node.Parent!;
-                        Debug.Assert(node.Kind() == SyntaxKind.TryStatement);
-                        node = node.Parent!;
+                        node = node.Parent;
+                        Debug.Assert(node is { } && node.Kind() == SyntaxKind.TryStatement);
+                        node = node.Parent;
                         break;
                     default:
                         if (node is MemberDeclarationSyntax)
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Stop looking.
                             return false;
                         }
-                        node = node.Parent!;
+                        node = node.Parent;
                         break;
                 }
             }
@@ -214,11 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return InitializeFixedStatementGetPinnable(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
-            else if (fixedCollectionInitializer.Expression.Type!.SpecialType == SpecialType.System_String)
+            else if (fixedCollectionInitializer.Expression.Type is { SpecialType: SpecialType.System_String })
             {
                 return InitializeFixedStatementStringLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
-            else if (fixedCollectionInitializer.Expression.Type.IsArray())
+            else if (fixedCollectionInitializer.Expression.Type is { TypeKind: TypeKind.Array })
             {
                 return InitializeFixedStatementArrayLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
@@ -246,12 +248,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol localType = localSymbol.Type;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
+            Debug.Assert(initializerExpr.Type is { TypeKind: TypeKind.Pointer });
 
             // initializer expr should be either an address(&) of something or a fixed field access.
             // either should lower into addressof
             Debug.Assert(initializerExpr.Kind == BoundKind.AddressOfOperator);
 
-            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type!).PointedAtType;
+            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType;
 
             // initializer expressions are bound/lowered right into addressof operators here
             // that is a bit too far
@@ -315,8 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol localType = localSymbol.Type;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
+            Debug.Assert(initializerExpr.Type is { });
 
-            var initializerType = initializerExpr.Type!;
+            var initializerType = initializerExpr.Type;
             var initializerSyntax = initializerExpr.Syntax;
             var getPinnableMethod = fixedInitializer.GetPinnableOpt;
             Debug.Assert(getPinnableMethod is { });

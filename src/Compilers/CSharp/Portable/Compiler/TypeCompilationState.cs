@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
         /// </summary>
-        private readonly NamedTypeSymbol _typeOpt;
+        private readonly NamedTypeSymbol? _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
         /// </summary>
-        public readonly PEModuleBuilder ModuleBuilderOpt;
+        public readonly PEModuleBuilder? ModuleBuilderOpt;
 
         /// <summary>
         /// Any generated methods that don't suppress debug info will use this
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // NOTE: currently it can be null if only private implementation type methods are compiled
-                RoslynDebug.Assert((object)_typeOpt != null);
+                RoslynDebug.Assert(_typeOpt is { });
                 return _typeOpt;
             }
         }

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -43,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind additionKind = BinaryOperatorKind.Addition;
 
-            switch (rewrittenIndex.Type!.SpecialType)
+            Debug.Assert(rewrittenExpression.Type is { });
+            Debug.Assert(rewrittenIndex.Type is { });
+            switch (rewrittenIndex.Type.SpecialType)
             {
                 case SpecialType.System_Int32:
                     additionKind |= BinaryOperatorKind.PointerAndIntAddition;
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     additionKind,
                     rewrittenExpression,
                     rewrittenIndex,
-                    rewrittenExpression.Type!,
+                    rewrittenExpression.Type,
                     method: null,
                     isPointerElementAccess: true), //see RewriterPointerNumericOperator
                 node.Type);

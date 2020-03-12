@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundAssignmentOperator? tempAssignment = null;
             BoundLocal? boundTemp = null;
+            Debug.Assert(eventSymbol.IsStatic || rewrittenReceiverOpt is { });
             if (!eventSymbol.IsStatic && CanChangeValueBetweenReads(rewrittenReceiverOpt!))
             {
                 boundTemp = _factory.StoreToTemp(rewrittenReceiverOpt!, out tempAssignment);

@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 value: conditionalExpression,
                 type: node.Type);
 
-            // [return: NotNullIfNotNull("arg")]
             BoundExpression? getIndexFromPossibleNullable(BoundExpression? arg)
             {
                 if (arg is null)

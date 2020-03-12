@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression? RewriteConditionalAccess(BoundConditionalAccess node, bool used)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.AccessExpression.Type is { });
 
             var loweredReceiver = this.VisitExpression(node.Receiver);
             Debug.Assert(loweredReceiver.Type is { });
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConditionalAccessLoweringKind loweringKind;
             // dynamic receivers are not directly supported in codegen and need to be lowered to a conditional
-            var lowerToConditional = node.AccessExpression.Type!.IsDynamic();
+            var lowerToConditional = node.AccessExpression.Type.IsDynamic();
 
             if (!lowerToConditional)
             {
@@ -119,12 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(loweredAccessExpression != null);
+            Debug.Assert(loweredAccessExpression.Type is { });
             _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
             TypeSymbol type = this.VisitType(node.Type);
 
             TypeSymbol nodeType = node.Type;
-            TypeSymbol accessExpressionType = loweredAccessExpression.Type!;
+            TypeSymbol accessExpressionType = loweredAccessExpression.Type;
 
             if (accessExpressionType.IsVoidType())
             {

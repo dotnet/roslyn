@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePoint(syntax!, statementOpt, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        public static BoundStatement Hidden(BoundStatement? statementOpt = null, bool hasErrors = false)
+        public static BoundStatement CreateHidden(BoundStatement? statementOpt = null, bool hasErrors = false)
         {
             // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
             return new BoundSequencePoint(null!, statementOpt, hasErrors) { WasCompilerGenerated = true };

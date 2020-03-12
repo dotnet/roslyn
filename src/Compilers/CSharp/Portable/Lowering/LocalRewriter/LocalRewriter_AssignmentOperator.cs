@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // dyn[args] = expr
                         var indexerAccess = (BoundDynamicIndexerAccess)left;
-                        Debug.Assert(indexerAccess.Receiver != null);
                         var loweredReceiver = VisitExpression(indexerAccess.Receiver);
                         var loweredArguments = VisitList(indexerAccess.Arguments);
                         return MakeDynamicSetIndex(
@@ -381,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [NotNull] T newElement)
         {
+            Debug.Assert(newElement != null);
             return possibleNull.NullToEmpty().Add(newElement);
         }
     }

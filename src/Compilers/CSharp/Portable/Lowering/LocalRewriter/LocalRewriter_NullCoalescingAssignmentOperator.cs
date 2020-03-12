@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
+            Debug.Assert(node.Type is { });
             SyntaxNode syntax = node.Syntax;
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
+            Debug.Assert(transformedLHS.Type is { });
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lhsRead ?? (transformedLHS = loweredRight)
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
+                Debug.Assert(conditionalExpression.Type is { });
 
                 return (temps.Count == 0 && stores.Count == 0) ?
                     conditionalExpression :
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
                         conditionalExpression,
-                        conditionalExpression.Type!);
+                        conditionalExpression.Type);
             }
 
             // Rewrites the null coalescing operator in the case where the result type is the underlying
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewriteNullCoalescingAssignmentForValueType()
             {
                 Debug.Assert(node.LeftOperand.Type.IsNullableType());
-                Debug.Assert(node.Type!.Equals(node.RightOperand.Type));
+                Debug.Assert(node.Type.Equals(node.RightOperand.Type));
 
                 // We lower the expression to this form:
                 //
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
-                        MakeConversionNode(tmp, transformedLHS.Type!, @checked: false),
+                        MakeConversionNode(tmp, transformedLHS.Type, @checked: false),
                         node.LeftOperand.Type,
                         used: true,
                         isChecked: false,

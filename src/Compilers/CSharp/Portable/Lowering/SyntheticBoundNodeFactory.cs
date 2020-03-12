@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpCompilation Compilation { get { return CompilationState.Compilation; } }
         public SyntaxNode Syntax { get; set; }
-        public PEModuleBuilder ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
+        public PEModuleBuilder? ModuleBuilderOpt { get { return CompilationState.ModuleBuilderOpt; } }
         public DiagnosticBag Diagnostics { get; }
         public TypeCompilationState CompilationState { get; }
 
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">The syntax node to which generated code should be attributed</param>
         /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">A bag where any diagnostics should be output</param>
-        public SyntheticBoundNodeFactory(MethodSymbol topLevelMethodOpt, NamedTypeSymbol currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        public SyntheticBoundNodeFactory(MethodSymbol? topLevelMethodOpt, NamedTypeSymbol? currentClassOpt, SyntaxNode node, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(compilationState != null);
@@ -192,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void AddNestedType(NamedTypeSymbol nestedType)
         {
+            // It is only valid to call this on a bound node factory with a module builder.
+            Debug.Assert(ModuleBuilderOpt is { });
             ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType);
         }
 
@@ -245,6 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void AddField(NamedTypeSymbol containingType, FieldSymbol field)
         {
+            // It is only valid to call this on a bound node factory with a module builder.
+            Debug.Assert(ModuleBuilderOpt is { });
             ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field);
         }
 
@@ -1031,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)
         {
-            return BoundSequencePoint.Hidden(statementOpt);
+            return BoundSequencePoint.CreateHidden(statementOpt);
         }
 
         public BoundStatement ThrowNull()

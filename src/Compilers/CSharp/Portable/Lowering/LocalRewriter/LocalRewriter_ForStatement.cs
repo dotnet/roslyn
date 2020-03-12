@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do it to tell that this is not a part of previous statement.
                 // This jump may be a target of another jump (for example if loops are nested) and that will make 
                 // impression of the previous statement being re-executed
-                gotoEnd = BoundSequencePoint.Hidden(gotoEnd);
+                gotoEnd = BoundSequencePoint.CreateHidden(gotoEnd);
             }
 
             statementBuilder.Add(gotoEnd);
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Instrument)
             {
-                startLabelStatement = BoundSequencePoint.Hidden(startLabelStatement);
+                startLabelStatement = BoundSequencePoint.CreateHidden(startLabelStatement);
             }
 
             statementBuilder.Add(startLabelStatement);

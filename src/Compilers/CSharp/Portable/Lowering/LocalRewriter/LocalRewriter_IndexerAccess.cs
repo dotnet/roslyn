@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            Debug.Assert(node.Receiver != null);
-
             var loweredReceiver = VisitExpression(node.Receiver);
             var loweredArguments = VisitList(node.Arguments);
 

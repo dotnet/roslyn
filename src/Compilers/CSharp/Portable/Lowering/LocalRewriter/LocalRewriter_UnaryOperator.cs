@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind == UnaryOperatorKind.EnumBitwiseComplement)
             {
-                var underlyingType = loweredOperand.Type.GetEnumUnderlyingType()!;
+                var underlyingType = loweredOperand.Type.GetEnumUnderlyingType();
+                Debug.Assert(underlyingType is { });
                 var upconvertSpecialType = Binder.GetEnumPromotedType(underlyingType.SpecialType);
                 var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
@@ -263,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (optimize)
             {
                 var result = LowerLiftedUnaryOperator(operatorKind, syntax, method, conditionalLeft!.WhenNotNull, type);
+                Debug.Assert(result.Type is { });
 
                 return conditionalLeft.Update(
                     conditionalLeft.Receiver,
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: result,
                     whenNullOpt: null,
                     id: conditionalLeft.Id,
-                    type: result.Type!
+                    type: result.Type
                 );
             }
 
@@ -970,13 +972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case UnaryOperatorKind.Enum:
                     {
-                        TypeSymbol underlyingType = node.Type;
+                        TypeSymbol? underlyingType = node.Type;
+                        Debug.Assert(underlyingType is { });
                         if (underlyingType.IsNullableType())
                         {
                             underlyingType = underlyingType.GetNullableUnderlyingType();
                         }
                         Debug.Assert(underlyingType.IsEnumType());
-                        underlyingType = underlyingType.GetEnumUnderlyingType()!;
+                        underlyingType = underlyingType.GetEnumUnderlyingType();
+                        Debug.Assert(underlyingType is { });
 
                         // Operator overload resolution will not have chosen the enumerated type
                         // unless the operand actually is of the enumerated type (or nullable enum type.)

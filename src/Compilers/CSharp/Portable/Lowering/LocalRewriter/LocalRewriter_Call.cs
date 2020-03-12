@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
             var module = this.EmitModule;
-            if (module != null && receiver != null && receiver.Type is { })
+            if (module != null && receiver is { Type: { } })
             {
                 var assembly = receiver.Type.ContainingAssembly;
 

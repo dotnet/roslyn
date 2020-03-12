@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class VariablePendingInference : BoundExpression
     {
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(type.HasType);
 
             return SetInferredTypeWithAnnotations(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || type.HasType);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
         {
             return this.SetInferredTypeWithAnnotations(default, binder, diagnosticsOpt);
         }

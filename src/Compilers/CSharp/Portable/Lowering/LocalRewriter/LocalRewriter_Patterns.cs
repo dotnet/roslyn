@@ -366,8 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));
+                    Debug.Assert(output.Type is { });
                     sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation1.Type));
-                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type!));
+                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
                     return true;
                 }
 

@@ -330,7 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
                         }
 
-                        var initializerMember = (BoundDynamicObjectInitializerMember)rewrittenLeft!;
+                        Debug.Assert(rewrittenLeft is { });
+                        var initializerMember = (BoundDynamicObjectInitializerMember)rewrittenLeft;
 
                         if (!isRhsNestedInitializer)
                         {
@@ -351,7 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                     {
-                        var arrayAccess = (BoundArrayAccess)rewrittenLeft!;
+                        Debug.Assert(rewrittenLeft is { });
+                        var arrayAccess = (BoundArrayAccess)rewrittenLeft;
                         var indices = EvaluateSideEffectingArgumentsToTemps(
                             arrayAccess.Indices,
                             paramRefKindsOpt: default,

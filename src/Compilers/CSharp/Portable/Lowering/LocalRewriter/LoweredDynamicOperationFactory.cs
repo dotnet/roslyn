@@ -694,6 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
             Debug.Assert(factory.TopLevelMethod is { });
+            Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
@@ -785,6 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
+            Debug.Assert(_factory.CompilationState.ModuleBuilderOpt is { });
             int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
             return synthesizedType.Construct(delegateSignature);

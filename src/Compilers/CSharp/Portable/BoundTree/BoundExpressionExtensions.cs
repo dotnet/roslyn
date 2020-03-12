@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsExpressionOfComImportType(this BoundExpression expressionOpt)
+        internal static bool IsExpressionOfComImportType([NotNullWhen(true)] this BoundExpression? expressionOpt)
         {
             // NOTE: Dev11 also returns false if expressionOpt is a TypeExpression.  Unfortunately,
             // that makes it impossible to handle TypeOrValueExpression in a consistent way, since
@@ -206,7 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution without knowing whether 'ref' can be omitted (which is what this
             // method is used to determine).  Since there is no intuitive reason to disallow
             // omitting 'ref' for static methods, we'll drop the restriction on TypeExpression.
-            if (expressionOpt == null) return false;
+            if (expressionOpt == null)
+                return false;
 
             TypeSymbol? receiverType = expressionOpt.Type;
             return receiverType is NamedTypeSymbol { Kind: SymbolKind.NamedType, IsComImport: true };

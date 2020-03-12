@@ -554,8 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
                 SyntaxNode sectionSyntax = whenClause.Syntax is SwitchLabelSyntax l ? l.Parent : whenClause.Syntax;
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement>? sectionBuilder);
-                Debug.Assert(foundSectionBuilder);
-                sectionBuilder!.Add(_factory.Label(labelToSectionScope));
+                Debug.Assert(foundSectionBuilder && sectionBuilder is { });
+                sectionBuilder.Add(_factory.Label(labelToSectionScope));
                 foreach (BoundPatternBinding binding in whenClause.Bindings)
                 {
                     BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);

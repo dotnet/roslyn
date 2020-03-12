@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             used: true, isChecked: false, isCompoundAssignment: false));
                     }
                 }
+                Debug.Assert(builder is null || resultPart is { });
                 builder?.Add(resultPart!);
             }
 

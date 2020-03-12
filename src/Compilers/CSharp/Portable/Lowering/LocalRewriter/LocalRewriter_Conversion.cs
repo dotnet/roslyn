@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var type = rewrittenNode.Type!;
+            Debug.Assert(rewrittenNode.Type is { });
+            var type = rewrittenNode.Type;
             if (type.SpecialType != SpecialType.System_Double && type.SpecialType != SpecialType.System_Single)
             {
                 return false;
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType)
         {
             var result = MakeConversionNodeCore(oldNodeOpt, syntax, rewrittenOperand, conversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
+            Debug.Assert(result.Type is { } rt && rt.Equals(rewrittenType, TypeCompareKind.AllIgnoreOptions));
 
             // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
             // It means that explicit casts to (double) or (float) should be preserved on the node.
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     explicitCastInCode: true,
                     conversionGroupOpt: null,
                     constantValueOpt: null,
-                    type: result.Type!);
+                    type: result.Type);
             }
 
             return result;
@@ -658,10 +660,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
+            Debug.Assert(rewrittenOperand.Type is { });
             var destElementTypes = rewrittenType.TupleElementTypesWithAnnotations;
             var numElements = destElementTypes.Length;
 
-            var tupleTypeSymbol = (NamedTypeSymbol)rewrittenOperand.Type!;
+            var tupleTypeSymbol = (NamedTypeSymbol)rewrittenOperand.Type;
             var srcElementFields = tupleTypeSymbol.TupleElements;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
@@ -697,7 +700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static BoundExpression? NullableAlwaysHasValue(BoundExpression expression)
         {
-            if (!expression.Type!.IsNullableType())
+            Debug.Assert(expression.Type is { });
+            if (!expression.Type.IsNullableType())
                 return null;
 
             switch (expression)
@@ -709,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Detect the unlowered nullable conversion from value type K to type Nullable<K>
                 // This arises in lowering tuple equality operators
                 case BoundConversion { Conversion: { Kind: ConversionKind.ImplicitNullable }, Operand: var convertedArgument }
-                        when convertedArgument.Type!.Equals(expression.Type!.StrippedType(), TypeCompareKind.AllIgnoreOptions):
+                        when convertedArgument.Type!.Equals(expression.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions):
                     return convertedArgument;
 
                 // Detect the unlowered nullable conversion from a tuple type T1 to Nullable<T2> for a tuple type T2.
@@ -796,7 +800,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType)
         {
             Debug.Assert((object)rewrittenType != null);
-            TypeSymbol rewrittenOperandType = rewrittenOperand.Type!;
+            Debug.Assert(rewrittenOperand.Type is { });
+            TypeSymbol rewrittenOperandType = rewrittenOperand.Type;
             Debug.Assert(rewrittenType.IsNullableType() || rewrittenOperandType.IsNullableType());
 
             ConversionGroup? conversionGroup = null; // BoundConversion.ConversionGroup is not used in lowered tree
@@ -1164,8 +1169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenOperand != null);
             Debug.Assert((object)rewrittenType != null);
+            Debug.Assert(rewrittenOperand.Type is { });
 
-            TypeSymbol source = rewrittenOperand.Type!;
+            TypeSymbol source = rewrittenOperand.Type;
             TypeSymbol target = rewrittenType;
 
             SpecialMember member = GetIntPtrConversionMethod(source: source, target: rewrittenType);
@@ -1460,7 +1466,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // TODO: what about nullable?
                     if (fromType.SpecialType == SpecialType.System_Decimal)
                     {
-                        SpecialMember member = DecimalConversionMethod(fromType, toType.GetEnumUnderlyingType()!);
+                        var underlying = toType.GetEnumUnderlyingType();
+                        Debug.Assert(underlying is { });
+                        SpecialMember member = DecimalConversionMethod(fromType, underlying);
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))
                         {
@@ -1471,7 +1479,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (toType.SpecialType == SpecialType.System_Decimal)
                     {
-                        SpecialMember member = DecimalConversionMethod(fromType.GetEnumUnderlyingType()!, toType);
+                        var underlying = fromType.GetEnumUnderlyingType();
+                        Debug.Assert(underlying is { });
+                        SpecialMember member = DecimalConversionMethod(underlying, toType);
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))
                         {

@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Mark the code that binds pattern variables to their values as hidden.
             // We do it to tell that this is not a part of previous statement.
-            return BoundSequencePoint.Hidden(base.InstrumentSwitchBindCasePatternVariables(bindings));
+            return BoundSequencePoint.CreateHidden(base.InstrumentSwitchBindCasePatternVariables(bindings));
         }
     }
 }
