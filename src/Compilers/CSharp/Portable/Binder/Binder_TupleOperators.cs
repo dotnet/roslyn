@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            left = GiveTupleTypeToTypelessExpressionIfNeeded(left, right.Type, diagnostics);
-            right = GiveTupleTypeToTypelessExpressionIfNeeded(right, left.Type, diagnostics);
+            left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
+            right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
 
             if ((left.Type is null && left.IsLiteralDefaultOrTypelessNew()) ||
                 (right.Type is null && right.IsLiteralDefaultOrTypelessNew()))
@@ -313,23 +313,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression GiveTupleTypeToTypelessExpressionIfNeeded(BoundExpression expr, TypeSymbol targetType, DiagnosticBag diagnostics)
+        internal static BoundExpression GiveTupleTypeToDefaultLiteralIfNeeded(BoundExpression expr, TypeSymbol targetType)
         {
-            if (targetType is object)
+            if (!expr.IsLiteralDefault() || targetType is null)
             {
-                if (expr.IsLiteralDefault())
-                {
-                    Debug.Assert(targetType.StrippedType().IsTupleType);
-                    return new BoundDefaultExpression(expr.Syntax, targetType);
-                }
-
-                if (expr is BoundUnconvertedObjectCreationExpression objectCreation)
-                {
-                    return ConvertObjectCreationExpression(expr.Syntax, objectCreation, isCast: false, targetType, diagnostics);
-                }
+                return expr;
             }
 
-            return expr;
+            Debug.Assert(targetType.StrippedType().IsTupleType);
+            return new BoundDefaultExpression(expr.Syntax, targetType);
         }
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)

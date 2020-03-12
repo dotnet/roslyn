@@ -3083,7 +3083,6 @@ class C
 enum E : byte
 {
     A = new(),
-    B = new() + 1
 }
 ";
             var comp = CreateCompilation(source);
@@ -3181,8 +3180,8 @@ class C
         var l = new() < new();
         var m = new() >= new();
         var n = new() <= new();
-        var o = new() == new(); // void ImplicitObjectCreation
-        var p = new() != new(); // void ImplicitObjectCreation
+        var o = new() == new();
+        var p = new() != new();
         var q = new() && new();
         var r = new() || new();
         var s = new() ?? new();
@@ -3192,54 +3191,54 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8315: Operator '+' is ambiguous on operands 'new()' and 'new()'
+                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'new()'
                 //         var a = new() + new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() + new()").WithArguments("+", "new()", "new()").WithLocation(6, 17),
-                // (7,17): error CS8315: Operator '-' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() + new()").WithArguments("+", "new()").WithLocation(6, 17),
+                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'new()'
                 //         var b = new() - new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() - new()").WithArguments("-", "new()", "new()").WithLocation(7, 17),
-                // (8,17): error CS8315: Operator '&' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() - new()").WithArguments("-", "new()").WithLocation(7, 17),
+                // (8,17): error CS8310: Operator '&' cannot be applied to operand 'new()'
                 //         var c = new() & new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() & new()").WithArguments("&", "new()", "new()").WithLocation(8, 17),
-                // (9,17): error CS8315: Operator '|' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() & new()").WithArguments("&", "new()").WithLocation(8, 17),
+                // (9,17): error CS8310: Operator '|' cannot be applied to operand 'new()'
                 //         var d = new() | new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() | new()").WithArguments("|", "new()", "new()").WithLocation(9, 17),
-                // (10,17): error CS8315: Operator '^' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() | new()").WithArguments("|", "new()").WithLocation(9, 17),
+                // (10,17): error CS8310: Operator '^' cannot be applied to operand 'new()'
                 //         var e = new() ^ new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() ^ new()").WithArguments("^", "new()", "new()").WithLocation(10, 17),
-                // (11,17): error CS8315: Operator '*' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() ^ new()").WithArguments("^", "new()").WithLocation(10, 17),
+                // (11,17): error CS8310: Operator '*' cannot be applied to operand 'new()'
                 //         var f = new() * new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() * new()").WithArguments("*", "new()", "new()").WithLocation(11, 17),
-                // (12,17): error CS8315: Operator '/' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() * new()").WithArguments("*", "new()").WithLocation(11, 17),
+                // (12,17): error CS8310: Operator '/' cannot be applied to operand 'new()'
                 //         var g = new() / new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() / new()").WithArguments("/", "new()", "new()").WithLocation(12, 17),
-                // (13,17): error CS8315: Operator '%' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() / new()").WithArguments("/", "new()").WithLocation(12, 17),
+                // (13,17): error CS8310: Operator '%' cannot be applied to operand 'new()'
                 //         var h = new() % new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() % new()").WithArguments("%", "new()", "new()").WithLocation(13, 17),
-                // (14,17): error CS8315: Operator '>>' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() % new()").WithArguments("%", "new()").WithLocation(13, 17),
+                // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'new()'
                 //         var i = new() >> new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() >> new()").WithArguments(">>", "new()", "new()").WithLocation(14, 17),
-                // (15,17): error CS8315: Operator '<<' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >> new()").WithArguments(">>", "new()").WithLocation(14, 17),
+                // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'new()'
                 //         var j = new() << new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() << new()").WithArguments("<<", "new()", "new()").WithLocation(15, 17),
-                // (16,17): error CS8315: Operator '>' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() << new()").WithArguments("<<", "new()").WithLocation(15, 17),
+                // (16,17): error CS8310: Operator '>' cannot be applied to operand 'new()'
                 //         var k = new() > new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() > new()").WithArguments(">", "new()", "new()").WithLocation(16, 17),
-                // (17,17): error CS8315: Operator '<' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() > new()").WithArguments(">", "new()").WithLocation(16, 17),
+                // (17,17): error CS8310: Operator '<' cannot be applied to operand 'new()'
                 //         var l = new() < new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() < new()").WithArguments("<", "new()", "new()").WithLocation(17, 17),
-                // (18,17): error CS8315: Operator '>=' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() < new()").WithArguments("<", "new()").WithLocation(17, 17),
+                // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'new()'
                 //         var m = new() >= new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() >= new()").WithArguments(">=", "new()", "new()").WithLocation(18, 17),
-                // (19,17): error CS8315: Operator '<=' is ambiguous on operands 'new()' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >= new()").WithArguments(">=", "new()").WithLocation(18, 17),
+                // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'new()'
                 //         var n = new() <= new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() <= new()").WithArguments("<=", "new()", "new()").WithLocation(19, 17),
-                // (20,17): error CS8315: Operator '==' is ambiguous on operands 'new()' and 'new()'
-                //         var o = new() == new(); // void ImplicitObjectCreation
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() == new()").WithArguments("==", "new()", "new()").WithLocation(20, 17),
-                // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'new()' and 'new()'
-                //         var p = new() != new(); // void ImplicitObjectCreation
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "new() != new()").WithArguments("!=", "new()", "new()").WithLocation(21, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() <= new()").WithArguments("<=", "new()").WithLocation(19, 17),
+                // (20,17): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         var o = new() == new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == new()").WithArguments("==", "new()").WithLocation(20, 17),
+                // (21,17): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         var p = new() != new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new()").WithArguments("!=", "new()").WithLocation(21, 17),
                 // (22,17): error CS8754: There is no target type for 'new()'
                 //         var q = new() && new();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 17),
@@ -3280,18 +3279,65 @@ class C
         _ = new() < 1;
         _ = new() >= 1;
         _ = new() <= 1;
-        _ = new() == 1; // ok
-        _ = new() != 1; // ok
+        _ = new() == 1;
+        _ = new() != 1;
         _ = new() && 1;
         _ = new() || 1;
         _ = new() ?? 1;
-        _ = new() ?? default(int?);
     }
 }
 ";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (6,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //         _ = new() + 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() + 1").WithArguments("+", "new()").WithLocation(6, 13),
+                // (7,13): error CS8310: Operator '-' cannot be applied to operand 'new()'
+                //         _ = new() - 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() - 1").WithArguments("-", "new()").WithLocation(7, 13),
+                // (8,13): error CS8310: Operator '&' cannot be applied to operand 'new()'
+                //         _ = new() & 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() & 1").WithArguments("&", "new()").WithLocation(8, 13),
+                // (9,13): error CS8310: Operator '|' cannot be applied to operand 'new()'
+                //         _ = new() | 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() | 1").WithArguments("|", "new()").WithLocation(9, 13),
+                // (10,13): error CS8310: Operator '^' cannot be applied to operand 'new()'
+                //         _ = new() ^ 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() ^ 1").WithArguments("^", "new()").WithLocation(10, 13),
+                // (11,13): error CS8310: Operator '*' cannot be applied to operand 'new()'
+                //         _ = new() * 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() * 1").WithArguments("*", "new()").WithLocation(11, 13),
+                // (12,13): error CS8310: Operator '/' cannot be applied to operand 'new()'
+                //         _ = new() / 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() / 1").WithArguments("/", "new()").WithLocation(12, 13),
+                // (13,13): error CS8310: Operator '%' cannot be applied to operand 'new()'
+                //         _ = new() % 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() % 1").WithArguments("%", "new()").WithLocation(13, 13),
+                // (14,13): error CS8310: Operator '>>' cannot be applied to operand 'new()'
+                //         _ = new() >> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >> 1").WithArguments(">>", "new()").WithLocation(14, 13),
+                // (15,13): error CS8310: Operator '<<' cannot be applied to operand 'new()'
+                //         _ = new() << 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() << 1").WithArguments("<<", "new()").WithLocation(15, 13),
+                // (16,13): error CS8310: Operator '>' cannot be applied to operand 'new()'
+                //         _ = new() > 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() > 1").WithArguments(">", "new()").WithLocation(16, 13),
+                // (17,13): error CS8310: Operator '<' cannot be applied to operand 'new()'
+                //         _ = new() < 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() < 1").WithArguments("<", "new()").WithLocation(17, 13),
+                // (18,13): error CS8310: Operator '>=' cannot be applied to operand 'new()'
+                //         _ = new() >= 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >= 1").WithArguments(">=", "new()").WithLocation(18, 13),
+                // (19,13): error CS8310: Operator '<=' cannot be applied to operand 'new()'
+                //         _ = new() <= 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() <= 1").WithArguments("<=", "new()").WithLocation(19, 13),
+                // (20,13): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         _ = new() == 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == 1").WithArguments("==", "new()").WithLocation(20, 13),
+                // (21,13): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         _ = new() != 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != 1").WithArguments("!=", "new()").WithLocation(21, 13),
                 // (22,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() && 1;
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 13),
@@ -3300,10 +3346,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 13),
                 // (24,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() ?? 1;
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13),
-                // (25,13): error CS8754: There is no target type for 'new()'
-                //         _ = new() ?? default(int?);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(25, 13)
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13)
                 );
         }
 
@@ -3333,7 +3376,6 @@ class C
         _ = 1 != new();
         _ = 1 && new();
         _ = 1 || new();
-        _ = new object() ?? new(); // ok
         _ = 1 ?? new();
     }
 }
@@ -3341,21 +3383,63 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0020: Division by constant zero
+                // (6,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //         _ = 1 + new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 + new()").WithArguments("+", "new()").WithLocation(6, 13),
+                // (7,13): error CS8310: Operator '-' cannot be applied to operand 'new()'
+                //         _ = 1 - new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 - new()").WithArguments("-", "new()").WithLocation(7, 13),
+                // (8,13): error CS8310: Operator '&' cannot be applied to operand 'new()'
+                //         _ = 1 & new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 & new()").WithArguments("&", "new()").WithLocation(8, 13),
+                // (9,13): error CS8310: Operator '|' cannot be applied to operand 'new()'
+                //         _ = 1 | new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 | new()").WithArguments("|", "new()").WithLocation(9, 13),
+                // (10,13): error CS8310: Operator '^' cannot be applied to operand 'new()'
+                //         _ = 1 ^ new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 ^ new()").WithArguments("^", "new()").WithLocation(10, 13),
+                // (11,13): error CS8310: Operator '*' cannot be applied to operand 'new()'
+                //         _ = 1 * new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 * new()").WithArguments("*", "new()").WithLocation(11, 13),
+                // (12,13): error CS8310: Operator '/' cannot be applied to operand 'new()'
                 //         _ = 1 / new();
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / new()").WithLocation(12, 13),
-                // (13,13): error CS0020: Division by constant zero
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 / new()").WithArguments("/", "new()").WithLocation(12, 13),
+                // (13,13): error CS8310: Operator '%' cannot be applied to operand 'new()'
                 //         _ = 1 % new();
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1 % new()").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 % new()").WithArguments("%", "new()").WithLocation(13, 13),
+                // (14,13): error CS8310: Operator '>>' cannot be applied to operand 'new()'
+                //         _ = 1 >> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >> new()").WithArguments(">>", "new()").WithLocation(14, 13),
+                // (15,13): error CS8310: Operator '<<' cannot be applied to operand 'new()'
+                //         _ = 1 << new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 << new()").WithArguments("<<", "new()").WithLocation(15, 13),
+                // (16,13): error CS8310: Operator '>' cannot be applied to operand 'new()'
+                //         _ = 1 > new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 > new()").WithArguments(">", "new()").WithLocation(16, 13),
+                // (17,13): error CS8310: Operator '<' cannot be applied to operand 'new()'
+                //         _ = 1 < new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 < new()").WithArguments("<", "new()").WithLocation(17, 13),
+                // (18,13): error CS8310: Operator '>=' cannot be applied to operand 'new()'
+                //         _ = 1 >= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >= new()").WithArguments(">=", "new()").WithLocation(18, 13),
+                // (19,13): error CS8310: Operator '<=' cannot be applied to operand 'new()'
+                //         _ = 1 <= new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 <= new()").WithArguments("<=", "new()").WithLocation(19, 13),
+                // (20,13): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         _ = 1 == new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 == new()").WithArguments("==", "new()").WithLocation(20, 13),
+                // (21,13): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         _ = 1 != new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 != new()").WithArguments("!=", "new()").WithLocation(21, 13),
                 // (22,18): error CS8754: There is no target type for 'new()'
                 //         _ = 1 && new();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(22, 18),
                 // (23,18): error CS8754: There is no target type for 'new()'
                 //         _ = 1 || new();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(23, 18),
-                // (25,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new()'
+                // (24,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new()'
                 //         _ = 1 ?? new();
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(25, 13)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13)
                 );
         }
 
@@ -3477,7 +3561,6 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C");
         }
 
         [Fact]
@@ -3493,17 +3576,24 @@ class C
         Console.Write(new() != (1, 2L) ? 1 : 0);
         Console.Write((1, 2L) == new() ? 1 : 0);
         Console.Write((1, 2L) != new() ? 1 : 0);
-        Console.Write('-');
-        Console.Write(new(1, 2L) == (1, 2L) ? 1 : 0);
-        Console.Write(new(1, 2L) != (1, 2L) ? 1 : 0);
-        Console.Write((1, 2L) == new(1, 2L) ? 1 : 0);
-        Console.Write((1, 2L) != new(1, 2L) ? 1 : 0);
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0101-1010");
+            comp.VerifyDiagnostics(
+                // (7,23): error CS0034: Operator '==' is ambiguous on operands of type 'new()' and '(int, long)'
+                //         Console.Write(new() == (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() == (1, 2L)").WithArguments("==", "new()", "(int, long)").WithLocation(7, 23),
+                // (8,23): error CS0034: Operator '!=' is ambiguous on operands of type 'new()' and '(int, long)'
+                //         Console.Write(new() != (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() != (1, 2L)").WithArguments("!=", "new()", "(int, long)").WithLocation(8, 23),
+                // (9,23): error CS0034: Operator '==' is ambiguous on operands of type '(int, long)' and 'new()'
+                //         Console.Write((1, 2L) == new() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) == new()").WithArguments("==", "(int, long)", "new()").WithLocation(9, 23),
+                // (10,23): error CS0034: Operator '!=' is ambiguous on operands of type '(int, long)' and 'new()'
+                //         Console.Write((1, 2L) != new() ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) != new()").WithArguments("!=", "(int, long)", "new()").WithLocation(10, 23)
+                );
         }
 
         [Fact]
@@ -3525,8 +3615,32 @@ class C
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0101");
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         Console.Write((new(), new()) == (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(new(), new()) == (1, 2L)").WithArguments("==", "new()").WithLocation(8, 23),
+                // (8,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         Console.Write((new(), new()) == (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(new(), new()) == (1, 2L)").WithArguments("==", "new()").WithLocation(8, 23),
+                // (9,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         Console.Write((new(), new()) != (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(new(), new()) != (1, 2L)").WithArguments("!=", "new()").WithLocation(9, 23),
+                // (9,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         Console.Write((new(), new()) != (1, 2L) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(new(), new()) != (1, 2L)").WithArguments("!=", "new()").WithLocation(9, 23),
+                // (10,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         Console.Write((1, 2L) == (new(), new()) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) == (new(), new())").WithArguments("==", "new()").WithLocation(10, 23),
+                // (10,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         Console.Write((1, 2L) == (new(), new()) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) == (new(), new())").WithArguments("==", "new()").WithLocation(10, 23),
+                // (11,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         Console.Write((1, 2L) != (new(), new()) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) != (new(), new())").WithArguments("!=", "new()").WithLocation(11, 23),
+                // (11,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         Console.Write((1, 2L) != (new(), new()) ? 1 : 0);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) != (new(), new())").WithArguments("!=", "new()").WithLocation(11, 23)
+                );
         }
 
         [Fact]
@@ -3549,18 +3663,18 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (8,23): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'new()'
+                // (8,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.Write(new C() == new() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() == new()").WithArguments("==", "C", "new()").WithLocation(8, 23),
-                // (9,23): error CS0019: Operator '!=' cannot be applied to operands of type 'C' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new C() == new()").WithArguments("==", "new()").WithLocation(8, 23),
+                // (9,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.Write(new C() != new() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() != new()").WithArguments("!=", "C", "new()").WithLocation(9, 23),
-                // (10,23): error CS0019: Operator '==' cannot be applied to operands of type 'new()' and 'C'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new C() != new()").WithArguments("!=", "new()").WithLocation(9, 23),
+                // (10,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.Write(new() == new C() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new C()").WithArguments("==", "new()", "C").WithLocation(10, 23),
-                // (11,23): error CS0019: Operator '!=' cannot be applied to operands of type 'new()' and 'C'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == new C()").WithArguments("==", "new()").WithLocation(10, 23),
+                // (11,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.Write(new() != new C() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new C()").WithArguments("!=", "new()", "C").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new C()").WithArguments("!=", "new()").WithLocation(11, 23)
                 );
         }
 
@@ -3568,68 +3682,7 @@ class C
         public void TestEquality_Class_UserDefinedOperator()
         {
             string source = @"
-using System;
-
-class C
-{
-    public static bool operator ==(C o1, C o2)
-    {
-        Console.WriteLine(""operator=="");
-        return (object)o1 == (object)o2;
-    }
-    public static bool operator !=(C o1, C o2)
-    {
-        Console.WriteLine(""operator!="");
-        return (object)o1 != (object)o2;
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C() == new() ? 1 : 0);
-        Console.WriteLine(new() == new C() ? 1 : 0);
-        Console.WriteLine(new C() != new() ? 1 : 0);
-        Console.WriteLine(new() != new C() ? 1 : 0);
-    }
-}
-";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: @"
-operator==
-0
-operator==
-0
-operator!=
-1
-operator!=
-1");
-
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
-
-            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", @operator: "System.Boolean C.op_Equality(C o1, C o2)", ConversionKind.Identity);
-            assert(1, type: "C", convertedType: "C", symbol: "C..ctor()", @operator: "System.Boolean C.op_Equality(C o1, C o2)", ConversionKind.Identity);
-            assert(2, type: "C", convertedType: "C", symbol: "C..ctor()", @operator: "System.Boolean C.op_Inequality(C o1, C o2)", ConversionKind.Identity);
-            assert(3, type: "C", convertedType: "C", symbol: "C..ctor()", @operator: "System.Boolean C.op_Inequality(C o1, C o2)", ConversionKind.Identity);
-
-            void assert(int index, string type, string convertedType, string symbol, string @operator, ConversionKind conversionKind)
-            {
-                var @new = nodes[index];
-                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
-                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
-                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
-                Assert.Equal(@operator, model.GetSymbolInfo(@new.Parent).Symbol.ToTestDisplayString());
-            }
-        }
-
-        [Fact]
-        public void TestEquality_Class_UserDefinedOperator_ErrorCases()
-        {
-            string source = @"
+#pragma warning disable CS0660, CS0661
 using System;
 
 class D
@@ -3638,34 +3691,40 @@ class D
 
 class C
 {
-    public extern static bool operator ==(C o1, C o2);
-    public extern static bool operator !=(C o1, C o2);
-    public extern static bool operator ==(C o1, D o2);
-    public extern static bool operator !=(C o1, D o2);
+    public static bool operator ==(C o1, C o2) => default;
+    public static bool operator !=(C o1, C o2) => default;
+    public static bool operator ==(C o1, D o2) => default;
+    public static bool operator !=(C o1, D o2) => default;
 
     static void Main()
     {
         Console.WriteLine(new C() == new());
-        Console.WriteLine(new() == new C()); // ok
+        Console.WriteLine(new() == new C());
         Console.WriteLine(new C() != new());
-        Console.WriteLine(new() != new C()); // ok
+        Console.WriteLine(new() != new C());
     }
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (17,27): error CS0034: Operator '==' is ambiguous on operands of type 'C' and 'new()'
+                // (18,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new C() == new());
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() == new()").WithArguments("==", "C", "new()").WithLocation(17, 27),
-                // (19,27): error CS0034: Operator '!=' is ambiguous on operands of type 'C' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new C() == new()").WithArguments("==", "new()").WithLocation(18, 27),
+                // (19,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
+                //         Console.WriteLine(new() == new C());
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == new C()").WithArguments("==", "new()").WithLocation(19, 27),
+                // (20,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new C() != new());
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() != new()").WithArguments("!=", "C", "new()").WithLocation(19, 27)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new C() != new()").WithArguments("!=", "new()").WithLocation(20, 27),
+                // (21,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
+                //         Console.WriteLine(new() != new C());
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new C()").WithArguments("!=", "new()").WithLocation(21, 27)
                 );
         }
 
         [Fact]
-        public void TestEquality_Struct_ErrorCases()
+        public void TestEquality_Struct()
         {
             string source = @"
 using System;
@@ -3689,102 +3748,48 @@ struct S
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (8,27): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'new()'
+                // (8,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new S() == new());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() == new()").WithArguments("==", "S", "new()").WithLocation(8, 27),
-                // (9,27): error CS0019: Operator '==' cannot be applied to operands of type 'new()' and 'S'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S() == new()").WithArguments("==", "new()").WithLocation(8, 27),
+                // (9,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new() == new S());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new S()").WithArguments("==", "new()", "S").WithLocation(9, 27),
-                // (10,27): error CS0019: Operator '!=' cannot be applied to operands of type 'S' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == new S()").WithArguments("==", "new()").WithLocation(9, 27),
+                // (10,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new S() != new());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() != new()").WithArguments("!=", "S", "new()").WithLocation(10, 27),
-                // (11,27): error CS0019: Operator '!=' cannot be applied to operands of type 'new()' and 'S'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S() != new()").WithArguments("!=", "new()").WithLocation(10, 27),
+                // (11,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new() != new S());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new S()").WithArguments("!=", "new()", "S").WithLocation(11, 27),
-                // (13,27): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new S()").WithArguments("!=", "new()").WithLocation(11, 27),
+                // (13,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new S?() == new());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S?() == new()").WithArguments("==", "S?", "new()").WithLocation(13, 27),
-                // (14,27): error CS0019: Operator '==' cannot be applied to operands of type 'new()' and 'S?'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S?() == new()").WithArguments("==", "new()").WithLocation(13, 27),
+                // (14,27): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new() == new S?());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() == new S?()").WithArguments("==", "new()", "S?").WithLocation(14, 27),
-                // (15,27): error CS0019: Operator '!=' cannot be applied to operands of type 'S?' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == new S?()").WithArguments("==", "new()").WithLocation(14, 27),
+                // (15,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new S?() != new());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S?() != new()").WithArguments("!=", "S?", "new()").WithLocation(15, 27),
-                // (16,27): error CS0019: Operator '!=' cannot be applied to operands of type 'new()' and 'S?'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S?() != new()").WithArguments("!=", "new()").WithLocation(15, 27),
+                // (16,27): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.WriteLine(new() != new S?());
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() != new S?()").WithArguments("!=", "new()", "S?").WithLocation(16, 27));
-        }
-
-        [Fact]
-        public void TestEquality_Struct_UserDefinedOperator_ErrorCases()
-        {
-            string source = @"
-using System;
-
-struct S
-{
-    public S(int i) {}
-
-    public static bool operator ==(S o1, S o2) 
-    {
-        Console.WriteLine(""operator =="");
-        return false;
-    }
-
-    public static bool operator !=(S o1, S o2)
-    {
-        Console.WriteLine(""operator !="");
-        return true;
-    }
-
-    public override int GetHashCode() => throw null;
-    public override bool Equals(object o) => throw null;
-
-    static void Main()
-    {
-        _ = (new S() == new());
-        _ = (new() == new S());
-        _ = (new S() != new());
-        _ = (new() != new S());
-
-        Console.WriteLine(new S?() == new());
-        Console.WriteLine(new() == new S?());
-        Console.WriteLine(new S?() != new());
-        Console.WriteLine(new() != new S?());
-    }
-}
-";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
-@"operator ==
-operator ==
-operator !=
-operator !=
-False
-False
-True
-True");
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != new S?()").WithArguments("!=", "new()").WithLocation(16, 27)
+                );
         }
 
         [Fact]
         public void TestEquality_Struct_UserDefinedOperator()
         {
             string source = @"
+#pragma warning disable CS0660, CS0661
 using System;
 
 struct S
 {
-    private readonly int field;
-    
     public S(int i)
     {
-        this.field = i;
     }
 
-    public static bool operator ==(S o1, S o2) => o1.field == o2.field;
-    public static bool operator !=(S o1, S o2) => o1.field != o2.field;
+    public static bool operator ==(S o1, S o2) => default;
+    public static bool operator !=(S o1, S o2) => default;
 
     static void Main()
     {
@@ -3801,18 +3806,33 @@ struct S
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(0));
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: @"
-True
-True
-False
-False
-True
-True
-False
-False");
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (16,27): error CS8310: Operator '==' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new S(42) == new(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S(42) == new(42)").WithArguments("==", "new(int)").WithLocation(16, 27),
+                // (17,27): error CS8310: Operator '==' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new(42) == new S(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new(42) == new S(42)").WithArguments("==", "new(int)").WithLocation(17, 27),
+                // (18,27): error CS8310: Operator '!=' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new S(42) != new(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S(42) != new(42)").WithArguments("!=", "new(int)").WithLocation(18, 27),
+                // (19,27): error CS8310: Operator '!=' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new(42) != new S(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new(42) != new S(42)").WithArguments("!=", "new(int)").WithLocation(19, 27),
+                // (21,27): error CS8310: Operator '==' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new S?(new(42)) == new(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S?(new(42)) == new(42)").WithArguments("==", "new(int)").WithLocation(21, 27),
+                // (22,27): error CS8310: Operator '==' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new(42) == new S?(new(42)));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new(42) == new S?(new(42))").WithArguments("==", "new(int)").WithLocation(22, 27),
+                // (23,27): error CS8310: Operator '!=' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new S?(new(42)) != new(42));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new S?(new(42)) != new(42)").WithArguments("!=", "new(int)").WithLocation(23, 27),
+                // (24,27): error CS8310: Operator '!=' cannot be applied to operand 'new(int)'
+                //         Console.WriteLine(new(42) != new S?(new(42)));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new(42) != new S?(new(42))").WithArguments("!=", "new(int)").WithLocation(24, 27)
+                );
         }
 
         [Fact]

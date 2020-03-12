@@ -1291,10 +1291,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default <= default").WithArguments("<=", "default").WithLocation(19, 17),
                 // (20,17): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         var o = default == default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default == default").WithArguments("==", "default", "default").WithLocation(20, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(20, 17),
                 // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         var p = default != default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default != default").WithArguments("!=", "default", "default").WithLocation(21, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(21, 17),
                 // (22,17): error CS8716: There is no target type for the default literal.
                 //         var q = default && default;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 17),
@@ -2617,10 +2617,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
                 // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
                 );
         }
 
@@ -2642,10 +2642,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
                 // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefaultOrNew, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
                 );
         }
 
