@@ -65,10 +65,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
+        #region protected by lock
+
+        /// <summary>
+        /// Lock we will use to ensure the remainder of these fields can be accessed in a threadsafe
+        /// manner.  When OOP calls back into us, we'll place the data it produced into
+        /// <see cref="_updatedInfos"/>.  We'll then kick of a task to process this in the future if
+        /// we don't already have an existing task in flight for that.
+        /// </summary>
         private readonly object _gate = new object();
+
+        /// <summary>
+        /// Data produced by OOP that we want to process in our next update task.
+        /// </summary>
         private readonly List<DesignerInfo> _updatedInfos = new List<DesignerInfo>();
         private Task _updateTask = Task.CompletedTask;
         private bool _taskInFlight = false;
+
+        #endregion
 
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
