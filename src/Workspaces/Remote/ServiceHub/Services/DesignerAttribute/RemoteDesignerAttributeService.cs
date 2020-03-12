@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(() =>
             {
                 var workspace = SolutionService.PrimaryWorkspace;
+                var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(this.EndPoint);
+                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(endpoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
