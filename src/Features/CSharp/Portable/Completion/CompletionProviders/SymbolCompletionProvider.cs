@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (ShouldTriggerInArgumentLists(sourceText, options))
             {
                 // Avoid preselection & hard selection when triggered via insertion in an argument list.
+                // If an item is hard selected, then a user trying to type MethodCall() will get
+                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
                 if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
                     position > 0 &&
                     await IsTriggerInArgumentListAsync(document, position - 1, CancellationToken.None).ConfigureAwait(false) == true)
@@ -100,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
-        => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
-            ShouldTriggerInArgumentLists(workspace, options);
+            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
+                ShouldTriggerInArgumentLists(workspace, options);
 
         private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
 
@@ -155,6 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindToken(characterPosition);
 
             if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
+            {
+                return false;
+            }
+
+            // Be careful, e.g. if we're in a comment before the token
+            if (token.Span.End > characterPosition + 1)
             {
                 return false;
             }

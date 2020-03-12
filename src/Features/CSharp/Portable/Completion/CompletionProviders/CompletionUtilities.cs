@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition, options);
         }
 
-        internal static bool IsArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
+        private static bool IsArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return IsArgumentListCharacter(text[characterPosition]);
         }
