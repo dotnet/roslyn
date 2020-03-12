@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return input;
             }
 
-            var driver = new CSharpGeneratorDriver(input, parseOptions, generators, additionalTexts);
+            var driver = new CSharpGeneratorDriver(parseOptions, generators, additionalTexts);
             driver.RunFullGeneration(input, out var compilationOut, out var generatorDiagnostics);
             diagnostics.AddRange(generatorDiagnostics);
             return compilationOut;

@@ -12,22 +12,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState
     {
-        internal GeneratorDriverState(Compilation compilation,
-                                      ParseOptions parseOptions,
+        internal GeneratorDriverState(ParseOptions parseOptions,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableDictionary<ISourceGenerator, GeneratorState> generatorStates,
                                       ImmutableArray<PendingEdit> edits,
-                                      Compilation? finalCompilation,
                                       bool editsFailed)
         {
             Generators = generators;
             GeneratorStates = generatorStates;
             AdditionalTexts = additionalTexts;
             Edits = edits;
-            Compilation = compilation;
             ParseOptions = parseOptions;
-            FinalCompilation = finalCompilation;
             EditsFailed = editsFailed;
         }
 
@@ -60,19 +56,9 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<PendingEdit> Edits;
 
         /// <summary>
-        /// When set, this contains the <see cref="Compilation"/> with the generated sources applied
-        /// </summary>
-        internal readonly Compilation? FinalCompilation;
-
-        /// <summary>
         /// Tracks if previous edits have failed to apply. A generator driver will not try and apply any edits when this flag is set.
         /// </summary>
         internal readonly bool EditsFailed;
-
-        /// <summary>
-        /// The compilation state before generation
-        /// </summary>
-        internal readonly Compilation Compilation;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.
@@ -80,23 +66,19 @@ namespace Microsoft.CodeAnalysis
         internal readonly ParseOptions ParseOptions;
 
         internal GeneratorDriverState With(
-            Compilation? compilation = null,
             ParseOptions? parseOptions = null,
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableDictionary<ISourceGenerator, GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
             ImmutableArray<PendingEdit>? edits = null,
-            Compilation? finalCompilation = null,
             bool? editsFailed = null)
         {
             return new GeneratorDriverState(
-                compilation ?? this.Compilation,
                 parseOptions ?? this.ParseOptions,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 edits ?? this.Edits,
-                finalCompilation, // always clear the finalCompilation unless one is explicitly provided
                 editsFailed ?? this.EditsFailed
                 );
         }
