@@ -403,6 +403,49 @@ class C { }
             driver.RunFullGeneration(compilation, out outputCompilation);
             Assert.Equal(5, outputCompilation.SyntaxTrees.Count());
         }
+
+        [Fact]
+        public void Adding_Another_Generator_Makes_TryApplyEdits_Fail()
+        {
+            var source = @"
+class C { }
+";
+
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
+            SingleFileTestGenerator testGenerator2 = new SingleFileTestGenerator("public class E { }");
+
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions,
+                                                               generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
+                                                               additionalTexts: ImmutableArray<AdditionalText>.Empty);
+
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+
+            // try apply edits
+            driver = driver.TryApplyEdits(compilation, out _, out bool success);
+            Assert.True(success);
+
+            // add another generator
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator2));
+
+            // try apply changes should now fail
+            driver = driver.TryApplyEdits(compilation, out _, out success);
+            Assert.False(success);
+
+            // full generation
+            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
+
+            // try apply changes should now succeed
+            driver.TryApplyEdits(compilation, out _, out success);
+            Assert.True(success);
+        }
     }
 
     internal class SingleFileTestGenerator : ISourceGenerator
