@@ -425,9 +425,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
             _foregroundObject.AssertIsForeground();
-            var projectId = project.Id;
 
-            if (this.TryGetHierarchy(projectId, out var hierarchy))
+            if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
