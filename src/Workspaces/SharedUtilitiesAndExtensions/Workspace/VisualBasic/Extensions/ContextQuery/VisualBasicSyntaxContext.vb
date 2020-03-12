@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isPatternContext:=False,
                 isRightSideOfNumericType:=False,
-                isInArgumentList:=isInArgumentList,
+                isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree

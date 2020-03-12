@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // If the second dot was typed, we just insert two dots.
             var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
-            var isInArgumentList = targetToken.Parent.IsKind(SyntaxKind.ArgumentList);
+            var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
 
             return new CSharpSyntaxContext(
                 workspace: workspace,
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
-                isInArgumentList: isInArgumentList,
+                isInArgumentList: isArgumentListToken,
                 cancellationToken: cancellationToken);
         }
 
