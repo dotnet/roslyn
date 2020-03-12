@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
         {
             internal static readonly MetadataReferenceEqualityComparer Instance = new MetadataReferenceEqualityComparer();
 
-            public bool Equals(MetadataReference x, MetadataReference y)
+            public bool Equals(MetadataReference? x, MetadataReference? y)
             {
                 if (ReferenceEquals(x, y))
                 {
@@ -793,6 +793,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // we already successfully bound #r with the same value:
+                    Debug.Assert(referenceDirective.Location.SourceTree is object);
                     if (boundReferenceDirectives != null && boundReferenceDirectives.ContainsKey((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File)))
                     {
                         continue;

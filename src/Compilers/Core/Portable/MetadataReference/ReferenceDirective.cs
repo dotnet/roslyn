@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents the value of #r reference along with its source location.
     /// </summary>
-    internal struct ReferenceDirective
+    internal readonly struct ReferenceDirective
     {
         public readonly string File;
         public readonly Location Location;
