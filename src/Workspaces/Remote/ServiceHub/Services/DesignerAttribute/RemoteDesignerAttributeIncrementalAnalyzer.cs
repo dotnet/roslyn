@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
+            //
+            //  !  is safe here as `i.changed` implies `i.info` is non-null.
             var changedInfos = latestInfos.Where(i => i.changed).Select(i => i.info!.Value).ToList();
             if (changedInfos.Count > 0)
             {
@@ -159,12 +161,13 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persisted.category != null && persisted.projectVersion == projectVersion)
             {
                 // We were able to read out the old data, and it matches our current project
-                // version.  Just return back that nothing changed here.
+                // version.  Just return back that nothing changed here.  We won't tell VS about
+                // this, and we won't re-persist this later.
                 return default;
             }
 
             // We either haven't computed the designer info, or our data was out of date.  We need
-            // to recompute here.  Figure out what the current category is, and if that's different
+            // So recompute here.  Figure out what the current category is, and if that's different
             // from what we previously stored.
             var category = await ComputeDesignerAttributeCategoryAsync(
                 designerCategoryType, document, cancellationToken).ConfigureAwait(false);
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 DocumentId = document.Id,
             };
 
-            return (document, info, category != persisted.category);
+            return (document, info, changed: category != persisted.category);
         }
 
         private async Task<string?> ComputeDesignerAttributeCategoryAsync(
@@ -190,7 +193,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var firstClass = FindFirstClass(
+            // Legacy behavior.  We only register the designer info for the first non-nested class
+            // in the file.
+            var firstClass = FindFirstNonNestedClass(
                 syntaxFacts, syntaxFacts.GetMembersOfCompilationUnit(root), cancellationToken);
             if (firstClass == null)
                 return null;
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        private static SyntaxNode? FindFirstClass(
+        private static SyntaxNode? FindFirstNonNestedClass(
             ISyntaxFactsService syntaxFacts, SyntaxList<SyntaxNode> members, CancellationToken cancellationToken)
         {
             foreach (var member in members)
@@ -228,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken.ThrowIfCancellationRequested();
                 if (syntaxFacts.IsNamespaceDeclaration(member))
                 {
-                    var firstClass = FindFirstClass(
+                    var firstClass = FindFirstNonNestedClass(
                         syntaxFacts, syntaxFacts.GetMembersOfNamespaceDeclaration(member), cancellationToken);
                     if (firstClass != null)
                         return firstClass;
