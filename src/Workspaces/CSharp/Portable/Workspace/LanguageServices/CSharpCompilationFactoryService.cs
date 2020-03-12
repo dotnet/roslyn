@@ -36,17 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalsType: hostObjectType);
         }
 
-        Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
-        {
-            var compilationRef = reference as CompilationReference;
-            return compilationRef?.Compilation;
-        }
-
-        bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
-
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
         {
             return s_defaultOptions;

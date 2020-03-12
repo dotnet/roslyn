@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         Compilation CreateCompilation(string assemblyName, CompilationOptions options);
         Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType);
-        Compilation GetCompilationFromCompilationReference(MetadataReference reference);
-        bool IsCompilationReference(MetadataReference reference);
         CompilationOptions GetDefaultCompilationOptions();
     }
 }
