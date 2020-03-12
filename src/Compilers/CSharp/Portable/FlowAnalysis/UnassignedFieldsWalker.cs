@@ -166,11 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> notNullWhenTrueMembers,
             ImmutableArray<string> notNullWhenFalseMembers)
         {
-            if (notNullWhenTrueMembers.IsDefaultOrEmpty && notNullWhenFalseMembers.IsDefaultOrEmpty)
-            {
-                applyMemberPostConditions(notNullMembers, ref State);
-            }
-            else
+            applyMemberPostConditions(notNullMembers, ref State);
+
+            if (!notNullWhenTrueMembers.IsDefaultOrEmpty || !notNullWhenFalseMembers.IsDefaultOrEmpty)
             {
                 Split();
                 applyMemberPostConditions(notNullWhenTrueMembers, ref StateWhenTrue);

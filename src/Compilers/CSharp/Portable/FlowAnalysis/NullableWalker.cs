@@ -467,6 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void enforceMemberNotNull(SyntaxNode syntaxOpt, LocalState state)
             {
+                if (!state.Reachable)
+                {
+                    return;
+                }
+
                 if (_symbol is MethodSymbol method)
                 {
                     do
