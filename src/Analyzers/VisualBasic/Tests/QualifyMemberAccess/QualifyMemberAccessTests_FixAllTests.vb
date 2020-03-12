@@ -2,8 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Internal.Options
+#Else
+Imports Microsoft.CodeAnalysis.CodeStyle
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests

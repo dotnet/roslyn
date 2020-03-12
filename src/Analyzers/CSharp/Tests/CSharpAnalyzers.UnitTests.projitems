@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />

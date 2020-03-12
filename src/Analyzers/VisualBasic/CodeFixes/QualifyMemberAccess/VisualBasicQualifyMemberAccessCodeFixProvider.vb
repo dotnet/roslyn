@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return VBFeaturesResources.Add_Me
+            Return VisualBasicCodeFixesResources.Add_Me
         End Function
 
         Protected Overrides Function GetNode(diagnostic As Diagnostic, cancellationToken As CancellationToken) As SimpleNameSyntax

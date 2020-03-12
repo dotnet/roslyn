@@ -1873,11 +1873,6 @@ Chcete pokračovat?</target>
         <target state="translated">Nastavit metodu jako synchronní</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Přidat kvalifikaci „this“ nebo „Me“</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">z: {0}</target>

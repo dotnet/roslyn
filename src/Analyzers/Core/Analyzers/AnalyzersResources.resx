@@ -156,6 +156,12 @@
   <data name="Use_throw_expression" xml:space="preserve">
     <value>Use 'throw' expression</value>
   </data>
+  <data name="Add_this_or_Me_qualification" xml:space="preserve">
+    <value>Add 'this' or 'Me' qualification.</value>
+  </data>
+  <data name="Member_access_should_be_qualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
+  </data>
   <data name="Null_check_can_be_simplified" xml:space="preserve">
     <value>Null check can be simplified</value>
   </data>

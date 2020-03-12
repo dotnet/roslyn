@@ -727,11 +727,6 @@
         <target state="translated">Ustaw metodę jako asynchroniczną (pozostaw jako unieważnioną)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">Dodaj „this.”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nazwa&gt;</target>
