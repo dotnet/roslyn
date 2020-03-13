@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis
         /// The returned set is a subset of references returned by <see cref="References"/> API.
         /// The result is undefined if the compilation contains errors.
         /// </summary>
-        internal abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 
         internal void EnsureCompilationEventQueueCompleted()
         {

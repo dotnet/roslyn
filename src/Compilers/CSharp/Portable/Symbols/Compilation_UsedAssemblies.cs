@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ConcurrentSet<AssemblySymbol>? _lazyUsedAssemblyReferences;
         private bool _usedAssemblyReferencesFrozen;
 
-        internal override ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default)
+        public override ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default)
         {
             ConcurrentSet<AssemblySymbol>? usedAssemblies = GetCompleteSetOfUsedAssemblies(cancellationToken);
 

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _lazyUsedAssemblyReferences As ConcurrentSet(Of AssemblySymbol)
         Private _usedAssemblyReferencesFrozen As Boolean
 
-        Friend Overrides Function GetUsedAssemblyReferences(Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of MetadataReference)
+        Public Overrides Function GetUsedAssemblyReferences(Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of MetadataReference)
             Dim usedAssemblies As ConcurrentSet(Of AssemblySymbol) = GetCompleteSetOfUsedAssemblies(cancellationToken)
 
             If usedAssemblies Is Nothing Then

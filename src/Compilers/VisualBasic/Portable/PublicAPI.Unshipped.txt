@@ -1,1 +1,1 @@
-
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetUsedAssemblyReferences(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)
