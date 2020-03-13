@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                    IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property PossibleTriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
         Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),

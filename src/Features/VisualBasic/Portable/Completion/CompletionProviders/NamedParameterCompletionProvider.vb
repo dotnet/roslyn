@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(EnumCompletionProvider))>
     <[Shared]>
     Partial Friend Class NamedParameterCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits LSPCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
 
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property PossibleTriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.DefaultTriggerChars
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Try

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
     [Shared]
-    internal class SpeculativeTCompletionProvider : CommonCompletionProvider
+    internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public SpeculativeTCompletionProvider()
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.PossibleTriggerCharacters;
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

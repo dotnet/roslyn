@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.SpaceTriggerCharacter;
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override bool IsPartial(IMethodSymbol method)
         {

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Composition;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.SpaceTriggerCharacter;
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override async Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {

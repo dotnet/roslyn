@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('\"');
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

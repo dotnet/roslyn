@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        internal static ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('.', '#', '>', ':');
+        internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {

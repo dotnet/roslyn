@@ -35,11 +35,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
         {
             return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
         }
-
-        /// <summary>
-        /// Pulled from https://github.com/dotnet/fsharp/blob/master/vsintegration/src/FSharp.Editor/Completion/FileSystemCompletion.fs#L140
-        /// but this is incredibly fragile.
-        /// </summary>
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create('"', '\\', ',', '/');
     }
 }

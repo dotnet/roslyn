@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(TupleNameCompletionProvider))]
     [Shared]
-    internal partial class DeclarationNameCompletionProvider : CommonCompletionProvider
+    internal partial class DeclarationNameCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public DeclarationNameCompletionProvider()
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.SpaceTriggerCharacter;
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {

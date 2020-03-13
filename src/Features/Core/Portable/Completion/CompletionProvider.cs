@@ -72,11 +72,5 @@ namespace Microsoft.CodeAnalysis.Completion
         /// True if the provider produces items show be shown in expanded list only.
         /// </summary>
         internal virtual bool IsExpandItemProvider => false;
-
-        /// <summary>
-        /// Defines the set of possible non-identifier trigger characters for this completion provider.
-        /// Used by the LSP server to determine the trigger character set for completion.
-        /// </summary>
-        internal virtual ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

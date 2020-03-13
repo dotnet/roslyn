@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Const OfSuffix = "(Of"
         Private Const GenericSuffix = OfSuffix + " " & UnicodeEllipsis & ")"
 
-        Friend ReadOnly DefaultTriggerChars As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c, "["c, "#"c, " "c, "="c, "<"c, "{"c)
+        Friend ReadOnly CommonTriggerChars As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c, "["c, "#"c, " "c, "="c, "<"c, "{"c)
 
-        Friend ReadOnly DefaultTriggerCharsAndParen As ImmutableHashSet(Of Char) = DefaultTriggerChars.Add("("c)
+        Friend ReadOnly CommonTriggerCharsAndParen As ImmutableHashSet(Of Char) = CommonTriggerChars.Add("("c)
 
-        Friend ReadOnly SpaceTriggerChars As ImmutableHashSet(Of Char) = DefaultTriggerChars.Add(" "c)
+        Friend ReadOnly SpaceTriggerChar As ImmutableHashSet(Of Char) = CommonTriggerChars.Add(" "c)
 
         Public Function GetCompletionItemSpan(text As SourceText, position As Integer) As TextSpan
             Return CommonCompletionUtilities.GetWordSpan(
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim ch = text(characterPosition)
-            If DefaultTriggerChars.Contains(ch) Then
+            If CommonTriggerChars.Contains(ch) Then
                 Return True
             End If
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return _
                 ch = "("c OrElse
-                DefaultTriggerChars.Contains(ch) OrElse
+                CommonTriggerChars.Contains(ch) OrElse
                 IsStartingNewWord(text, characterPosition, options)
         End Function
 

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 {
-    internal abstract class SuggestionModeCompletionProvider : CommonCompletionProvider
+    internal abstract class SuggestionModeCompletionProvider : LSPCompletionProvider
     {
         protected abstract Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan span, CompletionTrigger triggerInfo, CancellationToken cancellationToken);
 

@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property PossibleTriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.DefaultTriggerChars
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         <ImportingConstructor>
         Public Sub New()

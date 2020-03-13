@@ -23,7 +23,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
         Private ReadOnly _threadingContext As IThreadingContext

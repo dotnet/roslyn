@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.PossibleTriggerCharacters.Add(' ');
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         protected override Tuple<ITypeSymbol, Location> GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)

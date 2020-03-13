@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ExternAliasCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SnippetCompletionProvider))]
     [Shared]
-    internal class ExternAliasCompletionProvider : CommonCompletionProvider
+    internal class ExternAliasCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public ExternAliasCompletionProvider()
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => CompletionUtilities.PossibleTriggerCharacters;
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

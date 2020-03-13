@@ -237,7 +237,5 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return bestItems.ToImmutableAndFree().SelectAsArray(itemWithPatternMatch => itemWithPatternMatch.Item1);
         }
-
-        internal virtual ImmutableArray<CompletionProvider> GetCompletionProviders() => ImmutableArray<CompletionProvider>.Empty;
     }
 }

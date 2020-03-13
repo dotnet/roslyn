@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
     [Shared]
-    internal partial class EnumAndCompletionListTagCompletionProvider : CommonCompletionProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public EnumAndCompletionListTagCompletionProvider()
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        internal override ImmutableHashSet<char> PossibleTriggerCharacters => ImmutableHashSet.Create(' ', '[', '(', '~');
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
