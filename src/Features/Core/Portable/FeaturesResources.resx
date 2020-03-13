@@ -988,9 +988,6 @@ This version used in: {2}</value>
   <data name="Install_package_0" xml:space="preserve">
     <value>Install package '{0}'</value>
   </data>
-  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
-    <value>Object initialization can be simplified</value>
-  </data>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
   </data>
@@ -1066,9 +1063,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
-    <value>Collection initialization can be simplified</value>
-  </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
   </data>
@@ -1077,12 +1071,6 @@ This version used in: {2}</value>
   </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
-  </data>
-  <data name="Simplify_collection_initialization" xml:space="preserve">
-    <value>Simplify collection initialization</value>
-  </data>
-  <data name="Simplify_object_initialization" xml:space="preserve">
-    <value>Simplify object initialization</value>
   </data>
   <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
     <value>Prefer explicitly provided tuple element name</value>

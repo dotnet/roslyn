@@ -2010,11 +2010,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">{0}' paketini yükle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">Nesne başlatma basitleştirilebilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">proje {0}</target>
@@ -2130,11 +2125,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Baş Harfleri Büyük Olmak Üzere Bitişik</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">Koleksiyon başlatma işlemi kolaylaştırılabilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">Birleştirme ifadesi kullan</target>
@@ -2148,16 +2138,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Değişken bildirimi satır içine alınabilir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Koleksiyon başlatmayı kolaylaştır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Nesne başlatmayı kolaylaştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
