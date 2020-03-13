@@ -166,13 +166,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
-                // Implicit downcast appears on the argument of invocation node, get all candidate functions and extract potential conversion types 
+                mutablePotentialConversionTypes.Concat(GetPotentialConversionTypes(semanticModel, root, targetNodeType,
+                    targetArgument, argumentList, invocationNode, cancellationToken));
+            }
+
+            // clear up duplicate types
+            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, targetNode, targetNodeType,
+                mutablePotentialConversionTypes).Distinct().ToImmutableArray();
+            return !potentialConversionTypes.IsEmpty;
+
+            static ArrayBuilder<ITypeSymbol> GetPotentialConversionTypes(
+                SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, ArgumentSyntax targetArgument,
+                ArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
+            {
+                // Implicit downcast appears on the argument of invocation node,
+                // get all candidate functions and extract potential conversion types 
                 var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
                 var candidateSymbols = symbolInfo.CandidateSymbols;
 
+                using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
-                    if (CanArgumentTypesBeConvertedToParameterTypesTest(
+                    if (CanArgumentTypesBeConvertedToParameterTypes(
                             semanticModel, root, argumentList, candidateSymbol.Parameters, targetArgument,
                             cancellationToken, out var targetArgumentConversionType))
                     {
@@ -182,38 +197,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
                 // Sort the potential conversion types by inheritance distance, so that
                 // operations are in order and user can choose least specific types(more accurate)
-                SortTypesByInheritanceDistance(semanticModel, targetNodeType, mutablePotentialConversionTypes);
+                mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
+
+                return mutablePotentialConversionTypes;
             }
 
-            using var __ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
-            foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
-            {
-                var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
-                    targetNodeType, targetNodeConversionType);
-
-                // For cases like object creation expression. for example:
-                // Derived d = [||]new Base();
-                // It is always invalid except the target node has explicit conversion operator or is numeric.
-                if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
-                    && !commonConversion.IsUserDefined)
-                {
-                    continue;
-                }
-
-                if (commonConversion.Exists)
-                {
-                    validPotentialConversionTypes.Add(targetNodeConversionType);
-                }
-            }
-
-            // clear up duplicate types
-            potentialConversionTypes = validPotentialConversionTypes.Distinct().ToImmutableArray();
-            return !potentialConversionTypes.IsEmpty;
-
-            static void SortTypesByInheritanceDistance(
-                SemanticModel semanticModel, ITypeSymbol targetNodeType,
+            static ArrayBuilder<ITypeSymbol> FilterValidPotentialConversionTypes(
+                SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol targetNodeType,
                 ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
-                => mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
+            {
+                using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
+                foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
+                {
+                    var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
+                        targetNodeType, targetNodeConversionType);
+
+                    // For cases like object creation expression. for example:
+                    // Derived d = [||]new Base();
+                    // It is always invalid except the target node has explicit conversion operator or is numeric.
+                    if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
+                        && !commonConversion.IsUserDefined)
+                    {
+                        continue;
+                    }
+
+                    if (commonConversion.Exists)
+                    {
+                        validPotentialConversionTypes.Add(targetNodeConversionType);
+                    }
+                }
+                return validPotentialConversionTypes;
+            }
         }
 
         /// <summary>
@@ -244,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
         /// False, otherwise.
         /// </returns>
-        private static bool CanArgumentTypesBeConvertedToParameterTypesTest(
+        private static bool CanArgumentTypesBeConvertedToParameterTypes(
             SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax argumentList,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument,
             CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
@@ -304,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
-            return AreApplicableInvocationArguments(semanticModel, root, argumentList, newArguments, targetArgument);
+            return IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
         }
 
         private static bool FindCorrespondingParameterByName(
@@ -322,7 +336,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return false;
         }
 
-        private static bool AreApplicableInvocationArguments(
+        /// <summary>
+        /// Check whether the invocation expression with new arguments is applicatble.
+        /// </summary>
+        /// <param name="oldArgumentList" >old argumentList node</param>
+        /// <param name="newArguments"> new arguments that are cast by corresponding parameter types</param>
+        /// <param name="targetNode"> The node needs to be cast.</param>
+        /// <returns>
+        /// Return true if the invocation expression with new arguments is applicatble.
+        /// Otherwise, return false
+        /// </returns>
+        private static bool IsInvocationExpressionWithNewArgumentsApplicable(
             SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax oldArgumentList,
             List<ArgumentSyntax> newArguments, SyntaxNode targetNode)
         {
