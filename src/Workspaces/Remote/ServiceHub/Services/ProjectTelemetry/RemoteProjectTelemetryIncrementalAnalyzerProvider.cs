@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteProjectTelemetryIncrementalAnalyzer(workspace, _endPoint);
+            => new RemoteProjectTelemetryIncrementalAnalyzer(_endPoint);
     }
 }

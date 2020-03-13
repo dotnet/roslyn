@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal class RemoteProjectTelemetryIncrementalAnalyzer : IncrementalAnalyzerBase
     {
-        private readonly Workspace _workspace;
-
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
@@ -24,11 +22,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, ProjectTelemetryInfo> _projectToInfo = new Dictionary<ProjectId, ProjectTelemetryInfo>();
 
-        public RemoteProjectTelemetryIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
-        {
-            _workspace = workspace;
-            _endPoint = endPoint;
-        }
+        public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
+            => _endPoint = endPoint;
 
         /// <summary>
         /// Collects data from <paramref name="project"/> and reports it to the telemetry service.
