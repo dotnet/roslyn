@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
 
-            static ITypeSymbol[] GetPotentialConversionTypes(
+            static ImmutableArray<ITypeSymbol> GetPotentialConversionTypes(
                 SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, ArgumentSyntax targetArgument,
                 ArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
             {
