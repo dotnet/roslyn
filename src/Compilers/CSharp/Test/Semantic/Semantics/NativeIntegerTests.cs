@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void TypeDefinitions_FromSource()
         {
-            var sourceA =
+            string sourceA =
 @"namespace System
 {
     public class Object
@@ -511,6 +512,272 @@ class Program
                 // (15,20): error CS1503: Argument 1: cannot convert from 'nint' to 'System.IOther<System.IntPtr>'
                 //         F3<IntPtr>(n);
                 Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.IOther<System.IntPtr>").WithLocation(15, 20));
+        }
+
+        [Fact]
+        public void IEquatable()
+        {
+            // Minimal definitions.
+            verifyAll(includesIEquatable: true,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> in global namespace.
+            verifyAll(includesIEquatable: false,
+@"public interface IEquatable<T> { }
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr : IEquatable<IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> in other namespace.
+            verifyAll(includesIEquatable: false,
+@"namespace Other
+{
+    public interface IEquatable<T> { }
+}
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr : Other.IEquatable<IntPtr> { }
+    public struct UIntPtr : Other.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> nested in "System" type.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class System
+    {
+        public interface IEquatable<T> { }
+    }
+    public struct IntPtr : System.IEquatable<IntPtr> { }
+    public struct UIntPtr : System.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> nested in other type.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Other
+    {
+        public interface IEquatable<T> { }
+    }
+    public struct IntPtr : Other.IEquatable<IntPtr> { }
+    public struct UIntPtr : Other.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable { }
+    public struct IntPtr : IEquatable { }
+    public struct UIntPtr : IEquatable { }
+}");
+
+            // IEquatable<T, U>.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T, U> { }
+    public struct IntPtr : IEquatable<IntPtr, IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr, UIntPtr> { }
+}");
+
+            // IEquatable<object> and IEquatable<ValueType>
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<object> { }
+    public struct UIntPtr : IEquatable<ValueType> { }
+}");
+
+            // IEquatable<System.UIntPtr> and  IEquatable<System.IntPtr>.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<UIntPtr> { }
+    public struct UIntPtr : IEquatable<IntPtr> { }
+}");
+
+            // IEquatable<nint> and  IEquatable<nuint>.
+            var comp = CreateEmptyCompilation(
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<nint> { }
+    public struct UIntPtr : IEquatable<nuint> { }
+}",
+                parseOptions: TestOptions.RegularPreview);
+            verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: true);
+
+            // IEquatable<nuint> and  IEquatable<nint>.
+            comp = CreateEmptyCompilation(
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<nuint> { }
+    public struct UIntPtr : IEquatable<nint> { }
+}",
+                parseOptions: TestOptions.RegularPreview);
+            verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: false);
+
+            static void verifyAll(bool includesIEquatable, string sourceA)
+            {
+                var sourceB =
+@"interface I
+{
+    nint F1();
+    nuint F2();
+}";
+                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+
+                comp = CreateEmptyCompilation(sourceA);
+                comp.VerifyDiagnostics();
+                var ref1 = comp.ToMetadataReference();
+                var ref2 = comp.EmitToImageReference();
+
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+            }
+
+            static void verifyReference(MetadataReference reference, bool includesIEquatable)
+            {
+                var sourceB =
+@"interface I
+{
+    nint F1();
+    nuint F2();
+}";
+                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+            }
+
+
+            static void verifyCompilation(CSharpCompilation comp, bool includesIEquatable)
+            {
+                verifyInterfaces(comp, (NamedTypeSymbol)comp.GetMember<MethodSymbol>("I.F1").ReturnType, SpecialType.System_IntPtr, includesIEquatable);
+                verifyInterfaces(comp, (NamedTypeSymbol)comp.GetMember<MethodSymbol>("I.F2").ReturnType, SpecialType.System_UIntPtr, includesIEquatable);
+            }
+
+            static void verifyInterfaces(CSharpCompilation comp, NamedTypeSymbol type, SpecialType specialType, bool includesIEquatable)
+            {
+                Assert.True(type.IsNativeIntegerType);
+                Assert.Equal(specialType, type.NativeIntegerUnderlyingType.SpecialType);
+
+                var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
+                Assert.Equal(interfaces, type.GetDeclaredInterfaces(null));
+
+                Assert.Equal(includesIEquatable ? 1 : 0, interfaces.Length);
+
+                if (includesIEquatable)
+                {
+                    var @interface = interfaces.Single();
+                    var def = comp.GetWellKnownType(WellKnownType.System_IEquatable_T);
+                    Assert.NotNull(def);
+                    Assert.Equal(def, @interface.OriginalDefinition);
+                    Assert.Equal(type, @interface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                }
+            }
         }
 
         [Fact]
@@ -1248,6 +1515,58 @@ nuint");
                 // (6,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = nameof(nuint);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_03()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(@nint);
+        _ = nameof(@nuint);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(@nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nint").WithArguments("nint").WithLocation(5, 20),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(@nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nuint").WithArguments("nuint").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(@nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nint").WithArguments("nint").WithLocation(5, 20),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(@nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nuint").WithArguments("nuint").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void NameOf_04()
+        {
+            var source =
+@"class Program
+{
+    static void F(int @nint, uint @nuint)
+    {
+        _ = nameof(@nint);
+        _ = nameof(@nuint);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -2366,28 +2685,7 @@ class A
         A.F3();
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            verify(comp);
-
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            var ref1 = comp.ToMetadataReference();
-            var ref2 = comp.EmitToImageReference();
-
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            verify(comp);
-
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            verify(comp);
-
-            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
-            verify(comp);
-
-            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
-            verify(comp);
-
-            void verify(CSharpCompilation comp)
-            {
-                CompileAndVerify(comp, expectedOutput:
+            var expectedOutput =
 @"0
 0
 -1
@@ -2395,8 +2693,26 @@ class A
 null
 null
 -3
-4");
-            }
+4";
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
         [Fact]

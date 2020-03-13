@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, DiagnosticBag diagnostics)
         {
             SpecialType specialType;
-            switch (node.Identifier.ValueText)
+            switch (node.Identifier.Text)
             {
                 case "nint":
                     specialType = SpecialType.System_IntPtr;

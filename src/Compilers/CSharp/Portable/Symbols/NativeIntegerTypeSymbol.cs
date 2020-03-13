@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // PROTOTYPE: Handle retargeting these types.
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol, Cci.IReference
     {
-        internal NativeIntegerTypeSymbol(NamedTypeSymbol underlying) : base(underlying, tupleData: null)
+        private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
+
+        internal NativeIntegerTypeSymbol(NamedTypeSymbol underlyingType) : base(underlyingType, tupleData: null)
         {
-            Debug.Assert(underlying.TupleData is null);
-            Debug.Assert(!underlying.IsNativeIntegerType);
-            Debug.Assert(underlying.SpecialType == SpecialType.System_IntPtr || underlying.SpecialType == SpecialType.System_UIntPtr);
-            Debug.Assert(this.Equals(underlying));
-            Debug.Assert(underlying.Equals(this));
+            Debug.Assert(underlyingType.TupleData is null);
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
+            Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
+            Debug.Assert(this.Equals(underlyingType));
+            Debug.Assert(underlyingType.Equals(this));
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => _underlyingType.GetDeclaredBaseType(basesBeingResolved);
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => MakeInterfaces(_underlyingType.GetDeclaredInterfaces(basesBeingResolved));
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => GetInterfaces(basesBeingResolved);
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable;
 
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => throw ExceptionUtilities.Unreachable;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => MakeInterfaces(_underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved));
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => GetInterfaces(basesBeingResolved);
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
@@ -100,24 +102,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        // Return IEquatable<n[u]int> if the underlying type implemented IEquatable<System.[U]IntPtr>.
-        private ImmutableArray<NamedTypeSymbol> MakeInterfaces(ImmutableArray<NamedTypeSymbol> underlyingInterfaces)
+        private ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeSymbol>? basesBeingResolved)
         {
-            foreach (var underlyingInterface in underlyingInterfaces)
+            if (_lazyInterfaces.IsDefault)
             {
-                // Is the underlying interface IEquatable<System.[U]IntPtr>?
-                var typeArgs = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                if (typeArgs.Length == 1 && _underlyingType.Equals(typeArgs[0].Type, TypeCompareKind.AllIgnoreOptions))
+                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, makeInterfaces(_underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved)), default(ImmutableArray<NamedTypeSymbol>));
+            }
+            return _lazyInterfaces;
+
+            // Return IEquatable<n[u]int> if the underlying type implemented IEquatable<System.[U]IntPtr>.
+            ImmutableArray<NamedTypeSymbol> makeInterfaces(ImmutableArray<NamedTypeSymbol> underlyingInterfaces)
+            {
+                Debug.Assert(_underlyingType.SpecialType == SpecialType.System_IntPtr || _underlyingType.SpecialType == SpecialType.System_UIntPtr);
+
+                foreach (var underlyingInterface in underlyingInterfaces)
                 {
-                    var def = underlyingInterface.OriginalDefinition;
-                    if (def is { Name: "IEquatable", ContainingSymbol: NamespaceSymbol { Name: "System", ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true } } })
+                    // Is the underlying interface IEquatable<System.[U]IntPtr>?
+                    if (underlyingInterface.Name != "IEquatable")
                     {
-                        // Return IEquatable<n[u]int>.
-                        return ImmutableArray.Create(def.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(this))));
+                        continue;
+                    }
+                    var typeArgs = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    if (typeArgs.Length == 1 && _underlyingType.SpecialType == typeArgs[0].Type.SpecialType)
+                    {
+                        var def = underlyingInterface.OriginalDefinition;
+                        if (def.ContainingSymbol is NamespaceSymbol { Name: "System", ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true } })
+                        {
+                            // Return IEquatable<n[u]int>.
+                            return ImmutableArray.Create(def.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(this))));
+                        }
                     }
                 }
+
+                return ImmutableArray<NamedTypeSymbol>.Empty;
             }
-            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
     }
 }
