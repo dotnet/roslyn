@@ -28,18 +28,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly RemoteEndPoint _endPoint;
 
-        /// <summary>
-        /// Storage where we can keep track of what we know about the project and have informed VS
-        /// (and the project systems) about.
-        /// </summary>
-        private readonly IPersistentStorage _storage;
+        private readonly IPersistentStorageService _storageService;
 
         public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
-
-            var storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
-            _storage = storageService.GetStorage(workspace.CurrentSolution);
+            _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -101,11 +95,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // believed to not be a big issue given how small a time window this would be and how
             // easy it would be to get out of that state (just edit the file).
 
-            await PersistLatestInfosAsync(projectVersion, latestInfos, cancellationToken).ConfigureAwait(false);
+            await PersistLatestInfosAsync(project.Solution, projectVersion, latestInfos, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task PersistLatestInfosAsync(VersionStamp projectVersion, (Document, DesignerInfo? info, bool changed)[] latestInfos, CancellationToken cancellationToken)
+        private async Task PersistLatestInfosAsync(
+            Solution solution, VersionStamp projectVersion, (Document, DesignerInfo? info, bool changed)[] latestInfos, CancellationToken cancellationToken)
         {
+            var storage = _storageService.GetStorage(solution);
+
             foreach (var (doc, info, _) in latestInfos)
             {
                 // Skip documents that didn't change contents/version at all.  No point in writing
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 PersistInfoTo(writer, info.Value, projectVersion);
 
                 memoryStream.Position = 0;
-                await _storage.WriteStreamAsync(
+                await storage.WriteStreamAsync(
                     doc, DataKey, memoryStream, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -128,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Project project, VersionStamp projectVersion,
             Document? specificDocument, CancellationToken cancellationToken)
         {
+            var storage = _storageService.GetStorage(project.Solution);
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
@@ -139,14 +137,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     continue;
 
                 tasks.Add(ComputeDesignerAttributeInfoAsync(
-                    projectVersion, designerCategoryType, document, cancellationToken));
+                    storage, projectVersion, designerCategoryType, document, cancellationToken));
             }
 
             return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task<(Document, DesignerInfo?, bool changed)> ComputeDesignerAttributeInfoAsync(
-            VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
+            IPersistentStorage storage, VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
             Document document, CancellationToken cancellationToken)
         {
             try
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // First check and see if we have stored information for this doc and if that
                 // information is up to date.
-                using var stream = await _storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
+                using var stream = await storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
                 using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 var persisted = TryReadPersistedInfo(reader);
                 if (persisted.category != null && persisted.projectVersion == projectVersion)
