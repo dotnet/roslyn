@@ -222,17 +222,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected virtual async Task PublishDiagnosticsAsync(Document document)
         {
-            var diagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
-            var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = document.GetURI() };
+            (var uri, var diagnostics) = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = uri };
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
         }
 
-        private async Task<LanguageServer.Protocol.Diagnostic[]> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<(Uri documentUri, LanguageServer.Protocol.Diagnostic[] diagnostics)> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
+            // If there is a mapped file path, use that instead of the document file path for the diagnostics.
+            var fileUri = diagnostics.FirstOrDefault(d => !string.IsNullOrEmpty(d.DataLocation?.MappedFilePath))?.DataLocation?.MappedFilePath ?? document.FilePath;
+
+            return (new Uri(fileUri), diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
             {
                 Code = diagnostic.Id,
                 Message = diagnostic.Message,
@@ -240,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Range = GetDiagnosticRange(diagnostic.DataLocation, text),
                 // Only the unnecessary diagnostic tag is currently supported via LSP.
                 Tags = diagnostic.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
-            }).ToArray();
+            }).ToArray());
         }
 
         private LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
