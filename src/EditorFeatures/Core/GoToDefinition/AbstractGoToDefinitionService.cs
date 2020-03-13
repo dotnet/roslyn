@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (symbol is null)
                 return false;
 
-            var remapped = TryRemapIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
+            // if the symbol only has a single source location, and we're already on it,
+            // try to see if there's a better symbol we could navigate to.
+            var remapped = TryGoToAlternativeIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
             if (remapped)
                 return true;
 
@@ -76,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var project = document.Project;
             var solution = project.Solution;
 
-            // if the symbol only has a single source location, and we're already on it,
-            // try to see if there's a better symbol we could navigate to.
             var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
             if (sourceLocations.Length != 1)
                 return false;
@@ -91,7 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (definitionDocument != document)
                 return false;
 
-            // Ok, found a match.  Look for better symbols we could show results for instead.
+            // Ok, we were already on the definition. Look for better symbols we could show results
+            // for instead. For now, just see if we're on an interface member impl. If so, we can
+            // instead navigate to the actual interface member.
+            //
+            // In the future we can expand this with other mappings if appropriate.
             var interfaceImpls = symbol.ExplicitOrImplicitInterfaceImplementations();
             if (interfaceImpls.Length == 0)
                 return false;
