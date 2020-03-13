@@ -3332,7 +3332,6 @@ class Program
             }
         }
 
-
         [Fact]
         public void New9PatternsSemanticModel_02()
         {

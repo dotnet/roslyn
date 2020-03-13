@@ -2796,7 +2796,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
                     var boundConstantPattern = new BoundConstantPattern(
                         node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, convertedExpression.Type ?? operand.Type, hasErrors)
-                    { WasCompilerGenerated = true };
+#pragma warning disable format
+                        { WasCompilerGenerated = true };
+#pragma warning restore format
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
