@@ -40,17 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         private const string TelemetryAdditionalDocumentsCountName = PropertyPrefix + "AdditionalDocuments.Count";
 
         private readonly VisualStudioWorkspaceImpl _workspace;
-
-        /// <summary>
-        /// Used so we can switch over to the UI thread for communicating with legacy projects that
-        /// require that.
-        /// </summary>
         private readonly IThreadingContext _threadingContext;
-
-        /// <summary>
-        /// Used to acquire the legacy project designer service.
-        /// </summary>
-        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -92,13 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
         public VisualStudioProjectTelemetryService(
             VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext,
-            IServiceProvider serviceProvider)
+            IThreadingContext threadingContext)
             : base(threadingContext)
         {
             _workspace = workspace;
-            _threadingContext = threadingContext;
-            _serviceProvider = serviceProvider;
         }
 
         void IProjectTelemetryService.Start(CancellationToken cancellationToken)
@@ -245,6 +232,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 _taskInFlight = false;
             }
         }
-
     }
 }
