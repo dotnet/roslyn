@@ -8,9 +8,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -63,24 +67,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         // This is **not** an unnecessary (fading) diagnostic as the expression being flagged is not unncessary, but the dropped value is.
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Expression_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Expression_value_is_never_used), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: false);
 
         // Diagnostic reported for value assignments to locals/parameters that are never used on any control flow path.
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Unnecessary_assignment_of_a_value_to_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Unnecessary_assignment_of_a_value), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Unnecessary_assignment_of_a_value_to_0), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
 
         // Diagnostic reported for unnecessary parameters that can be removed.
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_parameter_0), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            description: new LocalizableResourceString(nameof(AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();

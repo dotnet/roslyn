@@ -6,17 +6,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
@@ -1370,6 +1376,8 @@ public sealed class C : IDisposable
 }", options);
         }
 
+#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch
+        // an editorconfig string representation for this invalid option fails.
         [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
@@ -1398,6 +1406,7 @@ public sealed class C : IDisposable
     public void Dispose() => task.Result.MyAction -= myAction;
 }", options);
         }
+#endif
 
         [WorkItem(37483, "https://github.com/dotnet/roslyn/issues/37483")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

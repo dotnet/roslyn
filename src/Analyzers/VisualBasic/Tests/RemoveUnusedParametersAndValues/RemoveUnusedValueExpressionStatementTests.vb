@@ -2,9 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Internal.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
+#Else
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Partial Public Class RemoveUnusedValueExpressionStatementTests

@@ -15,6 +15,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
     internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
@@ -159,12 +163,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     !isLocalFunctionParameter)
                 {
                     messageFormat = hasReference
-                        ? FeaturesResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
-                        : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
+                        ? AnalyzersResources.Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                        : AnalyzersResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
                 }
                 else if (hasReference)
                 {
-                    messageFormat = FeaturesResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
+                    messageFormat = AnalyzersResources.Parameter_0_can_be_removed_its_initial_value_is_never_used;
                 }
                 else
                 {

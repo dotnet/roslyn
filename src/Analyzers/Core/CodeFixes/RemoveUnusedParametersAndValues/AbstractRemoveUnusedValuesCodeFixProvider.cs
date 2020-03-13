@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -24,6 +23,12 @@ using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (isRemovableAssignment)
             {
                 // Recommend removing the redundant constant value assignment.
-                title = FeaturesResources.Remove_redundant_assignment;
+                title = CodeFixesResources.Remove_redundant_assignment;
             }
             else
             {
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             return;
                         }
 
-                        title = FeaturesResources.Use_discard_underscore;
+                        title = CodeFixesResources.Use_discard_underscore;
 
                         // Check if this is compound assignment which is not parented by an expression statement,
                         // for example "return x += M();" OR "=> x ??= new C();"
@@ -145,13 +150,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
                             !syntaxFacts.IsExpressionStatement(node.Parent))
                         {
-                            title = FeaturesResources.Remove_redundant_assignment;
+                            title = CodeFixesResources.Remove_redundant_assignment;
                         }
 
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
-                        title = FeaturesResources.Use_discarded_local;
+                        title = CodeFixesResources.Use_discarded_local;
                         break;
 
                     default:
@@ -256,7 +261,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var originalEditor = editor;
-            editor = new SyntaxEditor(root, editor.Generator);
+            editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             try
             {
@@ -371,7 +376,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     case UnusedValuePreference.UnusedLocalVariable:
                         // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
                         var localDecl = editor.Generator.LocalDeclarationStatement(
-                                            name: nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement),
+                                            name: nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement).ValueText,
                                             initializer: expression.WithoutLeadingTrivia())
                                         .WithTriviaFrom(expressionStatement)
                                         .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
@@ -484,7 +489,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Replace the flagged variable's indentifier token with new named, based on user's preference.
                     var newNameToken = preference == UnusedValuePreference.DiscardVariable
-                        ? editor.Generator.Identifier(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName)
+                        ? document.GetRequiredLanguageService<SyntaxGeneratorInternal>().Identifier(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName)
                         : nameGenerator.GenerateUniqueNameAtSpanStart(node);
                     newLocalNameOpt = newNameToken.ValueText;
                     var newNameNode = TryUpdateNameForFlaggedNode(node, newNameToken);
@@ -615,7 +620,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             //  2. Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
             TLocalDeclarationStatementSyntax CreateLocalDeclarationStatement(ITypeSymbol type, string name)
                 => (TLocalDeclarationStatementSyntax)editor.Generator.LocalDeclarationStatement(type, name)
-                   .WithLeadingTrivia(editor.Generator.ElasticCarriageReturnLineFeed)
+                   .WithLeadingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
                    .WithAdditionalAnnotations(s_newLocalDeclarationStatementAnnotation, Simplifier.Annotation);
 
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
@@ -731,7 +736,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await service.ReplaceAsync(memberDeclaration, semanticModel, cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(memberDeclaration, semanticModel, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -847,7 +852,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 referencedSymbols.Single().Locations.IsEmpty();
         }
 
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
