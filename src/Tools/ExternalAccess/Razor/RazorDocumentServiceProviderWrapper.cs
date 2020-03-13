@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
         private readonly object _lock;
 
-        private RazorSpanMappingServiceWrapper _spanMappingService;
-        private RazorDocumentExcerptServiceWrapper _excerptService;
+        private RazorSpanMappingServiceWrapper? _spanMappingService;
+        private RazorDocumentExcerptServiceWrapper? _excerptService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public bool SupportDiagnostics => _innerDocumentServiceProvider.SupportDiagnostics;
 
-        public TService GetService<TService>() where TService : class, IDocumentService
+        public TService? GetService<TService>() where TService : class, IDocumentService
         {
             if (typeof(TService) == typeof(ISpanMappingService))
             {
