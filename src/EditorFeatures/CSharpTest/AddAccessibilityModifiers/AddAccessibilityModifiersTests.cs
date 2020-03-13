@@ -374,5 +374,47 @@ class C1 { }",
                 },
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestExternMethod()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+using System.Runtime.InteropServices;
+
+internal class Program
+{
+    [DllImport(""User32.dll"", CharSet = CharSet.Unicode)]
+    static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
+}
+",
+@"
+using System;
+using System.Runtime.InteropServices;
+
+internal class Program
+{
+    [DllImport(""User32.dll"", CharSet = CharSet.Unicode)]
+    private static extern int [|MessageBox|](IntPtr h, string m, string c, int type);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestVolatile()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+internal class Program
+{
+    volatile int [|x|];
+}
+",
+@"
+internal class Program
+{
+    private volatile int x;
+}
+");
+        }
     }
 }

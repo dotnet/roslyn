@@ -1183,5 +1183,40 @@ class Program
     }
 }");
         }
+
+        [WorkItem(26213, "https://github.com/dotnet/roslyn/issues/26213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task TestFieldAccessesOnLeftOfDot()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IFaceServiceClient
+{
+    void DetectAsync();
+}
+
+public class Repro
+{
+    private static IFaceServiceClient [|faceServiceClient|] = null;
+
+    public static void Run()
+    {
+        faceServiceClient.DetectAsync();
+    }
+}",
+@"interface IFaceServiceClient
+{
+    void DetectAsync();
+}
+
+public class Repro
+{
+    private static readonly IFaceServiceClient faceServiceClient = null;
+
+    public static void Run()
+    {
+        faceServiceClient.DetectAsync();
+    }
+}");
+        }
     }
 }

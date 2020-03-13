@@ -92,6 +92,11 @@
         <target state="translated">La tarea esperada no devuelve ningún valor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">No se pueden aplicar los cambios. Error inesperado: "{0}"</target>
@@ -453,38 +458,18 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Se puede quitar el parámetro "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca</target>
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
+        <target state="needs-review-translation">Se puede quitar el parámetro "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">Se puede quitar el parámetro "{0}"; su valor inicial no se usa nunca</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Un miembro privado "{0}" puede retirarse porque el valor asignado a él no se lee nunca.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Un miembro privado "{0}" está sin usar.</target>
+        <source>Parameter '{0}' can be removed; its initial value is never used</source>
+        <target state="needs-review-translation">Se puede quitar el parámetro "{0}"; su valor inicial no se usa nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Modificar fuente archivo {0} evitará que la sesión de depuración continua debido a un error interno: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">El método privado "{0}" se puede quitar porque nunca se invoca.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">La propiedad privada "{0}" se puede convertir en un método porque su descriptor de acceso get nunca se invoca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -512,16 +497,6 @@
         <target state="translated">Quitar asignación redundante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Quitar miembros privados no leídos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Quitar miembros sin usar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
         <target state="translated">Quitar el parámetro no utilizado</target>
@@ -535,11 +510,6 @@
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
         <target state="translated">Quitar el parámetro "{0}" sin usar si no forma parte de una API pública enviada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Quitar miembros privados no utilizados</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -576,6 +546,11 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -1613,11 +1588,6 @@ Do you want to continue?</source>
 '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Quitar conversión innecesaria</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Simplificar nombres</target>
@@ -1903,26 +1873,6 @@ Do you want to continue?</source>
         <target state="translated">Convertir el método en sincrónico</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Agregar cualificación 'this' o 'Me'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Corregir infracción de nombre: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">Infracción de la regla de nomenclatura: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">Estilos de nombres</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">desde {0}</target>
@@ -2045,29 +1995,9 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Parámetros:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Agregar casos que faltan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Agregar ambos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Agregar caso predeterminado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">El elemento variádico SignatureHelpItem debe tener al menos un parámetro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Agregar llaves</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2148,11 +2078,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Object_initialization_can_be_simplified">
         <source>Object initialization can be simplified</source>
         <target state="translated">La inicialización del objeto se puede simplificar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Usar expresión "throw"</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2288,11 +2213,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">La declaración de variables se puede insertar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">La comprobación de valores null se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -2573,11 +2493,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">Generar constructor en "{0}" (sin campos)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Agregar pancarta de archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

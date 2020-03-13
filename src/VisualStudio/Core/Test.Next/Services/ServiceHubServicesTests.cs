@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -39,6 +40,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 return (RemoteWorkspace)primaryWorkspace.Workspace;
             }
         }
+
+        private static Solution WithChangedOptionsFromRemoteWorkspace(Solution solution)
+            => solution.WithChangedOptionsFrom(RemoteWorkspace.Options);
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostCreation()
@@ -74,6 +78,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 await UpdatePrimaryWorkspace(client, solution);
                 await VerifyAssetStorageAsync(client, solution);
+
+                solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -207,11 +213,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // See "RemoteSupportedLanguages.IsSupported"
             Assert.Empty(RemoteWorkspace.CurrentSolution.Projects);
 
+            solution = WithChangedOptionsFromRemoteWorkspace(solution);
+
             Assert.NotEqual(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
             solution = solution.RemoveProject(solution.ProjectIds.Single());
+            solution = WithChangedOptionsFromRemoteWorkspace(solution);
+
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
@@ -229,6 +239,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // verify initial setup
                 await UpdatePrimaryWorkspace(client, solution);
                 await VerifyAssetStorageAsync(client, solution);
+
+                solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -276,7 +288,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
                 var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
-                var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
+                var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
                 // this shouldn't throw exception
                 remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);

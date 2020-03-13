@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
+        public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _globalAssets.TryGetValue(value, out var asset);

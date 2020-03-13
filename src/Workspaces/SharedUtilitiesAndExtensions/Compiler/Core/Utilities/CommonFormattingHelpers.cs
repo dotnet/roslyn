@@ -309,11 +309,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             var parentNode = GetParentThatContainsGivenSpan(token.Parent, forwardPosition, forward: true);
-            if (parentNode == null)
-            {
-                return Contract.FailWithReturn<int>("This can't happen");
-            }
-
+            Contract.ThrowIfNull(parentNode);
             Contract.ThrowIfFalse(parentNode.FullSpan.Start < forwardPosition);
 
             previousToken = parentNode.FindToken(forwardPosition + 1);

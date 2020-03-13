@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
             private readonly object _gate;
 
@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 Workspace workspace,
-                DiagnosticAnalyzerInfoCache analyzerInfoCache)
+                HostDiagnosticAnalyzers hostAnalyzers)
                 : base(threadingContext)
             {
                 _gate = new object();
 
                 _listener = listener;
                 _workspace = workspace;
-                _analyzerInfoCache = analyzerInfoCache;
+                _hostAnalyzers = hostAnalyzers;
             }
 
             public Workspace Workspace => _workspace;
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
-                    foreach (var (_, reference) in _analyzerInfoCache.GetHostAnalyzerReferencesMap())
+                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
                     {
                         var asset = assetBuilder.Build(reference, cancellationToken);
 
@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
 
-                    foreach (var (_, reference) in _analyzerInfoCache.GetHostAnalyzerReferencesMap())
+                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
                     {
                         snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
                     }

@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -23,16 +25,20 @@ namespace Microsoft.CodeAnalysis.Options
                 _language = language;
             }
 
-            public override bool TryGetValue(string key, out string? value)
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 if (!_optionService.TryMapEditorConfigKeyToOption(key, _language, out var storageLocation, out var optionKey))
                 {
+                    // There are couple of reasons this assert might fire:
+                    //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
+                    //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
+                    Debug.Fail("Failed to find an .editorconfig entry for the requested key.");
                     value = null;
                     return false;
                 }
 
                 var typedValue = _optionSet.GetOption(optionKey);
-                value = storageLocation.GetEditorConfigString(typedValue, _optionSet);
+                value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
                 return true;
             }
         }

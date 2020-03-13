@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,15 +45,51 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
+            var remoteSuccess = await TryAddSemanticClassificationsInRemoteProcessAsync(
+                document, textSpan, result, cancellationToken).ConfigureAwait(false);
+            if (remoteSuccess)
+                return;
+
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+            await AddSemanticClassificationsInCurrentProcessAsync(
+                document, textSpan, temp, cancellationToken).ConfigureAwait(false);
+            AddRange(temp, result);
+        }
+
+        /// <returns><see langword="true"/> if the remote call was made successfully and we should
+        /// use the results of it. Otherwise, fall back to processing locally</returns>
+        private async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+                return false;
+
+            var classifiedSpans = await client.TryRunRemoteAsync<SerializableClassifiedSpans>(
+                WellKnownServiceHubServices.CodeAnalysisService,
+                nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
+                document.Project.Solution,
+                new object[] { document.Id, textSpan },
+                callbackTarget: null,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!classifiedSpans.HasValue)
+                return false;
+
+            classifiedSpans.Value.Rehydrate(result);
+            return true;
+        }
+
+        public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-            await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, temp, cancellationToken).ConfigureAwait(false);
-            AddRange(temp, result);
+            await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
@@ -86,7 +123,11 @@ namespace Microsoft.CodeAnalysis.Classification
             AddRange(temp, result);
         }
 
-        protected void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
+        /// <summary>
+        /// Helper to add all the values of <paramref name="temp"/> into <paramref name="result"/>
+        /// without causing any allocations or boxing of enumerators.
+        /// </summary>
+        protected static void AddRange(ArrayBuilder<ClassifiedSpan> temp, List<ClassifiedSpan> result)
         {
             foreach (var span in temp)
             {

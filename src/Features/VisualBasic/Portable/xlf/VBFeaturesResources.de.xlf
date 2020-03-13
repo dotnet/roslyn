@@ -92,11 +92,6 @@
         <target state="translated">&lt;Mehrere Typen&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Unnötige Import-Direktiven entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Geben Sie hier einen Namen ein, um ein neues Feld zu deklarieren.</target>
@@ -1537,11 +1532,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">TODO: Auskommentierung der folgenden Zeile aufheben, wenn Finalize() oben überschrieben wird.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports-Anweisung ist unnötig.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try-Block</target>
@@ -1820,11 +1810,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Sub als asynchron definieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">"Me." hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

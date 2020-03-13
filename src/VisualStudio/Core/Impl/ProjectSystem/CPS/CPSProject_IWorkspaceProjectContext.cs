@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.DisplayName = value;
         }
 
-        public string ProjectFilePath
+        public string? ProjectFilePath
         {
             get => _visualStudioProject.FilePath;
             set => _visualStudioProject.FilePath = value;

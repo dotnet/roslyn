@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
     internal class ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider
         : AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<InterpolatedStringExpressionSyntax>
     {
+        [ImportingConstructor]
+        public ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsInterpolation { get; } = true;
 
         protected override bool IsAppropriateLiteralKind(InterpolatedStringExpressionSyntax literalExpression)

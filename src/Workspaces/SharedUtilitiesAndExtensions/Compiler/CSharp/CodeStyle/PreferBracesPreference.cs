@@ -3,9 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+#endif
+
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     /// <summary>
     /// Defines the known values for <see cref="CSharpCodeStyleOptions.PreferBraces"/>.

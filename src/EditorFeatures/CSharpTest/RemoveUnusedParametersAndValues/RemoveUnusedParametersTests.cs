@@ -1115,10 +1115,10 @@ internal sealed class CustomSerializingType : ISerializable
             var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
             Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
-            Assert.Equal("Parameter 'p2' can be removed, its initial value is never used", sortedDiagnostics[1].GetMessage());
+            Assert.Equal("Parameter 'p2' can be removed; its initial value is never used", sortedDiagnostics[1].GetMessage());
             Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
-            Assert.Equal("Parameter 'p4' can be removed if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
-            Assert.Equal("Parameter 'p5' can be removed, its initial value is never used", sortedDiagnostics[4].GetMessage());
+            Assert.Equal("Parameter 'p4' can be removed if it is not part of a shipped public API; its initial value is never used", sortedDiagnostics[3].GetMessage());
+            Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
         }
 
         [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]

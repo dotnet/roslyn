@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="diagnostic"></param>
         /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
+        internal abstract Diagnostic? FilterDiagnostic(Diagnostic diagnostic);
 
         /// <summary>
         /// Warning report option for each warning.

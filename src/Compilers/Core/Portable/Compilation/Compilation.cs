@@ -2136,7 +2136,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream? xmlDocumentationStream,
             Stream? win32ResourcesStream,
-            string outputNameOverride,
+            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 

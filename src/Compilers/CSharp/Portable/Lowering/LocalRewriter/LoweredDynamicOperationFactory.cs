@@ -695,20 +695,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
             Debug.Assert(factory.TopLevelMethod is { });
+            Debug.Assert(factory.CurrentFunction is { });
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
 
-            var synthesizedContainer =
-#nullable disable
-                new DynamicSiteContainer(name: containerName, topLevelMethod: factory.TopLevelMethod);
-#nullable enable
+            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);
 
-            if (factory.TopLevelMethod.IsGenericMethod)
+            if (!synthesizedContainer.TypeParameters.IsEmpty)
             {
-                return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+                return synthesizedContainer.Construct(synthesizedContainer.ConstructedFromTypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
             }
 
             return synthesizedContainer;
