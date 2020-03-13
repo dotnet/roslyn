@@ -287,30 +287,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
 
                 // The argument is either in order with parameters, or have a matched name with parameters.
-                // "argumentType.Type" could be null when "augumentExpression" is lambada expression.
-                var augumentExpression = arguments[i].Expression;
-                var argumentType = semanticModel.GetTypeInfo(augumentExpression, cancellationToken);
+                var argumentExpression = arguments[i].Expression;
                 var parameterType = parameters[parameterIndex].Type;
 
                 if (parameters[parameterIndex].IsParams
                     && parameters.Last().Type is IArrayTypeSymbol paramsType
-                    && (semanticModel.ClassifyConversion(augumentExpression, paramsType.ElementType).Exists
-                    || (argumentType.Type is object
-                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType.Type, paramsType.ElementType).Exists)))
+                    && (semanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType).Exists))
                 {
-                    newArguments.Add(arguments[i].WithExpression(augumentExpression.Cast(paramsType.ElementType)));
+                    newArguments.Add(arguments[i].WithExpression(argumentExpression.Cast(paramsType.ElementType)));
 
                     if (arguments[i].Equals(targetArgument))
                         targetArgumentConversionType = paramsType.ElementType;
                 }
-                else if (semanticModel.ClassifyConversion(augumentExpression, parameterType).Exists
-                    || (argumentType.Type is object
-                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType.Type, parameterType).Exists))
+                else if (semanticModel.ClassifyConversion(argumentExpression, parameterType).Exists)
                 {
-                    newArguments.Add(arguments[i].WithExpression(augumentExpression.Cast(parameterType)));
+                    newArguments.Add(arguments[i].WithExpression(argumentExpression.Cast(parameterType)));
 
                     if (arguments[i].Equals(targetArgument))
                         targetArgumentConversionType = parameterType;
+                }
+                else if (argumentExpression.Kind() == SyntaxKind.DeclarationExpression
+                    && semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type is ITypeSymbol argumentType
+                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType, parameterType).IsIdentity)
+                {
+                    // Direct conversion from a declaration expression to a type is unspecified, thus we classify the
+                    // conversion from the type of declaration expression to the parameter type
+                    // An example for this case:
+                    // void Foo(out int i) { i = 1; }
+                    // Foo([|out var i|]);
+                    // "var i" is a declaration expression
+                    // 
+                    // In addition, this case is with keyword "out", and the type of declaration expression and the
+                    // parameter type must be identical in order to match.
+                    newArguments.Add(arguments[i]);
                 }
                 else
                 {
