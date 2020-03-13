@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
@@ -154,6 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
+
+            // Load the telemetry service and tell it to start watching the solution for project info.
+            var projectTelemetryService = _workspace.Services.GetService<IProjectTelemetryService>();
+            projectTelemetryService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
