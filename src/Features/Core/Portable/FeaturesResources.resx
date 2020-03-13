@@ -864,9 +864,6 @@ Do you want to continue?</value>
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous</value>
   </data>
-  <data name="Add_this_or_Me_qualification" xml:space="preserve">
-    <value>Add 'this' or 'Me' qualification.</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -940,20 +937,8 @@ This version used in: {2}</value>
   <data name="Parameters_colon" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="Add_missing_cases" xml:space="preserve">
-    <value>Add missing cases</value>
-  </data>
-  <data name="Add_both" xml:space="preserve">
-    <value>Add both</value>
-  </data>
-  <data name="Add_default_case" xml:space="preserve">
-    <value>Add default case</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
-  </data>
-  <data name="Add_braces" xml:space="preserve">
-    <value>Add braces</value>
   </data>
   <data name="Replace_0_with_method" xml:space="preserve">
     <value>Replace '{0}' with method</value>
@@ -1005,9 +990,6 @@ This version used in: {2}</value>
   </data>
   <data name="Object_initialization_can_be_simplified" xml:space="preserve">
     <value>Object initialization can be simplified</value>
-  </data>
-  <data name="Use_throw_expression" xml:space="preserve">
-    <value>Use 'throw' expression</value>
   </data>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
@@ -1095,9 +1077,6 @@ This version used in: {2}</value>
   </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
-  </data>
-  <data name="Null_check_can_be_simplified" xml:space="preserve">
-    <value>Null check can be simplified</value>
   </data>
   <data name="Simplify_collection_initialization" xml:space="preserve">
     <value>Simplify collection initialization</value>

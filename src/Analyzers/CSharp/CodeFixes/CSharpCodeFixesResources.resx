@@ -120,4 +120,7 @@
   <data name="Remove_Unnecessary_Usings" xml:space="preserve">
     <value>Remove Unnecessary Usings</value>
   </data>
+  <data name="Add_this" xml:space="preserve">
+    <value>Add 'this.'</value>
+  </data>
 </root>

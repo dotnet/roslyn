@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis
 
         internal GreenNode? Node { get; }
 
+        internal GreenNode RequiredNode
+        {
+            get
+            {
+                Debug.Assert(Node is object);
+                return Node;
+            }
+        }
+
         internal int Index { get; }
 
         internal int Position { get; }
