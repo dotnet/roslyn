@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
 
-            static ITypeSymbol[] GetPotentialConversionTypes(
+            static ImmutableArray<ITypeSymbol> GetPotentialConversionTypes(
                 SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, ArgumentSyntax targetArgument,
                 ArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // operations are in order and user can choose least specific types(more accurate)
                 mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
 
-                return mutablePotentialConversionTypes.ToArray();
+                return mutablePotentialConversionTypes.ToImmutable();
             }
 
             static ImmutableArray<ITypeSymbol> FilterValidPotentialConversionTypes(
