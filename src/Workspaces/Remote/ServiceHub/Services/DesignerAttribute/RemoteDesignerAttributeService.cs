@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
             StartService();
         }
 
-        public Task ScanForDesignerAttributesAsync(CancellationToken cancellation)
+        public Task StartScanningForDesignerAttributesAsync(CancellationToken cancellation)
         {
             return RunServiceAsync(() =>
             {
