@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             // if the symbol only has a single source location, and we're already on it,
             // try to see if there's a better symbol we could navigate to.
-            var remapped = TryGoToAlternativeIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
+            var remapped = TryGoToAlternativeLocationIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
             if (remapped)
                 return true;
 
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 cancellationToken: cancellationToken);
         }
 
-        private bool TryRemapIfAlreadyOnDefinition(
-            Document document, int position, 
+        private bool TryGoToAlternativeLocationIfAlreadyOnDefinition(
+            Document document, int position,
             ISymbol symbol, CancellationToken cancellationToken)
         {
             var project = document.Project;
