@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            => AnalyzeProjectAsync(project, specificDoc: null, cancellationToken);
+            => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);
 
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // don't need to reanalyze file if just a method body was edited.  That can't
             // affect designer attributes.
-            if (bodyOpt != null)
+            if (body != null)
                 return Task.CompletedTask;
 
             // When we register our analyzer we will get called into for every document to
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return AnalyzeProjectAsync(document.Project, document, cancellationToken);
         }
 
-        private async Task AnalyzeProjectAsync(Project project, Document? specificDoc, CancellationToken cancellationToken)
+        private async Task AnalyzeProjectAsync(Project project, Document? specificDocument, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
                 return;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             var latestInfos = await ComputeLatestInfosAsync(
-                project, projectVersion, specificDoc, cancellationToken).ConfigureAwait(false);
+                project, projectVersion, specificDocument, cancellationToken).ConfigureAwait(false);
 
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
