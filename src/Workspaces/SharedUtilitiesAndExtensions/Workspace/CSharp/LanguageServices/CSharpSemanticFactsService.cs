@@ -416,5 +416,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
+
+        public IMethodSymbol GetImplicitObjectCreationConstructor(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node.Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression)
+            {
+                var info = semanticModel.GetSymbolInfo(node);
+                return (IMethodSymbol)info.Symbol;
+            }
+
+            return null;
+        }
     }
 }

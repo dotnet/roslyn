@@ -417,6 +417,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
+
+        bool IsTargetTypedNew(SyntaxNode node);
     }
 
     [Flags]

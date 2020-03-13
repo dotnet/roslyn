@@ -1869,5 +1869,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return False
         End Function
+
+        Public Function IsTargetTypedNew(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTargetTypedNew
+            Return False
+        End Function
     End Class
 End Namespace
