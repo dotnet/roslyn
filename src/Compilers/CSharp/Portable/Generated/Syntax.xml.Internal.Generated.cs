@@ -2180,6 +2180,157 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal sealed partial class WithExpressionSyntax : ExpressionSyntax
+    {
+        internal readonly ExpressionSyntax receiver;
+        internal readonly SyntaxToken withKeyword;
+        internal readonly SyntaxToken openBraceToken;
+        internal readonly GreenNode? initializers;
+        internal readonly SyntaxToken closeBraceToken;
+
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, GreenNode? initializers, SyntaxToken closeBraceToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(receiver);
+            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(withKeyword);
+            this.withKeyword = withKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, GreenNode? initializers, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(receiver);
+            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(withKeyword);
+            this.withKeyword = withKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+
+        internal WithExpressionSyntax(SyntaxKind kind, ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, GreenNode? initializers, SyntaxToken closeBraceToken)
+          : base(kind)
+        {
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(receiver);
+            this.receiver = receiver;
+            this.AdjustFlagsAndWidth(withKeyword);
+            this.withKeyword = withKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+
+        public ExpressionSyntax Receiver => this.receiver;
+        public SyntaxToken WithKeyword => this.withKeyword;
+        public SyntaxToken OpenBraceToken => this.openBraceToken;
+        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
+        public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.receiver,
+                1 => this.withKeyword,
+                2 => this.openBraceToken,
+                3 => this.initializers,
+                4 => this.closeBraceToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WithExpressionSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
+
+        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        {
+            if (receiver != this.Receiver || withKeyword != this.WithKeyword || openBraceToken != this.OpenBraceToken || initializers != this.Initializers || closeBraceToken != this.CloseBraceToken)
+            {
+                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, openBraceToken, initializers, closeBraceToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new WithExpressionSyntax(this.Kind, this.receiver, this.withKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new WithExpressionSyntax(this.Kind, this.receiver, this.withKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, GetDiagnostics(), annotations);
+
+        internal WithExpressionSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 5;
+            var receiver = (ExpressionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(receiver);
+            this.receiver = receiver;
+            var withKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(withKeyword);
+            this.withKeyword = withKeyword;
+            var openBraceToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            var initializers = (GreenNode?)reader.ReadValue();
+            if (initializers != null)
+            {
+                AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            var closeBraceToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.receiver);
+            writer.WriteValue(this.withKeyword);
+            writer.WriteValue(this.openBraceToken);
+            writer.WriteValue(this.initializers);
+            writer.WriteValue(this.closeBraceToken);
+        }
+
+        static WithExpressionSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(WithExpressionSyntax), r => new WithExpressionSyntax(r));
+        }
+    }
+
     /// <summary>Class which represents the syntax node for member access expression.</summary>
     internal sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     {
@@ -30973,6 +31124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
@@ -31192,6 +31344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
@@ -31448,6 +31601,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.Operand), (SyntaxToken)Visit(node.OperatorToken));
+
+        public override CSharpSyntaxNode VisitWithExpression(WithExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Receiver), (SyntaxToken)Visit(node.WithKeyword), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Initializers), (SyntaxToken)Visit(node.CloseBraceToken));
 
         public override CSharpSyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
@@ -32523,6 +32679,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
+        }
+
+        public WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        {
+            #if DEBUG
+            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
+            if (withKeyword.Kind != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            #endif
+
+            return new WithExpressionSyntax(SyntaxKind.WithExpression, receiver, withKeyword, openBraceToken, initializers.Node, closeBraceToken, this.context);
         }
 
         public MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
@@ -37077,6 +37248,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        {
+            #if DEBUG
+            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
+            if (withKeyword.Kind != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+            if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
+            if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
+            if (closeBraceToken == null) throw new ArgumentNullException(nameof(closeBraceToken));
+            if (closeBraceToken.Kind != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            #endif
+
+            return new WithExpressionSyntax(SyntaxKind.WithExpression, receiver, withKeyword, openBraceToken, initializers.Node, closeBraceToken);
+        }
+
         public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
         {
             switch (kind)
@@ -41168,6 +41354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(PrefixUnaryExpressionSyntax),
                 typeof(AwaitExpressionSyntax),
                 typeof(PostfixUnaryExpressionSyntax),
+                typeof(WithExpressionSyntax),
                 typeof(MemberAccessExpressionSyntax),
                 typeof(ConditionalAccessExpressionSyntax),
                 typeof(MemberBindingExpressionSyntax),

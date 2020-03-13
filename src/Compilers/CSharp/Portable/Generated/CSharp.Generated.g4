@@ -655,6 +655,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | with_expression
   ;
 
 anonymous_function_expression
@@ -953,6 +954,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+with_expression
+  : expression 'with' '{' (anonymous_object_member_declarator (',' anonymous_object_member_declarator)* ','?)? '}'
   ;
 
 xml_node
