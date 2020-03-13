@@ -6949,7 +6949,6 @@ done:;
 
         private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
         {
-
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
             {
