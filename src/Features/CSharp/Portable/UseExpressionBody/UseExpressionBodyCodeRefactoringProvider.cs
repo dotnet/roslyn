@@ -15,11 +15,10 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -145,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent
                 : declaration;
+            RoslynDebug.Assert(parent is object);
             var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration)
                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
