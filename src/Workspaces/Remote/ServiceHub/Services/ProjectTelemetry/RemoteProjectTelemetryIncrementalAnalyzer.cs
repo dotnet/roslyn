@@ -45,14 +45,16 @@ namespace Microsoft.CodeAnalysis.Remote
             var documentsCount = project.DocumentIds.Count;
             var additionalDocumentsCount = project.AdditionalDocumentIds.Count;
 
-            var info = new ProjectTelemetryInfo(
-                projectId,
-                language,
-                analyzerReferencesCount,
-                projectReferencesCount,
-                metadataReferencesCount,
-                documentsCount,
-                additionalDocumentsCount);
+            var info = new ProjectTelemetryInfo
+            {
+                ProjectId = projectId,
+                Language = language,
+                AnalyzerReferencesCount = analyzerReferencesCount,
+                ProjectReferencesCount = projectReferencesCount,
+                MetadataReferencesCount = metadataReferencesCount,
+                DocumentsCount = documentsCount,
+                AdditionalDocumentsCount = additionalDocumentsCount,
+            };
 
             lock (_gate)
             {

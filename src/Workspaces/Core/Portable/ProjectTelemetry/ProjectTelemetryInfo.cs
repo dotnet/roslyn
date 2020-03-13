@@ -16,25 +16,12 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
         public int DocumentsCount;
         public int AdditionalDocumentsCount;
 
-        public ProjectTelemetryInfo(ProjectId projectId, string language, int analyzerReferencesCount, int projectReferencesCount, int metadataReferencesCount, int documentsCount, int additionalDocumentsCount)
-        {
-            this.ProjectId = projectId;
-            this.Language = language;
-            this.AnalyzerReferencesCount = analyzerReferencesCount;
-            this.ProjectReferencesCount = projectReferencesCount;
-            this.MetadataReferencesCount = metadataReferencesCount;
-            this.DocumentsCount = documentsCount;
-            this.AdditionalDocumentsCount = additionalDocumentsCount;
-        }
-
         public bool Equals(ProjectTelemetryInfo other)
-        {
-            return this.Language.Equals(other.Language) &&
-                   this.AnalyzerReferencesCount == other.AnalyzerReferencesCount &&
-                   this.ProjectReferencesCount == other.ProjectReferencesCount &&
-                   this.MetadataReferencesCount == other.MetadataReferencesCount &&
-                   this.DocumentsCount == other.DocumentsCount &&
-                   this.AdditionalDocumentsCount == other.AdditionalDocumentsCount;
-        }
+            => Language.Equals(other.Language) &&
+               AnalyzerReferencesCount == other.AnalyzerReferencesCount &&
+               ProjectReferencesCount == other.ProjectReferencesCount &&
+               MetadataReferencesCount == other.MetadataReferencesCount &&
+               DocumentsCount == other.DocumentsCount &&
+               AdditionalDocumentsCount == other.AdditionalDocumentsCount;
     }
 }
