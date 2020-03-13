@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// The document this <see cref="Category"/> applies to.
         /// </summary>
         public DocumentId DocumentId;
+
+        /// <summary>
+        /// Path for this <see cref="DocumentId"/>.
+        /// </summary>
+        public string FilePath;
     }
 }

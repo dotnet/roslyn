@@ -192,19 +192,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var attributeInfos);
             AddInfosAndResetQueue(attributeInfos);
 
-            // Reconcile all the notifications against the latest workspace solution we have.  This
-            // is technically racey as OOP may have computed against a different solution.  However,
-            // we should normally always reach a fixed point as we continually receive updates from
-            // OOP when the solution changes that we should normally be able to map to this
-            // solution.
-            var currentSolution = _workspace.CurrentSolution;
-
             // Now, group all the notifications by project and update all the projects in parallel.
             using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var group in attributeInfos.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(currentSolution, group.Key, group, cancellationToken));
+                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
             }
 
             // Wait until all project updates have happened before processing the next batch.
@@ -236,27 +229,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async Task NotifyProjectSystemAsync(
-            Solution solution,
             ProjectId projectId,
             IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
-            // Make sure this is a project that our current solution still knows about.
-            var project = solution.GetProject(projectId);
-            if (project == null)
-                return;
-
             // Delegate to the CPS or legacy notification services as necessary.
-            var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
             var task = cpsUpdateService == null
-                ? NotifyLegacyProjectSystemAsync(project, attributeInfos, cancellationToken)
-                : NotifyCpsProjectSystemAsync(project, cpsUpdateService, attributeInfos, cancellationToken);
+                ? NotifyLegacyProjectSystemAsync(projectId, attributeInfos, cancellationToken)
+                : NotifyCpsProjectSystemAsync(cpsUpdateService, attributeInfos, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
 
         private async Task NotifyLegacyProjectSystemAsync(
-            Project project,
+            ProjectId projectId,
             IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
         {
@@ -270,35 +257,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (designerService == null)
                 return;
 
-            var hierarchy = _workspace.GetHierarchy(project.Id);
+            var hierarchy = _workspace.GetHierarchy(projectId);
             if (hierarchy == null)
                 return;
 
             foreach (var info in attributeInfos)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                NotifyLegacyProjectSystemOnUIThread(
-                    project, designerService, hierarchy, info);
+                NotifyLegacyProjectSystemOnUIThread(designerService, hierarchy, info);
             }
         }
 
         private void NotifyLegacyProjectSystemOnUIThread(
-            Project project,
             IVSMDDesignerService designerService,
             IVsHierarchy hierarchy,
             DesignerInfo info)
         {
             this.AssertIsForeground();
 
-            // Make sure this is a document we still know about when OOP notifies us.
-            var document = project.GetDocument(info.DocumentId);
-            if (document == null)
-                return;
-
-            if (document.FilePath == null)
-                return;
-
-            var itemId = hierarchy.TryGetItemId(document.FilePath);
+            var itemId = hierarchy.TryGetItemId(info.FilePath);
             if (itemId == VSConstants.VSITEMID_NIL)
                 return;
 
@@ -327,7 +304,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async Task NotifyCpsProjectSystemAsync(
-            Project project,
             IProjectItemDesignerTypeUpdateService updateService,
             IEnumerable<DesignerInfo> attributeInfos,
             CancellationToken cancellationToken)
@@ -341,28 +317,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             foreach (var info in attributeInfos)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(project, updateService, info, cancellationToken));
+                tasks.Add(NotifyCpsProjectSystemAsync(updateService, info, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task NotifyCpsProjectSystemAsync(
-            Project project,
             IProjectItemDesignerTypeUpdateService updateService,
             DesignerInfo info,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Make sure we still know about this document that the OOP service is notifying us about.
-            var document = project.GetDocument(info.DocumentId);
-            if (document == null)
-                return;
-
             try
             {
-                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, info.Category).ConfigureAwait(false);
+                await updateService.SetProjectItemDesignerTypeAsync(info.FilePath, info.Category).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -373,9 +343,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async Task<IProjectItemDesignerTypeUpdateService?> GetUpdateServiceIfCpsProjectAsync(
-            Project project, CancellationToken cancellationToken)
+            ProjectId projectId, CancellationToken cancellationToken)
         {
-            var projectId = project.Id;
             if (!_cpsProjects.TryGetValue(projectId, out var updateService))
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
@@ -390,10 +359,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             IProjectItemDesignerTypeUpdateService? ComputeUpdateService()
             {
-                if (!_workspace.IsCPSProject(project))
+                if (!_workspace.IsCPSProject(projectId))
                     return null;
 
-                var vsProject = (IVsProject?)_workspace.GetHierarchy(project.Id);
+                var vsProject = (IVsProject?)_workspace.GetHierarchy(projectId);
                 if (vsProject == null)
                     return null;
 

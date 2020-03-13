@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
+                // If we don't have a path for this document, we cant proceed with it.
+                // We need that path to inform the project system which file we're referring to.
+                if (document.FilePath == null)
+                    return default;
+
                 // First check and see if we have stored information for this doc and if that
                 // information is up to date.
                 using var stream = await _storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
@@ -173,6 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     Category = category,
                     DocumentId = document.Id,
+                    FilePath = document.FilePath,
                 };
 
                 return (document, info, changed: category != persisted.category);
