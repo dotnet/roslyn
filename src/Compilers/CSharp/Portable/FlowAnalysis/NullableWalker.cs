@@ -771,6 +771,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        /// <summary>
+        /// Analyzes a set of bound nodes, recording updated nullability information, and returns an
+        /// updated BoundNode with the information populated..
+        /// </summary>
+        /// <param name="avoidRewrite">
+        /// Forces the walk to not rewrite the tree. This is only used for debug scenarios.
+        /// </param>
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
             Symbol symbol,
@@ -779,8 +786,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out SnapshotManager? snapshotManager,
-            ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
+            ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols,
+            bool avoidRewrite)
         {
+            // If we're avoiding a rewrite, then we must be in debug mode, and semantic analysis must be globally disabled.
+#if DEBUG
+            Debug.Assert(avoidRewrite != compilation.NullableSemanticAnalysisEnabled);
+#else
+            if (avoidRewrite) throw ExceptionUtilities.Unreachable;
+#endif
+
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
@@ -809,6 +824,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.NullableSemanticAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
+            }
+
+            if (avoidRewrite)
+            {
+                return node;
             }
 #endif
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);

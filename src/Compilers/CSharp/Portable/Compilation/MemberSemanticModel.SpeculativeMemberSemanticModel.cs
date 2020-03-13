@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics,
                 bool createSnapshots,
                 out NullableWalker.SnapshotManager snapshotManager,
-                ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
+                ref ImmutableDictionary<Symbol, Symbol> remappedSymbols,
+                bool avoidRewrite)
             {
                 Debug.Assert(boundRoot.Syntax is TypeSyntax);
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols, avoidRewrite);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
