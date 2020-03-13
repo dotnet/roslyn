@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteDesignerAttributeService : ServiceBase, IRemoteDesignerAttributeService
+    internal sealed class RemoteDesignerAttributeService : ServiceBase, IRemoteDesignerAttributeService
     {
         public RemoteDesignerAttributeService(
             Stream stream, IServiceProvider serviceProvider)
