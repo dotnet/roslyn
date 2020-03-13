@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -47,37 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// </summary>
         private KeepAliveSession? _keepAliveSession;
 
-        // We'll get notifications from the OOP server about new attribute arguments. Batch those
-        // notifications up and deliver them to VS every second.
-        #region protected by lock
-
-        /// <summary>
-        /// Lock we will use to ensure the remainder of these fields can be accessed in a threadsafe
-        /// manner.  When OOP calls back into us, we'll place the data it produced into
-        /// <see cref="_updatedInfos"/>.  We'll then kick of a task to process this in the future if
-        /// we don't already have an existing task in flight for that.
-        /// </summary>
-        private readonly object _gate = new object();
-
-        /// <summary>
-        /// Data produced by OOP that we want to process in our next update task.
-        /// </summary>
-        private readonly List<ProjectTelemetryInfo> _updatedInfos = new List<ProjectTelemetryInfo>();
-
-        /// <summary>
-        /// Task kicked off to do the next batch of processing of <see cref="_updatedInfos"/>. These
-        /// tasks form a chain so that the next task only processes when the previous one completes.
-        /// </summary>
-        private Task _updateTask = Task.CompletedTask;
-
-        /// <summary>
-        /// Whether or not there is an existing task in flight that will process the current batch
-        /// of <see cref="_updatedInfos"/>.  If there is an existing in flight task, we don't need 
-        /// to kick off a new one if we receive more notifications before it runs.
-        /// </summary>
-        private bool _taskInFlight = false;
-
-        #endregion
+        private AsyncBatchingWorkQueue<ProjectTelemetryInfo>? _workQueue;
 
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
@@ -106,6 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
+            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryInfo>(
+                TimeSpan.FromSeconds(1),
+                NotifyTelemetryServiceAsync,
+                cancellationToken);
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
@@ -129,41 +105,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task RegisterProjectTelemetryInfoAsync(
-            ProjectTelemetryInfo info, CancellationToken cancellationToken)
+        public Task RegisterProjectTelemetryInfoAsync(ProjectTelemetryInfo info, CancellationToken cancellationToken)
         {
-            lock (_gate)
-            {
-                // add our work to the set we'll process in the next batch.
-                _updatedInfos.Add(info);
-
-                if (!_taskInFlight)
-                {
-                    // No in-flight task.  Kick one off to process these messages a second from now.
-                    // We always attach the task to the previous one so that notifications to the ui
-                    // follow the same order as the notification the OOP server sent to us.
-                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                        _ => NotifyTelemetryServiceAsync(cancellationToken),
-                        cancellationToken,
-                        1000/*ms*/,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default);
-                    _taskInFlight = true;
-                }
-            }
-
+            _workQueue!.AddWork(info);
             return Task.CompletedTask;
         }
 
-        private async Task NotifyTelemetryServiceAsync(CancellationToken cancellationToken)
+        private async Task NotifyTelemetryServiceAsync(
+            ImmutableArray<ProjectTelemetryInfo> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var telemetryInfos);
-            AddInfosAndResetQueue(telemetryInfos);
+            using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var filteredInfos);
+            using var _2 = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var info in telemetryInfos)
+            for (var i = infos.Length - 1; i >= 0; i--)
+            {
+                var info = infos[i];
+                if (seenProjectIds.Add(info.ProjectId))
+                    filteredInfos.Add(info);
+            }
+
+            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var info in filteredInfos)
                 tasks.Add(Task.Run(() => NotifyTelemetryService(info), cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -200,30 +164,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 catch
                 {
                 }
-            }
-        }
-
-        private void AddInfosAndResetQueue(ArrayBuilder<ProjectTelemetryInfo> attributeInfos)
-        {
-            using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
-
-            lock (_gate)
-            {
-                // walk the set of updates in reverse, and ignore projects if we see them a second
-                // time.  This ensures that if we're batching up multiple notifications for the same
-                // project, that we only bother processing the last one since it should beat out all
-                // the prior ones.
-                for (var i = _updatedInfos.Count - 1; i >= 0; i--)
-                {
-                    var info = _updatedInfos[i];
-                    if (seenProjectIds.Add(info.ProjectId))
-                        attributeInfos.Add(info);
-                }
-
-                // mark there being no existing update task so that the next OOP notification will
-                // kick one off.
-                _updatedInfos.Clear();
-                _taskInFlight = false;
             }
         }
     }
