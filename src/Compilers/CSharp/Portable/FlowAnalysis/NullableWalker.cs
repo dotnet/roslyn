@@ -3767,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool anyOverriddenMethodHasExplicitImplementation(MethodSymbol method)
             {
-                for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = method.OverriddenMethod)
+                for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
                 {
                     if (overriddenMethod.IsExplicitInterfaceImplementation)
                     {
