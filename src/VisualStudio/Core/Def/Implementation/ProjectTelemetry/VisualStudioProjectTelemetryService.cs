@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         private const string TelemetryAdditionalDocumentsCountName = PropertyPrefix + "AdditionalDocuments.Count";
 
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IThreadingContext _threadingContext;
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -80,13 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
         #endregion
 
-        public VisualStudioProjectTelemetryService(
-            VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext)
-            : base(threadingContext)
-        {
-            _workspace = workspace;
-        }
+        public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
+            => _workspace = workspace;
 
         void IProjectTelemetryService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);

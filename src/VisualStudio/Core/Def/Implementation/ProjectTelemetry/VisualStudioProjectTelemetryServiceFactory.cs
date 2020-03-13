@@ -18,11 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectTelemetryServiceFactory(
-            IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+        public VisualStudioProjectTelemetryServiceFactory(IThreadingContext threadingContext)
+            => _threadingContext = threadingContext;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
