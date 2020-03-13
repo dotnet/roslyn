@@ -4,9 +4,18 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeStyle
-imports Microsoft.CodeAnalysis.Options
 
+#If CODE_STYLE Then
+imports Microsoft.CodeAnalysis.Internal.Options
+#Else
+Imports Microsoft.CodeAnalysis.Options
+#End If
+
+#If CODE_STYLE Then
+Namespace Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
+#Else
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+#End If
     Friend NotInheritable Class VisualBasicCodeStyleOptions
         Private Shared ReadOnly s_allOptionsBuilder As ImmutableArray(Of IOption).Builder = ImmutableArray.CreateBuilder(Of IOption)
 
