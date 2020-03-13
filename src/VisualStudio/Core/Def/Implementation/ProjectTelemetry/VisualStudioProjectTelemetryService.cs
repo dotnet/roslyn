@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// </summary>
         private KeepAliveSession? _keepAliveSession;
 
+        /// <summary>
+        /// Queue where we enqueue the information we get from OOP to process in batch in the future.
+        /// </summary>
         private AsyncBatchingWorkQueue<ProjectTelemetryInfo>? _workQueue;
 
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
