@@ -122,12 +122,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
+            var isGeneric = SymbolCompletionItem.GetSymbolIsGeneric(item);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
             var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = symbols.WhereAsArray(
+                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
+
                 if (bestSymbols.Any())
                 {
                     return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);

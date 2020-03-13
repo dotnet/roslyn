@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         protected override bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken syntaxToken)
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionSet, out syntaxToken);
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {

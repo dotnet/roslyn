@@ -5,14 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -22,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, string language)
-                : base(optionSet, language)
+            public FormattedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, string language)
+                : base(options, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.OptionSet.GetOption(FormattingOptions.NewLine, language));
+                _newString = CreateString(this.Options.GetOption(FormattingOptions.NewLine));
             }
 
             private string CreateString(string newLine)
@@ -41,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language));
+                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions.UseTabs), this.Options.GetOption(FormattingOptions.TabSize));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 

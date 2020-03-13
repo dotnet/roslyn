@@ -950,16 +950,25 @@ namespace Microsoft.CodeAnalysis
                     _lazyLatestDocumentTopLevelChangeVersion;
         }
 
-        private sealed class DocumentIdComparer : IComparer<DocumentId>
+        private sealed class DocumentIdComparer : IComparer<DocumentId?>
         {
-            public static IComparer<DocumentId> Instance = new DocumentIdComparer();
+            public static readonly IComparer<DocumentId?> Instance = new DocumentIdComparer();
 
             private DocumentIdComparer()
             {
             }
 
-            public int Compare(DocumentId x, DocumentId y)
+            public int Compare(DocumentId? x, DocumentId? y)
             {
+                if (x is null)
+                {
+                    return y is null ? 0 : -1;
+                }
+                else if (y is null)
+                {
+                    return 1;
+                }
+
                 return x.Id.CompareTo(y.Id);
             }
         }

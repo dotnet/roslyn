@@ -117,8 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EmptyResource" xml:space="preserve">
-    <value>Remove this value when another is added.</value>
-    <comment>https://github.com/Microsoft/msbuild/issues/1661</comment>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
+  <data name="Use_switch_expression" xml:space="preserve">
+    <value>Use 'switch' expression</value>
+  </data>
+  <data name="Use_explicit_type_instead_of_var" xml:space="preserve">
+    <value>Use explicit type instead of 'var'</value>
+  </data>
+  <data name="Use_explicit_type" xml:space="preserve">
+    <value>Use explicit type</value>
+  </data>
+  <data name="use_var_instead_of_explicit_type" xml:space="preserve">
+    <value>use 'var' instead of explicit type</value>
+  </data>
+  <data name="Use_implicit_type" xml:space="preserve">
+    <value>Use implicit type</value>
+  </data>
+  <data name="Using_directive_is_unnecessary" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
+  <data name="Add_braces" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
+  <data name="Add_braces_to_0_statement" xml:space="preserve">
+    <value>Add braces to '{0}' statement.</value>
   </data>
 </root>

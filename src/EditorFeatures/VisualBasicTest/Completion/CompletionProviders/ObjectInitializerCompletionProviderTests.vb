@@ -459,11 +459,11 @@ End Program</Document>
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(text)
+            Using workspace = TestWorkspace.Create(text, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, RoslynCompletion.CompletionTrigger.Invoke)
                 Assert.True(completionList Is Nothing OrElse completionList.GetTestAccessor().IsExclusive, "Expected always exclusive")
             End Using
@@ -511,8 +511,8 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "New")
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New ObjectInitializerCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(ObjectInitializerCompletionProvider)
         End Function
     End Class
 End Namespace

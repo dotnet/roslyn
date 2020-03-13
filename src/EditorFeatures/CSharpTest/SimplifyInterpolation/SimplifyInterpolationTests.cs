@@ -688,5 +688,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     }
 }");
         }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task OnConstantAlignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
+    }
+}",
+
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str,-maxLength}"");
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task MissingOnNonConstantAlignment()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        var maxLength = strings.Max(str => str.Length);
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
+    }
+}");
+        }
     }
 }

@@ -274,29 +274,23 @@ namespace Microsoft.CodeAnalysis.Formatting
                 switch (operation.Option)
                 {
                     case AlignTokensOption.AlignIndentationOfTokensToBaseToken:
+                        if (!ApplyAlignment(operation.BaseToken, operation.Tokens, previousChangesMap, out tokenData, cancellationToken))
                         {
-                            if (!ApplyAlignment(operation.BaseToken, operation.Tokens, previousChangesMap, out tokenData, cancellationToken))
-                            {
-                                return false;
-                            }
-
-                            break;
+                            return false;
                         }
+
+                        break;
 
                     case AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine:
+                        if (!ApplyAlignment(_context.TokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken), operation.Tokens, previousChangesMap, out tokenData, cancellationToken))
                         {
-                            if (!ApplyAlignment(_context.TokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken), operation.Tokens, previousChangesMap, out tokenData, cancellationToken))
-                            {
-                                return false;
-                            }
-
-                            break;
+                            return false;
                         }
+
+                        break;
 
                     default:
-                        {
-                            return Contract.FailWithReturn<bool>("Unknown option");
-                        }
+                        throw ExceptionUtilities.UnexpectedValue(operation.Option);
                 }
 
                 ApplyIndentationChangesToDependentTokens(tokenData, previousChangesMap, cancellationToken);

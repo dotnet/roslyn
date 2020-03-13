@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -50,9 +53,9 @@ namespace Microsoft.CodeAnalysis
                 return new EnumeratorImpl(in _list);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                return obj is Reversed && Equals((Reversed)obj);
+                return obj is Reversed r && Equals(r);
             }
 
             public bool Equals(Reversed other)
@@ -69,13 +72,13 @@ namespace Microsoft.CodeAnalysis
             [StructLayout(LayoutKind.Auto)]
             public struct Enumerator
             {
-                private readonly SyntaxNode _parent;
-                private readonly GreenNode _singleNodeOrList;
+                private readonly SyntaxNode? _parent;
+                private readonly GreenNode? _singleNodeOrList;
                 private readonly int _baseIndex;
                 private readonly int _count;
 
                 private int _index;
-                private GreenNode _current;
+                private GreenNode? _current;
                 private int _position;
 
                 internal Enumerator(in SyntaxTokenList list)
@@ -106,7 +109,9 @@ namespace Microsoft.CodeAnalysis
 
                     _index--;
 
+                    Debug.Assert(_singleNodeOrList is object);
                     _current = GetGreenNodeAt(_singleNodeOrList, _index);
+                    Debug.Assert(_current is object);
                     _position -= _current.FullWidth;
 
                     return true;
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     throw new NotSupportedException();
                 }

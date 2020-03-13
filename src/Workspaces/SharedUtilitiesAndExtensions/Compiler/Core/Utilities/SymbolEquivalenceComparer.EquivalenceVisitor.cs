@@ -378,9 +378,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         return false;
                     }
 
+                    var tupleNamesMustMatch = _symbolEquivalenceComparer._tupleNamesMustMatch;
+
                     for (var i = 0; i < xElements.Length; i++)
                     {
-                        if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
+                        var xElement = xElements[i];
+                        var yElement = yElements[i];
+                        if (tupleNamesMustMatch &&
+                            xElement.Name != yElement.Name)
+                        {
+                            return false;
+                        }
+
+                        if (!AreEquivalent(xElement.Type, yElement.Type, equivalentTypesWithDifferingAssemblies))
                         {
                             return false;
                         }

@@ -366,39 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return simpleArgument IsNot Nothing AndAlso simpleArgument.NameColonEquals.Name Is expression
         End Function
 
-        Private Function IsUnnecessaryCast(
-            castNode As ExpressionSyntax,
-            castExpressionNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            assumeCallKeyword As Boolean,
-            cancellationToken As CancellationToken
-        ) As Boolean
-
-            Return CastAnalyzer.IsUnnecessary(castNode, castExpressionNode, semanticModel, assumeCallKeyword, cancellationToken)
-        End Function
-
-        <Extension>
-        Public Function IsUnnecessaryCast(
-            node As CastExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
-            Optional assumeCallKeyword As Boolean = False
-        ) As Boolean
-
-            Return IsUnnecessaryCast(node, node.Expression, semanticModel, assumeCallKeyword, cancellationToken)
-        End Function
-
-        <Extension>
-        Public Function IsUnnecessaryCast(
-            node As PredefinedCastExpressionSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
-            Optional assumeCallKeyword As Boolean = False
-        ) As Boolean
-
-            Return IsUnnecessaryCast(node, node.Expression, semanticModel, assumeCallKeyword, cancellationToken)
-        End Function
-
         Private Function CanReplace(symbol As ISymbol) As Boolean
             Select Case symbol.Kind
                 Case SymbolKind.Field,

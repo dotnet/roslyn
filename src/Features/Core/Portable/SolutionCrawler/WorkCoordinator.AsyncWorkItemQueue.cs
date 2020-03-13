@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return pair.Key;
                     }
 
-                    return Contract.FailWithReturn<ProjectId>("Shouldn't reach here");
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

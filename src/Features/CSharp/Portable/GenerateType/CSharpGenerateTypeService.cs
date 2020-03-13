@@ -324,10 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                             {
                                 return true;
                             }
-                            else
-                            {
-                                Contract.Fail("Cannot reach this point");
-                            }
+
+                            throw ExceptionUtilities.Unreachable;
                         }
                         else
                         {
@@ -762,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    Contract.Fail("Cannot reach this point");
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&

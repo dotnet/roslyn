@@ -643,9 +643,6 @@ Do you want to continue?</value>
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
   </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
   <data name="Simplify_Names" xml:space="preserve">
     <value>Simplify Names</value>
   </data>
@@ -690,6 +687,12 @@ Do you want to continue?</value>
   </data>
   <data name="Configure_0_code_style" xml:space="preserve">
     <value>Configure {0} code style</value>
+  </data>
+  <data name="Configure_severity_for_all_0_analyzers" xml:space="preserve">
+    <value>Configure severity for all '{0}' analyzers</value>
+  </data>
+  <data name="Configure_severity_for_all_analyzers" xml:space="preserve">
+    <value>Configure severity for all analyzers</value>
   </data>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
@@ -861,19 +864,6 @@ Do you want to continue?</value>
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous</value>
   </data>
-  <data name="Add_this_or_Me_qualification" xml:space="preserve">
-    <value>Add 'this' or 'Me' qualification.</value>
-  </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
-  </data>
-  <data name="Naming_rule_violation_0" xml:space="preserve">
-    <value>Naming rule violation: {0}</value>
-    <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
-  </data>
-  <data name="Naming_Styles" xml:space="preserve">
-    <value>Naming Styles</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -947,20 +937,8 @@ This version used in: {2}</value>
   <data name="Parameters_colon" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="Add_missing_cases" xml:space="preserve">
-    <value>Add missing cases</value>
-  </data>
-  <data name="Add_both" xml:space="preserve">
-    <value>Add both</value>
-  </data>
-  <data name="Add_default_case" xml:space="preserve">
-    <value>Add default case</value>
-  </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
-  </data>
-  <data name="Add_braces" xml:space="preserve">
-    <value>Add braces</value>
   </data>
   <data name="Replace_0_with_method" xml:space="preserve">
     <value>Replace '{0}' with method</value>
@@ -1012,9 +990,6 @@ This version used in: {2}</value>
   </data>
   <data name="Object_initialization_can_be_simplified" xml:space="preserve">
     <value>Object initialization can be simplified</value>
-  </data>
-  <data name="Use_throw_expression" xml:space="preserve">
-    <value>Use 'throw' expression</value>
   </data>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
@@ -1102,9 +1077,6 @@ This version used in: {2}</value>
   </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
-  </data>
-  <data name="Null_check_can_be_simplified" xml:space="preserve">
-    <value>Null check can be simplified</value>
   </data>
   <data name="Simplify_collection_initialization" xml:space="preserve">
     <value>Simplify collection initialization</value>
@@ -1292,9 +1264,6 @@ This version used in: {2}</value>
   <data name="Remove_unnecessary_parentheses" xml:space="preserve">
     <value>Remove unnecessary parentheses</value>
   </data>
-  <data name="Add_file_banner" xml:space="preserve">
-    <value>Add file banner</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
   </data>
@@ -1387,27 +1356,6 @@ This version used in: {2}</value>
   </data>
   <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Remove_unused_member" xml:space="preserve">
-    <value>Remove unused member</value>
-  </data>
-  <data name="Private_member_0_is_unused" xml:space="preserve">
-    <value>Private member '{0}' is unused.</value>
-  </data>
-  <data name="Remove_unused_private_members" xml:space="preserve">
-    <value>Remove unused private members</value>
-  </data>
-  <data name="Remove_unread_private_members" xml:space="preserve">
-    <value>Remove unread private members</value>
-  </data>
-  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
-    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
-  </data>
-  <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
-    <value>Private method '{0}' can be removed as it is never invoked.</value>
-  </data>
-  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
-    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
@@ -1572,10 +1520,10 @@ This version used in: {2}</value>
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
   </data>
   <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</value>
   </data>
   <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Parameter '{0}' can be removed, its initial value is never used</value>
+    <value>Parameter '{0}' can be removed; its initial value is never used</value>
   </data>
   <data name="Merge_with_nested_0_statement" xml:space="preserve">
     <value>Merge with nested '{0}' statement</value>
@@ -1755,5 +1703,15 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
+  </data>
+  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Resolve_conflict_markers" xml:space="preserve">
+    <value>Resolve conflict markers</value>
+  </data>
+  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
+    <value>Base classes contain inaccessible unimplemented members</value>
   </data>
 </root>

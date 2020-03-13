@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new LoadDirectiveCompletionProvider();
+            return typeof(LoadDirectiveCompletionProvider);
         }
 
         protected override IEqualityComparer<string> GetStringComparer()
@@ -48,26 +48,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\' };
-            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters);
+            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        public void IsTextualTriggerCharacterTest()
+        [Theory]
+        [InlineData("#load \"$$/")]
+        [InlineData("#load \"$$\\")]
+        [InlineData("#load \"$$,")]
+        [InlineData("#load \"$$A")]
+        [InlineData("#load \"$$!")]
+        [InlineData("#load \"$$(")]
+        public void IsTextualTriggerCharacterTest(string markup)
         {
-            var validMarkupList = new[]
-            {
-                "#load \"$$/",
-                "#load \"$$\\",
-                "#load \"$$,",
-                "#load \"$$A",
-                "#load \"$$!",
-                "#load \"$$(",
-            };
-
-            foreach (var markup in validMarkupList)
-            {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            }
+            VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
         }
     }
 }

@@ -6,7 +6,11 @@
 
 using System;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     /// <summary>
     /// Specifies that the option should be stored into a roamed profile across machines.

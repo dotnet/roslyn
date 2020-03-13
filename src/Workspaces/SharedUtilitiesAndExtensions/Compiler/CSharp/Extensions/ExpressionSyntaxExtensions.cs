@@ -173,15 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAnyLiteralExpression(this ExpressionSyntax expression)
-        {
-            return
-                expression.IsKind(SyntaxKind.CharacterLiteralExpression) ||
-                expression.IsKind(SyntaxKind.FalseLiteralExpression) ||
-                expression.IsKind(SyntaxKind.NullLiteralExpression) ||
-                expression.IsKind(SyntaxKind.NumericLiteralExpression) ||
-                expression.IsKind(SyntaxKind.StringLiteralExpression) ||
-                expression.IsKind(SyntaxKind.TrueLiteralExpression);
-        }
+            => expression is LiteralExpressionSyntax;
 
         public static bool IsInConstantContext(this ExpressionSyntax expression)
         {
