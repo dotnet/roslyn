@@ -693,14 +693,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
-            Debug.Assert(factory.TopLevelMethod is { });
             Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
+            Debug.Assert(factory.TopLevelMethod is { });
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
 
-            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
+            var synthesizedContainer =
+#nullable disable
+                new DynamicSiteContainer(name: containerName, topLevelMethod: factory.TopLevelMethod);
+#nullable enable
             factory.AddNestedType(synthesizedContainer);
 
             if (factory.TopLevelMethod.IsGenericMethod)
