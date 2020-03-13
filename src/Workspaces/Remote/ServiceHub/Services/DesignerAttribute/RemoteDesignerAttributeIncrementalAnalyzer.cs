@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _endPoint = endPoint;
 
-            var storageService = _workspace.Services.GetRequiredService<IPersistentStorageService>();
+            var storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
             _storage = storageService.GetStorage(workspace.CurrentSolution);
         }
 
