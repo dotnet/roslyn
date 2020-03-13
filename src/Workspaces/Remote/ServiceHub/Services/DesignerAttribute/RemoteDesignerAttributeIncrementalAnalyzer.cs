@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class RemoteDesignerAttributeIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal sealed partial class RemoteDesignerAttributeIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private const string DataKey = "DesignerAttributeData";
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var memoryStream = new MemoryStream();
                 using var writer = new ObjectWriter(memoryStream);
 
-                info.Value.WriteTo(writer, projectVersion);
+                PersistInfoTo(writer, info.Value, projectVersion);
 
                 memoryStream.Position = 0;
                 await _storage.WriteStreamAsync(
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // information is up to date.
             using var stream = await _storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
-            var persisted = DesignerInfo.TryRead(reader);
+            var persisted = TryReadPersistedInfo(reader);
             if (persisted.category != null && persisted.projectVersion == projectVersion)
             {
                 // We were able to read out the old data, and it matches our current project
