@@ -166,7 +166,7 @@ stages:
                   /p:VisualStudioDropName=$(VisualStudio.DropName)
                   /p:BootstrapperInfoPath=$(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
       displayName: 'OptProf - Build IBC training settings'
-      condition: succeeded()
+      condition: false
 
     # Publish bootstrapper info
     - task: PublishBuildArtifacts@1
@@ -175,7 +175,7 @@ stages:
         ArtifactName: MicroBuildOutputs
         ArtifactType: Container
       displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
-      condition: succeeded()
+      condition: false
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
