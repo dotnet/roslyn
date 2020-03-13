@@ -166,16 +166,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
-                mutablePotentialConversionTypes.Concat(GetPotentialConversionTypes(semanticModel, root, targetNodeType,
+                mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root, targetNodeType,
                     targetArgument, argumentList, invocationNode, cancellationToken));
             }
 
             // clear up duplicate types
             potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, targetNode, targetNodeType,
-                mutablePotentialConversionTypes).Distinct().ToImmutableArray();
+                mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
 
-            static ArrayBuilder<ITypeSymbol> GetPotentialConversionTypes(
+            static ITypeSymbol[] GetPotentialConversionTypes(
                 SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, ArgumentSyntax targetArgument,
                 ArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
             {
@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 // operations are in order and user can choose least specific types(more accurate)
                 mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
 
-                return mutablePotentialConversionTypes;
+                return mutablePotentialConversionTypes.ToArray();
             }
 
-            static ArrayBuilder<ITypeSymbol> FilterValidPotentialConversionTypes(
+            static ImmutableArray<ITypeSymbol> FilterValidPotentialConversionTypes(
                 SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol targetNodeType,
                 ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
             {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                         validPotentialConversionTypes.Add(targetNodeConversionType);
                     }
                 }
-                return validPotentialConversionTypes;
+                return validPotentialConversionTypes.Distinct().ToImmutableArray();
             }
         }
 
