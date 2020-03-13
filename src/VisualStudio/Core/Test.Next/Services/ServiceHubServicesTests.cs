@@ -189,7 +189,7 @@ class Test { }");
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            var callback = new DesignerCallback();
+            var callback = new DesignerListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             var session = await client.TryCreateKeepAliveSessionAsync(
@@ -215,7 +215,7 @@ class Test { }");
             await invokeTask;
         }
 
-        private class DesignerCallback : IDesignerAttributeServiceCallback
+        private class DesignerListener : IDesignerAttributeListener
         {
             private readonly TaskCompletionSource<IList<DesignerInfo>> _infosSource = new TaskCompletionSource<IList<DesignerInfo>>();
             public Task<IList<DesignerInfo>> Infos => _infosSource.Task;
