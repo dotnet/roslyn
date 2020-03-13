@@ -81,15 +81,7 @@ class Test { }", "Form");
 
         private static async Task TestAsync(string codeWithMarker, string category)
         {
-            await TestAsync(codeWithMarker, category, remote: false);
-            await TestAsync(codeWithMarker, category, remote: true);
-        }
-
-        private static async Task TestAsync(string codeWithMarker, string category, bool remote)
-        {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)));
 
             var hostDocument = workspace.Documents.First();
             var documentId = hostDocument.Id;
