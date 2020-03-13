@@ -8351,7 +8351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = _delegateInvokeMethod ?? (MethodSymbol)CurrentSymbol;
+            var method = (MethodSymbol)CurrentSymbol;
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
                 method.ReturnType, errorLocation: null, diagnostics: null);
 
