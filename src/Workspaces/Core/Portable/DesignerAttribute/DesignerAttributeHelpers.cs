@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 // if it has designer attribute, set it
                 var attribute = type.GetAttributes().FirstOrDefault(d => designerCategoryType.Equals(d.AttributeClass));
-                if (attribute != null && attribute.ConstructorArguments.Length == 1)
-                {
+                if (attribute?.ConstructorArguments.Length == 1)
                     return GetArgumentString(attribute.ConstructorArguments[0]);
-                }
             }
 
             return null;
