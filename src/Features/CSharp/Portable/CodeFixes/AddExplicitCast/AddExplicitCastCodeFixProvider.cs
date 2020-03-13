@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     // Foo([|out var i|]);
                     // "var i" is a declaration expression
                     // 
-                    // In addition, this case is with keyword "out", and the type of declaration expression and the
+                    // In addition, since this case is with keyword "out", the type of declaration expression and the
                     // parameter type must be identical in order to match.
                     newArguments.Add(arguments[i]);
                 }
