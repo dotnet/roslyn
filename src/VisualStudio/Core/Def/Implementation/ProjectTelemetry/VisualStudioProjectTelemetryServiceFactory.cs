@@ -15,16 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
     internal class VisualStudioProjectTelemetryServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectTelemetryServiceFactory(
-            IThreadingContext threadingContext,
-            Shell.SVsServiceProvider serviceProvider)
+            IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
-            _serviceProvider = serviceProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -32,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             if (!(workspaceServices.Workspace is VisualStudioWorkspaceImpl workspace))
                 return null;
 
-            return new VisualStudioProjectTelemetryService(
-                workspace, _threadingContext, _serviceProvider);
+            return new VisualStudioProjectTelemetryService(workspace, _threadingContext);
         }
     }
 }
