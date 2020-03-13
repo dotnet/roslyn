@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ICompilationFactoryService), LanguageNames.VisualBasic), [Shared]>
@@ -44,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetDefaultCompilationOptions() As CompilationOptions Implements ICompilationFactoryService.GetDefaultCompilationOptions
             Return s_defaultOptions
+        End Function
+
+        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return Nothing
         End Function
     End Class
 End Namespace

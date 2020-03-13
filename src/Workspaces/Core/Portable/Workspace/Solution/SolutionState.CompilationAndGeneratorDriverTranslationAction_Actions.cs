@@ -2,18 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
-        private abstract partial class CompilationTranslationAction
+        private abstract partial class CompilationAndGeneratorDriverTranslationAction
         {
-            internal sealed class TouchDocumentAction : CompilationTranslationAction
+            internal sealed class TouchDocumentAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly DocumentState _oldState;
                 private readonly DocumentState _newState;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 public DocumentId DocumentId => _newState.Attributes.Id;
             }
 
-            internal sealed class RemoveDocumentsAction : CompilationTranslationAction
+            internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ImmutableArray<DocumentState> _documents;
 
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class AddDocumentsAction : CompilationTranslationAction
+            internal sealed class AddDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ImmutableArray<DocumentState> _documents;
 
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ReplaceAllSyntaxTreesAction : CompilationTranslationAction
+            internal sealed class ReplaceAllSyntaxTreesAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ProjectState _state;
 
@@ -99,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectCompilationOptionsAction : CompilationTranslationAction
+            internal sealed class ProjectCompilationOptionsAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly CompilationOptions _options;
 
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectAssemblyNameAction : CompilationTranslationAction
+            internal sealed class ProjectAssemblyNameAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly string _assemblyName;
 
@@ -126,6 +130,74 @@ namespace Microsoft.CodeAnalysis
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
                     return Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
+                }
+            }
+
+            internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+
+                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                {
+                    _analyzerReferences = analyzerReferences;
+                }
+
+                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
+                {
+                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                    return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.AddGenerators(generators));
+                }
+            }
+
+            internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+
+                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                {
+                    _analyzerReferences = analyzerReferences;
+                }
+
+                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
+                {
+                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                    return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.RemoveGenerators(generators));
+                }
+            }
+
+            internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+
+                public AddAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                {
+                    _additionalDocuments = additionalDocuments;
+                }
+
+                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
+                {
+                    // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
+                    // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
+                    // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileAddedEdit(new AdditionalTextWithState(a))));
+                    return new TrackedGeneratorDriver(generatorDriver: null);
+                }
+            }
+
+            internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
+            {
+                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+
+                public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                {
+                    _additionalDocuments = additionalDocuments;
+                }
+
+                public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
+                {
+                    // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been removed
+                    // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
+                    // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileRemovedEdit(...)));
+                    return new TrackedGeneratorDriver(generatorDriver: null);
                 }
             }
         }

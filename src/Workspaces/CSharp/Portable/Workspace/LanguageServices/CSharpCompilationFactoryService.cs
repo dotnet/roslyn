@@ -5,10 +5,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -41,6 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
         {
             return s_defaultOptions;
+        }
+
+        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+        {
+            // PROTOTYPE: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return null;
+            }
+            return new CSharpGeneratorDriver(parseOptions, generators, additionalTexts);
         }
     }
 }
