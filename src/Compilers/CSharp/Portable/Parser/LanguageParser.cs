@@ -7063,14 +7063,12 @@ done:;
 
             if (IsDeclarationModifier(tk)) // treat `const int x = 2;` as a local variable declaration
             {
-                if (tk != SyntaxKind.StaticKeyword) // For `static` we still need to make sure we have a typed dentifier after it, because `using static type;` is a valid using directive.
+                if (tk != SyntaxKind.StaticKeyword) // For `static` we still need to make sure we have a typed identifier after it, because `using static type;` is a valid using directive.
                 {
                     return true;
                 }
             }
-            else if ((SyntaxFacts.IsPredefinedType(tk) &&
-                        this.PeekToken(1).Kind != SyntaxKind.DotToken && // e.g. `int.Parse()` is an expression
-                        this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) // e.g. `int (x, y)` is an error decl expression
+            else if (SyntaxFacts.IsPredefinedType(tk))
             {
                 return true;
             }
