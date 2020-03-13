@@ -198,7 +198,7 @@ class Test { }");
                 cancellationTokenSource.Token);
 
             var invokeTask = session.TryInvokeAsync(
-                nameof(IRemoteDesignerAttributeService.ScanForDesignerAttributesAsync),
+                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationTokenSource.Token);
