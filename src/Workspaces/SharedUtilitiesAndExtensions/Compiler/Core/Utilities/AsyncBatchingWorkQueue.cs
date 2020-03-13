@@ -80,6 +80,10 @@ namespace Roslyn.Utilities
 
         public void AddWork(IEnumerable<TItem> items)
         {
+            // Don't do any more work if we've been asked to shutdown.
+            if (_cancellationToken.IsCancellationRequested)
+                return;
+
             lock (_gate)
             {
                 // add our work to the set we'll process in the next batch.
