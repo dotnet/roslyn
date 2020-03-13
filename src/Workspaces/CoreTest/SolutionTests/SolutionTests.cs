@@ -34,6 +34,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class SolutionTests : TestBase
     {
 #nullable enable
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveDocument_Errors()
         {
             var solution = CreateSolution();
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(s_unrelatedDocumentId));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveDocuments_Errors()
         {
             var solution = CreateSolution();
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveAdditionalDocument_Errors()
         {
             var solution = CreateSolution();
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(s_unrelatedDocumentId));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveAdditionalDocuments_Errors()
         {
             var solution = CreateSolution();
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveAnalyzerConfigDocument_Errors()
         {
             var solution = CreateSolution();
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(s_unrelatedDocumentId));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveAnalyzerConfigDocuments_Errors()
         {
             var solution = CreateSolution();
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentName()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(s_unrelatedDocumentId, name));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentFolders()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentFilePath()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_unrelatedDocumentId, path));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithSourceCodeKind()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), Obsolete]
+        [Fact, Obsolete]
         public void WithSourceCodeKind_Obsolete()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(SourceCodeKind.Script, newSolution.GetDocument(documentId)!.SourceCodeKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentSyntaxRoot()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
         public void WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
         {
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => solution.WithDocumentSyntaxRoot(documentId, root));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentText_SourceText()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentText_TextAndVersion()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentText_MultipleDocuments()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAdditionalDocumentText_SourceText()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAdditionalDocumentText_TextAndVersion()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAnalyzerConfigDocumentText_SourceText()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -374,7 +375,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAnalyzerConfigDocumentText_TextAndVersion()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -397,7 +398,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithDocumentTextLoader()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -418,7 +419,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAdditionalDocumentTextLoader()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -439,7 +440,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void WithAnalyzerConfigDocumentTextLoader()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
 #nullable restore
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestAddProject()
         {
             var sol = CreateSolution();
@@ -472,7 +473,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(project.HasDocuments);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestUpdateAssemblyName()
         {
             var solution = CreateSolution();
@@ -483,7 +484,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("bar", project.AssemblyName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         [WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, solution.GetProjectsByName("name").Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task<Solution> TestAddFirstDocumentAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -524,7 +525,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return sol;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestAddSecondDocumentAsync()
         {
             var sol = await TestAddFirstDocumentAsync();
@@ -544,7 +545,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task AddTwoDocumentsForSingleProject()
         {
             var projectId = ProjectId.CreateNewId();
@@ -566,7 +567,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(solution);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task AddTwoDocumentsForTwoProjects()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -592,7 +593,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(solution);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void AddTwoDocumentsWithMissingProject()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -608,7 +609,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.ThrowsAny<InvalidOperationException>(() => solution.AddDocuments(ImmutableArray.Create(documentInfo1, documentInfo2)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveZeroDocuments()
         {
             var solution = CreateSolution();
@@ -616,7 +617,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(solution, solution.RemoveDocuments(ImmutableArray<DocumentId>.Empty));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task RemoveTwoDocuments()
         {
             var projectId = ProjectId.CreateNewId();
@@ -635,7 +636,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Empty((await finalProject.GetCompilationAsync()).SyntaxTrees);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveTwoDocumentsFromDifferentProjects()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -656,7 +657,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.All(solution.Projects, p => Assert.Empty(p.Documents));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void RemoveDocumentFromUnrelatedProject()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -674,21 +675,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestOneCSharpProjectAsync()
         {
             var sol = CreateSolutionWithOneCSharpProject();
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestTwoCSharpProjectsAsync()
         {
             var sol = CreateSolutionWithTwoCSharpProjects();
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestCrossLanguageProjectsAsync()
         {
             var sol = CreateCrossLanguageSolution();
@@ -785,7 +786,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
 #if false
-        [Fact(Skip = "641963"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "641963")]
         public void TestDeepProjectReferenceTree()
         {
             int projectCount = 5;
@@ -833,7 +834,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestProjectDependencyLoadingAsync()
         {
             var projectCount = 3;
@@ -844,7 +845,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await solution.GetProject(projectIds[2]).GetCompilationAsync(CancellationToken.None);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestAddMetadataReferencesAsync()
         {
             var mefReference = TestReferences.NetFx.v4_0_30319.System_Core;
@@ -882,7 +883,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestProjectDiagnosticAnalyzers()
         {
             var solution = CreateSolution();
@@ -939,7 +940,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(secondAnalyzerReference, actualAnalyzerReferences[1]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestProjectCompilationOptions()
         {
             var solution = CreateSolution();
@@ -956,7 +957,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(newCompOptions, newUpdatedCompOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestProjectParseOptions()
         {
             var solution = CreateSolution();
@@ -973,7 +974,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(newParseOptions, newUpdatedParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestRemoveProjectAsync()
         {
             var sol = CreateSolution();
@@ -991,7 +992,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestRemoveProjectWithReferencesAsync()
         {
             var sol = CreateSolution();
@@ -1016,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestRemoveProjectWithReferencesAndAddItBackAsync()
         {
             var sol = CreateSolution();
@@ -1046,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestGetSyntaxRootAsync()
         {
             var text = "public class Goo { }";
@@ -1069,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(root);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestUpdateDocumentAsync()
         {
             var projectId = ProjectId.CreateNewId();
@@ -1089,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("class Class { }", newText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestUpdateSyntaxTreeWithAnnotations()
         {
             var text = "public class Goo { }";
@@ -1126,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root2.HasAnnotation(annotation));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestUpdatingFilePathUpdatesSyntaxTree()
         {
             var projectId = ProjectId.CreateNewId();
@@ -1155,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestSyntaxRootNotKeptAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1173,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         [WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
@@ -1214,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.CurrentSolution;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetTextAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1233,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docText.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetLoadedTextAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1255,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19427"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19427")]
         public void TestGetRecoveredTextAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1278,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docText.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetSyntaxTreeAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1297,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docTree.GetRoot().ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetSyntaxTreeFromLoadedTextAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1317,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docTree.GetRoot().ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetSyntaxTreeFromAddedTree()
         {
             var pid = ProjectId.CreateNewId();
@@ -1338,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(docTree.GetAnnotatedNodes("test").Single());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public async Task TestGetSyntaxRootAsync2Async()
         {
             var pid = ProjectId.CreateNewId();
@@ -1357,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docRoot.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14954"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14954")]
         public void TestGetRecoveredSyntaxRootAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1381,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docRoot.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetCompilationAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1400,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, compilation.SyntaxTrees.Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestGetSemanticModelAsync()
         {
             var pid = ProjectId.CreateNewId();
@@ -1418,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetTextDoesNotKeepTextAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1448,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetTextAsyncDoesNotKeepTextAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1478,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetSyntaxRootDoesNotKeepRootAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1503,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetSyntaxRootAsyncDoesNotKeepRootAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1528,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13506"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13506")]
         [WorkItem(13506, "https://github.com/dotnet/roslyn/issues/13506")]
         public void TestRecoverableSyntaxTreeCSharp()
         {
@@ -1552,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestRecoverableSyntaxTreeVisualBasic()
         {
             var pid = ProjectId.CreateNewId();
@@ -1616,7 +1617,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetCompilationAsyncDoesNotKeepCompilationAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1640,7 +1641,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
         public void TestGetCompilationDoesNotKeepCompilationAlive()
         {
             var pid = ProjectId.CreateNewId();
@@ -1663,7 +1664,7 @@ End Class";
             return new ObjectReference<Compilation>(observed);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestWorkspaceLanguageServiceOverride()
         {
             var hostServices = MefHostServices.Create(TestHost.Assemblies);
@@ -1678,7 +1679,7 @@ End Class";
         }
 
 #if false
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestSolutionInfo()
         {
             var oldSolutionId = SolutionId.CreateNewId("oldId");
@@ -1973,7 +1974,7 @@ public class C : A {
             Assert.True(exceptionThrown);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         [WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
         public void TestWithSyntaxTree()
         {
@@ -2002,7 +2003,7 @@ public class C : A {
             var root = newTree.GetRoot();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestUpdateDocumentsOrder()
         {
             var solution = CreateSolution();
@@ -2072,7 +2073,7 @@ public class C : A {
             Assert.Equal(newVersion, newSameVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestUpdateDocumentsOrderExceptions()
         {
             var solution = CreateSolution();
@@ -2108,7 +2109,7 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
@@ -2143,7 +2144,7 @@ public class C : A {
             Assert.Equal(ReportDiagnostic.Error, newSyntaxTree.DiagnosticOptions["CA1234"]);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Theory]
         [CombinatorialData]
         public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
@@ -2179,7 +2180,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Theory]
         [CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
@@ -2219,7 +2220,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Theory]
         [CombinatorialData]
         public async Task TestUpdateRootStillCarriesDiagnosticData([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees, PreservationMode preservationMode)
         {
@@ -2259,7 +2260,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
@@ -2310,7 +2311,7 @@ class C
             Assert.Contains("CS8669", diagnostic.Id);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
             var solution = CreateSolution();
@@ -2330,7 +2331,7 @@ class C
             Assert.Null(document.GetSemanticModelAsync().Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
             var solution = CreateSolution();
@@ -2347,7 +2348,7 @@ class C
             Assert.Null(solution.GetDocument(documentId)!.GetSyntaxTreeAsync().Result);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void AddingAndRemovingProjectsUpdatesFilePathMap()
         {
             var solution = CreateSolution();
