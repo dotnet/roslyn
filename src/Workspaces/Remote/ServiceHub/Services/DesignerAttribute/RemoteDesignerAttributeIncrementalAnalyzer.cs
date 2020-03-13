@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private const string DataKey = "DesignerAttributeData";
 
-        private readonly Workspace _workspace;
-
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
@@ -36,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public RemoteDesignerAttributeIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
-            _workspace = workspace;
             _endPoint = endPoint;
 
             var storageService = _workspace.Services.GetRequiredService<IPersistentStorageService>();
