@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
@@ -236,10 +237,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Code = diagnostic.Id,
                 Message = diagnostic.Message,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnostic.Severity),
-                Range = ProtocolConversions.TextSpanToRange(DiagnosticData.GetExistingOrCalculatedTextSpan(diagnostic.DataLocation, text), text),
+                Range = GetDiagnosticRange(diagnostic.DataLocation, text),
                 // Only the unnecessary diagnostic tag is currently supported via LSP.
                 Tags = diagnostic.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
             }).ToArray();
+        }
+
+        private LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
+        {
+            (var startLine, var endLine) = DiagnosticData.GetLinePositions(diagnosticDataLocation, text, useMapped: true);
+
+            return new LanguageServer.Protocol.Range
+            {
+                Start = new Position
+                {
+                    Line = startLine.Line,
+                    Character = startLine.Character,
+                },
+                End = new Position
+                {
+                    Line = endLine.Line,
+                    Character = endLine.Character
+                }
+            };
         }
     }
 }

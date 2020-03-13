@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        public static (LinePosition startLine, LinePosition endLine) GetLinePositions(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -232,28 +232,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return default;
             }
 
-            var originalStartLine = dataLocation?.OriginalStartLine ?? 0;
-            if (originalStartLine >= lines.Count)
+            var dataLocationStartLine = (useMapped ? dataLocation?.MappedStartLine : dataLocation?.OriginalStartLine) ?? 0;
+            var dataLocationStartColumn = (useMapped ? dataLocation?.MappedStartColumn : dataLocation?.OriginalStartColumn) ?? 0;
+            var dataLocationEndLine = (useMapped ? dataLocation?.MappedEndLine : dataLocation?.OriginalEndLine) ?? 0;
+            var dataLocationEndColumn = (useMapped ? dataLocation?.MappedEndColumn : dataLocation?.OriginalEndColumn) ?? 0;
+
+            if (dataLocationStartLine >= lines.Count)
             {
-                return new TextSpan(text.Length, 0);
+                var lastLine = lines.GetLinePosition(text.Length);
+                return (lastLine, lastLine);
             }
 
-            AdjustBoundaries(dataLocation, lines,
+            AdjustBoundaries(dataLocationStartLine, dataLocationStartColumn, dataLocationEndLine, dataLocationEndColumn, lines,
                 out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
+            return (startLinePosition, endLinePosition);
+        }
+
+        public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
+        {
+            (var startLinePosition, var endLinePosition) = GetLinePositions(dataLocation, text, useMapped: false);
+
             var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
-        private static void AdjustBoundaries(DiagnosticDataLocation? dataLocation,
+        private static void AdjustBoundaries(int dataLocationStartLine, int dataLocationStartColumn, int dataLocationEndLine, int dataLocationEndColumn,
             TextLineCollection lines, out int startLine, out int startColumn, out int endLine, out int endColumn)
         {
-            startLine = dataLocation?.OriginalStartLine ?? 0;
-            var originalStartColumn = dataLocation?.OriginalStartColumn ?? 0;
+            startLine = dataLocationStartLine;
+            var originalStartColumn = dataLocationStartColumn;
 
             startColumn = Math.Max(originalStartColumn, 0);
             if (startLine < 0)
@@ -262,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 startColumn = 0;
             }
 
-            endLine = dataLocation?.OriginalEndLine ?? 0;
-            var originalEndColumn = dataLocation?.OriginalEndColumn ?? 0;
+            endLine = dataLocationEndLine;
+            var originalEndColumn = dataLocationEndColumn;
 
             endColumn = Math.Max(originalEndColumn, 0);
             if (endLine < 0)
