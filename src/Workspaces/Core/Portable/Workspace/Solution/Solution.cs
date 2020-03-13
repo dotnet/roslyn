@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsDocument(documentId);
 
             var newState = _state.WithDocumentFolders(documentId,
-                folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders)));
+                folders.ToBoxedImmutableArrayWithNonNullItems(nameof(folders)));
 
             if (newState == _state)
             {

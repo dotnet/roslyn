@@ -229,11 +229,11 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
-                projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
-                metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
-                analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
-                additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
+                documents.ToBoxedImmutableArrayWithNonNullItems(nameof(documents)),
+                projectReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(projectReferences)),
+                metadataReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(metadataReferences)),
+                analyzerReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerReferences)),
+                additionalDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
         }
@@ -322,22 +322,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
+            => With(documents: documents.ToBoxedImmutableArrayWithNonNullItems(nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
+            => With(additionalDocuments: additionalDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
+            => With(analyzerConfigDocuments: analyzerConfigDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
+            => With(projectReferences: projectReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
+            => With(metadataReferences: metadataReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
+            => With(analyzerReferences: analyzerReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
