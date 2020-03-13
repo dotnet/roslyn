@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<(Document, DesignerInfo? info, bool changed)[]> ComputeLatestInfosAsync(
             Project project, VersionStamp projectVersion,
-            Document? specificDoc, CancellationToken cancellationToken)
+            Document? specificDocument, CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
-                if (specificDoc != null && document != specificDoc)
+                if (specificDocument != null && document != specificDocument)
                     continue;
 
                 tasks.Add(ComputeDesignerAttributeInfoAsync(
