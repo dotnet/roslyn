@@ -27,7 +27,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
     internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeService, IDesignerAttributeServiceCallback
+        : ForegroundThreadAffinitizedObject, IDesignerAttributeService, IDesignerAttributeListener
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 

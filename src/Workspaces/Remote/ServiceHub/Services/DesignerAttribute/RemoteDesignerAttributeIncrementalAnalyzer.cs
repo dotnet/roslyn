@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (changedInfos.Count > 0)
             {
                 await _endPoint.InvokeAsync(
-                    nameof(IDesignerAttributeServiceCallback.RegisterDesignerAttributesAsync),
+                    nameof(IDesignerAttributeListener.RegisterDesignerAttributesAsync),
                     new object[] { changedInfos },
                     cancellationToken).ConfigureAwait(false);
             }

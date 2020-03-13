@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// with this data when the callback returns, only that it will try to inform the project system
     /// about the designer attribute info in the future.
     /// </summary>
-    internal interface IDesignerAttributeServiceCallback
+    internal interface IDesignerAttributeListener
     {
         Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken);
     }
