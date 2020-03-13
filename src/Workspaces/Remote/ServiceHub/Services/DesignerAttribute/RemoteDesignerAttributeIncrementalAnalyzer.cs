@@ -4,11 +4,13 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -147,31 +149,38 @@ namespace Microsoft.CodeAnalysis.Remote
             VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
             Document document, CancellationToken cancellationToken)
         {
-            // First check and see if we have stored information for this doc and if that
-            // information is up to date.
-            using var stream = await _storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
-            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
-            var persisted = TryReadPersistedInfo(reader);
-            if (persisted.category != null && persisted.projectVersion == projectVersion)
+            try
             {
-                // We were able to read out the old data, and it matches our current project
-                // version.  Just return back that nothing changed here.  We won't tell VS about
-                // this, and we won't re-persist this later.
+                // First check and see if we have stored information for this doc and if that
+                // information is up to date.
+                using var stream = await _storage.ReadStreamAsync(document, DataKey, cancellationToken).ConfigureAwait(false);
+                using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+                var persisted = TryReadPersistedInfo(reader);
+                if (persisted.category != null && persisted.projectVersion == projectVersion)
+                {
+                    // We were able to read out the old data, and it matches our current project
+                    // version.  Just return back that nothing changed here.  We won't tell VS about
+                    // this, and we won't re-persist this later.
+                    return default;
+                }
+
+                // We either haven't computed the designer info, or our data was out of date.  We need
+                // So recompute here.  Figure out what the current category is, and if that's different
+                // from what we previously stored.
+                var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
+                    designerCategoryType, document, cancellationToken).ConfigureAwait(false);
+                var info = new DesignerInfo
+                {
+                    Category = category,
+                    DocumentId = document.Id,
+                };
+
+                return (document, info, changed: category != persisted.category);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
                 return default;
             }
-
-            // We either haven't computed the designer info, or our data was out of date.  We need
-            // So recompute here.  Figure out what the current category is, and if that's different
-            // from what we previously stored.
-            var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
-                designerCategoryType, document, cancellationToken).ConfigureAwait(false);
-            var info = new DesignerInfo
-            {
-                Category = category,
-                DocumentId = document.Id,
-            };
-
-            return (document, info, changed: category != persisted.category);
         }
     }
 }
