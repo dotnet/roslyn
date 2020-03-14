@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static class ConversionEasyOut
         {
             // There are situations in which we know that there is no unusual conversion going on
-            // (such as a conversion involving constants, enumerated types, and so on.) In those
+            // (such as a conversion involving constants, enumerated types, and so on). In those
             // situations we can classify conversions via a simple table lookup:
 
             // PERF: Use byte instead of ConversionKind so the compiler can use array literal initialization.
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                };
             }
 
-            public static ConversionKind ClassifyConversion(TypeSymbol source, TypeSymbol target)
+            public static ConversionKind ClassifyConversion(TypeSymbol source, TypeSymbol target, bool includeNativeIntegers)
             {
-                int sourceIndex = source.TypeToIndex();
+                int sourceIndex = source.TypeToIndex(includeNativeIntegers);
                 if (sourceIndex < 0)
                 {
                     return ConversionKind.NoConversion;
                 }
-                int targetIndex = target.TypeToIndex();
+                int targetIndex = target.TypeToIndex(includeNativeIntegers);
                 if (targetIndex < 0)
                 {
                     return ConversionKind.NoConversion;

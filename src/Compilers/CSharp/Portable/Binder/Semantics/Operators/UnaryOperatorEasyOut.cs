@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /* ~  */  s_bitwiseComplement
             };
 
-            public static UnaryOperatorKind OpKind(UnaryOperatorKind kind, TypeSymbol operand)
+            public static UnaryOperatorKind OpKind(UnaryOperatorKind kind, TypeSymbol operand, bool includeNativeIntegers)
             {
-                int index = operand.TypeToIndex();
+                int index = operand.TypeToIndex(includeNativeIntegers);
                 if (index < 0)
                 {
                     return UnaryOperatorKind.Error;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var easyOut = UnopEasyOut.OpKind(kind, operandType);
+            var easyOut = UnopEasyOut.OpKind(kind, operandType, Conversions.IncludeNativeIntegers);
 
             if (easyOut == UnaryOperatorKind.Error)
             {

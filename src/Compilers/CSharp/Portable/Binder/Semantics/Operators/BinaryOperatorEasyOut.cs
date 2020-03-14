@@ -251,14 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /* ^  */ s_logical,
             };
 
-            public static BinaryOperatorKind OpKind(BinaryOperatorKind kind, TypeSymbol left, TypeSymbol right)
+            public static BinaryOperatorKind OpKind(BinaryOperatorKind kind, TypeSymbol left, TypeSymbol right, bool includeNativeIntegers)
             {
-                int leftIndex = left.TypeToIndex();
+                int leftIndex = left.TypeToIndex(includeNativeIntegers);
                 if (leftIndex < 0)
                 {
                     return BinaryOperatorKind.Error;
                 }
-                int rightIndex = right.TypeToIndex();
+                int rightIndex = right.TypeToIndex(includeNativeIntegers);
                 if (rightIndex < 0)
                 {
                     return BinaryOperatorKind.Error;
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var easyOut = BinopEasyOut.OpKind(kind, leftType, rightType);
+            var easyOut = BinopEasyOut.OpKind(kind, leftType, rightType, Conversions.IncludeNativeIntegers);
 
             if (easyOut == BinaryOperatorKind.Error)
             {

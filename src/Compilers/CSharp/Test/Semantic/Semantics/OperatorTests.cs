@@ -7237,7 +7237,7 @@ public class RubyTime
                 underlying = type.EnumUnderlyingTypeOrSelf();
             }
 
-            UnaryOperatorKind result = OverloadResolution.UnopEasyOut.OpKind(op, underlying);
+            UnaryOperatorKind result = OverloadResolution.UnopEasyOut.OpKind(op, underlying, includeNativeIntegers: true);
             UnaryOperatorSignature signature;
 
             if (result == UnaryOperatorKind.Error)
@@ -7815,7 +7815,7 @@ class Module1
             }
 
 
-            BinaryOperatorKind result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType);
+            BinaryOperatorKind result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType, includeNativeIntegers: true);
             BinaryOperatorSignature signature;
             bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
 
@@ -7895,14 +7895,14 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
-                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingTypeOrSelf(), rightType)) != BinaryOperatorKind.Error &&
+                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingTypeOrSelf(), rightType, includeNativeIntegers: true)) != BinaryOperatorKind.Error &&
                     TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
-                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingTypeOrSelf())) != BinaryOperatorKind.Error &&
+                    (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingTypeOrSelf(), includeNativeIntegers: true)) != BinaryOperatorKind.Error &&
                     TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);

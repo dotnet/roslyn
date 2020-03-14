@@ -12,25 +12,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class TypeConversions : ConversionsBase
     {
+        private readonly bool _includeNativeIntegers;
+
         public TypeConversions(AssemblySymbol corLibrary, bool includeNullability = false)
-            : this(corLibrary, currentRecursionDepth: 0, includeNullability: includeNullability, otherNullabilityOpt: null)
+            : this(corLibrary, currentRecursionDepth: 0, includeNullability: includeNullability, otherNullabilityOpt: null, includeNativeIntegers: false) // PROTOTYPE: Callers should pass in includeNativeIntegers
         {
         }
 
-        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, TypeConversions otherNullabilityOpt)
+        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability, TypeConversions otherNullabilityOpt, bool includeNativeIntegers)
             : base(corLibrary, currentRecursionDepth, includeNullability, otherNullabilityOpt)
         {
+            _includeNativeIntegers = IncludeNativeIntegers;
         }
 
         protected override ConversionsBase CreateInstance(int currentRecursionDepth)
         {
-            return new TypeConversions(this.corLibrary, currentRecursionDepth, IncludeNullability, otherNullabilityOpt: null);
+            return new TypeConversions(this.corLibrary, currentRecursionDepth, IncludeNullability, otherNullabilityOpt: null, _includeNativeIntegers);
         }
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
             Debug.Assert(IncludeNullability != includeNullability);
-            return new TypeConversions(corLibrary, currentRecursionDepth, includeNullability, this);
+            return new TypeConversions(corLibrary, currentRecursionDepth, includeNullability, this, _includeNativeIntegers);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -50,5 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IncludeNativeIntegers => _includeNativeIntegers;
     }
 }

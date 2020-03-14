@@ -1954,7 +1954,7 @@ False
                 foreach (var operatorKind in unaryOperators)
                 {
                     var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
+                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, includeNativeIntegers: true);
                     var operators = builder.ToImmutableAndFree();
                     int expectedUnsigned = (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
                     verifyOperators(operators, (op, signed) => isNativeInt(op.OperandType, signed), 1, expectedUnsigned);
@@ -1964,7 +1964,7 @@ False
                 foreach (var operatorKind in binaryOperators)
                 {
                     var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
+                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, includeNativeIntegers: true);
                     var operators = builder.ToImmutableAndFree();
                     verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), 1, 1);
                     verifyOperators(operators, (op, signed) => isNullableNativeInt(op.LeftType, signed), 1, 1);
@@ -1987,6 +1987,132 @@ False
                     return type.IsNullableType() && isNativeInt(type.GetNullableUnderlyingType(), signed);
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInConversions_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void F()
+    {
+        long x = F1;
+        ulong y = F2;
+        long? z = F3;
+        ulong? w = F4;
+    }
+    static void F(int x, uint y, int? z, uint? w)
+    {
+        F1 = x;
+        F2 = y;
+        F3 = z;
+        F4 = w;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0266: Cannot implicitly convert type 'nint' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //         long x = F1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F1").WithArguments("nint", "long").WithLocation(5, 18),
+                // (6,19): error CS0266: Cannot implicitly convert type 'nuint' to 'ulong'. An explicit conversion exists (are you missing a cast?)
+                //         ulong y = F2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F2").WithArguments("nuint", "ulong").WithLocation(6, 19),
+                // (7,19): error CS0266: Cannot implicitly convert type 'nint?' to 'long?'. An explicit conversion exists (are you missing a cast?)
+                //         long? z = F3;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F3").WithArguments("nint?", "long?").WithLocation(7, 19),
+                // (8,20): error CS0266: Cannot implicitly convert type 'nuint?' to 'ulong?'. An explicit conversion exists (are you missing a cast?)
+                //         ulong? w = F4;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F4").WithArguments("nuint?", "ulong?").WithLocation(8, 20),
+                // (12,14): error CS0266: Cannot implicitly convert type 'int' to 'nint'. An explicit conversion exists (are you missing a cast?)
+                //         F1 = x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nint").WithLocation(12, 14),
+                // (13,14): error CS0266: Cannot implicitly convert type 'uint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //         F2 = y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("uint", "nuint").WithLocation(13, 14),
+                // (14,14): error CS0266: Cannot implicitly convert type 'int?' to 'nint?'. An explicit conversion exists (are you missing a cast?)
+                //         F3 = z;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("int?", "nint?").WithLocation(14, 14),
+                // (15,14): error CS0266: Cannot implicitly convert type 'uint?' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                //         F4 = w;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("uint?", "nuint?").WithLocation(15, 14));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInOperators_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = -F1;
+        _ = +F2;
+        _ = -F3;
+        _ = +F4;
+        _ = F1 * F1;
+        _ = F2 / F2;
+        _ = F3 * F1;
+        _ = F4 / F2;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0023: Operator '-' cannot be applied to operand of type 'nint'
+                //         _ = -F1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F1").WithArguments("-", "nint").WithLocation(5, 13),
+                // (6,13): error CS0023: Operator '+' cannot be applied to operand of type 'nuint'
+                //         _ = +F2;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F2").WithArguments("+", "nuint").WithLocation(6, 13),
+                // (7,13): error CS0023: Operator '-' cannot be applied to operand of type 'nint?'
+                //         _ = -F3;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F3").WithArguments("-", "nint?").WithLocation(7, 13),
+                // (8,13): error CS0023: Operator '+' cannot be applied to operand of type 'nuint?'
+                //         _ = +F4;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F4").WithArguments("+", "nuint?").WithLocation(8, 13),
+                // (9,13): error CS0019: Operator '*' cannot be applied to operands of type 'nint' and 'nint'
+                //         _ = F1 * F1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F1 * F1").WithArguments("*", "nint", "nint").WithLocation(9, 13),
+                // (10,13): error CS0019: Operator '/' cannot be applied to operands of type 'nuint' and 'nuint'
+                //         _ = F2 / F2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F2 / F2").WithArguments("/", "nuint", "nuint").WithLocation(10, 13),
+                // (11,13): error CS0019: Operator '*' cannot be applied to operands of type 'nint?' and 'nint'
+                //         _ = F3 * F1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F3 * F1").WithArguments("*", "nint?", "nint").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '/' cannot be applied to operands of type 'nuint?' and 'nuint'
+                //         _ = F4 / F2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F4 / F2").WithArguments("/", "nuint?", "nuint").WithLocation(12, 13));
+        }
+
+        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
+        {
+            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
         }
 
         [Theory]

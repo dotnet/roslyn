@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
 
-        internal static int TypeToIndex(this TypeSymbol type)
+        internal static int TypeToIndex(this TypeSymbol type, bool includeNativeIntegers)
         {
             switch (type.GetSpecialTypeSafe())
             {
@@ -1749,8 +1749,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_UInt16: return 9;
                 case SpecialType.System_UInt32: return 10;
                 case SpecialType.System_UInt64: return 11;
-                case SpecialType.System_IntPtr when type.IsNativeIntegerType: return 12;
-                case SpecialType.System_UIntPtr when type.IsNativeIntegerType: return 13;
+                case SpecialType.System_IntPtr when includeNativeIntegers && type.IsNativeIntegerType: return 12;
+                case SpecialType.System_UIntPtr when includeNativeIntegers && type.IsNativeIntegerType: return 13;
                 case SpecialType.System_Single: return 14;
                 case SpecialType.System_Double: return 15;
                 case SpecialType.System_Decimal: return 16;
@@ -1772,8 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case SpecialType.System_UInt16: return 24;
                             case SpecialType.System_UInt32: return 25;
                             case SpecialType.System_UInt64: return 26;
-                            case SpecialType.System_IntPtr when underlyingType.IsNativeIntegerType: return 27;
-                            case SpecialType.System_UIntPtr when underlyingType.IsNativeIntegerType: return 28;
+                            case SpecialType.System_IntPtr when includeNativeIntegers && underlyingType.IsNativeIntegerType: return 27;
+                            case SpecialType.System_UIntPtr when includeNativeIntegers && underlyingType.IsNativeIntegerType: return 28;
                             case SpecialType.System_Single: return 29;
                             case SpecialType.System_Double: return 30;
                             case SpecialType.System_Decimal: return 31;

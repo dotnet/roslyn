@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // specification to match the previous implementation.
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, Conversions.IncludeNativeIntegers);
 
             GetEnumOperations(kind, operand, operators);
 

@@ -31,24 +31,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PERF: Use int instead of UnaryOperatorKind so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private ImmutableArray<UnaryOperatorSignature> GetSignaturesFromUnaryOperatorKinds(int[] operatorKinds)
+        private ImmutableArray<UnaryOperatorSignature> GetSignaturesFromUnaryOperatorKinds(bool includeNativeIntegers, int[] operatorKinds)
         {
             var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
             foreach (var kind in operatorKinds)
             {
-                builder.Add(GetSignature((UnaryOperatorKind)kind));
+                var op = (UnaryOperatorKind)kind;
+                if (!includeNativeIntegers &&
+                    ((op & UnaryOperatorKind.TypeMask) switch { UnaryOperatorKind.NInt => true, UnaryOperatorKind.NUInt => true, _ => false }))
+                {
+                    continue;
+                }
+                builder.Add(GetSignature(op));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators, bool includeNativeIntegers)
         {
             if (_builtInUnaryOperators == null)
             {
                 var allOperators = new ImmutableArray<UnaryOperatorSignature>[]
                 {
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.SBytePostfixIncrement,
                         (int)UnaryOperatorKind.BytePostfixIncrement,
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoublePostfixIncrement,
                         (int)UnaryOperatorKind.LiftedDecimalPostfixIncrement,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.SBytePostfixDecrement,
                         (int)UnaryOperatorKind.BytePostfixDecrement,
@@ -110,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoublePostfixDecrement,
                         (int)UnaryOperatorKind.LiftedDecimalPostfixDecrement,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.SBytePrefixIncrement,
                         (int)UnaryOperatorKind.BytePrefixIncrement,
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoublePrefixIncrement,
                         (int)UnaryOperatorKind.LiftedDecimalPrefixIncrement,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.SBytePrefixDecrement,
                         (int)UnaryOperatorKind.BytePrefixDecrement,
@@ -172,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoublePrefixDecrement,
                         (int)UnaryOperatorKind.LiftedDecimalPrefixDecrement,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.IntUnaryPlus,
                         (int)UnaryOperatorKind.UIntUnaryPlus,
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoubleUnaryPlus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryPlus,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.IntUnaryMinus,
                         (int)UnaryOperatorKind.LongUnaryMinus,
@@ -208,12 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedDoubleUnaryMinus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryMinus,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.BoolLogicalNegation,
                         (int)UnaryOperatorKind.LiftedBoolLogicalNegation,
                     }),
-                    GetSignaturesFromUnaryOperatorKinds(new []
+                    GetSignaturesFromUnaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)UnaryOperatorKind.IntBitwiseComplement,
                         (int)UnaryOperatorKind.UIntBitwiseComplement,
@@ -272,18 +278,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PERF: Use int instead of BinaryOperatorKind so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private ImmutableArray<BinaryOperatorSignature> GetSignaturesFromBinaryOperatorKinds(int[] operatorKinds)
+        private ImmutableArray<BinaryOperatorSignature> GetSignaturesFromBinaryOperatorKinds(bool includeNativeIntegers, int[] operatorKinds)
         {
             var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
             foreach (var kind in operatorKinds)
             {
-                builder.Add(GetSignature((BinaryOperatorKind)kind));
+                var op = (BinaryOperatorKind)kind;
+                if (!includeNativeIntegers &&
+                    ((op & BinaryOperatorKind.TypeMask) switch { BinaryOperatorKind.NInt => true, BinaryOperatorKind.NUInt => true, _ => false }))
+                {
+                    continue;
+                }
+                builder.Add(GetSignature(op));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators, bool includeNativeIntegers)
         {
             if (_builtInOperators == null)
             {
@@ -309,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var nonLogicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
                 {
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntMultiplication,
                         (int)BinaryOperatorKind.UIntMultiplication,
@@ -330,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleMultiplication,
                         (int)BinaryOperatorKind.LiftedDecimalMultiplication,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntAddition,
                         (int)BinaryOperatorKind.UIntAddition,
@@ -354,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.StringAndObjectConcatenation,
                         (int)BinaryOperatorKind.ObjectAndStringConcatenation,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntSubtraction,
                         (int)BinaryOperatorKind.UIntSubtraction,
@@ -375,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleSubtraction,
                         (int)BinaryOperatorKind.LiftedDecimalSubtraction,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntDivision,
                         (int)BinaryOperatorKind.UIntDivision,
@@ -396,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleDivision,
                         (int)BinaryOperatorKind.LiftedDecimalDivision,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntRemainder,
                         (int)BinaryOperatorKind.UIntRemainder,
@@ -417,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleRemainder,
                         (int)BinaryOperatorKind.LiftedDecimalRemainder,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntLeftShift,
                         (int)BinaryOperatorKind.UIntLeftShift,
@@ -432,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNIntLeftShift,
                         (int)BinaryOperatorKind.LiftedNUIntLeftShift,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntRightShift,
                         (int)BinaryOperatorKind.UIntRightShift,
@@ -447,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNIntRightShift,
                         (int)BinaryOperatorKind.LiftedNUIntRightShift,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntEqual,
                         (int)BinaryOperatorKind.UIntEqual,
@@ -472,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.ObjectEqual,
                         (int)BinaryOperatorKind.StringEqual,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntNotEqual,
                         (int)BinaryOperatorKind.UIntNotEqual,
@@ -497,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.ObjectNotEqual,
                         (int)BinaryOperatorKind.StringNotEqual,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntGreaterThan,
                         (int)BinaryOperatorKind.UIntGreaterThan,
@@ -518,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThan,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThan,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntLessThan,
                         (int)BinaryOperatorKind.UIntLessThan,
@@ -539,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleLessThan,
                         (int)BinaryOperatorKind.LiftedDecimalLessThan,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.UIntGreaterThanOrEqual,
@@ -560,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThanOrEqual,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntLessThanOrEqual,
                         (int)BinaryOperatorKind.UIntLessThanOrEqual,
@@ -581,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedDoubleLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalLessThanOrEqual,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntAnd,
                         (int)BinaryOperatorKind.UIntAnd,
@@ -598,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNUIntAnd,
                         (int)BinaryOperatorKind.LiftedBoolAnd,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntXor,
                         (int)BinaryOperatorKind.UIntXor,
@@ -615,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNUIntXor,
                         (int)BinaryOperatorKind.LiftedBoolXor,
                     }),
-                    GetSignaturesFromBinaryOperatorKinds(new []
+                    GetSignaturesFromBinaryOperatorKinds(includeNativeIntegers, new []
                     {
                         (int)BinaryOperatorKind.IntOr,
                         (int)BinaryOperatorKind.UIntOr,

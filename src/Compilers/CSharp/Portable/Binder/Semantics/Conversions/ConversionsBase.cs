@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
+        internal abstract bool IncludeNativeIntegers { get; }
+
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
         /// <summary>
@@ -417,13 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
+        /// Attempt a quick classification of built-in conversions.  As result of "no conversion"
         /// means that there is no built-in conversion, though there still may be a user-defined
         /// conversion if compiling against a custom mscorlib.
         /// </summary>
-        public static Conversion FastClassifyConversion(TypeSymbol source, TypeSymbol target)
+        public Conversion FastClassifyConversion(TypeSymbol source, TypeSymbol target)
         {
-            ConversionKind convKind = ConversionEasyOut.ClassifyConversion(source, target);
+            ConversionKind convKind = ConversionEasyOut.ClassifyConversion(source, target, IncludeNativeIntegers);
             if (convKind != ConversionKind.ImplicitNullable && convKind != ConversionKind.ExplicitNullable)
             {
                 return Conversion.GetTrivialConversion(convKind);

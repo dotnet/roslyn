@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -67,6 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
                     TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
+        }
+
+        internal override bool IncludeNativeIntegers
+        {
+            get
+            {
+                return Compilation.SyntaxTrees.FirstOrDefault()?.Options is CSharpParseOptions options ?
+                    MessageID.IDS_FeatureNativeInt.GetFeatureAvailabilityDiagnosticInfo(options) is null :
+                    false;
+            }
         }
 
         /// <summary>
