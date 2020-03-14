@@ -121,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var filteredInfos);
             using var _2 = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
+            // Walk the list of telemetry items in reverse, and skip any items for a project once
+            // we've already seen it once.  That way, we're only reporting the most up to date
+            // information for a project, and we're skipping the stale information.
             for (var i = infos.Length - 1; i >= 0; i--)
             {
                 var info = infos[i];
