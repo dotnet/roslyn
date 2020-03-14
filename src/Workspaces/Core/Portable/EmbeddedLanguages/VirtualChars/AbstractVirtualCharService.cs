@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     {
         public abstract bool TryGetEscapeCharacter(char ch, out char escapedChar);
 
-        protected abstract bool IsStringLiteralToken(SyntaxToken token);
+        protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                if (IsStringLiteralToken(token))
+                if (IsStringOrCharLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
                     var actualValueText = result.CreateString();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     var currentVC = result[0];
                     Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     var lastVC = result.Last();
 
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
                     }

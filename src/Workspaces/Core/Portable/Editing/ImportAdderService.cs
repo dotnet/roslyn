@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 // Mark the context with an annotation. 
                 // This will allow us to find it after we have called MakeSafeToAddNamespaces.
                 var annotation = new SyntaxAnnotation();
+                RoslynDebug.Assert(context is object);
                 document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
                 root = (await document.GetSyntaxRootAsync().ConfigureAwait(false))!;
 
