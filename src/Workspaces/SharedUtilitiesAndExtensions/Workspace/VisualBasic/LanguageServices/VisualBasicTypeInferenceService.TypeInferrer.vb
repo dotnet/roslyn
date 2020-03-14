@@ -1004,17 +1004,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' New List(Of T) From { x }
                 If expression IsNot Nothing Then
-                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
-                    Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
-                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = 1) _
-                        .Select(Function(a) New TypeInferenceInfo(DirectCast(a, IMethodSymbol).Parameters(0).Type))
+                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols().OfType(Of IMethodSymbol)
+                    Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols.
+                        Where(Function(m) m.Parameters.Length = 1).
+                        Select(Function(m) New TypeInferenceInfo(m.Parameters(0).Type))
 
                     If expressionAddMethodParameterTypes.Any() Then
                         Return expressionAddMethodParameterTypes
                     End If
+
+                    ' New Dictionary<K,V> From { { x, ... } }
+                    Dim parameterIndex = collectionInitializer.Initializers.IndexOf(expression)
+
+                    Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols().OfType(Of IMethodSymbol)
+                    Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols.
+                        Where(Function(m) m.Parameters.Length = collectionInitializer.Initializers.Count).
+                        Select(Function(m) m.Parameters.ElementAtOrDefault(parameterIndex)?.Type).
+                        WhereNotNull().
+                        Select(Function(m) New TypeInferenceInfo(m))
+
+                    If initializerAddMethodParameterTypes.Any() Then
+                        Return initializerAddMethodParameterTypes
+                    End If
                 End If
 
-                ' New List(of T) FRom { $$
+                ' New List(of T) From { $$
                 If previousToken.Kind() = SyntaxKind.OpenBraceToken OrElse
                    previousToken.Kind() = SyntaxKind.CommaToken Then
 
