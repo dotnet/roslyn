@@ -7,11 +7,8 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-<<<<<<< HEAD:src/Features/Core/Portable/RemoveUnusedParametersAndValues/AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
-=======
->>>>>>> upstream/master:src/Analyzers/Core/Analyzers/RemoveUnusedParametersAndValues/AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -121,7 +118,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     {
                         foreach (var operationBlock in context.OperationBlocks)
                         {
-                            if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty<Diagnostic>().HasAnyErrors())
+                            if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
                             {
                                 return true;
                             }
@@ -135,7 +132,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
-                                                     .Any<SyntaxNode>(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
+                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
                             {
                                 return true;
                             }
@@ -442,7 +439,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
-                         method.Parameters.Any<IParameterSymbol>(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                         method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
                     {
                         return false;
                     }
