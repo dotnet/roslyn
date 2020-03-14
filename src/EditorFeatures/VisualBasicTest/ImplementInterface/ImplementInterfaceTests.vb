@@ -3813,8 +3813,33 @@ End Class
 $"Imports System
 Class Program
     Implements IDisposable
+
+    Private disposedValue As Boolean
 {DisposePattern("Overridable ")}
 
+End Class
+",
+index:=1)
+        End Function
+
+        <WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestImplementInterfaceForIDisposable_WithExistingDisposedValueField() As Task
+            Await TestInRegularAndScriptAsync(
+<Text>Imports System
+Class Program
+    Implements [|IDisposable|]
+
+    Private disposedValue As Integer
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+$"Imports System
+Class Program
+    Implements IDisposable
+
+    Private disposedValue As Integer
+    Private disposedValue1 As Boolean
+{DisposePattern("Overridable ", disposeField:="disposedValue1")}
 End Class
 ",
 index:=1)
@@ -3879,7 +3904,9 @@ End Class
 $"Imports System
 Public NotInheritable Class Program
     Implements IDisposable
-{DisposePattern("")}
+
+    Private disposedValue As Boolean
+{DisposePattern("", isSealed:=True)}
 
 End Class
 ",
@@ -4057,6 +4084,8 @@ End Class
 Class C : Implements [|IDisposable|]",
 $"Imports System
 Class C : Implements IDisposable
+
+    Private disposedValue As Boolean
 {DisposePattern("Overridable ")}
 End Class
 ", index:=1)
@@ -4107,6 +4136,9 @@ Class C : Implements [|System.IDisposable|]
 End Class",
 $"Imports System
 Class C : Implements System.IDisposable
+
+    Private disposedValue As Boolean
+
     Class IDisposable
     End Class
 {DisposePattern("Overridable ", simplifySystem:=False)}
@@ -4120,6 +4152,8 @@ End Class", index:=1)
 "Class C : Implements [|System.IDisposable|]
 ",
 $"Class C : Implements System.IDisposable
+
+    Private disposedValue As Boolean
 {DisposePattern("Overridable ", simplifySystem:=False)}
 End Class
 ", index:=1)
@@ -4166,6 +4200,8 @@ Interface I : Inherits IDisposable
     Sub F()
 End Interface
 Class C : Implements I
+
+    Private disposedValue As Boolean
 
     Public Sub F() Implements I.F
         Throw New NotImplementedException()
@@ -4243,6 +4279,8 @@ Class _
     C
     Implements I(Of System.Exception, System.AggregateException)
 
+    Private disposedValue As Boolean
+
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4255,10 +4293,6 @@ Class _
         Throw New NotImplementedException()
     End Function
 
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
-
-    ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
@@ -4268,6 +4302,7 @@ Class _
             ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
         End If
+
         disposedValue = True
     End Sub
 
@@ -4278,14 +4313,11 @@ Class _
     '    MyBase.Finalize()
     'End Sub
 
-    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
         ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
         Dispose(True)
-        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
-        ' GC.SuppressFinalize(Me)
+        GC.SuppressFinalize(Me)
     End Sub
-#End Region
 End Class
 
 Partial Class C
@@ -4320,6 +4352,8 @@ Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
     Implements IDisposable
 
+    Private disposedValue As Boolean
+
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4332,10 +4366,6 @@ Partial Class C
         Throw New NotImplementedException()
     End Function
 
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' { FeaturesResources.To_detect_redundant_calls }
-
-    ' IDisposable
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
             If disposing Then
@@ -4345,6 +4375,7 @@ Partial Class C
             ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
         End If
+
         disposedValue = True
     End Sub
 
@@ -4355,14 +4386,11 @@ Partial Class C
     '    MyBase.Finalize()
     'End Sub
 
-    ' { VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern }
     Public Sub Dispose() Implements IDisposable.Dispose
         ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
         Dispose(True)
-        ' { VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above }
-        ' GC.SuppressFinalize(Me)
+        GC.SuppressFinalize(Me)
     End Sub
-#End Region
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4372,14 +4400,14 @@ End Interface",
  index:=1)
         End Function
 
-        Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
+        Private Shared Function DisposePattern(
+                disposeMethodModifiers As String,
+                Optional simplifySystem As Boolean = True,
+                Optional isSealed As Boolean = False,
+                Optional disposeField As String = "disposedValue") As String
             Dim code = $"
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' {FeaturesResources.To_detect_redundant_calls}
-
-    ' IDisposable
     Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
+        If Not {disposeField} Then
             If disposing Then
                 ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
@@ -4387,7 +4415,8 @@ End Interface",
             ' {VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
         End If
-        disposedValue = True
+
+        {disposeField} = True
     End Sub
 
     ' {VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources}
@@ -4397,14 +4426,20 @@ End Interface",
     '    MyBase.Finalize()
     'End Sub
 
-    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern}
     Public Sub Dispose() Implements System.IDisposable.Dispose
         ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)
+        Dispose(True)"
+
+            If isSealed Then
+                code += $"
         ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
         ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region"
+    End Sub"
+            Else
+                code += "
+        GC.SuppressFinalize(Me)
+    End Sub"
+            End If
 
             ' some tests count on "System." being simplified out
             If simplifySystem Then

@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
         Dispose(True)"
             If symbol.IsSealed Then
-                code += "
+                code += $"
         ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
         ' GC.SuppressFinalize(Me)
     End Sub
