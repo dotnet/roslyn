@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (block.Operations.Length == 0)
                             return false;
 
-                        var firstOp = block.Operations.Length == 0
+                        var firstOp = block.Operations.Length == 1
                             ? block.Operations[0]
                             : TryGetSingleExplicitStatement(block.Operations);
 
