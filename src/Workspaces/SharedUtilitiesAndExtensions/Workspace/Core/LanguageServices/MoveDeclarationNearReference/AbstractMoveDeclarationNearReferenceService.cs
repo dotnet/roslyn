@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
             var warningAnnotation = crossesMeaningfulBlock
-                ? WarningAnnotation.Create(FeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
+                ? WarningAnnotation.Create(WorkspaceExtensionsResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
                 : null;
 
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
@@ -230,12 +230,12 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         private TLocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
             Document document, State state)
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
+            var generator = document.GetLanguageService<SyntaxGeneratorInternal>();
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             syntaxFacts.GetPartsOfAssignmentStatement(
                 state.FirstStatementAffectedInInnermostBlock,
-                out var left, out var operatorToken, out var right);
+                out var _, out var operatorToken, out var right);
 
             return state.DeclarationStatement.ReplaceNode(
                 state.VariableDeclarator,
@@ -243,16 +243,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     state.VariableDeclarator.WithoutTrailingTrivia(),
                     generator.EqualsValueClause(operatorToken, right))
                     .WithTrailingTrivia(state.VariableDeclarator.GetTrailingTrivia()));
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Move_declaration_near_reference, createChangedDocument)
-            {
-            }
-
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
         }
     }
 }

@@ -8,14 +8,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Roslyn.Utilities;
 
@@ -24,14 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
     [ExportLanguageService(typeof(IReplaceDiscardDeclarationsWithAssignmentsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : IReplaceDiscardDeclarationsWithAssignmentsService
     {
+        private const string DiscardVariableName = "_";
+
         [ImportingConstructor]
         public CSharpReplaceDiscardDeclarationsWithAssignmentsService()
         {
         }
 
-        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(memberDeclaration, CSharpSyntaxGenerator.Instance);
+            var editor = new SyntaxEditor(memberDeclaration, workspace);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
                 switch (child)
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
         }
 
         private static bool IsDiscardDeclaration(VariableDeclaratorSyntax variable)
-            => variable.Identifier.Text == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName;
+            => variable.Identifier.Text == DiscardVariableName;
         private static bool IsDiscardDeclaration(CatchDeclarationSyntax catchDeclaration)
-            => catchDeclaration.Identifier.Text == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName;
+            => catchDeclaration.Identifier.Text == DiscardVariableName;
 
         private sealed class RemoveDiscardHelper : IDisposable
         {
