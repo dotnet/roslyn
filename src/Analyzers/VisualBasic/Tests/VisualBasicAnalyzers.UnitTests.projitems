@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.vb" />
