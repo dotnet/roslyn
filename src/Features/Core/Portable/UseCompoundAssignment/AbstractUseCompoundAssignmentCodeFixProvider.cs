@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected AbstractUseCompoundAssignmentCodeFixProvider(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
         {
-            Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
         protected abstract SyntaxToken Token(TSyntaxKind kind);

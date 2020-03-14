@@ -453,12 +453,6 @@
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="Populate_switch" xml:space="preserve">
-    <value>Populate switch</value>
-  </data>
-  <data name="Member_access_should_be_qualified" xml:space="preserve">
-    <value>Member access should be qualified.</value>
-  </data>
   <data name="Options_did_not_come_from_specified_Solution" xml:space="preserve">
     <value>Options did not come from specified Solution</value>
   </data>

@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var method = parameter.ContainingSymbol as IMethodSymbol;
                 if (method?.IsReducedExtension() == true)
                 {
-                    symbol = method.GetConstructedReducedFrom().Parameters[parameter.Ordinal + 1];
+                    symbol = method.GetConstructedReducedFrom()!.Parameters[parameter.Ordinal + 1];
                 }
             }
 

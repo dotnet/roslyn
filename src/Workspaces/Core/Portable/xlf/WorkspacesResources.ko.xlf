@@ -1757,16 +1757,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">경고</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">스위치 채우기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">멤버 액세스를 한정해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">사용</target>
