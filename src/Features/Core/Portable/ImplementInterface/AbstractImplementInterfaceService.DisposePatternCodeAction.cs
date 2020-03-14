@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,28 +18,27 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         {
             // Get symbol for 'System.IDisposable'.
             var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
-            if ((idisposable != null) && (idisposable.TypeKind == TypeKind.Interface))
+            if (idisposable?.TypeKind == TypeKind.Interface)
             {
-                var idisposableMembers = idisposable.GetMembers().ToArray();
+                var idisposableMembers = idisposable.GetMembers();
 
                 // Get symbol for 'System.IDisposable.Dispose()'.
-                IMethodSymbol disposeMethod = null;
-                if ((idisposableMembers.Length == 1) && (idisposableMembers[0].Kind == SymbolKind.Method) &&
-                    (idisposableMembers[0].Name == "Dispose"))
+                if (idisposableMembers.Length == 1 &&
+                    idisposableMembers[0] is IMethodSymbol disposeMethod &&
+                    disposeMethod.Name == nameof(IDisposable.Dispose) &&
+                    !disposeMethod.IsStatic &&
+                    disposeMethod.ReturnsVoid &&
+                    disposeMethod.Arity == 0 &&
+                    disposeMethod.Parameters.Length == 0)
                 {
-                    disposeMethod = idisposableMembers[0] as IMethodSymbol;
-                    if ((disposeMethod != null) && (!disposeMethod.IsStatic) && disposeMethod.ReturnsVoid &&
-                        (disposeMethod.Arity == 0) && (disposeMethod.Parameters.Length == 0))
-                    {
-                        return idisposable;
-                    }
+                    return idisposable;
                 }
             }
 
             return null;
         }
 
-        private bool ShouldImplementDisposePattern(Document document, State state, bool explicitly)
+        private bool ShouldImplementDisposePattern(State state, bool explicitly)
         {
             // Dispose pattern should be implemented only if -
             // 1. An interface named 'System.IDisposable' is unimplemented.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             //    the dispose pattern).
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
-            return (idisposable != null) &&
+            return idisposable != null &&
                    unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
                    CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
         }
@@ -82,19 +82,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
 
             public override string Title
-            {
-                get
-                {
-                    if (Explicitly)
-                    {
-                        return FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern;
-                    }
-                    else
-                    {
-                        return FeaturesResources.Implement_interface_with_Dispose_pattern;
-                    }
-                }
-            }
+                => Explicitly
+                    ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
+                    : FeaturesResources.Implement_interface_with_Dispose_pattern;
 
             private static readonly SyntaxAnnotation s_implementingTypeAnnotation = new SyntaxAnnotation("ImplementingType");
 
