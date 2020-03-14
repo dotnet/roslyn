@@ -92,11 +92,6 @@
         <target state="translated">&lt;複数の種類&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">不要なインポートの削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。</target>
@@ -1537,11 +1532,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">TODO: 上の Finalize() がオーバーライドされている場合は、次の行のコメントを解除してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports ステートメントは不要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try ブロック</target>
@@ -1820,11 +1810,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Async Sub にする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me' を追加します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestMissingForConditionalAccess()
+        public async Task TestMissingForConditionalAccess1()
         {
             await TestMissingAsync(
 @"class C
@@ -521,6 +521,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         var v = $$(s?.Length).ToString();
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(37046, "https://github.com/dotnet/roslyn/issues/37046")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForConditionalAccess2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string s)
+    {
+        var v = $$(s?.Length)?.ToString();
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestForConditionalAccessNotInExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string s)
+    {
+        var v = $$(s?.Length);
+    }
+}",
+
+@"class C
+{
+    void M(string s)
+    {
+        var v = s?.Length;
+    }
+}", options: RemoveAllUnnecessaryParentheses);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -2418,6 +2453,31 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 _ => 100,
             }
     };
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [WorkItem(26311, "https://github.com/dotnet/roslyn/issues/26311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesesAroundDefaultLiteral()
+        {
+            await TestAsync(
+    @"class C
+{
+    void M()
+    {
+        bool f = false;
+
+        string s2 = f ? """" : $$(default);
+    }
+}",
+    @"class C
+{
+    void M()
+    {
+        bool f = false;
+
+        string s2 = f ? """" : default;
+    }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
     }

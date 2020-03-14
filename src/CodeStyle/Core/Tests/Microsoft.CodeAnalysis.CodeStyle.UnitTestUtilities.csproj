@@ -19,6 +19,7 @@
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" Link="TestFramework\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.cs" Link="TestFramework\AbstractUserDiagnosticTest.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" Link="TestFramework\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
             public readonly OptionSet OptionSet;
+            public readonly IOptionService OptionService;
             public readonly TextLine LineToBeIndented;
             public readonly CancellationToken CancellationToken;
 
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 this._service = service;
                 this._syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 this.OptionSet = optionSet;
+                this.OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
                 this.Root = (TSyntaxRoot)document.Root;
                 this.LineToBeIndented = lineToBeIndented;
                 this._tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
                 this.Rules = rules;
                 this.Finder = new BottomUpBaseIndentationFinder(
-                    new ChainedFormattingRules(this.Rules, OptionSet),
+                    new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
                     this._tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null);

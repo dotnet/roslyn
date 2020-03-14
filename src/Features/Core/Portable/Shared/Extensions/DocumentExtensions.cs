@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ImmutableArray<NamingRule> defaultRules, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
+            var namingStyleOptions = options.GetOption(NamingStyleOptions.NamingPreferences);
             var rules = namingStyleOptions.CreateRules().NamingRules;
 
             if (defaultRules.Length > 0)

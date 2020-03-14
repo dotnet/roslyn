@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+        public HostDiagnosticAnalyzers HostAnalyzers { get; private set; }
 
         private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
             Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
             IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
@@ -53,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             PrimaryWorkspace primaryWorkspace,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
-            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
+            : this(new DiagnosticAnalyzerInfoCache(),
+                   new HostDiagnosticAnalyzers(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
                    hostDiagnosticUpdateSource,
                    registrationService,
                    listener)
@@ -61,14 +65,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostDiagnosticAnalyzers hostAnalyzers,
             AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
             : this(registrationService)
         {
             AnalyzerInfoCache = analyzerInfoCache;
+            HostAnalyzers = hostAnalyzers;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }

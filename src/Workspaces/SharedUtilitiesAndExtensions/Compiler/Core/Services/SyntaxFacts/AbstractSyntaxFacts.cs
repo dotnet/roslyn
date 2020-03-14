@@ -126,8 +126,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var index = 0;
                     foreach (var child in childNodesAndTokens.Reverse())
                     {
-                        var first = index == 0;
-                        var last = index == childCount - 1;
+                        // Since we're walking the children in reverse, if we're on hte 0th item,
+                        // that's the last child.
+                        var last = index == 0;
+
+                        // Once we get all the way to the end of the reversed list, we're actually
+                        // on the first.
+                        var first = index == childCount - 1;
 
                         // We want the leading trivia if we've asked for it, or if we're not the first
                         // token being processed.  We want the trailing trivia if we've asked for it,

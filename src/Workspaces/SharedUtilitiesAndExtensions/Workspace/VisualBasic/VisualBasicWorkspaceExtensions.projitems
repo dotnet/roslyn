@@ -11,7 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CallStatementSyntaxExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\IsStatementTerminatingTokenVisitor.vb" />
@@ -41,7 +40,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxGeneratorVisitor.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicMoveDeclarationNearReferenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicAddImportsService.vb" />
@@ -52,6 +51,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxGeneratorInternal.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
@@ -63,7 +63,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PossibleDeclarationTypes.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpeculationAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.vb" />
