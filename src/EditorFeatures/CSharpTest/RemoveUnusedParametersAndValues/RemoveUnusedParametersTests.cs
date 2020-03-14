@@ -1451,5 +1451,49 @@ public partial class C
     }
 }");
         }
+
+        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic1()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private void Goo(int [|i|])
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic2()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private void Goo(int [|i|])
+        => throw new NotImplementedException();
+}");
+        }
+
+        [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic3()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public C(int [|i|])
+        => throw new NotImplementedException();
+}");
+        }
     }
 }
