@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -222,31 +224,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected virtual async Task PublishDiagnosticsAsync(Document document)
         {
-            (var uri, var diagnostics) = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
-            var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics, Uri = uri };
-            await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+            var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
+
+            var publishTasks = fileUriToDiagnostics.Keys.Select(async fileUri =>
+            {
+                var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = fileUriToDiagnostics[fileUri], Uri = fileUri };
+                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+            });
+
+            await Task.WhenAll(publishTasks).ConfigureAwait(false);
         }
 
-        private async Task<(Uri documentUri, LanguageServer.Protocol.Diagnostic[] diagnostics)> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<Dictionary<Uri, LanguageServer.Protocol.Diagnostic[]>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // If there is a mapped file path, use that instead of the document file path for the diagnostics.
-            var fileUri = diagnostics.FirstOrDefault(d => !string.IsNullOrEmpty(d.DataLocation?.MappedFilePath))?.DataLocation?.MappedFilePath ?? document.FilePath;
+            // Razor documents can import other razor documents
+            // https://docs.microsoft.com/en-us/aspnet/core/mvc/views/layout?view=aspnetcore-3.1#importing-shared-directives
+            // https://docs.microsoft.com/en-us/aspnet/core/blazor/layouts?view=aspnetcore-3.1#centralized-layout-selection
+            // The imported files contents are added to the content of the generated C# file, so we get diagnostics
+            // for both the c# contents in the original razor document and for any of the content in any of the imported files when we query diagnostics for the generated C# file.
+            // These diagnostics will be reported with DiagnosticDataLocation.OriginalFilePath = generated C# file, and DiagnosticDataLocation.MappedFilePath = imported razor file.
+            // This means that in general we could have diagnostics produced by one generated file that map to many different actual razor files.
+            // We can't filter them out as we don't know which razor file(s) the underlying generated C# document actually maps to, and which are just imported.
+            // So we publish them all and let them get de-duped.
+            var fileUriToDiagnostics = diagnostics.GroupBy(diagnostic => GetDiagnosticUri(document, diagnostic)).ToDictionary(
+                group => group.Key,
+                group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToArray());
+            return fileUriToDiagnostics;
 
-            return (new Uri(fileUri), diagnostics.Select(diagnostic => new LanguageServer.Protocol.Diagnostic
+            static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData)
             {
-                Code = diagnostic.Id,
-                Message = diagnostic.Message,
-                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnostic.Severity),
-                Range = GetDiagnosticRange(diagnostic.DataLocation, text),
-                // Only the unnecessary diagnostic tag is currently supported via LSP.
-                Tags = diagnostic.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
-            }).ToArray());
+                var filePath = diagnosticData.DataLocation?.MappedFilePath ?? document.FilePath;
+                return ProtocolConversions.GetUriFromFilePath(filePath);
+            }
+
+            static LanguageServer.Protocol.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+            {
+                return new LanguageServer.Protocol.Diagnostic
+                {
+                    Code = diagnosticData.Id,
+                    Message = diagnosticData.Message,
+                    Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
+                    Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
+                    // Only the unnecessary diagnostic tag is currently supported via LSP.
+                    Tags = diagnosticData.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
+                };
+            }
         }
 
-        private LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
+        private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
         {
             (var startLine, var endLine) = DiagnosticData.GetLinePositions(diagnosticDataLocation, text, useMapped: true);
 

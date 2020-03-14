@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -58,6 +59,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.AddReference, LSP.CompletionItemKind.Text },
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
+
+        public static Uri GetUriFromFilePath(string filePath)
+        {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            // Remove preceding slash if we're on Window as it's an invalid URI.
+            if (filePath.StartsWith("/") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                filePath = filePath.Substring(1);
+            }
+
+            return new Uri(filePath, UriKind.Absolute);
+        }
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
