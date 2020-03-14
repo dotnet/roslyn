@@ -3163,10 +3163,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
-            return BindExpressionBodyAsBlockInternal(expressionBody, bodyBinder, diagnostics);
+            return bindExpressionBodyAsBlockInternal(expressionBody, bodyBinder, diagnostics);
 
             // Use static local function to prevent accidentally calling instance methods on `this` instead of `bodyBinder`
-            static BoundBlock BindExpressionBodyAsBlockInternal(ArrowExpressionClauseSyntax expressionBody, Binder bodyBinder, DiagnosticBag diagnostics)
+            static BoundBlock bindExpressionBodyAsBlockInternal(ArrowExpressionClauseSyntax expressionBody, Binder bodyBinder, DiagnosticBag diagnostics)
             {
                 RefKind refKind;
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
