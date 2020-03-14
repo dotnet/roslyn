@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 #if CODE_STYLE
 using AbstractBuiltInCodeStyleDiagnosticAnalyzer = Microsoft.CodeAnalysis.CodeStyle.AbstractBuiltInCodeStyleDiagnosticAnalyzer;
@@ -151,11 +153,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (!(firstBlock is IBlockOperation block))
                             return false;
 
-                        var explicitOperations = block.Operations.WhereAsArray(op => !op.IsImplicit);
-                        if (explicitOperations.Length != 1)
+                        var firstOp = TryGetSingleExplicitStatement(block.Operations);
+                        if (firstOp == null)
                             return false;
-
-                        var firstOp = explicitOperations[0];
 
                         // unwrap: { throw new NYI(); }
                         if (firstOp is IExpressionStatementOperation expressionStatement)
@@ -163,6 +163,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         // => throw new NotImplementedOperation(...)
                         return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
+                    }
+
+                    static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
+                    {
+                        IOperation? firstOp = null;
+                        foreach (var operation in operations)
+                        {
+                            if (operation.IsImplicit)
+                                continue;
+
+                            if (firstOp != null)
+                                return null;
+
+                            firstOp = operation;
+                        }
+
+                        return firstOp;
                     }
 
                     static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
@@ -595,7 +612,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string> properties)
+                        out ImmutableDictionary<string, string>? properties)
                     {
                         Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
 
