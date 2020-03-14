@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         var firstOp = block.Operations.Length == 1
                             ? block.Operations[0]
                             : TryGetSingleExplicitStatement(block.Operations);
+                        if (firstOp == null)
+                            return false;
 
                         // unwrap: { throw new NYI(); }
                         if (firstOp is IExpressionStatementOperation expressionStatement)
