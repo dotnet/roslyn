@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
-        protected abstract bool CanImplementDisposePattern(INamedTypeSymbol symbol, SyntaxNode classDecl);
         protected abstract Document ImplementDisposePattern(Document document, SyntaxNode root, INamedTypeSymbol symbol, int position, bool explicitly);
 
         public async Task<Document> ImplementInterfaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // While implementing just one default action, like in the case of pressing enter after interface name in VB,
                 // choose to implement with the dispose pattern as that's the Dev12 behavior.
-                var action = ShouldImplementDisposePattern(document, state, explicitly: false)
+                var action = ShouldImplementDisposePattern(state, explicitly: false)
                     ? ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state)
                     : ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
-                if (ShouldImplementDisposePattern(document, state, explicitly: false))
+                if (ShouldImplementDisposePattern(state, explicitly: false))
                 {
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state);
                 }
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
 
-                if (ShouldImplementDisposePattern(document, state, explicitly: true))
+                if (ShouldImplementDisposePattern(state, explicitly: true))
                 {
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, state);
                 }

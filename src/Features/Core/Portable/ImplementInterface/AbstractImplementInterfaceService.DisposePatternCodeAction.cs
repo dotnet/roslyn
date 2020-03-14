@@ -48,14 +48,25 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             //    the dispose pattern).
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
-            return idisposable != null &&
-                   unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
-                   CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
+            if (idisposable == null)
+                return false;
+
+            if (!unimplementedMembers.Any(m => m.type.Equals(idisposable)))
+                return false;
+
+            // The dispose pattern is only applicable if the implementing type is a class that does
+            // not already declare any conflicting members named 'disposedValue' or 'Dispose'
+            // (because we will be generating a 'disposedValue' field and a couple of methods named
+            // 'Dispose' as part of implementing the dispose pattern).
+            if (state.ClassOrStructType.GetMembers().Any(m => m.MetadataName == nameof(IDisposable.Dispose) || m.MetadataName.Contains("disposedValue")))
+                return false;
+
+            return true;
         }
 
-        internal class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
         {
-            internal ImplementInterfaceWithDisposePatternCodeAction(
+            public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
                 State state,
@@ -108,10 +119,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
-                // Use the code generation service to generate all unimplemented members except those that are
-                // part of the dispose pattern. We can't use the code generation service to implement the dispose
-                // pattern since the code generation service doesn't support injection of the custom boiler
-                // plate code required for implementing the dispose pattern.
+                // Use the code generation service to generate all unimplemented members except
+                // those that are part of the dispose pattern. We can't use the code generation
+                // service to implement the dispose pattern since the code generation service
+                // doesn't support injection of the custom boiler plate code required for
+                // implementing the dispose pattern.
                 var idisposable = TryGetSymbolForIDisposable(compilation);
                 result = await base.GetUpdatedDocumentAsync(
                     result,

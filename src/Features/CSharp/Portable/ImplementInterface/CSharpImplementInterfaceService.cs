@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -73,21 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return node as ClassDeclarationSyntax;
         }
 
-        protected override bool CanImplementDisposePattern(INamedTypeSymbol symbol, SyntaxNode classDecl)
-        {
-            // The dispose pattern is only applicable if the implementing type is a class that does not already declare any conflicting
-            // members named 'disposedValue' or 'Dispose' (because we will be generating a 'disposedValue' field and a couple of methods
-            // named 'Dispose' as part of implementing the dispose pattern).
-            return classDecl != null &&
-                   classDecl.IsKind(SyntaxKind.ClassDeclaration) &&
-                   symbol != null &&
-                   !symbol.GetMembers().Any(m => (m.MetadataName == "Dispose") || (m.MetadataName == "disposedValue"));
-        }
-
         protected override Document ImplementDisposePattern(Document document, SyntaxNode root, INamedTypeSymbol symbol, int position, bool explicitly)
         {
             var classDecl = GetClassDeclarationAt(root, position);
-            Debug.Assert(CanImplementDisposePattern(symbol, classDecl), "ImplementDisposePattern called with bad inputs");
 
             // Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
             // because of the need to parse, format, and simplify the result; during pseudo-localized builds, resource

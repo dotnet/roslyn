@@ -95,21 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Return TryCast(node, ClassBlockSyntax)
         End Function
 
-        Protected Overrides Function CanImplementDisposePattern(symbol As INamedTypeSymbol, classBlock As SyntaxNode) As Boolean
-            ' The dispose pattern is only applicable if the implementing type is a class that does not already declare any conflicting
-            ' members named 'disposedValue' or 'Dispose' (because we will be generating a 'disposedValue' field and a couple of methods
-            ' named 'Dispose' as part of implementing the dispose pattern).
-            Return (classBlock IsNot Nothing) AndAlso
-                   classBlock.IsKind(SyntaxKind.ClassBlock) AndAlso
-                   (symbol IsNot Nothing) AndAlso
-                   Not symbol.GetMembers().Any(
-                       Function(m) CaseInsensitiveComparison.Comparer.Equals(m.MetadataName, "Dispose") OrElse
-                                   CaseInsensitiveComparison.Comparer.Equals(m.MetadataName, "disposedValue"))
-        End Function
-
         Protected Overrides Function ImplementDisposePattern(document As Document, root As SyntaxNode, symbol As INamedTypeSymbol, position As Integer, explicitly As Boolean) As Document
             Dim classBlock = GetClassBlockAt(root, position)
-            Debug.Assert(CanImplementDisposePattern(symbol, classBlock), "ImplementDisposePattern called with bad inputs")
 
             ' Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
             ' because of the need to parse, format, and simplify the result; during pseudo-localized builds, resource
