@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
             Document document,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private SignatureHelpItem ConvertNormalTypeConstructor(
             IMethodSymbol constructor,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
