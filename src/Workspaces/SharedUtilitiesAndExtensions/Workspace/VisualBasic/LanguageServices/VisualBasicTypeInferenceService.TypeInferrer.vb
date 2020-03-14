@@ -1000,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInCollectionInitializerExpression(
                 collectionInitializer As CollectionInitializerSyntax,
                 Optional expression As ExpressionSyntax = Nothing,
-                Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
 
                 ' New List(Of T) From { x }
                 If expression IsNot Nothing Then
@@ -1014,21 +1014,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                ' New Dictionary<K,V> From { { x, ... } }
-                Dim parameterIndex = If(previousToken.HasValue,
-                        collectionInitializer.Initializers.GetSeparators().ToList().IndexOf(previousToken.Value) + 1,
-                        collectionInitializer.Initializers.IndexOf(expression))
+                ' New List(of T) FRom { $$
+                If previousToken.Kind() = SyntaxKind.OpenBraceToken OrElse
+                   previousToken.Kind() = SyntaxKind.CommaToken Then
 
-                Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
-                Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
-                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = collectionInitializer.Initializers.Count) _
-                    .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type) _
-                    .WhereNotNull() _
-                    .Select(Function(a) New TypeInferenceInfo(a))
-
-
-                If initializerAddMethodParameterTypes.Any() Then
-                    Return initializerAddMethodParameterTypes
+                    Dim objectInitializer = TryCast(collectionInitializer.Parent, ObjectCollectionInitializerSyntax)
+                    Dim objectCreation = TryCast(objectInitializer?.Parent, ObjectCreationExpressionSyntax)
+                    If objectCreation IsNot Nothing Then
+                        Dim types = GetTypes(objectCreation).Select(Function(t) t.InferredType)
+                        Return types.OfType(Of INamedTypeSymbol)().SelectMany(Function(t) GetCollectionElementType(t))
+                    End If
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
