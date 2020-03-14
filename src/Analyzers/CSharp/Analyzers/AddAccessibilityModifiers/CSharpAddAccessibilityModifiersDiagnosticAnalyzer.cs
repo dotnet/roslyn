@@ -4,11 +4,16 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
@@ -20,38 +25,40 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         {
         }
 
+        private CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
         protected override void ProcessCompilationUnit(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            SyntaxTreeAnalysisContext context,
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
-            ProcessMembers(context, generator, option, compilationUnit.Members);
+            ProcessMembers(context, option, compilationUnit.Members);
         }
 
         private void ProcessMembers(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            SyntaxTreeAnalysisContext context,
             CodeStyleOption<AccessibilityModifiersRequired> option,
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)
             {
-                ProcessMemberDeclaration(context, generator, option, memberDeclaration);
+                ProcessMemberDeclaration(context, option, memberDeclaration);
             }
         }
 
         private void ProcessMemberDeclaration(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            SyntaxTreeAnalysisContext context,
             CodeStyleOption<AccessibilityModifiersRequired> option, MemberDeclarationSyntax member)
         {
             if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
             {
-                ProcessMembers(context, generator, option, namespaceDeclaration.Members);
+                ProcessMembers(context, option, namespaceDeclaration.Members);
             }
 
             // If we have a class or struct, recurse inwards.
             if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
             {
-                ProcessMembers(context, generator, option, typeDeclaration.Members);
+                ProcessMembers(context, option, typeDeclaration.Members);
             }
 
 #if false
@@ -73,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             }
 
             // Certain members never have accessibility. Don't bother reporting on them.
-            if (!generator.CanHaveAccessibility(member))
+            if (!SyntaxFacts.CanHaveAccessibility(member))
             {
                 return;
             }
 
             // This analyzer bases all of its decisions on the accessibility
-            var accessibility = generator.GetAccessibility(member);
+            var accessibility = SyntaxFacts.GetAccessibility(member);
 
             // Omit will flag any accessibility values that exist and are default
             // The other options will remove or ignore accessibility

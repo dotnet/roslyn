@@ -28,11 +28,17 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
+
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            var codeAction = new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c));
+#else
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
+            var codeAction = new MyCodeAction(priority, c => FixAsync(context.Document, context.Diagnostics.First(), c));
+#endif
             context.RegisterCodeFix(
-                new MyCodeAction(priority, c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                codeAction,
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -63,15 +69,22 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(AnalyzersResources.Add_accessibility_modifiers, createChangedDocument, AnalyzersResources.Add_accessibility_modifiers)
+            {
+            }
+#else
             public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_accessibility_modifiers, createChangedDocument, FeaturesResources.Add_accessibility_modifiers)
+                : base(AnalyzersResources.Add_accessibility_modifiers, createChangedDocument, AnalyzersResources.Add_accessibility_modifiers)
             {
                 Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }
+#endif
         }
     }
 }

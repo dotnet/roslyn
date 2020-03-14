@@ -4,7 +4,10 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 {
@@ -15,8 +18,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
                    CodeStyleOptions.RequireAccessibilityModifiers,
-                   new LocalizableResourceString(nameof(FeaturesResources.Add_accessibility_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Accessibility_modifiers_required), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
@@ -31,11 +34,6 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Tree;
 
-            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
-            {
-                return;
-            }
-
             var language = syntaxTree.Options.Language;
             var option = context.GetOption(CodeStyleOptions.RequireAccessibilityModifiers, language);
             if (option.Value == AccessibilityModifiersRequired.Never)
@@ -43,10 +41,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 return;
             }
 
-            var generator = SyntaxGenerator.GetGenerator(workspaceAnalyzerOptions.Services.Workspace, language);
-            ProcessCompilationUnit(context, generator, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
+            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
         }
 
-        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, SyntaxGenerator generator, CodeStyleOption<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
     }
 }
