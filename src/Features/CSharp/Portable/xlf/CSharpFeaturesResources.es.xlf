@@ -417,11 +417,6 @@
         <target state="translated">TODO: reemplace un finalizador solo si el anterior Dispose(bool disposing) tiene código para liberar los recursos no administrados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
-        <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="translated">Este código se agrega para implementar correctamente el patrón descartable.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: quite la marca de comentario de la siguiente línea si el finalizador se ha reemplazado antes.</target>

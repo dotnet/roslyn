@@ -417,11 +417,6 @@
         <target state="translated">TODO: 僅當上方的 Dispose(bool disposing) 具有會釋放 Unmanaged 資源的程式碼時，才覆寫完成項。</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
-        <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="translated">加入這個程式碼的目的在正確實作可處置的模式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
         <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
         <target state="translated">TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。</target>

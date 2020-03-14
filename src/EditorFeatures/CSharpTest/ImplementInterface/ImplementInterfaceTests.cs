@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
@@ -5245,6 +5248,8 @@ class C : [|IDisposable|]",
 $@"using System;
 class C : IDisposable
 {{
+    private bool disposedValue;
+
 {DisposePattern("protected virtual ", "C", "public void ")}
 }}
 ", index: 1);
@@ -5285,6 +5290,8 @@ class C : [|System.IDisposable|]
 $@"using System;
 class C : System.IDisposable
 {{
+    private bool disposedValue;
+
     class IDisposable
     {{
     }}
@@ -5340,6 +5347,8 @@ class C : IDisposable
 @"class C : [|System.IDisposable|]",
 $@"class C : System.IDisposable
 {{
+    private bool disposedValue;
+
 {DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
 }}
 ", index: 3);
@@ -5397,6 +5406,8 @@ interface I : IDisposable
 }}
 class C : I
 {{
+    private bool disposedValue;
+
     public void F()
     {{
         throw new NotImplementedException();
@@ -5426,6 +5437,8 @@ interface I : IDisposable
 }}
 class C : I
 {{
+    private bool disposedValue;
+
     void I.F()
     {{
         throw new NotImplementedException();
@@ -6218,6 +6231,7 @@ $@"using System;
 
 class Program : IDisposable
 {{
+    private bool disposedValue;
 
 {DisposePattern("protected virtual ", "Program", "public void ")}
 }}", index: 1);
@@ -6238,6 +6252,7 @@ $@"using System;
 class Program : IDisposable
 {{
     private bool DisposedValue;
+    private bool disposedValue;
 
 {DisposePattern("protected virtual ", "Program", "void IDisposable.")}
 }}", index: 3);
@@ -6306,9 +6321,52 @@ $@"using System;
 
 sealed class Program : IDisposable
 {{
+    private bool disposedValue;
 
-{DisposePattern("", "Program", "void IDisposable.")}
+{DisposePattern("", "Program", "void IDisposable.", isSealed: true)}
 }}", index: 3);
+        }
+
+        [WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceForExplicitIDisposableWithExistingField()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"using System;
+
+class Program : [|IDisposable|]
+{
+    private bool disposedValue;
+}",
+$@"using System;
+
+class Program : IDisposable
+{{
+    private bool disposedValue;
+    private bool disposedValue1;
+
+{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "disposedValue1")}
+}}", index: 1);
+        }
+
+        [WorkItem(9760, "https://github.com/dotnet/roslyn/issues/9760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceUnderscoreNameForFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program : [|IDisposable|]
+{
+}",
+$@"using System;
+
+class Program : IDisposable
+{{
+    private bool _disposedValue;
+
+{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "_disposedValue")}
+}}", index: 1, options: _options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
@@ -6472,6 +6530,8 @@ partial class C
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
 {{
+    private bool disposedValue;
+
     public bool Equals(int other)
     {{
         throw new NotImplementedException();
@@ -6520,6 +6580,8 @@ interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
 
 partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
 {{
+    private bool disposedValue;
+
     bool IEquatable<int>.Equals(int other)
     {{
         throw new NotImplementedException();
@@ -6543,14 +6605,16 @@ partial class C
 }}", index: 3);
         }
 
-        private static string DisposePattern(string disposeVisibility, string className, string implementationVisibility)
+        private static string DisposePattern(
+            string disposeVisibility,
+            string className,
+            string implementationVisibility,
+            bool isSealed = false,
+            string disposeField = "disposedValue")
         {
-            return $@"    #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
-
-    {disposeVisibility}void Dispose(bool disposing)
+            var code = $@"    {disposeVisibility}void Dispose(bool disposing)
     {{
-        if (!disposedValue)
+        if (!{disposeField})
         {{
             if (disposing)
             {{
@@ -6559,8 +6623,7 @@ partial class C
 
             // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
-
-            disposedValue = true;
+            {disposeField} = true;
         }}
     }}
 
@@ -6571,15 +6634,26 @@ partial class C
     //   Dispose(false);
     // }}
 
-    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {implementationVisibility}Dispose()
     {{
         // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);
+        Dispose(true);";
+
+            if (isSealed)
+            {
+                code += @$"
         // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
         // GC.SuppressFinalize(this);
-    }}
-    #endregion";
+    }}";
+            }
+            else
+            {
+                code += @$"
+        GC.SuppressFinalize(this);
+    }}";
+            }
+
+            return code;
         }
 
         [WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")]

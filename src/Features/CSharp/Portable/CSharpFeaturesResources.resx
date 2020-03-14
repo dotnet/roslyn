@@ -270,9 +270,6 @@
   <data name="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</value>
   </data>
-  <data name="This_code_added_to_correctly_implement_the_disposable_pattern" xml:space="preserve">
-    <value>This code added to correctly implement the disposable pattern.</value>
-  </data>
   <data name="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above" xml:space="preserve">
     <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
   </data>
