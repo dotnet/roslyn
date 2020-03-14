@@ -186,7 +186,7 @@ end class", parameters:=Nothing,
         <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
         Public Async Function NotImplementedException_MultipleStatements2() As Task
-            Await TestDiagnosticsAsync(
+            Await TestMissingAsync(
 "imports system
 
 class C
@@ -194,8 +194,7 @@ class C
         if (true)
             throw new NotImplementedException()
     end sub
-end class", parameters:=Nothing,
-    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
+end class")
         End Function
     End Class
 End Namespace
