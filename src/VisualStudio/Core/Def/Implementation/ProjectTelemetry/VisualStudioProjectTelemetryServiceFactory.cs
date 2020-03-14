@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         public VisualStudioProjectTelemetryServiceFactory(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         {
             if (!(workspaceServices.Workspace is VisualStudioWorkspaceImpl workspace))
                 return null;
