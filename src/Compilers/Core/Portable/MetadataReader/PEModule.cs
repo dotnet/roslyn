@@ -95,7 +95,19 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
-        private static readonly AttributeValueExtractor<(bool sense, ImmutableArray<string> strings)> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
+
+        internal struct BoolAndStringArrayData
+        {
+            public BoolAndStringArrayData(bool sense, ImmutableArray<string> strings)
+            {
+                Sense = sense;
+                Strings = strings;
+            }
+
+            public readonly bool Sense;
+            public readonly ImmutableArray<string> Strings;
+        }
 
         // 'ignoreAssemblyRefs' is used by the EE only, when debugging
         // .NET Native, where the corlib may have assembly references
@@ -1263,8 +1275,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (TryExtractValueFromAttribute(ai.Handle, out var extracted, s_attributeBoolAndStringArrayValueExtractor))
                     {
-                        var whenResult = extracted.sense ? whenTrue : whenFalse;
-                        foreach (var value in extracted.strings)
+                        var whenResult = extracted.Sense ? whenTrue : whenFalse;
+                        foreach (var value in extracted.Strings)
                         {
                             if (value is object)
                             {
@@ -1697,12 +1709,12 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolAndStringArrayInAttributeValue(out (bool sense, ImmutableArray<string> strings) value, ref BlobReader sig)
+        internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
                 CrackStringArrayInAttributeValue(out ImmutableArray<string> strings, ref sig))
             {
-                value = (sense, strings);
+                value = new BoolAndStringArrayData(sense, strings);
                 return true;
             }
 
