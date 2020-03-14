@@ -9,10 +9,8 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasePropertyDeclarationSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\CSharpSyntaxContext.cs" />
