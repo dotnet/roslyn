@@ -44,12 +44,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var diagnostic = context.Diagnostics.First();
             var documentOptionSet = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            var codeAction = new MyCodeAction(diagnostic.GetMessage(), c => FixAsync(context.Document, diagnostic, c));
+#else
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
+            var codeAction = new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c));
+#endif
+
             context.RegisterCodeFix(
-                new MyCodeAction(diagnostic.GetMessage(), priority, c => FixAsync(context.Document, diagnostic, c)),
+                codeAction,
                 diagnostic);
         }
 
@@ -96,8 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
+            {
+            }
+#else
             internal override CodeActionPriority Priority { get; }
 
             public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
@@ -105,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 this.Priority = priority;
             }
+#endif
         }
     }
 }
