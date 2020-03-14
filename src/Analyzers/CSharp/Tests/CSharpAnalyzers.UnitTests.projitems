@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConstructorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConversionOperatorsAnalyzerTests.cs" />

@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -20,8 +24,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
                 CodeStyleOptions.PreferReadonly,
-                new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                new LocalizableResourceString(nameof(AnalyzersResources.Add_readonly_modifier), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                new LocalizableResourceString(nameof(AnalyzersResources.Make_field_readonly), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
