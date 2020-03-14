@@ -1522,11 +1522,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">TODO: eseguire l'override di Finalize() solo se Dispose(disposing As Boolean) include il codice per liberare risorse non gestite.</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Questo codice viene aggiunto da Visual Basic per implementare in modo corretto il criterio Disposable.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
         <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
         <target state="translated">TODO: rimuovere il commento dalla riga seguente se è stato eseguito l'override di Finalize().</target>

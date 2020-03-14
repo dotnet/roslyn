@@ -1522,11 +1522,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">TODO: 上の Dispose(disposing As Boolean) にアンマネージド リソースを解放するコードが含まれる場合にのみ Finalize() をオーバーライドします。</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">このコードは、破棄可能なパターンを正しく実装できるように Visual Basic によって追加されました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
         <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
         <target state="translated">TODO: 上の Finalize() がオーバーライドされている場合は、次の行のコメントを解除してください。</target>

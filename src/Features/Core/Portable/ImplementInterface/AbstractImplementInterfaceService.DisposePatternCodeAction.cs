@@ -8,12 +8,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService
     {
+        private static ImmutableArray<string> s_disposedValueNameParts =
+            ImmutableArray.Create("disposed", "value");
+
         private static INamedTypeSymbol TryGetSymbolForIDisposable(Compilation compilation)
         {
             // Get symbol for 'System.IDisposable'.
@@ -61,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             // not already declare any conflicting members named 'disposedValue' or 'Dispose'
             // (because we will be generating a 'disposedValue' field and a couple of methods named
             // 'Dispose' as part of implementing the dispose pattern).
-            if (state.ClassOrStructType.GetMembers().Any(m => m.MetadataName == nameof(IDisposable.Dispose) || m.MetadataName.Contains("disposedValue")))
+            if (state.ClassOrStructType.GetMembers(nameof(IDisposable.Dispose)).Any())
                 return false;
 
             return true;
@@ -122,17 +132,25 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+                var disposedValueField = CreateDisposedValueField(
+                    compilation, classOrStructType, requireAccessiblity, rules);
+
                 // Use the code generation service to generate all unimplemented members except
                 // those that are part of the dispose pattern. We can't use the code generation
                 // service to implement the dispose pattern since the code generation service
                 // doesn't support injection of the custom boiler plate code required for
                 // implementing the dispose pattern.
                 var idisposable = TryGetSymbolForIDisposable(compilation);
-                result = await base.GetUpdatedDocumentAsync(
+
+                result = await GetUpdatedDocumentAsync(
                     result,
                     unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
                     classOrStructType,
                     classOrStructDecl,
+                    extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
                     cancellationToken).ConfigureAwait(false);
 
                 // Now append the dispose pattern implementation.
@@ -140,7 +158,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
                 compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
-                result = Service.ImplementDisposePattern(result, root, classOrStructType, classOrStructDecl.SpanStart, Explicitly);
+                result = Service.ImplementDisposePattern(
+                    result, root,
+                    classOrStructType, disposedValueField,
+                    classOrStructDecl.SpanStart, Explicitly);
 
                 // Remove the annotation since we don't need it anymore.
                 root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -151,6 +172,48 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     cancellationToken).ConfigureAwait(false);
 
                 return result;
+            }
+
+            private IFieldSymbol CreateDisposedValueField(
+                Compilation compilation,
+                INamedTypeSymbol containingType,
+                CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+                ImmutableArray<NamingRule> rules)
+            {
+                var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+                var accessibilityLevel = requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault
+                    ? Accessibility.NotApplicable
+                    : Accessibility.Private;
+
+                foreach (var rule in rules)
+                {
+                    if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
+                    {
+                        var uniqueName = GenerateUniqueNameForDisposedValueField(containingType, rule);
+
+                        return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                            default,
+                            accessibilityLevel,
+                            DeclarationModifiers.None,
+                            boolType, uniqueName);
+                    }
+                }
+
+                // We place a special rule in s_builtInRules that matches all fields.  So we should 
+                // always find a matching rule.
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            private static string GenerateUniqueNameForDisposedValueField(INamedTypeSymbol containingType, NamingRule rule)
+            {
+                // Determine an appropriate name to call the new field.
+                var baseName = rule.NamingStyle.CreateName(s_disposedValueNameParts);
+
+                // Ensure that the name is unique in the containing type so we
+                // don't stomp on an existing member.
+                var uniqueName = NameGenerator.GenerateUniqueName(
+                    baseName, n => containingType.GetMembers(n).IsEmpty);
+                return uniqueName;
             }
         }
     }

@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return node as ClassDeclarationSyntax;
         }
 
-        protected override Document ImplementDisposePattern(Document document, SyntaxNode root, INamedTypeSymbol symbol, int position, bool explicitly)
+        protected override Document ImplementDisposePattern(
+            Document document, SyntaxNode root,
+            INamedTypeSymbol classSymbol, IFieldSymbol disposedValueField,
+            int position, bool explicitly)
         {
             var classDecl = GetClassDeclarationAt(root, position);
 
@@ -83,12 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // strings are given a special prefix and suffix that will break the parser, hence the requirement to
             // localize the comments individually.
             var code = $@"
-    #region IDisposable Support
-    private bool disposedValue = false; // {FeaturesResources.To_detect_redundant_calls}
-
-    {(symbol.IsSealed ? "" : "protected virtual ")}void Dispose(bool disposing)
+    {(classSymbol.IsSealed ? "" : "protected virtual ")}void Dispose(bool disposing)
     {{
-        if (!disposedValue)
+        if (!{disposedValueField.Name})
         {{
             if (disposing)
             {{
@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
-
-            disposedValue = true;
+            {disposedValueField.Name} = true;
         }}
     }}
 
@@ -109,27 +108,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     //   Dispose(false);
     // }}
 
-    // {CSharpFeaturesResources.This_code_added_to_correctly_implement_the_disposable_pattern}
     {(explicitly ? "void System.IDisposable." : "public void ")}Dispose()
     {{
         // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);
+        Dispose(true);";
+
+            if (classSymbol.IsSealed)
+            {
+                code += @$"
         // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
         // GC.SuppressFinalize(this);
     }}
-    #endregion
 ";
+            }
+            else
+            {
+                code += @$"
+        GC.SuppressFinalize(this);
+    }}
+";
+            }
 
             var decls = SyntaxFactory.ParseSyntaxTree(code)
                 .GetRoot().DescendantNodes().OfType<MemberDeclarationSyntax>()
                 .Select(decl => decl.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation))
                 .ToArray();
-
-            // Append #endregion to the trailing trivia of the last declaration being generated.
-            decls[decls.Length - 1] = decls[decls.Length - 1].WithAppendedTrailingTrivia(
-                SyntaxFactory.TriviaList(
-                    SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.ElasticCarriageReturnLineFeed));
 
             // Ensure that open and close brace tokens are generated in case they are missing.
             var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);

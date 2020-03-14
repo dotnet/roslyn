@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
-        protected abstract Document ImplementDisposePattern(Document document, SyntaxNode root, INamedTypeSymbol symbol, int position, bool explicitly);
+        protected abstract Document ImplementDisposePattern(
+            Document document, SyntaxNode root,
+            INamedTypeSymbol symbol, IFieldSymbol disposedValueField,
+            int position, bool explicitly);
 
         public async Task<Document> ImplementInterfaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {

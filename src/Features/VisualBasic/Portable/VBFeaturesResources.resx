@@ -1003,9 +1003,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</value>
   </data>
-  <data name="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern" xml:space="preserve">
-    <value>This code added by Visual Basic to correctly implement the disposable pattern.</value>
-  </data>
   <data name="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above" xml:space="preserve">
     <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
   </data>

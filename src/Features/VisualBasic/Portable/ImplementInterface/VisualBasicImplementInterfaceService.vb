@@ -95,7 +95,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Return TryCast(node, ClassBlockSyntax)
         End Function
 
-        Protected Overrides Function ImplementDisposePattern(document As Document, root As SyntaxNode, symbol As INamedTypeSymbol, position As Integer, explicitly As Boolean) As Document
+        Protected Overrides Function ImplementDisposePattern(
+                document As Document,
+                root As SyntaxNode,
+                symbol As INamedTypeSymbol,
+                disposedValueField As IFieldSymbol,
+                position As Integer,
+                explicitly As Boolean) As Document
             Dim classBlock = GetClassBlockAt(root, position)
 
             ' Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
@@ -103,12 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             ' strings are given a special prefix and suffix that will break the parser, hence the requirement to
             ' localize the comments individually.
             Dim code = $"
-#Region ""IDisposable Support""
-    Private disposedValue As Boolean ' {FeaturesResources.To_detect_redundant_calls}
-
-    ' IDisposable
     Protected {If(symbol.IsSealed, "", "Overridable ")}Sub Dispose(disposing As Boolean)
-        If Not Me.disposedValue Then
+        If Not {disposedValueField.Name} Then
             If disposing Then
                 ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
@@ -116,7 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             ' {VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
         End If
-        Me.disposedValue = True
+
+        {disposedValueField.Name} = True
     End Sub
 
     ' {VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources}
@@ -126,28 +129,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     '    MyBase.Finalize()
     'End Sub
 
-    ' {VBFeaturesResources.This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern}
     Public Sub Dispose() Implements System.IDisposable.Dispose
         ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)
+        Dispose(True)"
+            If symbol.IsSealed Then
+                code += "
         ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
         ' GC.SuppressFinalize(Me)
     End Sub
-#End Region
 "
+            Else
+                code += "
+        GC.SuppressFinalize(Me)
+    End Sub
+"
+            End If
 
             Dim decls = SyntaxFactory.ParseSyntaxTree(code).
                 GetRoot().DescendantNodes().
-                Where(Function(n) n.IsKind(SyntaxKind.FieldDeclaration) OrElse n.IsKind(SyntaxKind.SubBlock)).
+                Where(Function(n) n.IsKind(SyntaxKind.SubBlock)).
                 Cast(Of StatementSyntax).
                 Select(Function(decl) decl.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)).
                 ToArray()
-
-            ' Append #endregion to the trailing trivia of the last declaration being generated.
-            decls(decls.Length - 1) = decls(decls.Length - 1).WithAppendedTrailingTrivia(
-                SyntaxFactory.TriviaList(
-                    SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia()),
-                    SyntaxFactory.ElasticCarriageReturnLineFeed))
 
             ' Ensure that open and close brace tokens are generated in case they are missing.
             Dim newNode = classBlock.AddMembers(decls).FixTerminators()

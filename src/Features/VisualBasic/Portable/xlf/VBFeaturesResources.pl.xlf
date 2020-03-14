@@ -1522,11 +1522,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">TODO: przesłoń metodę Finalize() tylko w sytuacji, gdy powyższa metoda Dispose(disposing As Boolean) ma kod umożliwiający zwolnienie niezarządzanych zasobów.</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Język Visual Basic dodaje ten kod, aby prawidłowo zaimplementować wzorzec rozporządzający.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
         <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
         <target state="translated">TODO: usuń komentarz z poniższego wiersza, jeśli powyższa metoda Finalize() została przesłonięta.</target>
