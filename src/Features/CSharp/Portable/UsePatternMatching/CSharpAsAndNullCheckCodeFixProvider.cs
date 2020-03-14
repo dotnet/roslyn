@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -45,16 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var declaratorLocations = new HashSet<Location>();
-            var statementParentScopes = new HashSet<SyntaxNode>();
-            void RemoveStatement(StatementSyntax statement)
-            {
-                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
-                {
-                    statementParentScopes.Add(statement.Parent);
-                }
-            }
+            using var _1 = PooledHashSet<Location>.GetInstance(out var declaratorLocations);
+            using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -78,6 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             return Task.CompletedTask;
+
+            void RemoveStatement(StatementSyntax statement)
+            {
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                {
+                    statementParentScopes.Add(statement.Parent);
+                }
+            }
         }
 
         private static void AddEdits(
@@ -100,10 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var newIdentifier = declarator.Identifier
                 .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
-            ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(
-                asExpression.Left, SyntaxFactory.DeclarationPattern(
-                    ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    SyntaxFactory.SingleVariableDesignation(newIdentifier)));
+            var declarationPattern = SyntaxFactory.DeclarationPattern(
+                ((TypeSyntax)asExpression.Right).WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                SyntaxFactory.SingleVariableDesignation(newIdentifier));
+            ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
 
             // We should negate the is-expression if we have something like "x == null" or "x is null"
             if (comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))

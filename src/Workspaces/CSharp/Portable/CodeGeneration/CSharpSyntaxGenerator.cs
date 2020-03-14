@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+        internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
+
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
@@ -3760,35 +3762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode LocalDeclarationStatement(SyntaxNode type, string name, SyntaxNode initializer, bool isConst)
-            => LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
-
-        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
-        {
-            return SyntaxFactory.LocalDeclarationStatement(
-                isConst ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)) : default,
-                VariableDeclaration(type, name, initializer));
-        }
-
-        internal override SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer)
-            => ((VariableDeclaratorSyntax)variableDeclarator).WithInitializer((EqualsValueClauseSyntax)initializer);
-
-        internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
-            => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
-
-        private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, SyntaxToken name, SyntaxNode expression)
-        {
-            return SyntaxFactory.VariableDeclaration(
-                type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            name, argumentList: null,
-                            expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
-        }
+            => CSharpSyntaxGeneratorInternal.Instance.LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
 
         public override SyntaxNode UsingStatement(SyntaxNode type, string name, SyntaxNode expression, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.UsingStatement(
-                VariableDeclaration(type, name.ToIdentifierToken(), expression),
+                CSharpSyntaxGeneratorInternal.VariableDeclaration(type, name.ToIdentifierToken(), expression),
                 expression: null,
                 statement: CreateBlock(statements));
         }
@@ -3926,9 +3905,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
             => SyntaxFactory.IdentifierName(identifier);
-
-        internal override SyntaxToken Identifier(string identifier)
-            => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
         {

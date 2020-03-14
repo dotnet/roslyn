@@ -127,16 +127,20 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                         if (argCount == 1 ||
                             IsSpaceChar(invocation.Arguments[1]))
                         {
-                            var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
+                            var alignmentOp = invocation.Arguments[0].Value;
+                            if (alignmentOp != null && alignmentOp.ConstantValue.HasValue)
+                            {
+                                var alignmentSyntax = alignmentOp.Syntax;
 
-                            unwrapped = invocation.Instance;
-                            alignment = alignmentSyntax as TExpressionSyntax;
-                            negate = targetName == nameof(string.PadRight);
+                                unwrapped = invocation.Instance;
+                                alignment = alignmentSyntax as TExpressionSyntax;
+                                negate = targetName == nameof(string.PadRight);
 
-                            unnecessarySpans.AddRange(invocation.Syntax.Span
-                                .Subtract(invocation.Instance.Syntax.FullSpan)
-                                .Subtract(alignmentSyntax.FullSpan));
-                            return;
+                                unnecessarySpans.AddRange(invocation.Syntax.Span
+                                    .Subtract(invocation.Instance.Syntax.FullSpan)
+                                    .Subtract(alignmentSyntax.FullSpan));
+                                return;
+                            }
                         }
                     }
                 }
