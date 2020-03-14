@@ -128,5 +128,73 @@ $"Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_NoDiagnostic1() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        throw new NotImplementedException()
+    end sub
+end class")
+        End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_NoDiagnostic2() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    private function Goo([|i|] as integer) as integer
+        throw new NotImplementedException()
+    end function
+end class")
+        End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_NoDiagnostic3() As Task
+            Await TestDiagnosticMissingAsync(
+"imports system
+
+class C
+    public sub new([|i|] as integer)
+        throw new NotImplementedException()
+    end sub
+end class")
+        End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_MultipleStatements1() As Task
+            Await TestDiagnosticsAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        throw new NotImplementedException()
+        return
+    end sub
+end class", parameters:=Nothing,
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
+        End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_MultipleStatements2() As Task
+            Await TestMissingAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        if (true)
+            throw new NotImplementedException()
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

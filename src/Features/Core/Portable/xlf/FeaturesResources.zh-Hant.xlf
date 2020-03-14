@@ -2000,11 +2000,6 @@ This version used in: {2}</source>
         <target state="translated">安裝套件 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">物件初始化可以簡化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">專案 {0}</target>
@@ -2060,11 +2055,6 @@ This version used in: {2}</source>
         <target state="translated">Pascal 命名法的大小寫</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">集合初始化可簡化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">使用 coalesce 運算式</target>
@@ -2078,16 +2068,6 @@ This version used in: {2}</source>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">變數宣告可內置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">簡化集合初始化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">簡化物件初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">

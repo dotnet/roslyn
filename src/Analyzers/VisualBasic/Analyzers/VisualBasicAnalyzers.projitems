@@ -22,5 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
   </ItemGroup>
 </Project>
