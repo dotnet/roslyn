@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // don't blindly always return. make sure there is a write inside of the selection
-                if (SelectionResult.AllowMovingDeclaration || !writtenInside)
+                if (!writtenInside)
                 {
                     return true;
                 }

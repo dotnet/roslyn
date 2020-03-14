@@ -610,9 +610,6 @@
   <data name="Extract_method" xml:space="preserve">
     <value>Extract method</value>
   </data>
-  <data name="Extract_method_plus_local" xml:space="preserve">
-    <value>Extract method + local</value>
-  </data>
   <data name="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket" xml:space="preserve">
     <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>
   </data>

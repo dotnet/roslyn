@@ -237,11 +237,6 @@
         <target state="translated">메서드 추출</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">메서드 + 로컬 추출</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">{0}의 데이터 흐름 분석 실패</target>
