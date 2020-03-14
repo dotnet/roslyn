@@ -402,6 +402,11 @@
         <target state="translated">将解决 {0} 个冲突</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="new">'{0}' implemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">{0} 个无法解决的冲突</target>

@@ -402,6 +402,11 @@
         <target state="translated">{0} 個の競合が解決されます</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="new">'{0}' implemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">未解決の競合 {0}</target>
