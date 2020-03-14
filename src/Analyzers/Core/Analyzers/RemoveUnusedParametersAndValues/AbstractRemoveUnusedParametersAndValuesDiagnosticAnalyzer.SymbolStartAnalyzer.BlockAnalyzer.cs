@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
