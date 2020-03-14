@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
+        [ImportingConstructor]
+        public AddExplicitCastCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
