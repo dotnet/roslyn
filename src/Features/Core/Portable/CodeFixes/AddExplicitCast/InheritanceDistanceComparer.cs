@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
+namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
     /// <summary>
     /// Sort types by inheritance distance from the base type in ascending order, i.e., less specific type 

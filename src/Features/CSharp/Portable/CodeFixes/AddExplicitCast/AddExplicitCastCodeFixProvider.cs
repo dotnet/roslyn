@@ -28,7 +28,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-    internal sealed partial class AddExplicitCastCodeFixProvider : AbstractAddExplicitCastCodeFixProvider
+    internal sealed partial class AddExplicitCastCodeFixProvider
+        : AbstractAddExplicitCastCodeFixProvider<
+            ExpressionSyntax,
+            ArgumentListSyntax,
+            ArgumentSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -54,70 +58,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
+
+        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel, ITypeSymbol? conversionType = null)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var diagnostic = context.Diagnostics.First();
-
-            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var targetNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
-                .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault();
-            if (targetNode == null)
-                return;
-
-            var hasSolution = TryGetTargetTypeInfo(
-                semanticModel, root, diagnostic.Id, targetNode, cancellationToken,
-                out var nodeType, out var potentialConversionTypes);
-            if (!hasSolution)
+            if (conversionType is object)
             {
-                return;
+                return string.Format(
+                    CSharpFeaturesResources.Convert_type_to_0,
+                    conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start));
             }
-
-            if (potentialConversionTypes.Length == 1)
-            {
-                context.RegisterCodeFix(new MyCodeAction(
-                    CSharpFeaturesResources.Add_explicit_cast,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                    context.Diagnostics);
-            }
-            else
-            {
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
-
-                // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
-                for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
-                {
-                    var convType = potentialConversionTypes[i];
-                    actions.Add(new MyCodeAction(
-                        string.Format(
-                            CSharpFeaturesResources.Convert_type_to_0,
-                            convType.ToMinimalDisplayString(semanticModel, context.Span.Start)),
-                        _ => ApplySingleConversionToDocumentAsync(document, ApplyFix(root, targetNode, convType))));
-                }
-
-                if (potentialConversionTypes.Length > MaximumConversionOptions)
-                {
-                    // If the number of potential conversion types is larger than options we could show, report telemetry
-                    Logger.Log(FunctionId.CodeFixes_AddExplicitCast,
-                        KeyValueLogMessage.Create(m =>
-                        {
-                            m["NumberOfCandidates"] = potentialConversionTypes.Length;
-                        }));
-                }
-
-                context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                    CSharpFeaturesResources.Add_explicit_cast,
-                    actions.ToImmutableAndFree(), isInlinable: false),
-                    context.Diagnostics);
-            }
-            return Task.FromResult(CSharpFeaturesResources.Add_explicit_cast);
+            return CSharpFeaturesResources.Add_explicit_cast;
         }
-
-        private static SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
         {
             // TODO:
             // the Simplifier doesn't remove the redundant cast from the expression
@@ -126,9 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
             return newRoot;
         }
-
-        private static Task<Document> ApplySingleConversionToDocumentAsync(Document document, SyntaxNode currentRoot)
-            => Task.FromResult(document.WithSyntaxRoot(currentRoot));
 
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
@@ -146,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
-        private static bool TryGetTargetTypeInfo(
+        protected override bool TryGetTargetTypeInfo(
             SemanticModel semanticModel, SyntaxNode root, string diagnosticId, ExpressionSyntax targetNode,
             CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetNodeType,
             out ImmutableArray<ITypeSymbol> potentialConversionTypes)
@@ -181,33 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, targetNode, targetNodeType,
                 mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
-
-            static ImmutableArray<ITypeSymbol> GetPotentialConversionTypes(
-                SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, ArgumentSyntax targetArgument,
-                ArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
-            {
-                // Implicit downcast appears on the argument of invocation node,
-                // get all candidate functions and extract potential conversion types 
-                var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
-                var candidateSymbols = symbolInfo.CandidateSymbols;
-
-                using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
-                foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
-                {
-                    if (CanArgumentTypesBeConvertedToParameterTypes(
-                            semanticModel, root, argumentList, candidateSymbol.Parameters, targetArgument,
-                            cancellationToken, out var targetArgumentConversionType))
-                    {
-                        mutablePotentialConversionTypes.Add(targetArgumentConversionType);
-                    }
-                }
-
-                // Sort the potential conversion types by inheritance distance, so that
-                // operations are in order and user can choose least specific types(more accurate)
-                mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, targetNodeType));
-
-                return mutablePotentialConversionTypes.ToImmutable();
-            }
 
             static ImmutableArray<ITypeSymbol> FilterValidPotentialConversionTypes(
                 SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol targetNodeType,
@@ -265,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
         /// False, otherwise.
         /// </returns>
-        private static bool CanArgumentTypesBeConvertedToParameterTypes(
+        protected override bool CanArgumentTypesBeConvertedToParameterTypes(
             SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax argumentList,
             ImmutableArray<IParameterSymbol> parameters, ArgumentSyntax targetArgument,
             CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
@@ -337,21 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
         }
 
-        private static bool FindCorrespondingParameterByName(
-            string argumentName, ImmutableArray<IParameterSymbol> parameters, ref int parameterIndex)
-        {
-            for (var j = 0; j < parameters.Length; j++)
-            {
-                if (argumentName.Equals(parameters[j].Name))
-                {
-                    parameterIndex = j;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Check whether the invocation expression with new arguments is applicatble.
         /// </summary>
@@ -362,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Return true if the invocation expression with new arguments is applicatble.
         /// Otherwise, return false
         /// </returns>
-        private static bool IsInvocationExpressionWithNewArgumentsApplicable(
+        protected override bool IsInvocationExpressionWithNewArgumentsApplicable(
             SemanticModel semanticModel, SyntaxNode root, ArgumentListSyntax oldArgumentList,
             List<ArgumentSyntax> newArguments, SyntaxNode targetNode)
         {
@@ -377,41 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return symbolInfo.Symbol != null;
             }
             return false;
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var targetNodes = diagnostics.SelectAsArray(
-                d => root.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true)
-                         .GetAncestorsOrThis<ExpressionSyntax>().FirstOrDefault());
-
-            await editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, targetNodes,
-                (semanticModel, targetNode) => true,
-                (semanticModel, currentRoot, targetNode) =>
-                {
-                    // All diagnostics have the same error code
-                    if (TryGetTargetTypeInfo(semanticModel, currentRoot, diagnostics[0].Id, targetNode,
-                        cancellationToken, out var nodeType, out var potentialConversionTypes)
-                        && potentialConversionTypes.Length == 1)
-                    {
-                        return ApplyFix(currentRoot, targetNode, potentialConversionTypes[0]);
-                    }
-
-                    return currentRoot;
-                },
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
         }
     }
 }
