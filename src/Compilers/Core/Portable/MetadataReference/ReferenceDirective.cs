@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
@@ -12,8 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct ReferenceDirective
     {
-        public readonly string File;
-        public readonly Location Location;
+        public readonly string? File;
+        public readonly Location? Location;
 
         public ReferenceDirective(string file, Location location)
         {

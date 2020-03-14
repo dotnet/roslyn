@@ -774,18 +774,19 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             DiagnosticBag diagnostics,
             out ImmutableArray<MetadataReference> references,
-            [NotNull] out IDictionary<(string, string), MetadataReference>? boundReferenceDirectives,
+            out IDictionary<(string, string), MetadataReference> boundReferenceDirectives,
             out ImmutableArray<Location> referenceDirectiveLocations)
         {
-            boundReferenceDirectives = null!;
-
             ArrayBuilder<MetadataReference> referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             ArrayBuilder<Location>? referenceDirectiveLocationsBuilder = null;
+            IDictionary<(string, string), MetadataReference>? localBoundReferenceDirectives = null;
 
             try
             {
                 foreach (var referenceDirective in compilation.ReferenceDirectives)
                 {
+                    Debug.Assert(referenceDirective.Location is object);
+
                     if (compilation.Options.MetadataReferenceResolver == null)
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataReferencesNotSupported, referenceDirective.Location));
@@ -793,8 +794,9 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // we already successfully bound #r with the same value:
+                    Debug.Assert(referenceDirective.File is object);
                     Debug.Assert(referenceDirective.Location.SourceTree is object);
-                    if (boundReferenceDirectives != null && boundReferenceDirectives.ContainsKey((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File)))
+                    if (localBoundReferenceDirectives != null && localBoundReferenceDirectives.ContainsKey((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File)))
                     {
                         continue;
                     }
@@ -806,15 +808,15 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    if (boundReferenceDirectives == null)
+                    if (localBoundReferenceDirectives == null)
                     {
-                        boundReferenceDirectives = new Dictionary<(string, string), MetadataReference>();
+                        localBoundReferenceDirectives = new Dictionary<(string, string), MetadataReference>();
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
                     referencesBuilder.Add(boundReference);
                     referenceDirectiveLocationsBuilder!.Add(referenceDirective.Location);
-                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReference);
+                    localBoundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReference);
                 }
 
                 // add external reference at the end, so that they are processed first:
@@ -827,12 +829,13 @@ namespace Microsoft.CodeAnalysis
                     referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences);
                 }
 
-                if (boundReferenceDirectives == null)
+                if (localBoundReferenceDirectives == null)
                 {
                     // no directive references resolved successfully:
-                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference>();
+                    localBoundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference>();
                 }
 
+                boundReferenceDirectives = localBoundReferenceDirectives;
                 references = referencesBuilder.ToImmutable();
                 referenceDirectiveLocations = referenceDirectiveLocationsBuilder?.ToImmutableAndFree() ?? ImmutableArray<Location>.Empty;
             }
