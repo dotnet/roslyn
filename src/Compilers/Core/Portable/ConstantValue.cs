@@ -721,7 +721,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE: Include NInt and NUint.
         public void Serialize(BlobBuilder writer)
         {
             switch (this.Discriminator)

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void TypeDefinitions_FromSource()
         {
-            string sourceA =
+            var sourceA =
 @"namespace System
 {
     public class Object
@@ -881,6 +881,89 @@ namespace System
         }
 
         [Fact]
+        public void ArrayInitialization()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        Report(new nint[] { int.MinValue, -1, 0, 1, int.MaxValue });
+        Report(new nuint[] { 0, 1, 2, int.MaxValue, uint.MaxValue });
+    }
+    static void Report<T>(T[] items)
+    {
+        foreach (var item in items)
+            System.Console.WriteLine($""{item.GetType().FullName}: {item}"");
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.IntPtr: -2147483648
+System.IntPtr: -1
+System.IntPtr: 0
+System.IntPtr: 1
+System.IntPtr: 2147483647
+System.UIntPtr: 0
+System.UIntPtr: 1
+System.UIntPtr: 2
+System.UIntPtr: 2147483647
+System.UIntPtr: 4294967295");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""System.IntPtr""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4     0x80000000
+  IL_000d:  conv.i
+  IL_000e:  stelem.i
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.m1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  ldc.i4.3
+  IL_0016:  ldc.i4.1
+  IL_0017:  conv.i
+  IL_0018:  stelem.i
+  IL_0019:  dup
+  IL_001a:  ldc.i4.4
+  IL_001b:  ldc.i4     0x7fffffff
+  IL_0020:  conv.i
+  IL_0021:  stelem.i
+  IL_0022:  call       ""void Program.Report<nint>(nint[])""
+  IL_0027:  ldc.i4.5
+  IL_0028:  newarr     ""System.UIntPtr""
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  conv.i
+  IL_0031:  stelem.i
+  IL_0032:  dup
+  IL_0033:  ldc.i4.2
+  IL_0034:  ldc.i4.2
+  IL_0035:  conv.i
+  IL_0036:  stelem.i
+  IL_0037:  dup
+  IL_0038:  ldc.i4.3
+  IL_0039:  ldc.i4     0x7fffffff
+  IL_003e:  conv.i
+  IL_003f:  stelem.i
+  IL_0040:  dup
+  IL_0041:  ldc.i4.4
+  IL_0042:  ldc.i4.m1
+  IL_0043:  conv.u
+  IL_0044:  stelem.i
+  IL_0045:  call       ""void Program.Report<nuint>(nuint[])""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
         public void Overrides_01()
         {
             var sourceA =
@@ -1426,9 +1509,26 @@ interface I
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var nodes = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().ToArray();
+                Assert.Equal(3, nodes.Length);
+                foreach (var node in nodes)
+                {
+                    var type = model.GetTypeInfo(node).Type;
+                    Assert.Equal("N.nint", type.ToTestDisplayString());
+                    Assert.Equal(SpecialType.None, type.SpecialType);
+                    Assert.False(type.IsNativeIntegerType);
+                }
+            }
         }
 
         [Fact]
