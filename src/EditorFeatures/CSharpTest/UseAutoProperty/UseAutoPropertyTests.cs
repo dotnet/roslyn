@@ -2405,5 +2405,26 @@ indent_style = space
     </Project>
 </Workspace>");
         }
+
+        [WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotOnSerializableType()
+        {
+            await TestMissingAsync(
+@"
+[System.Serializable]
+class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
     }
 }

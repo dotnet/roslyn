@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Capabilities = new ServerCapabilities
             {
                 DefinitionProvider = true,
+                RenameProvider = true,
                 ImplementationProvider = true,
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },

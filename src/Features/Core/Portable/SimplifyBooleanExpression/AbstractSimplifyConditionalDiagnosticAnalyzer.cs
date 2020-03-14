@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
-    using static AbstractSimplifyConditionalCodeFixProvider;
+    using static SimplifyConditionalCodeFixProvider;
 
     internal abstract class AbstractSimplifyConditionalDiagnosticAnalyzer<
         TSyntaxKind,

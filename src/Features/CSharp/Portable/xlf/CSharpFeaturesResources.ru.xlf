@@ -727,11 +727,6 @@
         <target state="translated">Сделать метод асинхронным (оставить void)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">Добавьте "this".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Имя&gt;</target>

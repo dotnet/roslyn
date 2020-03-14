@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,14 +19,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
-    internal abstract class AbstractSimplifyConditionalCodeFixProvider :
-        SyntaxEditorBasedCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    internal sealed class SimplifyConditionalCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string Negate = nameof(Negate);
         public const string Or = nameof(Or);
         public const string And = nameof(And);
         public const string WhenTrue = nameof(WhenTrue);
         public const string WhenFalse = nameof(WhenFalse);
+
+        [ImportingConstructor]
+        public SimplifyConditionalCodeFixProvider()
+        {
+        }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.SimplifyBooleanExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExpression
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExp
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicSimplifyConditionalDiagnosticAnalyzer(), New VisualBasicSimplifyConditionalCodeFixProvider())
+            Return (New VisualBasicSimplifyConditionalDiagnosticAnalyzer(), New SimplifyConditionalCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
