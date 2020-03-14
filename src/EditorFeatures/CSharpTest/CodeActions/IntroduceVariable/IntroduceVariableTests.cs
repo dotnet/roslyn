@@ -7427,7 +7427,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        IEnumerable<int> nums = GetNumbers();
+        IEnumerable<int> {|Rename:nums|} = GetNumbers();
         foreach (var num in nums)
         {
 
