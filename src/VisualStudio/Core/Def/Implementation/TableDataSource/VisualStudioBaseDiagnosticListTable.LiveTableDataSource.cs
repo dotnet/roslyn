@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -90,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return key;
             }
 
-            private bool CheckAggregateKey(AggregatedKey key, DiagnosticsUpdatedArgs args)
+            private bool CheckAggregateKey(AggregatedKey? key, DiagnosticsUpdatedArgs? args)
             {
                 if (key == null)
                 {
@@ -216,12 +219,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
-                private readonly ProjectId _projectId;
-                private readonly DocumentId _documentId;
+                private readonly ProjectId? _projectId;
+                private readonly DocumentId? _documentId;
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -234,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override object Key => _id;
                 public override string BuildTool => _buildTool;
                 public override bool SupportSpanTracking => _documentId != null;
-                public override DocumentId TrackingDocumentId => _documentId;
+                public override DocumentId? TrackingDocumentId => _documentId;
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
@@ -255,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
             {
                 private readonly DiagnosticTableEntriesSource _source;
-                private FrameworkElement[] _descriptions;
+                private FrameworkElement[]? _descriptions;
 
                 public TableEntriesSnapshot(
                     DiagnosticTableEntriesSource source,
@@ -267,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _source = source;
                 }
 
-                public override bool TryGetValue(int index, string columnName, out object content)
+                public override bool TryGetValue(int index, string columnName, [NotNullWhen(returnValue: true)] out object? content)
                 {
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
@@ -425,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return !string.IsNullOrWhiteSpace(item.Description);
                 }
 
-                public bool TryCreateDetailsContent(int index, out FrameworkElement expandedContent)
+                public bool TryCreateDetailsContent(int index, [NotNullWhen(returnValue: true)] out FrameworkElement? expandedContent)
                 {
                     var item = GetItem(index)?.Data;
                     if (item == null)
@@ -438,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                public bool TryCreateDetailsStringContent(int index, out string content)
+                public bool TryCreateDetailsStringContent(int index, [NotNullWhen(returnValue: true)] out string? content)
                 {
                     var item = GetItem(index)?.Data;
                     if (item == null)
@@ -454,7 +457,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     content = item.Description;
-                    return true;
+                    return content != null;
                 }
 
                 private static FrameworkElement GetDescriptionTextBlock(DiagnosticData item)
@@ -469,7 +472,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 private static FrameworkElement GetOrCreateTextBlock(
-                    ref FrameworkElement[] caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
+                    [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
                 {
                     if (caches == null)
                     {
@@ -485,7 +488,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 // unused ones                    
-                public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
+                public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out FrameworkElement? content)
                 {
                     content = null;
                     return false;
@@ -497,20 +500,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
+                public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
                 {
                     content = null;
                     return false;
                 }
 
-                public bool TryCreateToolTip(int index, string columnName, out object toolTip)
+                public bool TryCreateToolTip(int index, string columnName, [NotNullWhen(returnValue: true)] out object? toolTip)
                 {
                     toolTip = null;
                     return false;
                 }
 
                 // remove this once we moved to new drop
-                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
+                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
                 {
                     content = null;
                     return false;
@@ -531,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }
     }
