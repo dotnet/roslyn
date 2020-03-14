@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task PersistLatestInfosAsync(
             Solution solution, VersionStamp projectVersion, (Document, DesignerInfo? info, bool changed)[] latestInfos, CancellationToken cancellationToken)
         {
-            var storage = _storageService.GetStorage(solution);
+            using var storage = _storageService.GetStorage(solution);
 
             foreach (var (doc, info, _) in latestInfos)
             {
@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Project project, VersionStamp projectVersion,
             Document? specificDocument, CancellationToken cancellationToken)
         {
-            var storage = _storageService.GetStorage(project.Solution);
+            using var storage = _storageService.GetStorage(project.Solution);
+
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
