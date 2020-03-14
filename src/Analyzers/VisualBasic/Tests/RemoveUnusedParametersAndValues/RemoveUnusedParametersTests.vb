@@ -167,5 +167,35 @@ class C
     end sub
 end class")
         End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_MultipleStatements1() As Task
+            Await TestDiagnosticsAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        throw new NotImplementedException()
+        return
+    end sub
+end class", parameters:=Nothing,
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
+        End Function
+
+        <WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function NotImplementedException_MultipleStatements2() As Task
+            Await TestDiagnosticsAsync(
+"imports system
+
+class C
+    private sub Goo([|i|] as integer)
+        if (true)
+            throw new NotImplementedException()
+    end sub
+end class", parameters:=Nothing,
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
+        End Function
     End Class
 End Namespace
