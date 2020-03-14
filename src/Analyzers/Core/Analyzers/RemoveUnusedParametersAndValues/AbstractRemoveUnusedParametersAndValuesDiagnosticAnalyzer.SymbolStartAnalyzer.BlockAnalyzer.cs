@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 #if CODE_STYLE
 using AbstractBuiltInCodeStyleDiagnosticAnalyzer = Microsoft.CodeAnalysis.CodeStyle.AbstractBuiltInCodeStyleDiagnosticAnalyzer;
@@ -95,6 +99,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
+                    // Ignore methods that are just a single-throw method.  These are often
+                    // in-progress pieces of work and we don't want to force the user to fixup other
+                    // issues before they've even gotten around to writing their code.
+                    if (IsSingleThrowNotImplementedOperation(firstBlock))
+                        return;
+
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeExpressionStatement, OperationKind.ExpressionStatement);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
@@ -131,6 +141,60 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         return false;
                     }
+
+                    static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
+                    {
+                        var compilation = firstBlock.SemanticModel.Compilation;
+                        var notImplementedExceptionType = compilation.NotImplementedExceptionType();
+                        if (notImplementedExceptionType == null)
+                            return false;
+
+                        if (!(firstBlock is IBlockOperation block))
+                            return false;
+
+                        if (block.Operations.Length == 0)
+                            return false;
+
+                        var firstOp = block.Operations.Length == 1
+                            ? block.Operations[0]
+                            : TryGetSingleExplicitStatement(block.Operations);
+                        if (firstOp == null)
+                            return false;
+
+                        // unwrap: { throw new NYI(); }
+                        if (firstOp is IExpressionStatementOperation expressionStatement)
+                            firstOp = expressionStatement.Operation;
+
+                        // => throw new NotImplementedOperation(...)
+                        return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
+                    }
+
+                    static IOperation? TryGetSingleExplicitStatement(ImmutableArray<IOperation> operations)
+                    {
+                        IOperation? firstOp = null;
+                        foreach (var operation in operations)
+                        {
+                            if (operation.IsImplicit)
+                                continue;
+
+                            if (firstOp != null)
+                                return null;
+
+                            firstOp = operation;
+                        }
+
+                        return firstOp;
+                    }
+
+                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
+                        => operation is IThrowOperation throwOperation &&
+                           UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
+                           notImplementedExceptionType.Equals(objectCreation.Type);
+
+                    static IOperation UnwrapImplicitConversion(IOperation value)
+                        => value is IConversionOperation conversion && conversion.IsImplicit
+                            ? conversion.Operand
+                            : value;
                 }
 
                 private void AnalyzeExpressionStatement(OperationAnalysisContext context)
@@ -552,7 +616,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string> properties)
+                        out ImmutableDictionary<string, string>? properties)
                     {
                         Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
 

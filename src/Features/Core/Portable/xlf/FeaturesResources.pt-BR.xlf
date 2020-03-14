@@ -1995,11 +1995,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Instalar o pacote '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">A inicialização do objeto pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">projeto {0}</target>
@@ -2055,11 +2050,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Pascal Case</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">A inicialização de coleção pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">Usar a expressão de união</target>
@@ -2073,16 +2063,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">A declaração de variável pode ser embutida</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Simplificar a inicialização de coleção</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Simplificar a inicialização de objeto</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">

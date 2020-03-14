@@ -1995,11 +1995,6 @@ This version used in: {2}</source>
         <target state="translated">Установить пакет "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">Инициализацию объекта можно упростить.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">проект: {0}</target>
@@ -2055,11 +2050,6 @@ This version used in: {2}</source>
         <target state="translated">ВсеЧастиСПрописнойБуквы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">Инициализацию коллекции можно упростить.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">Используйте выражение объединения</target>
@@ -2073,16 +2063,6 @@ This version used in: {2}</source>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Объявление переменной может быть встроенным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Упростите инициализацию коллекции</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Упростите инициализацию объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
