@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
-            var semanticFacts = GetSemanticFactsService();
             var semanticModel = context.SemanticModel;
-            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionPartToCheck, whenPartToCheck);
+            var whenPartMatch = GetWhenPartMatch(syntaxFacts, semanticModel, conditionPartToCheck, whenPartToCheck);
             if (whenPartMatch == null)
             {
                 return;
@@ -158,6 +157,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
+            var semanticFacts = GetSemanticFactsService();
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
             {
                 return;
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         internal static SyntaxNode? GetWhenPartMatch(
-            ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
+            ISyntaxFacts syntaxFacts, SemanticModel semanticModel, SyntaxNode expressionToMatch, SyntaxNode whenPart)
         {
             expressionToMatch = RemoveObjectCastIfAny(syntaxFacts, semanticModel, expressionToMatch);
             var current = whenPart;
