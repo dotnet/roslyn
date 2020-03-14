@@ -272,6 +272,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static bool AnalysisEnabled(Document document)
         {
+            if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
+            {
+                // This is a generated Razor document, and they want diagnostics, so let's report it
+                return true;
+            }
+
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
             return document.IsOpen() && document.SupportsDiagnostics();

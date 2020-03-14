@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -348,13 +349,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
+            var additionalProperties = GetAdditionalProperties(document, diagnostic);
+
+            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+            var diagnosticsLspClientName = documentPropertiesService?.DiagnosticsLspClientName;
+
+            if (diagnosticsLspClientName != null)
+            {
+                if (additionalProperties == null)
+                {
+                    additionalProperties = ImmutableDictionary.Create<string, string>();
+                }
+
+                additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
+            }
+
             return Create(diagnostic,
                 project.Id,
                 project.Language,
                 project.Solution.Options,
                 location,
                 additionalLocations,
-                GetAdditionalProperties(document, diagnostic));
+                additionalProperties);
         }
 
         private static DiagnosticData Create(

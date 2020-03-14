@@ -29,13 +29,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// </summary>
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ContentType(ContentTypeNames.VBLspContentTypeName)]
-    [ClientName("RazorCSharp")]
+    [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
     class RazorLanguageClient : ILanguageClient
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly LanguageServerProtocol _languageServerProtocol;
         private readonly Workspace _workspace;
+
+        public const string ClientName = "RazorCSharp";
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).

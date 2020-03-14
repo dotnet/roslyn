@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _ = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService);
+            _ = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: null);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

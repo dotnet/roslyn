@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal class InProcLanguageServer
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
         private readonly Workspace _workspace;
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private VSClientCapabilities? _clientCapabilities;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
-            Workspace workspace, IDiagnosticService diagnosticService)
+            Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
         {
             _protocol = protocol;
             _workspace = workspace;
@@ -48,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
+            _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
@@ -237,7 +240,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private async Task<Dictionary<Uri, LanguageServer.Protocol.Diagnostic[]>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken);
+            var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
+                                                .Where(IncludeDiagnostic);
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Razor documents can import other razor documents
@@ -272,6 +277,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     Tags = diagnosticData.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
                 };
             }
+        }
+
+        private bool IncludeDiagnostic(DiagnosticData diagnostic)
+        {
+            if (!diagnostic.Properties.TryGetValue(nameof(DocumentPropertiesService.DiagnosticsLspClientName), out var diagnosticClientName))
+            {
+                // This diagnostic is not restricted to a specific LSP client, so just pass it through
+                return true;
+            }
+
+            // We only include this diagnostic if it directly matches our name.
+            return diagnosticClientName == _clientName;
         }
 
         private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)

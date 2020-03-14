@@ -16,6 +16,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -185,6 +186,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     // guard us from wrong provider that gives null diagnostic
                     Debug.Assert(false, "Let's see who does this");
+                    return false;
+                }
+
+                // If this diagnostic is for LSP only, then we won't show it here
+                if (diagnostic.Properties.ContainsKey(nameof(DocumentPropertiesService.DiagnosticsLspClientName)))
+                {
                     return false;
                 }
 

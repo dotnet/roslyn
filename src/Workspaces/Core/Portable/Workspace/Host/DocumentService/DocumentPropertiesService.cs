@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -16,5 +18,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// but is not passed to the compiler when the containing project is built.
         /// </summary>
         public virtual bool DesignTimeOnly => false;
+
+        /// <summary>
+        /// The LSP client name that should get the diagnostics produced by this document; any other source
+        /// will not show these diagnostics. If null, the diagnostics do not have this special handling.
+        /// </summary>
+        public virtual string? DiagnosticsLspClientName => null;
     }
 }

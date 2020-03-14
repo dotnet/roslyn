@@ -4,11 +4,7 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -19,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     class RazorLanguageServer : InProcLanguageServer
     {
         public RazorLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol, Workspace workspace, IDiagnosticService diagnosticService)
-            : base(inputStream, outputStream, protocol, workspace, diagnosticService)
+            : base(inputStream, outputStream, protocol, workspace, diagnosticService, clientName: RazorLanguageClient.ClientName)
         {
         }
 
