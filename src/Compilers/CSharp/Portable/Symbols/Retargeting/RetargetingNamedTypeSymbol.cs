@@ -369,5 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        // PROTOTYPE: Handle retargeting NativeIntegerTypeSymbol.
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
     }
 }

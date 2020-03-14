@@ -1369,6 +1369,8 @@ next:;
             return ContainingAssembly.GetNativeIntegerType(this);
         }
 
+        internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return t2 is NativeIntegerTypeSymbol nativeInteger ?

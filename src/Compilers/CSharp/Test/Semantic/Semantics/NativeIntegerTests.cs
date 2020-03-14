@@ -10,9 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -751,7 +749,6 @@ namespace System
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
-
 
             static void verifyCompilation(CSharpCompilation comp, bool includesIEquatable)
             {

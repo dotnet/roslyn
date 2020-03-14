@@ -12,7 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE: Handle retargeting these types.
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol, Cci.IReference
     {
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
@@ -90,7 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNativeIntegerType => true;
 
-        internal override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
 
