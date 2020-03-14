@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (explicitImpl.Count > 1)
                 {
-                    if (implementingTypeImplementsInterface)
+                    if ((object)currType == implementingType || implementingTypeImplementsInterface)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
                     }
