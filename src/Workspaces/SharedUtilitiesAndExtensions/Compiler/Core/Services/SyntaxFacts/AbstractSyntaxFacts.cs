@@ -14,6 +14,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
+
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
@@ -504,5 +510,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
+
+        public abstract bool CanHaveAccessibility(SyntaxNode declaration);
+
+        public abstract Accessibility GetAccessibility(SyntaxNode declaration);
+
+        public abstract void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
+
+        public abstract SyntaxTokenList GetModifierTokens(SyntaxNode declaration);
+
+        public abstract DeclarationKind GetDeclarationKind(SyntaxNode declaration);
     }
 }
