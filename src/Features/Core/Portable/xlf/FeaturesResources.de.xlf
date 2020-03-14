@@ -2415,16 +2415,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Warnung: Die Sammlung wird bei der Iteration möglicherweise geändert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Modifizierer "readonly" hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Schreibschutz für Feld festlegen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">In bedingten Ausdruck konvertieren</target>
