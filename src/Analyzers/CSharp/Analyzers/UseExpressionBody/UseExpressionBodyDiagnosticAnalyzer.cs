@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             var nodeKind = context.Node.Kind();
 
