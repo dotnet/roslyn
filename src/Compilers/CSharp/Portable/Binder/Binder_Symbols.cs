@@ -819,26 +819,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)qualifierOpt == null &&
                 !IsViableType(result))
             {
-                switch (node.Identifier.ValueText)
+                if (node.Identifier.ValueText == "dynamic")
                 {
-                    case "dynamic":
-                        if ((node.Parent == null ||
-                             node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
-                             SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                            Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
-                        {
-                            bindingResult = Compilation.DynamicType;
-                            ReportUseSiteDiagnosticForDynamic(diagnostics, node);
-                        }
-                        break;
-                    case "nint":
-                        bindingResult = getNativeIntType(node, unsigned: false, diagnostics);
-                        break;
-                    case "nuint":
-                        bindingResult = getNativeIntType(node, unsigned: true, diagnostics);
-                        break;
-                    default:
-                        break;
+
+                    if ((node.Parent == null ||
+                          node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
+                          SyntaxFacts.IsInTypeOnlyContext(node)) &&
+                         Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    {
+                        bindingResult = Compilation.DynamicType;
+                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                    }
+                }
+                else
+                {
+                    bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
                 }
             }
 
@@ -859,12 +854,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+        }
 
-            NamedTypeSymbol getNativeIntType(SyntaxNode node, bool unsigned, DiagnosticBag diagnostics)
+        /// <summary>
+        /// If the node is "nint" or "nuint", return the corresponding native integer symbol.
+        /// Otherwise return null.
+        /// </summary>
+        private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, DiagnosticBag diagnostics)
+        {
+            SpecialType specialType;
+            switch (node.Identifier.Text)
             {
-                CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
-                return this.GetSpecialType(unsigned ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr, diagnostics, node).AsNativeInteger();
+                case "nint":
+                    specialType = SpecialType.System_IntPtr;
+                    break;
+                case "nuint":
+                    specialType = SpecialType.System_UIntPtr;
+                    break;
+                default:
+                    return null;
             }
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
+            return this.GetSpecialType(specialType, diagnostics, node).AsNativeInteger();
         }
 
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)

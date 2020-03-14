@@ -8,8 +8,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -17,10 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NativeIntegerTests : CSharpTestBase
     {
-        // PROTOTYPE: SymbolDisplay should use "nint" and "nuint" always, regardless of SymbolDisplayFormat.
-        // Remove this SymbolDisplayFormat and use .ToTestDisplayString() instead. 
-        private static readonly SymbolDisplayFormat FormatWithSpecialTypes = SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
         [Fact]
         public void LanguageVersion()
         {
@@ -70,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
 
             var method = comp.GetMember<MethodSymbol>("I.F1");
-            Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
             Assert.Equal("Sub I.F1(x As System.IntPtr, y As System.IntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
             method = comp.GetMember<MethodSymbol>("I.F2");
-            Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+            Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
             Assert.Equal("Sub I.F2(x As System.UIntPtr, y As System.UIntPtr)", VisualBasic.SymbolDisplay.ToDisplayString(method.GetPublicSymbol(), SymbolDisplayFormat.TestFormat));
             VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
         }
@@ -105,17 +104,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
-    public struct IntPtr
+    public interface IEquatable<T>
     {
-        public override string ToString() => null;
-        public override int GetHashCode() => 0;
-        public override bool Equals(object obj) => false;
+        bool Equals(T other);
     }
-    public struct UIntPtr
+    public struct IntPtr : IEquatable<IntPtr>
     {
         public override string ToString() => null;
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
+        bool IEquatable<IntPtr>.Equals(IntPtr other) => false;
+    }
+    public struct UIntPtr : IEquatable<UIntPtr>
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+        bool IEquatable<UIntPtr>.Equals(UIntPtr other) => false;
     }
 }";
             var sourceB =
@@ -152,11 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 VerifyType(type.GetPublicSymbol(), signed: false, isNativeInt: false);
 
                 var method = comp.GetMember<MethodSymbol>("I.F1");
-                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
                 VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
                 method = comp.GetMember<MethodSymbol>("I.F2");
-                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
                 VerifyTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
         }
@@ -203,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var baseMembers = members.SelectAsArray(m => ((IMethodSymbol)m).OverriddenMethod);
             Assert.Empty(baseMembers);
 
-            // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
-            Assert.Empty(nativeIntegerType.Interfaces);
+            verifyInterfaces(underlyingType, underlyingType.Interfaces, nativeIntegerType, nativeIntegerType.Interfaces);
 
             Assert.NotSame(underlyingType, nativeIntegerType);
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
@@ -216,6 +220,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.IncludeNullability));
             Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+
+            static void verifyInterfaces(INamedTypeSymbol underlyingType, ImmutableArray<INamedTypeSymbol> underlyingInterfaces, INamedTypeSymbol nativeIntegerType, ImmutableArray<INamedTypeSymbol> nativeIntegerInterfaces)
+            {
+                underlyingInterfaces = underlyingInterfaces.WhereAsArray(t => t.Name == "IEquatable" && t.ContainingNamespace.Name == "System");
+
+                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+                for (int i = 0; i < underlyingInterfaces.Length; i++)
+                {
+                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+                }
+
+                void verifyInterface(INamedTypeSymbol underlyingInterface, INamedTypeSymbol nativeIntegerInterface)
+                {
+                    Assert.Equal(underlyingInterface, nativeIntegerInterface);
+
+                    for (int i = 0; i < underlyingInterface.TypeArguments.Length; i++)
+                    {
+                        var underlyingTypeArgument = underlyingInterface.TypeArguments[i];
+                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArguments[i];
+                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
+                        }
+                    }
+                }
+            }
         }
 
         private static void VerifyTypes(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
@@ -235,8 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var baseMembers = members.SelectAsArray(m => ((MethodSymbol)m).OverriddenMethod);
             Assert.Empty(baseMembers);
 
-            // PROTOTYPE: Include certain interfaces defined on the underlying underlyingType.
-            Assert.Empty(nativeIntegerType.InterfacesNoUseSiteDiagnostics());
+            verifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
+            verifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
@@ -255,6 +286,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
                 Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
                 Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+            }
+
+            static void verifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
+            {
+                underlyingInterfaces = underlyingInterfaces.WhereAsArray(t => t.Name == "IEquatable" && t.ContainingNamespace.Name == "System");
+
+                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+                for (int i = 0; i < underlyingInterfaces.Length; i++)
+                {
+                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+                }
+
+                void verifyInterface(NamedTypeSymbol underlyingInterface, NamedTypeSymbol nativeIntegerInterface)
+                {
+                    Assert.Equal(underlyingInterface, nativeIntegerInterface);
+
+                    for (int i = 0; i < underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length; i++)
+                    {
+                        var underlyingTypeArgument = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
+                        }
+                    }
+                }
             }
         }
 
@@ -349,11 +407,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             static void verify(CSharpCompilation comp)
             {
                 var method = comp.GetMember<MethodSymbol>("I.F1");
-                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void I.F1(System.IntPtr x, nint y)", method.ToTestDisplayString());
                 VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: true);
 
                 method = comp.GetMember<MethodSymbol>("I.F2");
-                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void I.F2(System.UIntPtr x, nuint y)", method.ToTestDisplayString());
                 VerifyErrorTypes((NamedTypeSymbol)method.Parameters[0].Type, (NamedTypeSymbol)method.Parameters[1].Type, signed: false);
             }
         }
@@ -396,6 +454,330 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             VerifyErrorType(nativeIntegerType.NativeIntegerUnderlyingType, specialType, isNativeInt: false);
+        }
+
+        [Fact]
+        public void Interfaces()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface ISerializable { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+    public interface IOther<T> { }
+    public struct IntPtr : ISerializable, IEquatable<IntPtr>, IOther<IntPtr>
+    {
+        bool IEquatable<IntPtr>.Equals(IntPtr other) => false;
+    }
+}";
+            var sourceB =
+@"using System;
+class Program
+{
+    static void F0(ISerializable i) { }
+    static object F1(IEquatable<IntPtr> i) => default;
+    static void F2(IEquatable<nint> i) { }
+    static void F3<T>(IOther<T> i) { }
+    static void Main()
+    {
+        nint n = 42;
+        F0(n);
+        F1(n);
+        _ = F2(n);
+        F3<nint>(n);
+        F3<IntPtr>(n);
+        F3((IntPtr)n);
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,12): error CS1503: Argument 1: cannot convert from 'nint' to 'System.ISerializable'
+                //         F0(n);
+                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.ISerializable").WithLocation(11, 12),
+                // (13,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = F2(n);
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(13, 9),
+                // (14,18): error CS1503: Argument 1: cannot convert from 'nint' to 'System.IOther<nint>'
+                //         F3<nint>(n);
+                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.IOther<nint>").WithLocation(14, 18),
+                // (15,20): error CS1503: Argument 1: cannot convert from 'nint' to 'System.IOther<System.IntPtr>'
+                //         F3<IntPtr>(n);
+                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.IOther<System.IntPtr>").WithLocation(15, 20));
+        }
+
+        [Fact]
+        public void IEquatable()
+        {
+            // Minimal definitions.
+            verifyAll(includesIEquatable: true,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> in global namespace.
+            verifyAll(includesIEquatable: false,
+@"public interface IEquatable<T> { }
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr : IEquatable<IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> in other namespace.
+            verifyAll(includesIEquatable: false,
+@"namespace Other
+{
+    public interface IEquatable<T> { }
+}
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr : Other.IEquatable<IntPtr> { }
+    public struct UIntPtr : Other.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> nested in "System" type.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class System
+    {
+        public interface IEquatable<T> { }
+    }
+    public struct IntPtr : System.IEquatable<IntPtr> { }
+    public struct UIntPtr : System.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable<T> nested in other type.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Other
+    {
+        public interface IEquatable<T> { }
+    }
+    public struct IntPtr : Other.IEquatable<IntPtr> { }
+    public struct UIntPtr : Other.IEquatable<UIntPtr> { }
+}");
+
+            // IEquatable.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable { }
+    public struct IntPtr : IEquatable { }
+    public struct UIntPtr : IEquatable { }
+}");
+
+            // IEquatable<T, U>.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T, U> { }
+    public struct IntPtr : IEquatable<IntPtr, IntPtr> { }
+    public struct UIntPtr : IEquatable<UIntPtr, UIntPtr> { }
+}");
+
+            // IEquatable<object> and IEquatable<ValueType>
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<object> { }
+    public struct UIntPtr : IEquatable<ValueType> { }
+}");
+
+            // IEquatable<System.UIntPtr> and  IEquatable<System.IntPtr>.
+            verifyAll(includesIEquatable: false,
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<UIntPtr> { }
+    public struct UIntPtr : IEquatable<IntPtr> { }
+}");
+
+            // IEquatable<nint> and  IEquatable<nuint>.
+            var comp = CreateEmptyCompilation(
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<nint> { }
+    public struct UIntPtr : IEquatable<nuint> { }
+}",
+                parseOptions: TestOptions.RegularPreview);
+            verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: true);
+
+            // IEquatable<nuint> and  IEquatable<nint>.
+            comp = CreateEmptyCompilation(
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public interface IEquatable<T> { }
+    public struct IntPtr : IEquatable<nuint> { }
+    public struct UIntPtr : IEquatable<nint> { }
+}",
+                parseOptions: TestOptions.RegularPreview);
+            verifyReference(comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0")), includesIEquatable: false);
+
+            static void verifyAll(bool includesIEquatable, string sourceA)
+            {
+                var sourceB =
+@"interface I
+{
+    nint F1();
+    nuint F2();
+}";
+                var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+
+                comp = CreateEmptyCompilation(sourceA);
+                comp.VerifyDiagnostics();
+                var ref1 = comp.ToMetadataReference();
+                var ref2 = comp.EmitToImageReference();
+
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+
+                comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+            }
+
+            static void verifyReference(MetadataReference reference, bool includesIEquatable)
+            {
+                var sourceB =
+@"interface I
+{
+    nint F1();
+    nuint F2();
+}";
+                var comp = CreateEmptyCompilation(sourceB, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics();
+                verifyCompilation(comp, includesIEquatable);
+            }
+
+
+            static void verifyCompilation(CSharpCompilation comp, bool includesIEquatable)
+            {
+                verifyInterfaces(comp, (NamedTypeSymbol)comp.GetMember<MethodSymbol>("I.F1").ReturnType, SpecialType.System_IntPtr, includesIEquatable);
+                verifyInterfaces(comp, (NamedTypeSymbol)comp.GetMember<MethodSymbol>("I.F2").ReturnType, SpecialType.System_UIntPtr, includesIEquatable);
+            }
+
+            static void verifyInterfaces(CSharpCompilation comp, NamedTypeSymbol type, SpecialType specialType, bool includesIEquatable)
+            {
+                Assert.True(type.IsNativeIntegerType);
+                Assert.Equal(specialType, type.NativeIntegerUnderlyingType.SpecialType);
+
+                var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
+                Assert.Equal(interfaces, type.GetDeclaredInterfaces(null));
+
+                Assert.Equal(includesIEquatable ? 1 : 0, interfaces.Length);
+
+                if (includesIEquatable)
+                {
+                    var @interface = interfaces.Single();
+                    var def = comp.GetWellKnownType(WellKnownType.System_IEquatable_T);
+                    Assert.NotNull(def);
+                    Assert.Equal(def, @interface.OriginalDefinition);
+                    Assert.Equal(type, @interface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                }
+            }
         }
 
         [Fact]
@@ -496,6 +878,89 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: true), SpecialType.System_IntPtr, isNativeInt: true);
                 VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: false), SpecialType.System_UIntPtr, isNativeInt: true);
             }
+        }
+
+        [Fact]
+        public void ArrayInitialization()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        Report(new nint[] { int.MinValue, -1, 0, 1, int.MaxValue });
+        Report(new nuint[] { 0, 1, 2, int.MaxValue, uint.MaxValue });
+    }
+    static void Report<T>(T[] items)
+    {
+        foreach (var item in items)
+            System.Console.WriteLine($""{item.GetType().FullName}: {item}"");
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.IntPtr: -2147483648
+System.IntPtr: -1
+System.IntPtr: 0
+System.IntPtr: 1
+System.IntPtr: 2147483647
+System.UIntPtr: 0
+System.UIntPtr: 1
+System.UIntPtr: 2
+System.UIntPtr: 2147483647
+System.UIntPtr: 4294967295");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""System.IntPtr""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4     0x80000000
+  IL_000d:  conv.i
+  IL_000e:  stelem.i
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.m1
+  IL_0012:  conv.i
+  IL_0013:  stelem.i
+  IL_0014:  dup
+  IL_0015:  ldc.i4.3
+  IL_0016:  ldc.i4.1
+  IL_0017:  conv.i
+  IL_0018:  stelem.i
+  IL_0019:  dup
+  IL_001a:  ldc.i4.4
+  IL_001b:  ldc.i4     0x7fffffff
+  IL_0020:  conv.i
+  IL_0021:  stelem.i
+  IL_0022:  call       ""void Program.Report<nint>(nint[])""
+  IL_0027:  ldc.i4.5
+  IL_0028:  newarr     ""System.UIntPtr""
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  conv.i
+  IL_0031:  stelem.i
+  IL_0032:  dup
+  IL_0033:  ldc.i4.2
+  IL_0034:  ldc.i4.2
+  IL_0035:  conv.i
+  IL_0036:  stelem.i
+  IL_0037:  dup
+  IL_0038:  ldc.i4.3
+  IL_0039:  ldc.i4     0x7fffffff
+  IL_003e:  conv.i
+  IL_003f:  stelem.i
+  IL_0040:  dup
+  IL_0041:  ldc.i4.4
+  IL_0042:  ldc.i4.m1
+  IL_0043:  conv.u
+  IL_0044:  stelem.i
+  IL_0045:  call       ""void Program.Report<nuint>(nuint[])""
+  IL_004a:  ret
+}");
         }
 
         [Fact]
@@ -937,11 +1402,8 @@ public class B2 : A<nuint> { }
         }
 
         // PROTOTYPE: Test:
-        // - @nint
-        // - Type.nint, Namespace.nint
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute type". Does that apply to "nint"?
         // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol checks IsViableType(result)
-        // - Use-site diagnostics (basically any use-site diagnostics from IntPtr/UIntPtr)
         // - Type unification of I<System.IntPtr> and I<nint>
 
         [Fact]
@@ -976,7 +1438,7 @@ interface I
                 Assert.Equal("nint", underlyingType.ToTestDisplayString());
                 Assert.Equal(SpecialType.None, underlyingType.SpecialType);
                 var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
-                Assert.Equal("nint I.Add(nint x, System.UIntPtr y)", method.ToTestDisplayString());
+                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
                 var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, underlyingType0.SpecialType);
@@ -1010,7 +1472,7 @@ interface I
             static void verify(CSharpCompilation comp)
             {
                 var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, System.UIntPtr y)", method.ToTestDisplayString());
+                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -1020,9 +1482,57 @@ interface I
             }
         }
 
-        // PROTOTYPE: nint and nuint should be allowed.
         [Fact]
-        public void MemberName()
+        public void MemberName_01()
+        {
+            var source =
+@"namespace N
+{
+    class nint { }
+    class Program
+    {
+        internal static object nuint;
+        static void Main()
+        {
+            _ = new nint();
+            _ = new @nint();
+            _ = new N.nint();
+            @nint i = null;
+            _ = i;
+            @nuint = null;
+            _ = nuint;
+            _ = @nuint;
+            _ = Program.nuint;
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var nodes = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().ToArray();
+                Assert.Equal(3, nodes.Length);
+                foreach (var node in nodes)
+                {
+                    var type = model.GetTypeInfo(node).Type;
+                    Assert.Equal("N.nint", type.ToTestDisplayString());
+                    Assert.Equal(SpecialType.None, type.SpecialType);
+                    Assert.False(type.IsNativeIntegerType);
+                }
+            }
+        }
+
+        [Fact]
+        public void MemberName_02()
         {
             var source =
 @"class Program
@@ -1036,31 +1546,61 @@ interface I
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0103: The name 'nint' does not exist in the current context
+                // (5,13): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = nint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 13),
-                // (6,13): error CS0103: The name 'nuint' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 13),
+                // (6,13): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = nuint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 13));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (5,13): error CS0103: The name 'nint' does not exist in the current context
-                //         _ = nint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 13),
-                // (6,13): error CS0103: The name 'nuint' does not exist in the current context
-                //         _ = nuint.Equals(0, 0);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 13));
+            comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: nint and nuint should be allowed.
         [Fact]
-        public void NameOf()
+        public void NameOf_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(nameof(nint));
+        Console.WriteLine(nameof(nuint));
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Console.WriteLine(nameof(nint));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(6, 34),
+                // (7,34): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Console.WriteLine(nameof(nuint));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(7, 34));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"nint
+nuint");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax { Identifier: { ValueText: "nint" } });
+            var symbol = (ITypeSymbol)model.GetSymbolInfo(node).Symbol;
+            Assert.Equal("nint", symbol.ToTestDisplayString());
+            Assert.True(symbol.IsNativeIntegerType);
+        }
+
+        [Fact]
+        public void NameOf_02()
         {
             var source =
 @"class Program
 {
-    static void Main()
+    static void F(nint nint)
     {
         _ = nameof(nint);
         _ = nameof(nuint);
@@ -1069,21 +1609,67 @@ interface I
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,20): error CS0103: The name 'nint' does not exist in the current context
-                //         _ = nameof(nint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 20),
-                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                // (3,19): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F(nint nint)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 19),
+                // (6,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = nameof(nuint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_03()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = nameof(@nint);
+        _ = nameof(@nuint);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0103: The name 'nint' does not exist in the current context
+                //         _ = nameof(@nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nint").WithArguments("nint").WithLocation(5, 20),
+                // (6,20): error CS0103: The name 'nuint' does not exist in the current context
+                //         _ = nameof(@nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nuint").WithArguments("nuint").WithLocation(6, 20));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (5,20): error CS0103: The name 'nint' does not exist in the current context
-                //         _ = nameof(nint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(5, 20),
+                //         _ = nameof(@nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nint").WithArguments("nint").WithLocation(5, 20),
                 // (6,20): error CS0103: The name 'nuint' does not exist in the current context
-                //         _ = nameof(nuint);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nuint").WithArguments("nuint").WithLocation(6, 20));
+                //         _ = nameof(@nuint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@nuint").WithArguments("nuint").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void NameOf_04()
+        {
+            var source =
+@"class Program
+{
+    static void F(int @nint, uint @nuint)
+    {
+        _ = nameof(@nint);
+        _ = nameof(@nuint);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         /// <summary>
@@ -2023,6 +2609,512 @@ class Program
 2147483647
 0
 4294967295");
+        }
+
+        [Fact]
+        public void ConstantValue_Properties()
+        {
+            var source =
+@"class Program
+{
+    const nint A = int.MinValue;
+    const nint B = 0;
+    const nint C = int.MaxValue;
+    const nuint D = 0;
+    const nuint E = uint.MaxValue;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify((FieldSymbol)comp.GetMember("Program.A"), int.MinValue, signed: true, negative: true);
+            verify((FieldSymbol)comp.GetMember("Program.B"), 0, signed: true, negative: false);
+            verify((FieldSymbol)comp.GetMember("Program.C"), int.MaxValue, signed: true, negative: false);
+            verify((FieldSymbol)comp.GetMember("Program.D"), 0U, signed: false, negative: false);
+            verify((FieldSymbol)comp.GetMember("Program.E"), uint.MaxValue, signed: false, negative: false);
+
+            static void verify(FieldSymbol field, object expectedValue, bool signed, bool negative)
+            {
+                var value = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                Assert.Equal(signed ? ConstantValueTypeDiscriminator.NInt : ConstantValueTypeDiscriminator.NUInt, value.Discriminator);
+                Assert.Equal(expectedValue, value.Value);
+                Assert.True(value.IsIntegral);
+                Assert.True(value.IsNumeric);
+                Assert.Equal(negative, value.IsNegativeNumeric);
+                Assert.Equal(!signed, value.IsUnsigned);
+            }
+        }
+
+        /// <summary>
+        /// Native integers cannot be used as attribute values.
+        /// </summary>
+        [Fact]
+        public void AttributeValue_01()
+        {
+            var source0 =
+@"class A : System.Attribute
+{
+    public A() { }
+    public A(object value) { }
+    public object Value;
+}
+[A((nint)1)]
+[A(new nuint[0])]
+[A(Value = (nint)3)]
+[A(Value = new[] { (nuint)4 })]
+class B
+{
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A((nint)1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(nint)1").WithLocation(7, 4),
+                // (8,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new nuint[0])]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new nuint[0]").WithLocation(8, 4),
+                // (9,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(Value = (nint)3)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(nint)3").WithLocation(9, 12),
+                // (10,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(Value = new[] { (nuint)4 })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new[] { (nuint)4 }").WithLocation(10, 12));
+        }
+
+        /// <summary>
+        /// Native integers cannot be used as attribute values.
+        /// </summary>
+        [Fact]
+        public void AttributeValue_02()
+        {
+            var source0 =
+@"class A : System.Attribute
+{
+    public A() { }
+    public A(nint value) { }
+    public nuint[] Value;
+}
+[A(1)]
+[A(Value = default)]
+class B
+{
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,2): error CS0181: Attribute constructor parameter 'value' has type 'nint', which is not a valid attribute parameter type
+                // [A(1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("value", "nint").WithLocation(7, 2),
+                // (8,4): error CS0655: 'Value' is not a valid named attribute argument because it is not a valid attribute parameter type
+                // [A(Value = default)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Value").WithArguments("Value").WithLocation(8, 4));
+        }
+
+        [Fact]
+        public void ParameterDefaultValue_01()
+        {
+            var source =
+@"using System;
+class A
+{
+    static void F0(IntPtr x = default, UIntPtr y = default)
+    {
+    }
+    static void F1(IntPtr x = (IntPtr)(-1), UIntPtr y = (UIntPtr)2)
+    {
+    }
+    static void F2(IntPtr? x = null, UIntPtr? y = null)
+    {
+    }
+    static void F3(IntPtr? x = (IntPtr)(-3), UIntPtr? y = (UIntPtr)4)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void F1(IntPtr x = (IntPtr)(-1), UIntPtr y = (UIntPtr)2)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(IntPtr)(-1)").WithArguments("x").WithLocation(7, 31),
+                // (7,57): error CS1736: Default parameter value for 'y' must be a compile-time constant
+                //     static void F1(IntPtr x = (IntPtr)(-1), UIntPtr y = (UIntPtr)2)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(UIntPtr)2").WithArguments("y").WithLocation(7, 57),
+                // (13,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void F3(IntPtr? x = (IntPtr)(-3), UIntPtr? y = (UIntPtr)4)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(IntPtr)(-3)").WithArguments("x").WithLocation(13, 32),
+                // (13,59): error CS1736: Default parameter value for 'y' must be a compile-time constant
+                //     static void F3(IntPtr? x = (IntPtr)(-3), UIntPtr? y = (UIntPtr)4)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(UIntPtr)4").WithArguments("y").WithLocation(13, 59));
+        }
+
+        [Fact]
+        public void ParameterDefaultValue_02()
+        {
+            var sourceA =
+@"public class A
+{
+    public static void F0(nint x = default, nuint y = default)
+    {
+        Report(x);
+        Report(y);
+    }
+    public static void F1(nint x = -1, nuint y = 2)
+    {
+        Report(x);
+        Report(y);
+    }
+    public static void F2(nint? x = null, nuint? y = null)
+    {
+        Report(x);
+        Report(y);
+    }
+    public static void F3(nint? x = -3, nuint? y = 4)
+    {
+        Report(x);
+        Report(y);
+    }
+    static void Report(object o)
+    {
+        System.Console.WriteLine(o ?? ""null"");
+    }
+}";
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        A.F0();
+        A.F1();
+        A.F2();
+        A.F3();
+    }
+}";
+            var expectedOutput =
+@"0
+0
+-1
+2
+null
+null
+-3
+4";
+
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var ref1 = comp.ToMetadataReference();
+            var ref2 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref1 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(sourceB, references: new[] { ref2 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void SwitchStatement_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+   static nint M(nint ret)
+    {
+        switch (ret) {
+        case 0:
+            ret--; // 2
+            Report(""case 0: "", ret);
+            goto case 9999;
+        case 2:
+            ret--; // 4
+            Report(""case 2: "", ret);
+            goto case 255;
+        case 6: // start here
+            ret--; // 5
+            Report(""case 6: "", ret);
+            goto case 2;
+        case 9999:
+            ret--; // 1
+            Report(""case 9999: "", ret);
+            goto default;
+        case 0xff:
+            ret--; // 3
+            Report(""case 0xff: "", ret);
+            goto case 0;
+        default:
+            ret--;
+            Report(""default: "", ret);
+            if (ret > 0) {
+                goto case -1;
+            }
+            break;
+        case -1:
+            ret = 999;
+            Report(""case -1: "", ret);
+            break;
+        }
+        return(ret);
+    }
+    static void Report(string prefix, nint value)
+    {
+        Console.WriteLine(prefix + value);
+    }
+    static void Main()
+    {
+        Console.WriteLine(M(6));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"case 6: 5
+case 2: 4
+case 0xff: 3
+case 0: 2
+case 9999: 1
+default: 0
+0");
+            verifier.VerifyIL("Program.M",
+@"{
+  // Code size      170 (0xaa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0026
+  IL_0003:  ldarg.0
+  IL_0004:  ldc.i4.2
+  IL_0005:  conv.i
+  IL_0006:  beq.s      IL_0038
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.6
+  IL_000a:  conv.i
+  IL_000b:  beq.s      IL_004a
+  IL_000d:  ldarg.0
+  IL_000e:  ldc.i4     0x270f
+  IL_0013:  conv.i
+  IL_0014:  beq.s      IL_005c
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4     0xff
+  IL_001c:  conv.i
+  IL_001d:  beq.s      IL_006e
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.m1
+  IL_0021:  conv.i
+  IL_0022:  beq.s      IL_0095
+  IL_0024:  br.s       IL_0080
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  starg.s    V_0
+  IL_002b:  ldstr      ""case 0: ""
+  IL_0030:  ldarg.0
+  IL_0031:  call       ""void Program.Report(string, nint)""
+  IL_0036:  br.s       IL_005c
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  sub
+  IL_003b:  starg.s    V_0
+  IL_003d:  ldstr      ""case 2: ""
+  IL_0042:  ldarg.0
+  IL_0043:  call       ""void Program.Report(string, nint)""
+  IL_0048:  br.s       IL_006e
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.1
+  IL_004c:  sub
+  IL_004d:  starg.s    V_0
+  IL_004f:  ldstr      ""case 6: ""
+  IL_0054:  ldarg.0
+  IL_0055:  call       ""void Program.Report(string, nint)""
+  IL_005a:  br.s       IL_0038
+  IL_005c:  ldarg.0
+  IL_005d:  ldc.i4.1
+  IL_005e:  sub
+  IL_005f:  starg.s    V_0
+  IL_0061:  ldstr      ""case 9999: ""
+  IL_0066:  ldarg.0
+  IL_0067:  call       ""void Program.Report(string, nint)""
+  IL_006c:  br.s       IL_0080
+  IL_006e:  ldarg.0
+  IL_006f:  ldc.i4.1
+  IL_0070:  sub
+  IL_0071:  starg.s    V_0
+  IL_0073:  ldstr      ""case 0xff: ""
+  IL_0078:  ldarg.0
+  IL_0079:  call       ""void Program.Report(string, nint)""
+  IL_007e:  br.s       IL_0026
+  IL_0080:  ldarg.0
+  IL_0081:  ldc.i4.1
+  IL_0082:  sub
+  IL_0083:  starg.s    V_0
+  IL_0085:  ldstr      ""default: ""
+  IL_008a:  ldarg.0
+  IL_008b:  call       ""void Program.Report(string, nint)""
+  IL_0090:  ldarg.0
+  IL_0091:  ldc.i4.0
+  IL_0092:  conv.i
+  IL_0093:  ble.s      IL_00a8
+  IL_0095:  ldc.i4     0x3e7
+  IL_009a:  conv.i
+  IL_009b:  starg.s    V_0
+  IL_009d:  ldstr      ""case -1: ""
+  IL_00a2:  ldarg.0
+  IL_00a3:  call       ""void Program.Report(string, nint)""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchStatement_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+   static nuint M(nuint ret)
+    {
+        switch (ret) {
+        case 0:
+            ret--; // 2
+            Report(""case 0: "", ret);
+            goto case 9999;
+        case 2:
+            ret--; // 4
+            Report(""case 2: "", ret);
+            goto case 255;
+        case 6: // start here
+            ret--; // 5
+            Report(""case 6: "", ret);
+            goto case 2;
+        case 9999:
+            ret--; // 1
+            Report(""case 9999: "", ret);
+            goto default;
+        case 0xff:
+            ret--; // 3
+            Report(""case 0xff: "", ret);
+            goto case 0;
+        default:
+            ret--;
+            Report(""default: "", ret);
+            if (ret > 0) {
+                goto case int.MaxValue;
+            }
+            break;
+        case int.MaxValue:
+            ret = 999;
+            Report(""case int.MaxValue: "", ret);
+            break;
+        }
+        return(ret);
+    }
+    static void Report(string prefix, nuint value)
+    {
+        Console.WriteLine(prefix + value);
+    }
+    static void Main()
+    {
+        Console.WriteLine(M(6));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"case 6: 5
+case 2: 4
+case 0xff: 3
+case 0: 2
+case 9999: 1
+default: 0
+0");
+            verifier.VerifyIL("Program.M",
+@"{
+  // Code size      174 (0xae)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_002a
+  IL_0003:  ldarg.0
+  IL_0004:  ldc.i4.2
+  IL_0005:  conv.i
+  IL_0006:  beq.s      IL_003c
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.6
+  IL_000a:  conv.i
+  IL_000b:  beq.s      IL_004e
+  IL_000d:  ldarg.0
+  IL_000e:  ldc.i4     0x270f
+  IL_0013:  conv.i
+  IL_0014:  beq.s      IL_0060
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4     0xff
+  IL_001c:  conv.i
+  IL_001d:  beq.s      IL_0072
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4     0x7fffffff
+  IL_0025:  conv.i
+  IL_0026:  beq.s      IL_0099
+  IL_0028:  br.s       IL_0084
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  starg.s    V_0
+  IL_002f:  ldstr      ""case 0: ""
+  IL_0034:  ldarg.0
+  IL_0035:  call       ""void Program.Report(string, nuint)""
+  IL_003a:  br.s       IL_0060
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.1
+  IL_003e:  sub
+  IL_003f:  starg.s    V_0
+  IL_0041:  ldstr      ""case 2: ""
+  IL_0046:  ldarg.0
+  IL_0047:  call       ""void Program.Report(string, nuint)""
+  IL_004c:  br.s       IL_0072
+  IL_004e:  ldarg.0
+  IL_004f:  ldc.i4.1
+  IL_0050:  sub
+  IL_0051:  starg.s    V_0
+  IL_0053:  ldstr      ""case 6: ""
+  IL_0058:  ldarg.0
+  IL_0059:  call       ""void Program.Report(string, nuint)""
+  IL_005e:  br.s       IL_003c
+  IL_0060:  ldarg.0
+  IL_0061:  ldc.i4.1
+  IL_0062:  sub
+  IL_0063:  starg.s    V_0
+  IL_0065:  ldstr      ""case 9999: ""
+  IL_006a:  ldarg.0
+  IL_006b:  call       ""void Program.Report(string, nuint)""
+  IL_0070:  br.s       IL_0084
+  IL_0072:  ldarg.0
+  IL_0073:  ldc.i4.1
+  IL_0074:  sub
+  IL_0075:  starg.s    V_0
+  IL_0077:  ldstr      ""case 0xff: ""
+  IL_007c:  ldarg.0
+  IL_007d:  call       ""void Program.Report(string, nuint)""
+  IL_0082:  br.s       IL_002a
+  IL_0084:  ldarg.0
+  IL_0085:  ldc.i4.1
+  IL_0086:  sub
+  IL_0087:  starg.s    V_0
+  IL_0089:  ldstr      ""default: ""
+  IL_008e:  ldarg.0
+  IL_008f:  call       ""void Program.Report(string, nuint)""
+  IL_0094:  ldarg.0
+  IL_0095:  ldc.i4.0
+  IL_0096:  conv.i
+  IL_0097:  ble.un.s   IL_00ac
+  IL_0099:  ldc.i4     0x3e7
+  IL_009e:  conv.i
+  IL_009f:  starg.s    V_0
+  IL_00a1:  ldstr      ""case int.MaxValue: ""
+  IL_00a6:  ldarg.0
+  IL_00a7:  call       ""void Program.Report(string, nuint)""
+  IL_00ac:  ldarg.0
+  IL_00ad:  ret
+}");
         }
 
         [Fact]
@@ -6362,6 +7454,7 @@ class Program
             binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
             binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
+            // PROTOTYPE: Some results of `<<` should be dependent on platform. See https://github.com/dotnet/roslyn/pull/42143#discussion_r389955804.
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);

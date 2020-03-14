@@ -7222,15 +7222,15 @@ class B
     static void F4(nint[] x, A<nuint> y) { }
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
-            var formatWithoutSpecialTypes = new SymbolDisplayFormat(
+            var formatWithoutOptions = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
-            var formatWithSpecialTypes = formatWithoutSpecialTypes.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var formatWithUnderlyingTypes = formatWithoutOptions.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(
-                method.ToDisplayParts(formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithUnderlyingTypes),
                 "static void F1(IntPtr x, UIntPtr y)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7248,7 +7248,7 @@ class B
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
             Verify(
-                method.ToDisplayParts(formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithoutOptions),
                 "static void F1(nint x, nuint y)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7265,29 +7265,32 @@ class B
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)),
+                "static void F1(nint x, nuint y)");
 
             method = comp.GetMember<MethodSymbol>("B.F2");
             Verify(
-                method.ToDisplayParts(formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithUnderlyingTypes),
                 "static void F2(IntPtr x, IntPtr y)");
             Verify(
-                method.ToDisplayParts(formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithoutOptions),
                 "static void F2(nint x, IntPtr y)");
 
             method = comp.GetMember<MethodSymbol>("B.F3");
             Verify(
-                method.ToDisplayParts(formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithUnderlyingTypes),
                 "static void F3(IntPtr? x, UIntPtr? y)");
             Verify(
-                method.ToDisplayParts(formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithoutOptions),
                 "static void F3(nint? x, UIntPtr? y)");
 
             method = comp.GetMember<MethodSymbol>("B.F4");
             Verify(
-                method.ToDisplayParts(formatWithoutSpecialTypes),
+                method.ToDisplayParts(formatWithUnderlyingTypes),
                 "static void F4(IntPtr[] x, A<UIntPtr> y)");
             Verify(
-                method.ToDisplayParts(formatWithSpecialTypes),
+                method.ToDisplayParts(formatWithoutOptions),
                 "static void F4(nint[] x, A<nuint> y)");
         }
     }
