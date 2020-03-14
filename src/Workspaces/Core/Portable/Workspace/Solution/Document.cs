@@ -422,6 +422,7 @@ namespace Microsoft.CodeAnalysis
                         var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
                         var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
+                        RoslynDebug.Assert(oldTree is object);
                         return tree.GetChanges(oldTree);
                     }
 

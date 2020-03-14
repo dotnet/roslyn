@@ -1563,5 +1563,45 @@ public static class C
     void M2(bool b) { }
 }");
         }
+
+        [WorkItem(40007, "https://github.com/dotnet/roslyn/issues/40007")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestSpaceAfterGenericType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Goo<TKey, TValue>(object items)
+    {
+        [|var|] itemsAsDictionary = items as IDictionary<TKey, TValue>;
+        SortedDictionary<TKey, TValue>? dictionary = null;
+        if (itemsAsDictionary != null)
+        {
+            dictionary = new SortedDictionary<TKey, TValue>();
+        }
+        return dictionary;
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Goo<TKey, TValue>(object items)
+    {
+        SortedDictionary<TKey, TValue>? dictionary = null;
+        if (items is IDictionary<TKey, TValue> itemsAsDictionary)
+        {
+            dictionary = new SortedDictionary<TKey, TValue>();
+        }
+        return dictionary;
+    }
+}");
+        }
     }
 }
