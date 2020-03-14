@@ -165,6 +165,18 @@
   <data name="Null_check_can_be_simplified" xml:space="preserve">
     <value>Null check can be simplified</value>
   </data>
+  <data name="Simplify_collection_initialization" xml:space="preserve">
+    <value>Simplify collection initialization</value>
+  </data>
+  <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
+    <value>Collection initialization can be simplified</value>
+  </data>
+  <data name="Simplify_object_initialization" xml:space="preserve">
+    <value>Simplify object initialization</value>
+  </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
   <data name="Naming_rule_violation_0" xml:space="preserve">
     <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>

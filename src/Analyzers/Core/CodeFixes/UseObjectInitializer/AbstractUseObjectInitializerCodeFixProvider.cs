@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Object_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument)
             {
             }
         }
