@@ -2305,11 +2305,6 @@ This version used in: {2}</source>
         <target state="translated">в {0} (проект {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Требуются модификаторы доступности</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">Добавьте модификаторы доступности</target>
