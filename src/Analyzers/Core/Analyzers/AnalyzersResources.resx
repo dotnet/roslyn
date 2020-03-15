@@ -196,6 +196,12 @@
   <data name="Populate_switch" xml:space="preserve">
     <value>Populate switch</value>
   </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
   <data name="Expression_value_is_never_used" xml:space="preserve">
     <value>Expression value is never used</value>
   </data>

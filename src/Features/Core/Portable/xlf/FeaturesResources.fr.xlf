@@ -2300,16 +2300,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Supprimer le code inaccessible</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Les modificateurs ne sont pas ordonnés</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Ordonner les modificateurs</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">dans {0} (projet {1})</target>

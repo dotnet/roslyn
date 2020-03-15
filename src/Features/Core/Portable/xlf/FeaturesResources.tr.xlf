@@ -2300,16 +2300,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Erişilemeyen kodları kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Değiştiriciler sıralı değil</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Değiştiricileri sırala</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">{0} içinde (proje {1})</target>

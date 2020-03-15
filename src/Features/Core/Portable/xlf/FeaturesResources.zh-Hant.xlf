@@ -2300,16 +2300,6 @@ This version used in: {2}</source>
         <target state="translated">移除執行不到的程式碼</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">修飾元未排序</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">為修飾元排序</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">在 {0} 中 (專案 {1})</target>

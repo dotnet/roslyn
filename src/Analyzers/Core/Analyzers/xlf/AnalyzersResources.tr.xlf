@@ -57,6 +57,11 @@
         <target state="new">Add missing cases</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="new">Modifiers are not ordered</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
         <target state="new">Naming Styles</target>
@@ -70,6 +75,11 @@
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
         <target state="new">Null check can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="new">Order modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
