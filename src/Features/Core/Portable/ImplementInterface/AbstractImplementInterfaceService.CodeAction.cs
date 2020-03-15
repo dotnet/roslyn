@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly Document Document;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
+
             private readonly string _equivalenceKey;
 
             internal ImplementInterfaceCodeAction(
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: throughMember);
             }
+
+            protected virtual bool SortMembers => true;
 
             public override string Title
             {
@@ -199,7 +202,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
+                        sortMembers: this.SortMembers),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

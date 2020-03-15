@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -24,7 +26,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         private static ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
-        private static INamedTypeSymbol TryGetSymbolForIDisposable(Compilation compilation)
+        private static SymbolDisplayFormat s_format = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static (INamedTypeSymbol, IMethodSymbol) TryGetSymbolForIDisposable(Compilation compilation)
         {
             // Get symbol for 'System.IDisposable'.
             var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
@@ -41,11 +48,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     disposeMethod.Arity == 0 &&
                     disposeMethod.Parameters.Length == 0)
                 {
-                    return idisposable;
+                    return (idisposable, disposeMethod);
                 }
             }
 
-            return null;
+            return default;
         }
 
         private bool ShouldImplementDisposePattern(State state, bool explicitly)
@@ -60,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
 
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
-            var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
+            var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(state.Model.Compilation);
             if (idisposable == null)
                 return false;
 
@@ -79,6 +86,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
         private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
         {
+            // We want to emit our Dispose members in a very particular order (so we can give
+            // instructions in them that relate to the other).  So do not sort them.
+            protected override bool SortMembers => false;
+
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
@@ -119,69 +130,178 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 SyntaxNode classOrStructDecl,
                 CancellationToken cancellationToken)
             {
-                var result = document;
-                var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                // Add an annotation to the type declaration node so that we can find it again to append the dispose pattern implementation below.
-                result = await result.ReplaceNodeAsync(
-                    classOrStructDecl,
-                    classOrStructDecl.WithAdditionalAnnotations(s_implementingTypeAnnotation),
-                    cancellationToken).ConfigureAwait(false);
-                var root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
-                compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
+                var disposedValueField = await CreateDisposedValueFieldAsync(
+                    document, classOrStructType, cancellationToken).ConfigureAwait(false);
 
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
-                var disposedValueField = CreateDisposedValueField(
-                    compilation, classOrStructType, requireAccessiblity, rules);
+                var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(compilation);
 
-                // Use the code generation service to generate all unimplemented members except
-                // those that are part of the dispose pattern. We can't use the code generation
-                // service to implement the dispose pattern since the code generation service
-                // doesn't support injection of the custom boiler plate code required for
-                // implementing the dispose pattern.
-                var idisposable = TryGetSymbolForIDisposable(compilation);
+                var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classOrStructType, disposeMethod, disposedValueField);
 
-                result = await GetUpdatedDocumentAsync(
-                    result,
+                var updatedDocument = await GetUpdatedDocumentAsync(
+                    document,
                     unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
                     classOrStructType,
                     classOrStructDecl,
-                    extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
+                    extraMembers: disposableMethods.Concat(disposedValueField),
                     cancellationToken).ConfigureAwait(false);
 
-                // Now append the dispose pattern implementation.
-                root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
-                compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructType = classOrStructType.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
-                result = Service.ImplementDisposePattern(
-                    result, root,
-                    classOrStructType, disposedValueField,
-                    classOrStructDecl.SpanStart, Explicitly);
+                return await AddFinalizerCommentAsync(updatedDocument, finalizer, cancellationToken).ConfigureAwait(false);
+            }
 
-                // Remove the annotation since we don't need it anymore.
-                root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                classOrStructDecl = root.GetAnnotatedNodes(s_implementingTypeAnnotation).Single();
-                result = await result.ReplaceNodeAsync(
-                    classOrStructDecl,
-                    classOrStructDecl.WithoutAnnotations(s_implementingTypeAnnotation),
-                    cancellationToken).ConfigureAwait(false);
+            private async Task<Document> AddFinalizerCommentAsync(
+                Document document, SyntaxNode finalizer, CancellationToken cancellationToken)
+            {
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var lastGeneratedMember = root.GetAnnotatedNodes(CodeGenerator.Annotation)
+                                              .OrderByDescending(n => n.SpanStart)
+                                              .First();
+
+                finalizer = finalizer.NormalizeWhitespace();
+                var finalizerLines = finalizer.ToFullString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+                var finalizerComments = CreateCommentTrivia(generator, finalizerLines);
+
+                var lastMemberWithComments = lastGeneratedMember.WithPrependedLeadingTrivia(
+                    finalizerComments.Insert(0, generator.CarriageReturnLineFeed)
+                                     .Add(generator.CarriageReturnLineFeed));
+
+                var finalRoot = root.ReplaceNode(lastGeneratedMember, lastMemberWithComments);
+                return document.WithSyntaxRoot(finalRoot);
+            }
+
+            private (ImmutableArray<ISymbol>, SyntaxNode) CreateDisposableMethods(
+                Compilation compilation,
+                Document document,
+                INamedTypeSymbol classOrStructType,
+                IMethodSymbol disposeMethod,
+                IFieldSymbol disposedValueField)
+            {
+                var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classOrStructType, disposeMethod, disposedValueField);
+
+                var symbolDisplay = document.GetRequiredLanguageService<ISymbolDisplayService>();
+                var disposeMethodDisplayString = symbolDisplay.ToDisplayString(disposeImplMethod, s_format);
+
+                var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
+                    compilation, document, classOrStructType, disposeMethod,
+                    disposedValueField, disposeMethodDisplayString);
+
+                var g = document.GetRequiredLanguageService<SyntaxGenerator>();
+                var finalizer = this.Service.CreateFinalizer(g, classOrStructType, disposeMethodDisplayString);
+
+                return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
+            }
+
+            private IMethodSymbol CreateDisposeImplementationMethod(
+                Compilation compilation,
+                Document document,
+                INamedTypeSymbol classOrStructType,
+                IMethodSymbol disposeMethod,
+                IFieldSymbol disposedValueField)
+            {
+                var accessibility = classOrStructType.IsSealed
+                    ? Accessibility.Private
+                    : Accessibility.Protected;
+
+                var modifiers = classOrStructType.IsSealed
+                    ? DeclarationModifiers.None
+                    : DeclarationModifiers.Virtual;
+
+                var g = document.GetRequiredLanguageService<SyntaxGenerator>();
+
+                // // TODO: dispose managed state...
+                // if (disposing) { }
+                var ifDisposingStatement = AddComment(g,
+                    FeaturesResources.TODO_colon_dispose_managed_state_managed_objects,
+                    g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>()));
+
+                // TODO: free unmanaged ...
+                // TODO: set large fields...
+                // disposedValue = true
+                var disposedValueEqualsTrueStatement = AddComments(g,
+                    FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
+                    FeaturesResources.TODO_colon_set_large_fields_to_null,
+                    g.AssignmentStatement(
+                        g.IdentifierName(disposedValueField.Name), g.TrueLiteralExpression()));
+
+                var ifStatement = g.IfStatement(
+                    g.LogicalNotExpression(g.IdentifierName(disposedValueField.Name)),
+                    new[] { ifDisposingStatement, disposedValueEqualsTrueStatement });
+
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    disposeMethod,
+                    containingType: classOrStructType,
+                    accessibility: accessibility,
+                    modifiers: modifiers,
+                    name: disposeMethod.Name,
+                    parameters: ImmutableArray.Create(
+                        CodeGenerationSymbolFactory.CreateParameterSymbol(
+                            compilation.GetSpecialType(SpecialType.System_Boolean),
+                            DisposingName)),
+                    statements: ImmutableArray.Create(ifStatement));
+            }
+
+            private IMethodSymbol CreateDisposeInterfaceMethod(
+                Compilation compilation,
+                Document document,
+                INamedTypeSymbol classOrStructType,
+                IMethodSymbol disposeMethod,
+                IFieldSymbol disposedValueField,
+                string disposeMethodDisplayString)
+            {
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
+
+                var g = document.GetRequiredLanguageService<SyntaxGenerator>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                // // Do not change...
+                // Dispose(true);
+                statements.Add(AddComment(g,
+                    string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+                    g.ExpressionStatement(
+                        g.InvocationExpression(
+                            g.IdentifierName(nameof(IDisposable.Dispose)),
+                            g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
+
+                // GC.SuppressFinalize(this);
+                statements.Add(g.ExpressionStatement(
+                    g.InvocationExpression(
+                        g.MemberAccessExpression(
+                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName)),
+                            nameof(GC.SuppressFinalize)),
+                        g.ThisExpression())));
+
+                var modifiers = DeclarationModifiers.From(disposeMethod);
+                modifiers = modifiers.WithIsAbstract(false);
+
+                var explicitInterfaceImplementations = Explicitly || !this.Service.CanImplementImplicitly
+                    ? ImmutableArray.Create(disposeMethod) : default;
+
+                var result = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    disposeMethod,
+                    accessibility: Explicitly ? Accessibility.NotApplicable : Accessibility.Public,
+                    modifiers: modifiers,
+                    explicitInterfaceImplementations: explicitInterfaceImplementations,
+                    statements: statements.ToImmutable());
 
                 return result;
             }
 
-            private IFieldSymbol CreateDisposedValueField(
-                Compilation compilation,
+            private async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
+                Document document,
                 INamedTypeSymbol containingType,
-                CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
-                ImmutableArray<NamingRule> rules)
+                CancellationToken cancellationToken)
             {
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

@@ -5,16 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
@@ -68,63 +66,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         protected override bool HasHiddenExplicitImplementation => true;
 
-        private static ClassDeclarationSyntax GetClassDeclarationAt(SyntaxNode root, int position)
+        protected override SyntaxNode CreateFinalizer(
+            SyntaxGenerator g, INamedTypeSymbol classType, string disposeMethodDisplayString)
         {
-            var node = root.FindToken(position).Parent.FirstAncestorOrSelf((SyntaxNode n) => n.IsKind(SyntaxKind.ClassDeclaration));
-            return node as ClassDeclarationSyntax;
-        }
+            // ' Do not change this code...
+            // Dispose(false)
+            var disposeStatement = (StatementSyntax)AddComment(g,
+                string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+                g.ExpressionStatement(g.InvocationExpression(
+                    g.IdentifierName(nameof(IDisposable.Dispose)),
+                    g.Argument(DisposingName, RefKind.None, g.FalseLiteralExpression()))));
 
-        protected override Document ImplementDisposePattern(
-            Document document, SyntaxNode root,
-            INamedTypeSymbol classSymbol, IFieldSymbol disposedValueField,
-            int position, bool explicitly)
-        {
-            var classDecl = GetClassDeclarationAt(root, position);
+            var methodDecl = SyntaxFactory.DestructorDeclaration(classType.Name).AddBodyStatements(disposeStatement);
 
-            // Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
-            // because of the need to parse, format, and simplify the result; during pseudo-localized builds, resource
-            // strings are given a special prefix and suffix that will break the parser, hence the requirement to
-            // localize the comments individually.
-            var code = $@"
-    {(classSymbol.IsSealed ? "" : "protected virtual ")}void Dispose(bool disposing)
-    {{
-        if (!{disposedValueField.Name})
-        {{
-            if (disposing)
-            {{
-                // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
-            }}
-
-            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
-            // {FeaturesResources.TODO_colon_set_large_fields_to_null}
-            {disposedValueField.Name} = true;
-        }}
-    }}
-
-    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
-    // ~{classDecl.Identifier.Value}()
-    // {{
-    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-    //   Dispose(false);
-    // }}
-
-    {(explicitly ? "void System.IDisposable." : "public void ")}Dispose()
-    {{
-        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }}
-";
-
-            var decls = SyntaxFactory.ParseSyntaxTree(code)
-                .GetRoot().DescendantNodes().OfType<MemberDeclarationSyntax>()
-                .Select(decl => decl.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation))
-                .ToArray();
-
-            // Ensure that open and close brace tokens are generated in case they are missing.
-            var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);
-
-            return document.WithSyntaxRoot(root.ReplaceNode(classDecl, newNode));
+            return AddComment(g,
+                string.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, disposeMethodDisplayString),
+                methodDecl);
         }
     }
 }

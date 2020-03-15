@@ -994,15 +994,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Generate_widening_conversion_in_0" xml:space="preserve">
     <value>Generate widening conversion in '{0}'</value>
   </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above" xml:space="preserve">
-    <value>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</value>
-  </data>
-  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below" xml:space="preserve">
-    <value>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</value>
-  </data>
-  <data name="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</value>
-  </data>
   <data name="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above" xml:space="preserve">
     <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
   </data>

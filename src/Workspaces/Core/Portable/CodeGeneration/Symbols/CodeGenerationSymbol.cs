@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol => null;
+        public ISymbol ContainingSymbol => this.ContainingType;
 
         public IAssemblySymbol ContainingAssembly => null;
 
