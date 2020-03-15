@@ -12,25 +12,25 @@ using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString.LanguageServices
 {
     /// <summary>
     /// Helper class to detect <see cref="System.DateTime"/> and <see cref="DateTimeOffset"/> format
     /// strings in a document efficiently.
     /// </summary>
-    internal sealed class DateTimePatternDetector
+    internal sealed class DateAndTimeFormatStringPatternDetector
     {
         private const string FormatName = "format";
 
-        private static readonly ConditionalWeakTable<SemanticModel, DateTimePatternDetector?> _modelToDetector =
-            new ConditionalWeakTable<global::Microsoft.CodeAnalysis.SemanticModel, DateTimePatternDetector?>();
+        private static readonly ConditionalWeakTable<SemanticModel, DateAndTimeFormatStringPatternDetector?> _modelToDetector =
+            new ConditionalWeakTable<SemanticModel, DateAndTimeFormatStringPatternDetector?>();
 
         private readonly EmbeddedLanguageInfo _info;
         private readonly SemanticModel _semanticModel;
         private readonly INamedTypeSymbol _dateTimeType;
         private readonly INamedTypeSymbol _dateTimeOffsetType;
 
-        public DateTimePatternDetector(
+        public DateAndTimeFormatStringPatternDetector(
             SemanticModel semanticModel,
             EmbeddedLanguageInfo info,
             INamedTypeSymbol dateTimeType,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
             _dateTimeOffsetType = dateTimeOffsetType;
         }
 
-        public static DateTimePatternDetector? TryGetOrCreate(
+        public static DateAndTimeFormatStringPatternDetector? TryGetOrCreate(
             SemanticModel semanticModel, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
                 semanticModel, _ => TryCreate(semanticModel, info));
         }
 
-        private static DateTimePatternDetector? TryCreate(
+        private static DateAndTimeFormatStringPatternDetector? TryCreate(
             SemanticModel semanticModel, EmbeddedLanguageInfo info)
         {
             var dateTimeType = semanticModel.Compilation.GetTypeByMetadataName(typeof(System.DateTime).FullName!);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
             if (dateTimeType == null || dateTimeOffsetType == null)
                 return null;
 
-            return new DateTimePatternDetector(semanticModel, info, dateTimeType, dateTimeOffsetType);
+            return new DateAndTimeFormatStringPatternDetector(semanticModel, info, dateTimeType, dateTimeOffsetType);
         }
 
         public static bool IsDefinitelyNotDateTimeStringToken(SyntaxToken token, ISyntaxFacts syntaxFacts)

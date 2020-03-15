@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString.LanguageServices
 {
-    internal class DateTimeEmbeddedLanguage : IEmbeddedLanguage
+    internal class DateAndTimeFormatStringEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
 
         public ISyntaxClassifier Classifier { get; }
 
-        public DateTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
+        public DateAndTimeFormatStringEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Info = info;
             Classifier = new FallbackSyntaxClassifier(info);
@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (DateTimePatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts))
+            if (DateAndTimeFormatStringPatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = DateTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
+            var detector = DateAndTimeFormatStringPatternDetector.TryGetOrCreate(semanticModel, this.Info);
             return detector != null && detector.IsDateTimeStringToken(token, cancellationToken)
                 ? token : default(SyntaxToken?);
         }

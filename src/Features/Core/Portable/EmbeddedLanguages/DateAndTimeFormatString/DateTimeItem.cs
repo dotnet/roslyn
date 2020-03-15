@@ -4,9 +4,9 @@
 
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
 {
-    internal partial class DateTimeEmbeddedCompletionProvider
+    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider
     {
         private readonly struct DateTimeItem
         {

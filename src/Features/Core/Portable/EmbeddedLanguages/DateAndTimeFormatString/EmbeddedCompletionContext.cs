@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
 {
-    internal partial class DateTimeEmbeddedCompletionProvider
+    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider
     {
         private readonly struct EmbeddedCompletionContext
         {

@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new DateTimeEmbeddedLanguageFeatures(this, info),
+                new DateAndTimeFormatStringEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguageFeatures(this, info),
                 new FallbackEmbeddedLanguage(info));
         }

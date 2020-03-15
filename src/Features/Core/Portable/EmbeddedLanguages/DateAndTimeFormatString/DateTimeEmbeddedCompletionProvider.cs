@@ -7,15 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
 {
-    internal partial class DateTimeEmbeddedCompletionProvider : CompletionProvider
+    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider : CompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateTimeEmbeddedLanguageFeatures _language;
+        private readonly DateAndTimeFormatStringEmbeddedLanguageFeatures _language;
 
-        public DateTimeEmbeddedCompletionProvider(DateTimeEmbeddedLanguageFeatures language)
+        public DateAndTimeFormatStringEmbeddedCompletionProvider(
+            DateAndTimeFormatStringEmbeddedLanguageFeatures language)
         {
             _language = language;
         }
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(DateTimeOptions.ProvideDateTimeOptionsCompletions, context.Document.Project.Language))
+            if (!context.Options.GetOption(DateAndTimeFormatStringOptions.ProvideDateAndTimeFormatStringCompletions, context.Document.Project.Language))
                 return;
 
             if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
