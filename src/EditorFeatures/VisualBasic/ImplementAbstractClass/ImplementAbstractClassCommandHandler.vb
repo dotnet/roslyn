@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
                 Return Nothing
             End If
 
-            Dim service = document.GetLanguageService(Of IImplementAbstractClassService)()
-            Dim updatedDocument = service.ImplementAbstractClassAsync(document, classBlock, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim updatedDocument = ImplementAbstractClassData.TryImplementAbstractClassAsync(
+                document, classBlock, classBlock.ClassStatement.Identifier, cancellationToken).WaitAndGetResult(cancellationToken)
             If updatedDocument IsNot Nothing AndAlso
                 updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
                 Return Nothing

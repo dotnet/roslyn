@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class AlignTokensFormattingRule
@@ -19,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAlignTokensOperationAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 
             Dim queryExpression = TryCast(node, QueryExpressionSyntax)

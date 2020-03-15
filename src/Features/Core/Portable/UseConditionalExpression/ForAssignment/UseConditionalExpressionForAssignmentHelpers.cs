@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal static class UseConditionalExpressionForAssignmentHelpers
     {
         public static bool TryMatchPattern(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             out ISimpleAssignmentOperation trueAssignment,
             out ISimpleAssignmentOperation falseAssignment)

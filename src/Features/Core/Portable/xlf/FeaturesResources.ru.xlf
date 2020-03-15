@@ -72,16 +72,6 @@
         <target state="translated">Выровнять свернутые параметры</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
-        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Избегайте ненужных операций присваивания значений в коде, так как это может свидетельствовать об избыточных вычислениях значений. Если вычисление значения не является избыточным и предполагается сохранить присваивание, измените целевой объект присваивания на локальную переменную, имя которой начинается с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена рассматриваются как специальные имена для освобождаемых переменных.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Избегайте неиспользуемых параметров в коде. Если удалить параметр невозможно, измените его имя так, чтобы оно начиналось с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена считаются особыми пустыми именами символов.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">Ожидаемая задача возвращает "{0}".</target>
@@ -90,6 +80,11 @@
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
         <target state="translated">Ожидаемая задача не возвращает значение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -127,6 +122,11 @@
         <target state="translated">Изменение "{0}" на "{1}" сделает продолжение сеанса отладки невозможным, так как меняет форму конечной машины.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Настройка стиля кода {0}</target>
@@ -135,6 +135,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">Настройка серьезности {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -217,11 +227,6 @@
         <target state="translated">Ошибка при чтении файла "{0}": {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_value_is_never_used">
-        <source>Expression value is never used</source>
-        <target state="translated">Значение выражения никогда не используется</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Извлечение интерфейса…</target>
@@ -277,16 +282,6 @@
         <target state="translated">Реализацию "GetHashCode" можно упростить.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">Реализовать все интерфейсы явно</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">Реализовать явно</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Реализовать "{0}" явно</target>
@@ -297,14 +292,34 @@
         <target state="translated">Реализовать "{0}" неявно</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">Реализовать все интерфейсы неявно</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Реализовать неявно</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -432,39 +447,9 @@
         <target state="translated">Переместить в пространство имен...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Параметр "{0}" можно удалить, если он не является частью предоставленного общедоступного API. Начальное значение этого параметра никогда не используется.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">Параметр "{0}" можно удалить, его начальное значение никогда не используется.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Закрытый член «{0}» может быть удален как значение, присвоенное него никогда не читал.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Закрытый член «{0}» не используется.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Изменение исходного файла {0} помешает сеанса отладки продолжения из-за внутренней ошибки: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">Закрытый метод "{0}" можно удалить, так как он никогда не вызывается.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">Частное свойство "{0}" можно преобразовать в метод, так как его метод доступа get никогда не вызывается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -487,49 +472,24 @@
         <target state="translated">Связанные сигнатуры методов, найденные в метаданных, не будут обновлены.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_assignment">
-        <source>Remove redundant assignment</source>
-        <target state="translated">Удалить избыточные операторы назначения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">Удалить непрочитанные закрытые члены</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">Удалить неиспользуемый член</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter">
-        <source>Remove unused parameter</source>
-        <target state="translated">Удалите неиспользуемый параметр</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0">
-        <source>Remove unused parameter '{0}'</source>
-        <target state="translated">Удалить неиспользуемый параметр "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="translated">Удалить неиспользуемый параметр "{0}", если он не является частью предоставляемого общедоступного API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">Удалите неиспользуемые закрытые члены</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Грубая редакция</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -552,6 +512,11 @@
         <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Скрыть {0}</target>
@@ -570,16 +535,6 @@
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Не удается прочитать исходный файл "{0}" или PDB, созданный для проекта, в котором они содержатся. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать скомпилированному исходному коду.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value">
-        <source>Unnecessary assignment of a value</source>
-        <target state="translated">Ненужное присваивание значения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
-        <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">Ненужное присваивание значения "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -642,34 +597,14 @@
         <target state="translated">Использовать тело блока для лямбда-выражений</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">Использовать тело блока для локальных функций</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
         <target state="translated">Использовать составной оператор назначения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_discard_underscore">
-        <source>Use discard '_'</source>
-        <target state="translated">Используйте символ удаления "_"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_discarded_local">
-        <source>Use discarded local</source>
-        <target state="translated">Использовать удаленный локальный оператор</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Использовать тело выражения для лямбда-выражений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">Использовать тело выражения для локальных функций</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
@@ -1588,11 +1523,6 @@ Do you want to continue?</source>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Удалить ненужное приведение</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Упрощение имен</target>
@@ -1878,26 +1808,6 @@ Do you want to continue?</source>
         <target state="translated">Преобразовать метод в синхронный</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Добавьте квалификацию "this" или "Me".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Устраните нарушение имени: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">Нарушение правила именования: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">Стили именования</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">из {0}</target>
@@ -2020,29 +1930,9 @@ This version used in: {2}</source>
         <target state="translated">Параметры:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Добавить отсутствующие варианты</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Добавить оба</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Добавить вариант по умолчанию</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Variadic SignatureHelpItem должен иметь хотя бы один параметр.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Добавить фигурные скобки</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2110,11 +2000,6 @@ This version used in: {2}</source>
         <target state="translated">(Неизвестно)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Реализовать абстрактный класс</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_framework_type">
         <source>Use framework type</source>
         <target state="translated">Использовать тип платформы</target>
@@ -2123,16 +2008,6 @@ This version used in: {2}</source>
       <trans-unit id="Install_package_0">
         <source>Install package '{0}'</source>
         <target state="translated">Установить пакет "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">Инициализацию объекта можно упростить.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Использовать выражение "throw"</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -2148,66 +2023,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Используйте сопоставление шаблонов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">Использовать тело выражения для методов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">Использовать тело блока для методов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">Использовать тело блока для методов доступа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">Использовать тело блока для конструкторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">Использовать тело блока для индексаторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">Использовать тело блока для операторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">Использовать тело блока для свойств</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">Использовать тело выражения для методов доступа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">Использовать тело выражения для конструкторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">Использовать тело выражения для индексаторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">Использовать тело выражения для операторов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">Использовать тело выражения для свойств</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
@@ -2250,11 +2065,6 @@ This version used in: {2}</source>
         <target state="translated">ВсеЧастиСПрописнойБуквы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">Инициализацию коллекции можно упростить.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">Используйте выражение объединения</target>
@@ -2268,21 +2078,6 @@ This version used in: {2}</source>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Объявление переменной может быть встроенным.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Проверку значения NULL можно упростить.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Упростите инициализацию коллекции</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Упростите инициализацию объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
@@ -2535,11 +2330,6 @@ This version used in: {2}</source>
         <target state="translated">Использовать локальную функцию</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
-        <source>Warning: Declaration changes scope and may change meaning.</source>
-        <target state="translated">Предупреждение. Объявление изменяет область и может изменить значение.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Переместить объявление рядом со ссылкой</target>
@@ -2553,11 +2343,6 @@ This version used in: {2}</source>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">Создать конструктор в "{0}" (без полей)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Добавьте заголовок файла</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">
@@ -2638,16 +2423,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Внимание! Коллекция может быть изменена во время итерации.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Добавить модификатор только для чтения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Сделать поле доступным только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new LoadDirectiveCompletionProvider();
+            return typeof(LoadDirectiveCompletionProvider);
         }
 
         protected override IEqualityComparer<string> GetStringComparer()
@@ -35,39 +35,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters);
+                inlineDescription, matchingFilters, flags);
         }
 
         [Fact]
         public async Task IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\' };
-            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters);
+            await VerifyCommitCharactersAsync("#load \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact]
-        public void IsTextualTriggerCharacterTest()
+        [Theory]
+        [InlineData("#load \"$$/")]
+        [InlineData("#load \"$$\\")]
+        [InlineData("#load \"$$,")]
+        [InlineData("#load \"$$A")]
+        [InlineData("#load \"$$!")]
+        [InlineData("#load \"$$(")]
+        public void IsTextualTriggerCharacterTest(string markup)
         {
-            var validMarkupList = new[]
-            {
-                "#load \"$$/",
-                "#load \"$$\\",
-                "#load \"$$,",
-                "#load \"$$A",
-                "#load \"$$!",
-                "#load \"$$(",
-            };
-
-            foreach (var markup in validMarkupList)
-            {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            }
+            VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
         }
     }
 }

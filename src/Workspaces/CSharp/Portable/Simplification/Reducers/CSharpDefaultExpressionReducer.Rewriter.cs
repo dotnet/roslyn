@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -31,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 OptionSet optionSet,
                 CancellationToken cancellationToken)
             {
-                if (node.CanReplaceWithDefaultLiteral(ParseOptions, optionSet, semanticModel, cancellationToken))
+                var preferSimpleDefaultExpression = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value;
+
+                if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
                 {
                     return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
                                         .WithTriviaFrom(node);

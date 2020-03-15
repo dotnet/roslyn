@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     if (attributeItem.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeNameWithoutSuffix))
                     {
                         // We don't want to cache this item.
-                        return ImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix);
+                        return ImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix, CompletionItemFlags.Expanded);
                     }
 
                     return attributeItem;
@@ -143,6 +143,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<CacheEntry, CacheEntry>), ServiceLayer.Editor), Shared]
         private sealed class CacheServiceFactory : AbstractImportCompletionCacheServiceFactory<CacheEntry, CacheEntry>
         {
+            [ImportingConstructor]
+            public CacheServiceFactory()
+            {
+            }
         }
     }
 }

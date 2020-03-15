@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Mostra diagnostica per file chiusi;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">Mostra diagnostica per file chiusi;
 Colora espressione regolare; 
 Evidenzia componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.ValidateFormatString
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
@@ -13,12 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
     Friend Class VisualBasicValidateFormatStringDiagnosticAnalyzer
         Inherits AbstractValidateFormatStringDiagnosticAnalyzer(Of SyntaxKind)
 
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
-        End Function
-
-        Protected Overrides Function GetInvocationExpressionSyntaxKind() As SyntaxKind
-            Return SyntaxKind.InvocationExpression
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
 
         Protected Overrides Function TryGetMatchingNamedArgument(

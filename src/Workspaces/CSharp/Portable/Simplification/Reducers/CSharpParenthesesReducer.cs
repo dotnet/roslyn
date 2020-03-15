@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // cases if elastic trivia is there -- and it's not clear why.
                 // Specifically remove the elastic trivia formatting rule doesn't
                 // have any effect.
-                var resultNode = CSharpSyntaxFactsService.Instance.Unparenthesize(node);
+                var resultNode = CSharpSyntaxFacts.Instance.Unparenthesize(node);
                 return SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
             }
 

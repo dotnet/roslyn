@@ -5795,6 +5795,21 @@ class Base
 }", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
+        [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNotOnIllegalInstanceCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Console.Equals|]("""");
+    }
+}");
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
             await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);

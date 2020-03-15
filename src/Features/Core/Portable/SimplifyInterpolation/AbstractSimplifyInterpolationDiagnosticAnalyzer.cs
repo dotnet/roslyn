@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             var syntaxTree = interpolation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             if (optionSet == null)
             {
                 return;
@@ -63,18 +64,19 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            var locations = ImmutableArray.Create(interpolation.Syntax.GetLocation());
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                UnnecessaryWithSuggestionDescriptor,
+                unnecessaryLocations.First(),
+                option.Notification.Severity,
+                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
+                properties: null));
 
-            var severity = option.Notification.Severity;
-
-            for (var i = 0; i < unnecessaryLocations.Length; i++)
+            // We start at 1 because the 0th element was used above to make the main diagnostic descriptor.
+            // All the rest are used to just fade out the correct portions of the user's code.
+            for (var i = 1; i < unnecessaryLocations.Length; i++)
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    i == 0 ? UnnecessaryWithSuggestionDescriptor : UnnecessaryWithoutSuggestionDescriptor,
-                    unnecessaryLocations[i],
-                    severity,
-                    additionalLocations: locations,
-                    properties: null));
+                context.ReportDiagnostic(Diagnostic.Create(
+                    UnnecessaryWithoutSuggestionDescriptor, unnecessaryLocations[i]));
             }
         }
     }

@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IEditAndContinueManagedModuleUpdateProvider)), Shared]
+    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly IEditAndContinueWorkspaceService _encService;

@@ -967,16 +967,16 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -1004,18 +1004,18 @@ Class A
 
     Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
         Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+            Return DirectCast(field, IReadOnlyCollection(Of Integer)).Count
         End Get
     End Property
 
     Private Property field As Integer()
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return DirectCast(field, IEnumerable(Of Integer)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
+        Return field.GetEnumerator()
     End Function
 End Class",
 index:=1)
@@ -4483,13 +4483,13 @@ Class Program(Of T)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count
         Get
-            Return DirectCast(innerList, IList(Of Object)).Count
+            Return DirectCast(innerList, ICollection(Of Object)).Count
         End Get
     End Property
 
     Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly
         Get
-            Return DirectCast(innerList, IList(Of Object)).IsReadOnly
+            Return DirectCast(innerList, ICollection(Of Object)).IsReadOnly
         End Get
     End Property
 
@@ -4502,15 +4502,15 @@ Class Program(Of T)
     End Sub
 
     Public Sub Add(item As Object) Implements ICollection(Of Object).Add
-        DirectCast(innerList, IList(Of Object)).Add(item)
+        DirectCast(innerList, ICollection(Of Object)).Add(item)
     End Sub
 
     Public Sub Clear() Implements ICollection(Of Object).Clear
-        DirectCast(innerList, IList(Of Object)).Clear()
+        DirectCast(innerList, ICollection(Of Object)).Clear()
     End Sub
 
     Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo
-        DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex)
+        DirectCast(innerList, ICollection(Of Object)).CopyTo(array, arrayIndex)
     End Sub
 
     Public Function IndexOf(item As Object) As Integer Implements IList(Of Object).IndexOf
@@ -4518,19 +4518,19 @@ Class Program(Of T)
     End Function
 
     Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains
-        Return DirectCast(innerList, IList(Of Object)).Contains(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Contains(item)
     End Function
 
     Public Function Remove(item As Object) As Boolean Implements ICollection(Of Object).Remove
-        Return DirectCast(innerList, IList(Of Object)).Remove(item)
+        Return DirectCast(innerList, ICollection(Of Object)).Remove(item)
     End Function
 
     Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable(Of Object)).GetEnumerator()
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+        Return DirectCast(innerList, IEnumerable).GetEnumerator()
     End Function
 End Class",
 index:=1)

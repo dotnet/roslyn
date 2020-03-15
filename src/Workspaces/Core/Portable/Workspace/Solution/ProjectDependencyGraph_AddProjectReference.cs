@@ -76,14 +76,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var referencedProject in referencedProjectIds)
             {
-                if (builder.TryGetValue(referencedProject, out var reverseReferences))
-                {
-                    builder[referencedProject] = reverseReferences.Add(projectId);
-                }
-                else
-                {
-                    builder[referencedProject] = ImmutableHashSet.Create(projectId);
-                }
+                builder.MultiAdd(referencedProject, projectId);
             }
 
             return builder.ToImmutable();

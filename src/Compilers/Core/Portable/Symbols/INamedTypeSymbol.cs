@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
         bool MightContainExtensionMethods { get; }
 
         /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type (ie. without element names).
+        /// If this is a tuple type with element names, returns the symbol for the tuple type without names.
         /// Otherwise, returns null.
         /// The type argument corresponding to the type of the extension field (VT[8].Rest),
         /// which is at the 8th (one based) position is always a symbol for another tuple, 
