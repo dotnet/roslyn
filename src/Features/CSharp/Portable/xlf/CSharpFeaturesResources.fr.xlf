@@ -727,11 +727,6 @@
         <target state="translated">Rendre la méthode asynchrone (rester void)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">Ajouter 'this.'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;Nom&gt;</target>

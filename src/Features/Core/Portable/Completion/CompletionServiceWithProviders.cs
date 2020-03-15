@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Returns the providers always available to the service.
         /// This does not included providers imported via MEF composition.
         /// </summary>
-        [Obsolete("This method is no longer used.", error: true)]
+        [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
         {
             return ImmutableArray<CompletionProvider>.Empty;
@@ -96,7 +96,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
                 .Select(lz => lz.Value);
 
-            return imported.ToImmutableArray();
+#pragma warning disable 0618
+            // We need to keep supporting built-in providers for a while longer since this is a public API.
+            // https://github.com/dotnet/roslyn/issues/42367
+            var builtin = GetBuiltInProviders();
+#pragma warning restore 0618
+
+            return imported.Concat(builtin).ToImmutableArray();
         }
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)

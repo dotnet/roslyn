@@ -1757,16 +1757,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Aviso</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Popular comutador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">O acesso de membro deve ser qualificado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Habilitar</target>

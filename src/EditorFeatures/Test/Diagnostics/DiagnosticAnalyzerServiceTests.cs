@@ -423,6 +423,90 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Assert.True(called);
         }
 
+        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        public async Task TestFullSolutionAnalysisForHiddenAnalyzers()
+        {
+            // By default, hidden analyzer does not execute in full solution analysis.
+            var project = CreateNewProject();
+            await TestCoreAsync(project, expectAnalyzerExecuted: false);
+
+            // Escalating the analyzer to non-hidden effective severity through compilation options
+            // ensures that analyzer executes in full solution analysis.
+            project = CreateNewProject();
+            var newSpecificOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add(NamedTypeAnalyzer.DiagnosticId, ReportDiagnostic.Warn);
+            project = project.WithCompilationOptions(project.CompilationOptions.WithSpecificDiagnosticOptions(newSpecificOptions));
+            await TestCoreAsync(project, expectAnalyzerExecuted: true);
+
+            // Escalating the analyzer to non-hidden effective severity through analyzer config options
+            // ensures that analyzer executes in full solution analysis.
+            var analyzerConfigText = $@"
+[*.cs]
+dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
+";
+            project = CreateNewProject();
+            project = project.AddAnalyzerConfigDocument(
+                ".editorconfig",
+                text: SourceText.From(analyzerConfigText),
+                filePath: "z:\\.editorconfig").Project;
+            await TestCoreAsync(project, expectAnalyzerExecuted: true);
+
+            return;
+
+            static Project CreateNewProject()
+            {
+                using var workspace = new AdhocWorkspace();
+
+                var projectId = ProjectId.CreateNewId();
+                var project = workspace.AddProject(
+                              ProjectInfo.Create(
+                                  projectId,
+                                  VersionStamp.Create(),
+                                  "Dummy",
+                                  "Dummy",
+                                  LanguageNames.CSharp,
+                                  filePath: "z:\\Dummy.csproj",
+                                  documents: new[] {
+                                  DocumentInfo.Create(
+                                      DocumentId.CreateNewId(projectId),
+                                      "test.cs",
+                                      loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
+                                      filePath: "z:\\test.cs")}));
+
+                var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+                return project.WithSolutionOptions(options);
+            }
+
+            async Task TestCoreAsync(Project project, bool expectAnalyzerExecuted)
+            {
+                // create listener/service/analyzer
+                var listener = new AsynchronousOperationListener();
+                var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
+                    new NamedTypeAnalyzer(DiagnosticSeverity.Hidden)
+                }, listener, project.Language);
+
+                var called = false;
+                service.DiagnosticsUpdated += (s, e) =>
+                {
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        return;
+                    }
+
+                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                    Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
+
+                    called = true;
+                };
+
+                var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
+                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+
+                await listener.ExpeditedWaitAsync();
+
+                Assert.Equal(expectAnalyzerExecuted, called);
+            }
+        }
+
         [Theory, CombinatorialData]
         internal async Task TestDiagnosticSuppressor(bool includeAnalyzer, bool includeSuppressor, BackgroundAnalysisScope analysisScope)
         {
@@ -713,8 +797,12 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         private class NamedTypeAnalyzer : DiagnosticAnalyzer
         {
             public const string DiagnosticId = "test";
-            private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
-                ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true));
+            private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
+
+            public NamedTypeAnalyzer(DiagnosticSeverity defaultSeverity = DiagnosticSeverity.Warning)
+            {
+                _supportedDiagnostics = ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", defaultSeverity, isEnabledByDefault: true));
+            }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 
