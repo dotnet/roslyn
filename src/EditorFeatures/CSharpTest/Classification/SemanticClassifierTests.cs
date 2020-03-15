@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
             return GetSemanticClassificationsAsync(document, span);
@@ -2368,7 +2369,7 @@ struct Type<T>
             }
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2390,7 +2391,7 @@ struct Type<T>
             var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
             using var disposable = (IDisposable)tagger;
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
 
             var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
             var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
@@ -3292,6 +3293,50 @@ class X
                 Keyword("var"),
                 Escape(@"{{"),
                 Escape(@"}}"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape1()
+        {
+            await TestInMethodAsync(@"var goo = '\n';",
+                Keyword("var"),
+                Escape(@"\n"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape2()
+        {
+            await TestInMethodAsync(@"var goo = '\\';",
+                Keyword("var"),
+                Escape(@"\\"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape3()
+        {
+            await TestInMethodAsync(@"var goo = '\'';",
+                Keyword("var"),
+                Escape(@"\'"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape5()
+        {
+            await TestInMethodAsync(@"var goo = '""';",
+                Keyword("var"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape4()
+        {
+            await TestInMethodAsync(@"var goo = '\u000a';",
+                Keyword("var"),
+                Escape(@"\u000a"));
         }
 
         [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]

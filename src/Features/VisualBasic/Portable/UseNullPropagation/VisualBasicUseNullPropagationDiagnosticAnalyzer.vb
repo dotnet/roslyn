@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseNullPropagation
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
@@ -24,27 +25,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
 
-        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
-            Return VisualBasicSyntaxFactsService.Instance
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
 
         Protected Overrides Function GetSemanticFactsService() As ISemanticFactsService
-            Return VisualBasicSemanticFactsService.instance
+            Return VisualBasicSemanticFactsService.Instance
         End Function
 
-        Protected Overrides Function GetSyntaxKindToAnalyze() As SyntaxKind
-            Return SyntaxKind.TernaryConditionalExpression
-        End Function
-
-        Protected Overrides Function IsEquals(condition As BinaryExpressionSyntax) As Boolean
-            Return condition.Kind() = SyntaxKind.IsExpression
-        End Function
-
-        Protected Overrides Function IsNotEquals(condition As BinaryExpressionSyntax) As Boolean
-            Return condition.Kind() = SyntaxKind.IsNotExpression
-        End Function
-
-        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFactsService, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean
+        Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFacts, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean
             conditionPartToCheck = Nothing
             isEquals = False
             Return False

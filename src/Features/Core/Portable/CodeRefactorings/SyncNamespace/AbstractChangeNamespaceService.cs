@@ -149,56 +149,49 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var documentIds = containersFromAllDocuments.SelectAsArray(pair => pair.id);
             var solutionAfterNamespaceChange = annotatedSolution;
-            var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var referenceDocuments);
 
-            try
+            foreach (var documentId in documentIds)
             {
-                foreach (var documentId in documentIds)
-                {
-                    var (newSolution, refDocumentIds) =
-                        await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
-                            .ConfigureAwait(false);
-                    solutionAfterNamespaceChange = newSolution;
-                    referenceDocuments.AddRange(refDocumentIds);
-                }
-
-                var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
-
-                // After changing documents, we still need to remove unnecessary imports related to our change.
-                // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-                // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
-                // certainly cause perf issue.
-                // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
-                // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
-                //
-                //      namespace Foo
-                //      {
-                //          using Bar;
-                //          ~~~~~~~~~
-                //      }
-                //
-                // Also, because we may have added different imports to document that triggered the refactoring
-                // and the documents that reference affected types declared in changed namespace, we try to remove
-                // unnecessary imports separately.
-
-                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterFirstMerge,
-                    documentIds,
-                    GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterImportsRemoved,
-                    referenceDocuments.ToImmutableArray(),
-                    ImmutableArray.Create(declaredNamespace, targetNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                var (newSolution, refDocumentIds) =
+                    await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
+                        .ConfigureAwait(false);
+                solutionAfterNamespaceChange = newSolution;
+                referenceDocuments.AddRange(refDocumentIds);
             }
-            finally
-            {
-                referenceDocuments.Free();
-            }
+
+            var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
+
+            // After changing documents, we still need to remove unnecessary imports related to our change.
+            // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
+            // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
+            // certainly cause perf issue.
+            // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
+            // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
+            //
+            //      namespace Foo
+            //      {
+            //          using Bar;
+            //          ~~~~~~~~~
+            //      }
+            //
+            // Also, because we may have added different imports to document that triggered the refactoring
+            // and the documents that reference affected types declared in changed namespace, we try to remove
+            // unnecessary imports separately.
+
+            var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterFirstMerge,
+                documentIds,
+                GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
+                cancellationToken).ConfigureAwait(false);
+
+            solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterImportsRemoved,
+                referenceDocuments.ToImmutableArray(),
+                ImmutableArray.Create(declaredNamespace, targetNamespace),
+                cancellationToken).ConfigureAwait(false);
+
+            return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
         }
 
         protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
@@ -388,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var refLocations = await Task.WhenAll(
                 declaredSymbols.Select(declaredSymbol
-                    => FindReferenceLocationsForSymbol(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
+                    => FindReferenceLocationsForSymbolAsync(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
 
             foreach (var refLocation in refLocations.SelectMany(locs => locs))
             {
@@ -449,44 +442,38 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             public Document Document => ReferenceLocation.Document;
         }
 
-        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
+        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbolAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<LocationForAffectedSymbol>.GetInstance();
-            try
-            {
-                var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
-                builder.AddRange(referencedSymbols
-                    .Where(refSymbol => refSymbol.Definition.Equals(symbol))
-                    .SelectMany(refSymbol => refSymbol.Locations)
-                    .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+            using var _ = ArrayBuilder<LocationForAffectedSymbol>.GetInstance(out var builder);
 
-                // So far we only have references to types declared in affected namespace. We also need to 
-                // handle invocation of extension methods (in reduced form) that are declared in those types. 
-                // Therefore additional calls to find references are needed for those extension methods.
-                // This will returns all the references, not just in the reduced form. But we will
-                // not further distinguish the usage. In the worst case, those references are redundant because
-                // they are already covered by the type references found above.
-                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+            var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            builder.AddRange(referencedSymbols
+                .Where(refSymbol => refSymbol.Definition.Equals(symbol))
+                .SelectMany(refSymbol => refSymbol.Locations)
+                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+
+            // So far we only have references to types declared in affected namespace. We also need to 
+            // handle invocation of extension methods (in reduced form) that are declared in those types. 
+            // Therefore additional calls to find references are needed for those extension methods.
+            // This will returns all the references, not just in the reduced form. But we will
+            // not further distinguish the usage. In the worst case, those references are redundant because
+            // they are already covered by the type references found above.
+            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+            {
+                foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
                 {
-                    foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
+                    if (methodSymbol.IsExtensionMethod)
                     {
-                        if (methodSymbol.IsExtensionMethod)
-                        {
-                            var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
-                            builder.AddRange(referencedMethodSymbols
-                                .SelectMany(refSymbol => refSymbol.Locations)
-                                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
-                        }
+                        var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
+                        builder.AddRange(referencedMethodSymbols
+                            .SelectMany(refSymbol => refSymbol.Locations)
+                            .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
                     }
                 }
+            }
 
-                return builder.ToImmutable();
-            }
-            finally
-            {
-                builder.Free();
-            }
+            return builder.ToImmutable();
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
@@ -635,7 +622,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var root = editor.OriginalRoot;
-            var containers = PooledHashSet<SyntaxNode>.GetInstance();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var containers);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -693,7 +680,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             root = await fixedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)));
 
-            containers.Free();
             return result;
         }
 
@@ -703,18 +689,18 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             ImmutableArray<string> names,
             CancellationToken cancellationToken)
         {
-            var LinkedDocumentsToSkip = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
             var documentsToProcessBuilder = ArrayBuilder<Document>.GetInstance();
 
             foreach (var id in ids)
             {
-                if (LinkedDocumentsToSkip.Contains(id))
+                if (linkedDocumentsToSkip.Contains(id))
                 {
                     continue;
                 }
 
                 var document = solution.GetDocument(id);
-                LinkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
+                linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
                 document = await RemoveUnnecessaryImportsWorker(
@@ -725,7 +711,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
-            LinkedDocumentsToSkip.Free();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
                     doc => RemoveUnnecessaryImportsWorker(
@@ -781,7 +766,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
+                var generator = document.GetLanguageService<SyntaxGenerator>();
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generator.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
-                return syntaxFacts.Parenthesize(
+                return generator.AddParentheses(
                     generator.Negate(
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetNegationOfLogicalNotExpression(
             SyntaxNode expression,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);

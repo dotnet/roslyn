@@ -50,7 +50,7 @@ class c
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -66,7 +66,7 @@ class c
 
                 state.SendTypeChars("[")
 
-                Await state.AssertSelectedCompletionItem("[  character-group  ]")
+                Await state.AssertSelectedCompletionItem($"[  {WorkspacesResources.Regex_character_group}  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()

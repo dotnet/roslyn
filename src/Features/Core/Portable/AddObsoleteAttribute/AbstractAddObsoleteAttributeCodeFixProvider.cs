@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
     internal abstract class AbstractAddObsoleteAttributeCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly string _title;
 
         protected AbstractAddObsoleteAttributeCodeFixProvider(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             string title)
         {
             _syntaxFacts = syntaxFacts;

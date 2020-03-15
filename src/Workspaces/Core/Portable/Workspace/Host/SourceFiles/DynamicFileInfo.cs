@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         /// <summary>
-        /// for now, return null. in future, we will use this to get right options from editorconfig
+        /// The path to the generated file. in future, we will use this to get right options from editorconfig
         /// </summary>
         public string FilePath { get; }
 

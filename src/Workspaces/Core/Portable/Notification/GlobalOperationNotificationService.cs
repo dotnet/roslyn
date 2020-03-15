@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Notification
                 if (_registrations.Count == 1)
                 {
                     Contract.ThrowIfFalse(_operations.Count == 1);
-                    RaiseGlobalOperationStarted();
+                    RaiseGlobalOperationStartedAsync();
                 }
 
                 return registration;
             }
         }
 
-        protected virtual Task RaiseGlobalOperationStarted()
+        protected virtual Task RaiseGlobalOperationStartedAsync()
         {
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Notification
             return Task.CompletedTask;
         }
 
-        protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        protected virtual Task RaiseGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
                     // We don't care if an individual operation has canceled.
                     // We only care whether whole thing has cancelled or not.
-                    RaiseGlobalOperationStopped(operations, cancelled: true);
+                    RaiseGlobalOperationStoppedAsync(operations, cancelled: true);
                 }
             }
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Notification
                     var operations = _operations.AsImmutable();
                     _operations.Clear();
 
-                    RaiseGlobalOperationStopped(operations, cancelled: false);
+                    RaiseGlobalOperationStoppedAsync(operations, cancelled: false);
                 }
             }
         }
