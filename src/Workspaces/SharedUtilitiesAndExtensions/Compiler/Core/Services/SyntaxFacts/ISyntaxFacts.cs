@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
-        bool IsLiteralExpression(SyntaxNode node);
+        bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode node);
 
         string GetText(int kind);
         bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// no named params, no omitted args).
         /// </summary>
         bool IsSimpleArgument(SyntaxNode node);
-        bool IsArgument(SyntaxNode node);
+        bool IsArgument([NotNullWhen(true)] SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);

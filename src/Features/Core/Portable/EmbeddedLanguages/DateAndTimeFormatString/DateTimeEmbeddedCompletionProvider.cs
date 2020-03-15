@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
         private const string NewTextKey = nameof(NewTextKey);
-        private const string NewPositionKey = nameof(NewPositionKey);
         private const string DescriptionKey = nameof(DescriptionKey);
 
         // Always soft-select these completion items.  Also, never filter down.
@@ -30,11 +29,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
 
         private readonly DateAndTimeFormatStringEmbeddedLanguageFeatures _language;
 
-        public DateAndTimeFormatStringEmbeddedCompletionProvider(
-            DateAndTimeFormatStringEmbeddedLanguageFeatures language)
-        {
-            _language = language;
-        }
+        public DateAndTimeFormatStringEmbeddedCompletionProvider(DateAndTimeFormatStringEmbeddedLanguageFeatures language)
+            => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
@@ -99,9 +95,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
                 properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
-
-                if (change.NewPosition != null)
-                    properties.Add(NewPositionKey, change.NewPosition.ToString());
 
                 // Keep everything sorted in the order we just produced the items in.
                 var sortText = context.Items.Count.ToString("0000");

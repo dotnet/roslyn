@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString.Langu
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (DateAndTimeFormatStringPatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts))
+            if (DateAndTimeFormatStringPatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts, out _, out _))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
