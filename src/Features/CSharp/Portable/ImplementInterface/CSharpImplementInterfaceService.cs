@@ -111,23 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     {(explicitly ? "void System.IDisposable." : "public void ")}Dispose()
     {{
         // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);";
-
-            if (classSymbol.IsSealed)
-            {
-                code += @$"
-        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
-        // GC.SuppressFinalize(this);
-    }}
-";
-            }
-            else
-            {
-                code += @$"
+        Dispose(true);
         GC.SuppressFinalize(this);
     }}
 ";
-            }
 
             var decls = SyntaxFactory.ParseSyntaxTree(code)
                 .GetRoot().DescendantNodes().OfType<MemberDeclarationSyntax>()

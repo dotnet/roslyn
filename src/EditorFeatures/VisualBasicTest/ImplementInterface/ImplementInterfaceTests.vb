@@ -3906,7 +3906,7 @@ Public NotInheritable Class Program
     Implements IDisposable
 
     Private disposedValue As Boolean
-{DisposePattern("", isSealed:=True)}
+{DisposePattern("")}
 
 End Class
 ",
@@ -4403,7 +4403,6 @@ End Interface",
         Private Shared Function DisposePattern(
                 disposeMethodModifiers As String,
                 Optional simplifySystem As Boolean = True,
-                Optional isSealed As Boolean = False,
                 Optional disposeField As String = "disposedValue") As String
             Dim code = $"
     Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
@@ -4428,18 +4427,9 @@ End Interface",
 
     Public Sub Dispose() Implements System.IDisposable.Dispose
         ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)"
-
-            If isSealed Then
-                code += $"
-        ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
-        ' GC.SuppressFinalize(Me)
-    End Sub"
-            Else
-                code += "
+        Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub"
-            End If
 
             ' some tests count on "System." being simplified out
             If simplifySystem Then

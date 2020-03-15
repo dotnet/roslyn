@@ -131,19 +131,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
     Public Sub Dispose() Implements System.IDisposable.Dispose
         ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)"
-            If symbol.IsSealed Then
-                code += $"
-        ' {VBFeaturesResources.TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above}
-        ' GC.SuppressFinalize(Me)
-    End Sub
-"
-            Else
-                code += "
+        Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub
 "
-            End If
 
             Dim decls = SyntaxFactory.ParseSyntaxTree(code).
                 GetRoot().DescendantNodes().

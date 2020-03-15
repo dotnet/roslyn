@@ -6323,7 +6323,7 @@ sealed class Program : IDisposable
 {{
     private bool disposedValue;
 
-{DisposePattern("", "Program", "void IDisposable.", isSealed: true)}
+{DisposePattern("", "Program", "void IDisposable.")}
 }}", index: 3);
         }
 
@@ -6609,10 +6609,9 @@ partial class C
             string disposeVisibility,
             string className,
             string implementationVisibility,
-            bool isSealed = false,
             string disposeField = "disposedValue")
         {
-            var code = $@"    {disposeVisibility}void Dispose(bool disposing)
+            return $@"    {disposeVisibility}void Dispose(bool disposing)
     {{
         if (!{disposeField})
         {{
@@ -6637,23 +6636,9 @@ partial class C
     {implementationVisibility}Dispose()
     {{
         // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);";
-
-            if (isSealed)
-            {
-                code += @$"
-        // {CSharpFeaturesResources.TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above}
-        // GC.SuppressFinalize(this);
-    }}";
-            }
-            else
-            {
-                code += @$"
+        Dispose(true);
         GC.SuppressFinalize(this);
     }}";
-            }
-
-            return code;
         }
 
         [WorkItem(1132014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1132014")]
