@@ -51,10 +51,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectId = ProjectId.CreateNewId();
 
             return CreateSolution()
-                .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b");
+        }
+
+        private static IEnumerable<T> EmptyEnumerable<T>()
+        {
+            yield break;
+        }
+
+        // Returns an enumerable that can only be enumerated once.
+        private static IEnumerable<T> OnceEnumerable<T>(params T[] items)
+            => OnceEnumerableImpl(new StrongBox<int>(), items);
+
+        private static IEnumerable<T> OnceEnumerableImpl<T>(StrongBox<int> counter, T[] items)
+        {
+            Assert.True(counter.Value == 0);
+
+            foreach (var item in items)
+            {
+                yield return item;
+            }
+
+            counter.Value++;
         }
 
         [Fact]
@@ -460,6 +481,458 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
             Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
         }
+
+        [Fact]
+        public void WithProjectAssemblyName()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var assemblyName = "\0<>a/b/*.dll";
+
+            var newSolution = solution.WithProjectAssemblyName(projectId, assemblyName);
+            Assert.Equal(assemblyName, newSolution.GetProject(projectId)!.AssemblyName);
+
+            Assert.Same(newSolution, newSolution.WithProjectAssemblyName(projectId, assemblyName));
+
+            Assert.Throws<ArgumentNullException>("assemblyName", () => solution.WithProjectAssemblyName(projectId, null!));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAssemblyName(null!, "x.dll"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectAssemblyName(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void WithProjectOutputFilePath()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            var newSolution = solution.WithProjectOutputFilePath(projectId, path);
+            Assert.Equal(path, newSolution.GetProject(projectId)!.OutputFilePath);
+
+            Assert.Same(newSolution, newSolution.WithProjectOutputFilePath(projectId, path));
+
+            var newSolution2 = solution.WithProjectOutputFilePath(projectId, null);
+            Assert.Null(newSolution2.GetProject(projectId)!.OutputFilePath);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void WithProjectOutputRefFilePath()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            var newSolution = solution.WithProjectOutputRefFilePath(projectId, path);
+            Assert.Equal(path, newSolution.GetProject(projectId)!.OutputRefFilePath);
+
+            Assert.Same(newSolution, newSolution.WithProjectOutputRefFilePath(projectId, path));
+
+            var newSolution2 = solution.WithProjectOutputRefFilePath(projectId, null);
+            Assert.Null(newSolution2.GetProject(projectId)!.OutputRefFilePath);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputRefFilePath(null!, "x.dll"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputRefFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void WithProjectDefaultNamespace()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var defaultNamespace = "\0<>a/b/*";
+
+            var newSolution = solution.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            Assert.Equal(defaultNamespace, newSolution.GetProject(projectId)!.DefaultNamespace);
+
+            Assert.Same(newSolution, newSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
+
+            var newSolution2 = solution.WithProjectDefaultNamespace(projectId, null);
+            Assert.Null(newSolution2.GetProject(projectId)!.DefaultNamespace);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectDefaultNamespace(null!, "x"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectDefaultNamespace(ProjectId.CreateNewId(), "x"));
+        }
+
+        [Fact]
+        public void WithProjectName()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var projectName = "\0<>a/b/*";
+
+            var newSolution = solution.WithProjectName(projectId, projectName);
+            Assert.Equal(projectName, newSolution.GetProject(projectId)!.Name);
+
+            Assert.Same(newSolution, newSolution.WithProjectName(projectId, projectName));
+
+            Assert.Throws<ArgumentNullException>("name", () => solution.WithProjectName(projectId, null!));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectName(null!, "x"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectName(ProjectId.CreateNewId(), "x"));
+        }
+
+        [Fact]
+        public void WithProjectFilePath()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.csproj";
+
+            var newSolution = solution.WithProjectFilePath(projectId, path);
+            Assert.Equal(path, newSolution.GetProject(projectId)!.FilePath);
+
+            Assert.Same(newSolution, newSolution.WithProjectFilePath(projectId, path));
+
+            var newSolution2 = solution.WithProjectFilePath(projectId, null);
+            Assert.Null(newSolution2.GetProject(projectId)!.DefaultNamespace);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectFilePath(null!, "x"));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectFilePath(ProjectId.CreateNewId(), "x"));
+        }
+
+        [Fact]
+        public void WithProjectCompilationOptions()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            var options = new CSharpCompilationOptions(OutputKind.NetModule);
+
+            var newSolution = solution.WithProjectCompilationOptions(projectId, options);
+            Assert.Same(options, newSolution.GetProject(projectId)!.CompilationOptions);
+
+            Assert.Same(newSolution, newSolution.WithProjectCompilationOptions(projectId, options));
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOptions(null!, options));
+            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectCompilationOptions(projectId, null!));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
+        }
+
+        [Fact]
+        public void WithProjectParseOptions()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            var options = new CSharpParseOptions(CS.LanguageVersion.CSharp1);
+
+            var newSolution = solution.WithProjectParseOptions(projectId, options);
+            Assert.Same(options, newSolution.GetProject(projectId)!.ParseOptions);
+
+            Assert.Same(newSolution, newSolution.WithProjectParseOptions(projectId, options));
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectParseOptions(null!, options));
+            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectParseOptions(projectId, null!));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectParseOptions(ProjectId.CreateNewId(), options));
+        }
+
+        [Fact]
+        public void WithProjectReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+
+            var projectId2 = ProjectId.CreateNewId();
+            solution = solution.AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp);
+            var projectRef = new ProjectReference(projectId2);
+
+            // TODO: Should we allow duplicates? https://github.com/dotnet/roslyn/issues/12101
+            SolutionTestHelpers.TestListProperty(solution,
+                (old, value) => old.WithProjectReferences(projectId, value),
+                opt => opt.GetProject(projectId)!.AllProjectReferences,
+                projectRef,
+                allowDuplicates: true);
+
+            var boxedDupProjectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(new ProjectReference(projectId2), new ProjectReference(projectId2));
+            var solution2 = solution.WithProjectReferences(projectId, boxedDupProjectRefs);
+            Assert.Same(boxedDupProjectRefs, solution2.GetProject(projectId)!.AllProjectReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, new[] { projectRef }));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), new[] { projectRef }));
+        }
+
+        [Fact]
+        [WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
+        public void WithProjectReferences_ProjectNotInSolution()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
+
+            var projectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(externalProjectRef);
+            var newSolution1 = solution.WithProjectReferences(projectId, projectRefs);
+            Assert.Same(projectRefs, newSolution1.GetProject(projectId)!.AllProjectReferences);
+
+            // project reference is not included:
+            Assert.Empty(newSolution1.GetProject(projectId)!.ProjectReferences);
+        }
+
+        [Fact]
+        public void AddProjectReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            solution = solution
+                .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp)
+                .AddProject(projectId3, "proj3", "proj3.dll", LanguageNames.CSharp);
+
+            var projectRef2 = new ProjectReference(projectId2);
+            var projectRef3 = new ProjectReference(projectId3);
+            var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
+
+            solution = solution.AddProjectReference(projectId3, projectRef2);
+
+            var solution2 = solution.AddProjectReferences(projectId, EmptyEnumerable<ProjectReference>());
+            Assert.Same(solution, solution2);
+
+            var e = OnceEnumerable(projectRef2, externalProjectRef);
+
+            var solution3 = solution.AddProjectReferences(projectId, e);
+            AssertEx.Equal(new[] { projectRef2 }, solution3.GetProject(projectId)!.ProjectReferences);
+            AssertEx.Equal(new[] { projectRef2, externalProjectRef }, solution3.GetProject(projectId)!.AllProjectReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, new[] { projectRef2 }));
+            Assert.Throws<ArgumentNullException>("projectReferences", () => solution.AddProjectReferences(projectId, null!));
+            Assert.Throws<ArgumentNullException>("projectReferences[0]", () => solution.AddProjectReferences(projectId, new ProjectReference[] { null! }));
+            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, new[] { projectRef2, projectRef2 }));
+            Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, new[] { new ProjectReference(projectId2), new ProjectReference(projectId2) }));
+
+            // dup:
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId3, new[] { projectRef2 }));
+
+            // cycle:
+            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId2, new[] { projectRef3 }));
+        }
+
+        [Fact]
+        public void AddProjectReferences_Submissions()
+        {
+            var solution = CreateSolution();
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            solution = solution
+                .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "submission1", assemblyName: "submission1.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProject(ProjectInfo.Create(projectId2, VersionStamp.Default, name: "submission2", assemblyName: "submission2.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProject(ProjectInfo.Create(projectId3, VersionStamp.Default, name: "submission3", assemblyName: "submission3.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProjectReference(projectId2, new ProjectReference(projectId1));
+
+            // submission may be referenced from multiple submissions (forming a tree):
+            _ = solution.AddProjectReferences(projectId3, new[] { new ProjectReference(projectId1) });
+
+            // submission can't reference multiple submissions:
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId2, new[] { new ProjectReference(projectId3) }));
+        }
+
+        [Fact]
+        public void RemoveProjectReference()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+
+            var projectId2 = ProjectId.CreateNewId();
+            solution = solution.AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp);
+            var projectRef2 = new ProjectReference(projectId2);
+            var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
+
+            // multiple duplicate references are allowed:
+            solution = solution.WithProjectReferences(projectId, new[] { projectRef2, externalProjectRef, projectRef2, new ProjectReference(projectId2) });
+
+            // remove reference to a project that's not part of the solution:
+            var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
+            AssertEx.Equal(new[] { projectRef2, projectRef2, new ProjectReference(projectId2) }, solution2.GetProject(projectId)!.AllProjectReferences);
+
+            // remove reference to a project that's part of the solution - removes the first matching refernece:
+            var solution3 = solution.RemoveProjectReference(projectId, projectRef2);
+            AssertEx.Equal(new[] { externalProjectRef, projectRef2, new ProjectReference(projectId2) }, solution3.GetProject(projectId)!.AllProjectReferences);
+
+            var solution4 = solution3.RemoveProjectReference(projectId, projectRef2);
+            AssertEx.Equal(new[] { externalProjectRef, new ProjectReference(projectId2) }, solution4.GetProject(projectId)!.AllProjectReferences);
+
+            var solution5 = solution4.RemoveProjectReference(projectId, new ProjectReference(projectId2));
+            AssertEx.Equal(new[] { externalProjectRef }, solution5.GetProject(projectId)!.AllProjectReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.RemoveProjectReference(null!, projectRef2));
+            Assert.Throws<ArgumentNullException>("projectReference", () => solution.RemoveProjectReference(projectId, null!));
+
+            // removing a reference that's not in the list:
+            Assert.Throws<ArgumentException>("projectReference", () => solution.RemoveProjectReference(projectId, new ProjectReference(ProjectId.CreateNewId())));
+
+            // project not in solution:
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveProjectReference(ProjectId.CreateNewId(), projectRef2));
+        }
+
+        [Fact]
+        public void WithProjectMetadataReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var metadataRef = (MetadataReference)new TestMetadataReference();
+
+            SolutionTestHelpers.TestListProperty(solution,
+                (old, value) => old.WithProjectMetadataReferences(projectId, value),
+                opt => opt.GetProject(projectId)!.MetadataReferences,
+                metadataRef,
+                allowDuplicates: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectMetadataReferences(null!, new[] { metadataRef }));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectMetadataReferences(ProjectId.CreateNewId(), new[] { metadataRef }));
+        }
+
+        [Fact]
+        public void AddMetadataReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+
+            var solution2 = solution.AddMetadataReferences(projectId, EmptyEnumerable<MetadataReference>());
+            Assert.Same(solution, solution2);
+
+            var metadataRef1 = new TestMetadataReference();
+            var metadataRef2 = new TestMetadataReference();
+
+            var solution3 = solution.AddMetadataReferences(projectId, OnceEnumerable(metadataRef1, metadataRef2));
+            AssertEx.Equal(new[] { metadataRef1, metadataRef2 }, solution3.GetProject(projectId)!.MetadataReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddMetadataReferences(null!, new[] { metadataRef1 }));
+            Assert.Throws<ArgumentNullException>("metadataReferences", () => solution.AddMetadataReferences(projectId, null!));
+            Assert.Throws<ArgumentNullException>("metadataReferences[0]", () => solution.AddMetadataReferences(projectId, new MetadataReference[] { null! }));
+            Assert.Throws<ArgumentException>("metadataReferences[1]", () => solution.AddMetadataReferences(projectId, new[] { metadataRef1, metadataRef1 }));
+
+            // dup:
+            Assert.Throws<InvalidOperationException>(() => solution3.AddMetadataReferences(projectId, new[] { metadataRef1 }));
+        }
+
+        [Fact]
+        public void RemoveMetadataReference()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var metadataRef1 = new TestMetadataReference();
+            var metadataRef2 = new TestMetadataReference();
+
+            solution = solution.WithProjectMetadataReferences(projectId, new[] { metadataRef1, metadataRef2 });
+
+            var solution2 = solution.RemoveMetadataReference(projectId, metadataRef1);
+            AssertEx.Equal(new[] { metadataRef2 }, solution2.GetProject(projectId)!.MetadataReferences);
+
+            var solution3 = solution2.RemoveMetadataReference(projectId, metadataRef2);
+            Assert.Empty(solution3.GetProject(projectId)!.MetadataReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.RemoveMetadataReference(null!, metadataRef1));
+            Assert.Throws<ArgumentNullException>("metadataReference", () => solution.RemoveMetadataReference(projectId, null!));
+
+            // removing a reference that's not in the list:
+            Assert.Throws<ArgumentException>("metadataReference", () => solution.RemoveMetadataReference(projectId, new TestMetadataReference()));
+
+            // project not in solution:
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveMetadataReference(ProjectId.CreateNewId(), metadataRef1));
+        }
+
+        [Fact]
+        public void WithProjectAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var analyzerRef = (AnalyzerReference)new TestAnalyzerReference();
+
+            SolutionTestHelpers.TestListProperty(solution,
+                (old, value) => old.WithProjectAnalyzerReferences(projectId, value),
+                opt => opt.GetProject(projectId)!.AnalyzerReferences,
+                analyzerRef,
+                allowDuplicates: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAnalyzerReferences(null!, new[] { analyzerRef }));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectAnalyzerReferences(ProjectId.CreateNewId(), new[] { analyzerRef }));
+        }
+
+        [Fact]
+        public void AddAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+
+            var solution2 = solution.AddAnalyzerReferences(projectId, EmptyEnumerable<AnalyzerReference>());
+            Assert.Same(solution, solution2);
+
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            var solution3 = solution.AddAnalyzerReferences(projectId, OnceEnumerable(analyzerRef1, analyzerRef2));
+            AssertEx.Equal(new[] { analyzerRef1, analyzerRef2 }, solution3.GetProject(projectId)!.AnalyzerReferences);
+
+            var solution4 = solution3.AddAnalyzerReferences(projectId, new AnalyzerReference[0]);
+
+            Assert.Same(solution, solution2);
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddAnalyzerReferences(null!, new[] { analyzerRef1 }));
+            Assert.Throws<ArgumentNullException>("analyzerReferences", () => solution.AddAnalyzerReferences(projectId, null!));
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(projectId, new AnalyzerReference[] { null! }));
+            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(projectId, new[] { analyzerRef1, analyzerRef1 }));
+
+            // dup:
+            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(projectId, new[] { analyzerRef1 }));
+        }
+
+        [Fact]
+        public void RemoveAnalyzerReference()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var projectId = solution.Projects.Single().Id;
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            solution = solution.WithProjectAnalyzerReferences(projectId, new[] { analyzerRef1, analyzerRef2 });
+
+            var solution2 = solution.RemoveAnalyzerReference(projectId, analyzerRef1);
+            AssertEx.Equal(new[] { analyzerRef2 }, solution2.GetProject(projectId)!.AnalyzerReferences);
+
+            var solution3 = solution2.RemoveAnalyzerReference(projectId, analyzerRef2);
+            Assert.Empty(solution3.GetProject(projectId)!.AnalyzerReferences);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.RemoveAnalyzerReference(null!, analyzerRef1));
+            Assert.Throws<ArgumentNullException>("analyzerReference", () => solution.RemoveAnalyzerReference(projectId, null!));
+
+            // removing a reference that's not in the list:
+            Assert.Throws<ArgumentException>("analyzerReference", () => solution.RemoveAnalyzerReference(projectId, new TestAnalyzerReference()));
+
+            // project not in solution:
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(ProjectId.CreateNewId(), analyzerRef1));
+        }
+
 #nullable restore
         [Fact]
         public void TestAddProject()

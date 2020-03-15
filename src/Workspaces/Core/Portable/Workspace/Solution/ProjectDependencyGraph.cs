@@ -124,17 +124,30 @@ namespace Microsoft.CodeAnalysis
             return builder?.ToImmutable() ?? map;
         }
 
-        internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IEnumerable<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
 
-            // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything. The only thing we can reuse is our
-            // actual map of project references for all the other projects, so we'll do that
-            var referencedProjects = referencedProjectIds.ToImmutableHashSet();
-            var referencesMap = referencedProjects.IsEmpty
-                ? _referencesMap.Remove(projectId)
-                : _referencesMap.SetItem(projectId, referencedProjects);
-            return new ProjectDependencyGraph(_projectIds, referencesMap);
+            // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything.
+            // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
+
+            ImmutableHashSet<ProjectId> projectIds;
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? referencesMap;
+            if (projectReferences.IsEmpty())
+            {
+                referencesMap = _referencesMap.Remove(projectId);
+                projectIds = _projectIds;
+            }
+            else
+            {
+                var referencedProjectIds = projectReferences.Select(p => p.ProjectId).ToImmutableHashSet();
+                referencesMap = _referencesMap.SetItem(projectId, referencedProjectIds);
+
+                // add referenced project ids to handle referenced to projects outside of the solution:
+                projectIds = _projectIds.Union(referencedProjectIds);
+            }
+
+            return new ProjectDependencyGraph(projectIds, referencesMap);
         }
 
         /// <summary>

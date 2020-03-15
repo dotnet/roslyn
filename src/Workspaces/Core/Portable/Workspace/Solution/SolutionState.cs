@@ -363,6 +363,13 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
+        public ProjectState GetRequiredProjectState(ProjectId projectId)
+        {
+            var result = GetProjectState(projectId);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
@@ -588,27 +595,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectAssemblyName(ProjectId projectId, string assemblyName)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (assemblyName == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyName));
-            }
-
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.UpdateAssemblyName(assemblyName);
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithAssemblyName(assemblyName);
 
             if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectAssemblyNameAction(assemblyName));
+            return ForkProject(newProject, new CompilationTranslationAction.ProjectAssemblyNameAction(assemblyName));
         }
 
         /// <summary>
@@ -616,22 +611,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectOutputFilePath(ProjectId projectId, string? outputFilePath)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithOutputFilePath(outputFilePath);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateOutputFilePath(outputFilePath);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -639,22 +627,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string? outputRefFilePath)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithOutputRefFilePath(outputRefFilePath);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateOutputRefFilePath(outputRefFilePath);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -662,22 +643,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithDefaultNamespace(defaultNamespace);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateDefaultNamespace(defaultNamespace);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -685,22 +659,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectName(ProjectId projectId, string name)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithName(name);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateName(name);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -708,22 +675,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectFilePath(ProjectId projectId, string? filePath)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithFilePath(filePath);
 
-            CheckContainsProject(projectId);
-
-            var oldProjectState = this.GetProjectState(projectId)!;
-            var newProjectState = oldProjectState.UpdateFilePath(filePath);
-
-            if (oldProjectState == newProjectState)
+            if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProjectState);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -732,27 +692,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.UpdateCompilationOptions(options);
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithCompilationOptions(options);
 
             if (oldProject == newProject)
             {
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ProjectCompilationOptionsAction(options));
+            return ForkProject(newProject, new CompilationTranslationAction.ProjectCompilationOptionsAction(options));
         }
 
         /// <summary>
@@ -761,49 +709,36 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectParseOptions(ProjectId projectId, ParseOptions options)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            Debug.Assert(this.ContainsProject(projectId));
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.UpdateParseOptions(options);
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithParseOptions(options);
 
             if (oldProject == newProject)
             {
                 return this;
             }
 
-            if (this.Workspace.PartialSemanticsEnabled)
+            if (Workspace.PartialSemanticsEnabled)
             {
                 // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
                 // Since changing options is rare event, it is okay to start compilation building from scratch.
-                return this.ForkProject(newProject, forkTracker: false);
+                return ForkProject(newProject, forkTracker: false);
             }
             else
             {
-                return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                return ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
             }
         }
 
         /// <summary>
         /// Update a new solution instance with a fork of the specified project.
         /// 
+        /// TODO: https://github.com/dotnet/roslyn/issues/42448
         /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
         /// until then, this will explicitly fork current solution snapshot
         /// </summary>
         internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            Debug.Assert(this.ContainsProject(projectId));
-
-            return ForkProject(GetProjectState(projectId)!);
+            return ForkProject(GetRequiredProjectState(projectId));
         }
 
         /// <summary>
@@ -812,15 +747,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            Debug.Assert(this.ContainsProject(projectId));
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithHasAllInformation(hasAllInformation);
 
             if (oldProject == newProject)
             {
@@ -828,7 +756,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // fork without any change on compilation.
-            return this.ForkProject(newProject);
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -837,15 +765,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            Debug.Assert(this.ContainsProject(projectId));
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.UpdateRunAnalyzers(runAnalyzers);
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
@@ -853,45 +774,28 @@ namespace Microsoft.CodeAnalysis
             }
 
             // fork without any change on compilation.
-            return this.ForkProject(newProject);
+            return ForkProject(newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>
-        public SolutionState AddProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
+        public SolutionState AddProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (projectReferences == null)
-            {
-                throw new ArgumentNullException(nameof(projectReferences));
-            }
-
-            if (!projectReferences.Any())
+            if (projectReferences.Count == 0)
             {
                 return this;
             }
 
-            CheckContainsProject(projectId);
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
+            var newReferences = oldReferences.AddRange(projectReferences);
 
-            foreach (var referencedProject in projectReferences)
-            {
-                CheckContainsProject(referencedProject.ProjectId);
-                CheckNotContainsProjectReference(projectId, referencedProject);
-                CheckNotContainsTransitiveReference(referencedProject.ProjectId, projectId);
-                CheckNotSecondSubmissionReference(projectId, referencedProject.ProjectId);
-            }
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.AddProjectReferences(projectReferences);
+            var newProject = oldProject.WithProjectReferences(newReferences);
             var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences.Select(r => r.ProjectId).ToList());
 
-            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -900,27 +804,25 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.ProjectReferences.ToImmutableArray();
+
+            // Note: uses ProjectReference equality to compare references.
+            var newReferences = oldReferences.Remove(projectReference);
+
+            if (oldReferences == newReferences)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (projectReference == null)
-            {
-                throw new ArgumentNullException(nameof(projectReference));
-            }
-
-            CheckContainsProject(projectId);
-            CheckContainsProject(projectReference.ProjectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
-            var newProject = oldProject.RemoveProjectReference(projectReference);
+            var newProject = oldProject.WithProjectReferences(newReferences);
 
             ProjectDependencyGraph newDependencyGraph;
             if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
             {
                 // The project contained multiple references to the project, and not all of them were removed. The
                 // dependency graph doesn't change.
+                // TODO: Should we allow duplicates? https://github.com/dotnet/roslyn/issues/12101
                 newDependencyGraph = _dependencyGraph;
             }
             else
@@ -928,31 +830,23 @@ namespace Microsoft.CodeAnalysis
                 newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
             }
 
-            return this.ForkProject(newProject, newDependencyGraph: newDependencyGraph);
+            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public SolutionState WithProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
+        public SolutionState WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (projectReferences == null)
-            {
-                throw new ArgumentNullException(nameof(projectReferences));
-            }
-
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
+            var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
+            if (oldProject == newProject)
+            {
+                return this;
+            }
 
-            return this.ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences.Select(p => p.ProjectId)));
+            return ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences));
         }
 
         /// <summary>
@@ -985,45 +879,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the project specified updated to include the 
-        /// specified metadata reference.
-        /// </summary>
-        public SolutionState AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (metadataReference == null)
-            {
-                throw new ArgumentNullException(nameof(metadataReference));
-            }
-
-            CheckContainsProject(projectId);
-
-            return this.ForkProject(
-                this.GetProjectState(projectId)!.AddMetadataReference(metadataReference));
-        }
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified metadata references.
         /// </summary>
-        public SolutionState AddMetadataReferences(ProjectId projectId, IEnumerable<MetadataReference> metadataReferences)
+        public SolutionState AddMetadataReferences(ProjectId projectId, IReadOnlyCollection<MetadataReference> metadataReferences)
         {
-            if (projectId == null)
+            if (metadataReferences.Count == 0)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (metadataReferences == null)
-            {
-                throw new ArgumentNullException(nameof(metadataReferences));
-            }
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
+            var newReferences = oldReferences.AddRange(metadataReferences);
 
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.AddMetadataReferences(metadataReferences));
+            return ForkProject(oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
@@ -1032,85 +902,49 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.MetadataReferences.ToImmutableArray();
+            var newReferences = oldReferences.Remove(metadataReference);
+            if (oldReferences == newReferences)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (metadataReference == null)
-            {
-                throw new ArgumentNullException(nameof(metadataReference));
-            }
-
-            CheckContainsProject(projectId);
-
-            return this.ForkProject(
-                this.GetProjectState(projectId)!.RemoveMetadataReference(metadataReference));
+            return ForkProject(oldProject.WithMetadataReferences(newReferences));
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include only the
         /// specified metadata references.
         /// </summary>
-        public SolutionState WithProjectMetadataReferences(ProjectId projectId, IEnumerable<MetadataReference> metadataReferences)
+        public SolutionState WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithMetadataReferences(metadataReferences);
+            if (oldProject == newProject)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (metadataReferences == null)
-            {
-                throw new ArgumentNullException(nameof(metadataReferences));
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.WithMetadataReferences(metadataReferences));
-        }
-
-        /// <summary>
-        /// Create a new solution instance with the project specified updated to include the 
-        /// specified analyzer reference.
-        /// </summary>
-        public SolutionState AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (analyzerReference == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReference));
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReference(analyzerReference));
+            return ForkProject(newProject);
         }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
-        public SolutionState AddAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
+        public SolutionState AddAnalyzerReferences(ProjectId projectId, IReadOnlyCollection<AnalyzerReference> analyzerReferences)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
-            if (analyzerReferences == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReferences));
-            }
-
-            if (!analyzerReferences.Any())
+            if (analyzerReferences.Count == 0)
             {
                 return this;
             }
 
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReferences(analyzerReferences));
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
+            var newReferences = oldReferences.AddRange(analyzerReferences);
+
+            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
@@ -1119,18 +953,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+            var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
+            var newReferences = oldReferences.Remove(analyzerReference);
+            if (oldReferences == newReferences)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (analyzerReference == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReference));
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.RemoveAnalyzerReference(analyzerReference));
+            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
         }
 
         /// <summary>
@@ -1139,18 +970,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectAnalyzerReferences(ProjectId projectId, IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithAnalyzerReferences(analyzerReferences);
+            if (oldProject == newProject)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                return this;
             }
 
-            if (analyzerReferences == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerReferences));
-            }
-
-            CheckContainsProject(projectId);
-            return this.ForkProject(this.GetProjectState(projectId)!.WithAnalyzerReferences(analyzerReferences));
+            return ForkProject(newProject);
         }
 
         /// <summary>
@@ -2005,34 +1832,27 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckNotContainsProjectReference(ProjectId projectId, ProjectReference referencedProject)
-        {
-            if (this.GetProjectState(projectId)!.ProjectReferences.Contains(referencedProject))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
-            }
-        }
+        internal bool ContainsProjectReference(ProjectId projectId, ProjectReference projectReference)
+            => GetRequiredProjectState(projectId).ProjectReferences.Contains(projectReference);
 
-        private void CheckNotContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
-        {
-            var dependents = _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId);
-            if (dependents.Contains(toProjectId))
-            {
-                throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
-            }
-        }
+        internal bool ContainsMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+            => GetRequiredProjectState(projectId).MetadataReferences.Contains(metadataReference);
 
-        private void CheckNotSecondSubmissionReference(ProjectId projectId, ProjectId toProjectId)
-        {
-            var projectState = GetProjectState(projectId);
+        internal bool ContainsAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+            => GetRequiredProjectState(projectId).AnalyzerReferences.Contains(analyzerReference);
 
-            if (projectState!.IsSubmission && GetProjectState(toProjectId)!.IsSubmission)
-            {
-                if (projectState.ProjectReferences.Any(p => GetProjectState(p.ProjectId)!.IsSubmission))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
-                }
-            }
+        internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
+            => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
+
+        internal bool IsInvalidSubmissionReference(ProjectId projectId, ProjectId toProjectId)
+        {
+            var projectState = GetRequiredProjectState(projectId);
+
+            // each submission project can only reference at most one other submission project (the previous submission)
+            return
+                projectState.IsSubmission &&
+                GetRequiredProjectState(toProjectId).IsSubmission &&
+                projectState.ProjectReferences.Any(p => GetRequiredProjectState(p.ProjectId).IsSubmission);
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()

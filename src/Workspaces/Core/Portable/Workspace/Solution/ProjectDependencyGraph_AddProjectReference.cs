@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             // Note: rather than updating our dependency sets and topologically sorted data, we'll throw that away since incremental update is
             // tricky, and those are rarely used. If somebody needs them, it'll be lazily computed.
             return new ProjectDependencyGraph(
-                _projectIds,
+                _projectIds.Union(referencedProjectIds),
                 referencesMap: newReferencesMap,
                 reverseReferencesMap: newReverseReferencesMap,
                 transitiveReferencesMap: newTransitiveReferencesMap,

@@ -229,16 +229,16 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                documents.ToBoxedImmutableArrayWithNonNullItems(nameof(documents)),
-                projectReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(projectReferences)),
-                metadataReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(metadataReferences)),
-                analyzerReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerReferences)),
-                additionalDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(additionalDocuments)),
+                documents.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(documents)),
+                projectReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(projectReferences)),
+                metadataReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(metadataReferences)),
+                analyzerReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(analyzerReferences)),
+                additionalDocuments.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
         }
 
-        private ProjectInfo With(
+        internal ProjectInfo With(
             ProjectAttributes? attributes = null,
             Optional<CompilationOptions?> compilationOptions = default,
             Optional<ParseOptions?> parseOptions = default,
@@ -322,22 +322,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: documents.ToBoxedImmutableArrayWithNonNullItems(nameof(documents)));
+            => With(documents: documents.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: additionalDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(additionalDocuments)));
+            => With(additionalDocuments: additionalDocuments.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: analyzerConfigDocuments.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerConfigDocuments)));
+            => With(analyzerConfigDocuments: analyzerConfigDocuments.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: projectReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(projectReferences)));
+            => With(projectReferences: projectReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: metadataReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(metadataReferences)));
+            => With(metadataReferences: metadataReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: analyzerReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(analyzerReferences)));
+            => With(analyzerReferences: analyzerReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
