@@ -19,43 +19,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
-        public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-        {
-            return codeDefinitionFactory.ThrowStatement(
-               CreateNotImplementedException(codeDefinitionFactory, compilation));
-        }
-
-        public static SyntaxNode CreateThrowNotImplementedExpression(
-            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-        {
-            return codeDefinitionFactory.ThrowExpression(
-               CreateNotImplementedException(codeDefinitionFactory, compilation));
-        }
-
-        private static SyntaxNode CreateNotImplementedException(SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-            => codeDefinitionFactory.ObjectCreationExpression(
-                    codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                    SpecializedCollections.EmptyList<SyntaxNode>());
-
-        public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-            => ImmutableArray.Create(CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation));
-
-        public static ImmutableArray<SyntaxNode> CreateArguments(
-            this SyntaxGenerator factory,
-            ImmutableArray<IParameterSymbol> parameters)
-        {
-            return parameters.SelectAsArray(p => CreateArgument(factory, p));
-        }
-
-        private static SyntaxNode CreateArgument(
-            this SyntaxGenerator factory,
-            IParameterSymbol parameter)
-        {
-            return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
-        }
-
         public static IMethodSymbol CreateBaseDelegatingConstructor(
             this SyntaxGenerator factory,
             IMethodSymbol constructor,

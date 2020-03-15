@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+        internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
+
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
@@ -1404,19 +1406,94 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             });
         }
 
-        private static readonly DeclarationModifiers s_fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_constructorModifiers = DeclarationModifiers.Static | DeclarationModifiers.Unsafe;
+        private static readonly DeclarationModifiers s_fieldModifiers =
+            DeclarationModifiers.Const |
+            DeclarationModifiers.New |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.Volatile;
+
+        private static readonly DeclarationModifiers s_methodModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.Async |
+            DeclarationModifiers.Extern |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_constructorModifiers =
+            DeclarationModifiers.Extern |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe;
+
         private static readonly DeclarationModifiers s_destructorModifiers = DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_eventModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_eventFieldModifiers = DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Unsafe;
-        private static readonly DeclarationModifiers s_structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Ref | DeclarationModifiers.Unsafe;
+        private static readonly DeclarationModifiers s_propertyModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.Extern |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_eventModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.Extern |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_eventFieldModifiers =
+            DeclarationModifiers.New |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_indexerModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.Extern |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_classModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe;
+
+        private static readonly DeclarationModifiers s_structModifiers =
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Ref |
+            DeclarationModifiers.Unsafe;
+
         private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
         private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_localFunctionModifiers = DeclarationModifiers.Async | DeclarationModifiers.Static;
+
+        private static readonly DeclarationModifiers s_localFunctionModifiers =
+            DeclarationModifiers.Async |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Extern;
 
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
@@ -1545,96 +1622,78 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers)
         {
-            var list = SyntaxFactory.TokenList();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var list);
 
             switch (accessibility)
             {
                 case Accessibility.Internal:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
                 case Accessibility.Public:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
                     break;
                 case Accessibility.Private:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
                     break;
                 case Accessibility.Protected:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
                 case Accessibility.ProtectedOrInternal:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
-                               .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
-                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                               .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
                 case Accessibility.NotApplicable:
                     break;
             }
 
             if (modifiers.IsAbstract)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
 
             if (modifiers.IsNew)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 
             if (modifiers.IsSealed)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
 
             if (modifiers.IsOverride)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
 
             if (modifiers.IsVirtual)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
 
             if (modifiers.IsStatic)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
 
             if (modifiers.IsAsync)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
 
             if (modifiers.IsConst)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword));
 
             if (modifiers.IsReadOnly)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
 
             if (modifiers.IsUnsafe)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+
+            if (modifiers.IsVolatile)
+                list.Add(SyntaxFactory.Token(SyntaxKind.VolatileKeyword));
+
+            if (modifiers.IsExtern)
+                list.Add(SyntaxFactory.Token(SyntaxKind.ExternKeyword));
 
             // partial and ref must be last
             if (modifiers.IsRef)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
 
             if (modifiers.IsPartial)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
-            }
+                list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
 
-            return list;
+            return SyntaxFactory.TokenList(list);
         }
 
         private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers)
@@ -1675,6 +1734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
                     SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
                     SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
+                    SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
+                    SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
                     _ => DeclarationModifiers.None,
                 };
             }
@@ -3701,35 +3762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode LocalDeclarationStatement(SyntaxNode type, string name, SyntaxNode initializer, bool isConst)
-            => LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
-
-        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
-        {
-            return SyntaxFactory.LocalDeclarationStatement(
-                isConst ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)) : default,
-                VariableDeclaration(type, name, initializer));
-        }
-
-        internal override SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer)
-            => ((VariableDeclaratorSyntax)variableDeclarator).WithInitializer((EqualsValueClauseSyntax)initializer);
-
-        internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
-            => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
-
-        private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, SyntaxToken name, SyntaxNode expression)
-        {
-            return SyntaxFactory.VariableDeclaration(
-                type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            name, argumentList: null,
-                            expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
-        }
+            => CSharpSyntaxGeneratorInternal.Instance.LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
 
         public override SyntaxNode UsingStatement(SyntaxNode type, string name, SyntaxNode expression, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.UsingStatement(
-                VariableDeclaration(type, name.ToIdentifierToken(), expression),
+                CSharpSyntaxGeneratorInternal.VariableDeclaration(type, name.ToIdentifierToken(), expression),
                 expression: null,
                 statement: CreateBlock(statements));
         }
@@ -3867,9 +3905,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
             => SyntaxFactory.IdentifierName(identifier);
-
-        internal override SyntaxToken Identifier(string identifier)
-            => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
         {

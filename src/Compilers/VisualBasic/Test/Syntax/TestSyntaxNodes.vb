@@ -1653,6 +1653,22 @@ End Class</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDocComment()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "''' <summary/>")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDirective()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "#If True Then")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
         Public Sub TestReplaceSingleTriviaInToken()
             Dim id = SyntaxFactory.ParseToken("a ")
             Dim trivia = id.TrailingTrivia(0)
