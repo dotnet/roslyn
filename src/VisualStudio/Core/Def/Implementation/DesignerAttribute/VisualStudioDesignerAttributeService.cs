@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,35 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
-        #region protected by lock
-
-        /// <summary>
-        /// Lock we will use to ensure the remainder of these fields can be accessed in a threadsafe
-        /// manner.  When OOP calls back into us, we'll place the data it produced into
-        /// <see cref="_updatedInfos"/>.  We'll then kick of a task to process this in the future if
-        /// we don't already have an existing task in flight for that.
-        /// </summary>
-        private readonly object _gate = new object();
-
-        /// <summary>
-        /// Data produced by OOP that we want to process in our next update task.
-        /// </summary>
-        private readonly List<DesignerInfo> _updatedInfos = new List<DesignerInfo>();
-
-        /// <summary>
-        /// Task kicked off to do the next batch of processing of <see cref="_updatedInfos"/>. These
-        /// tasks form a chain so that the next task only processes when the previous one completes.
-        /// </summary>
-        private Task _updateTask = Task.CompletedTask;
-
-        /// <summary>
-        /// Whether or not there is an existing task in flight that will process the current batch
-        /// of <see cref="_updatedInfos"/>.  If there is an existing in flight task, we don't need 
-        /// to kick off a new one if we receive more notifications before it runs.
-        /// </summary>
-        private bool _taskInFlight = false;
-
-        #endregion
+        private AsyncBatchingWorkQueue<DesignerInfo> _workQueue = null!;
 
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
@@ -117,6 +90,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartAsync(CancellationToken cancellationToken)
         {
+            _workQueue = new AsyncBatchingWorkQueue<DesignerInfo>(
+                TimeSpan.FromSeconds(1),
+                this.NotifyProjectSystemAsync,
+                cancellationToken);
+
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
@@ -159,42 +137,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task RegisterDesignerAttributesAsync(
-            IList<DesignerInfo> attributeInfos, CancellationToken cancellationToken)
+        public Task RegisterDesignerAttributesAsync(IList<DesignerInfo> attributeInfos, CancellationToken cancellationToken)
         {
-            lock (_gate)
-            {
-                // add our work to the set we'll process in the next batch.
-                _updatedInfos.AddRange(attributeInfos);
-
-                if (!_taskInFlight)
-                {
-                    // No in-flight task.  Kick one off to process these messages a second from now.
-                    // We always attach the task to the previous one so that notifications to the ui
-                    // follow the same order as the notification the OOP server sent to us.
-                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                        _ => NotifyProjectSystemAsync(cancellationToken),
-                        cancellationToken,
-                        1000/*ms*/,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default);
-                    _taskInFlight = true;
-                }
-            }
-
+            _workQueue.AddWork(attributeInfos);
             return Task.CompletedTask;
         }
 
-        private async Task NotifyProjectSystemAsync(CancellationToken cancellationToken)
+        private async Task NotifyProjectSystemAsync(
+            ImmutableArray<DesignerInfo> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var attributeInfos);
-            AddInfosAndResetQueue(attributeInfos);
+            using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var filteredInfos);
+            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+
+            // Walk the list of designer items in reverse, and skip any items for a project once
+            // we've already seen it once.  That way, we're only reporting the most up to date
+            // information for a project, and we're skipping the stale information.
+            for (var i = infos.Length - 1; i >= 0; i--)
+            {
+                var info = infos[i];
+                if (seenDocumentIds.Add(info.DocumentId))
+                    filteredInfos.Add(info);
+            }
 
             // Now, group all the notifications by project and update all the projects in parallel.
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in attributeInfos.GroupBy(a => a.DocumentId.ProjectId))
+            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var group in infos.GroupBy(a => a.DocumentId.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
@@ -202,30 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             // Wait until all project updates have happened before processing the next batch.
             await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        private void AddInfosAndResetQueue(ArrayBuilder<DesignerInfo> attributeInfos)
-        {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-
-            lock (_gate)
-            {
-                // walk the set of updates in reverse, and ignore documents if we see them a second
-                // time.  This ensures that if we're batching up multiple notifications for the same
-                // document, that we only bother processing the last one since it should beat out
-                // all the prior ones.
-                for (var i = _updatedInfos.Count - 1; i >= 0; i--)
-                {
-                    var designerArg = _updatedInfos[i];
-                    if (seenDocumentIds.Add(designerArg.DocumentId))
-                        attributeInfos.Add(designerArg);
-                }
-
-                // mark there being no existing update task so that the next OOP notification will
-                // kick one off.
-                _updatedInfos.Clear();
-                _taskInFlight = false;
-            }
         }
 
         private async Task NotifyProjectSystemAsync(
