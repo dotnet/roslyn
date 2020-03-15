@@ -1064,8 +1064,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility);
 
-        internal abstract bool CanHaveAccessibility(SyntaxNode declaration);
-
         /// <summary>
         /// Gets the <see cref="DeclarationModifiers"/> for the declaration.
         /// </summary>

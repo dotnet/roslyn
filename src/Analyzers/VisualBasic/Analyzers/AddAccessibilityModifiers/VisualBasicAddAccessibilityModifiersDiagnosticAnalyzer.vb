@@ -4,37 +4,46 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Internal.Editing
+Imports Microsoft.CodeAnalysis.Internal.Options
+#Else
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editing
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
+        Private Shared ReadOnly Property SyntaxFacts As VisualBasicSyntaxFacts = VisualBasicSyntaxFacts.Instance
+
         Protected Overrides Sub ProcessCompilationUnit(
-                context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+                context As SyntaxTreeAnalysisContext,
                 [option] As CodeStyleOption(Of AccessibilityModifiersRequired), compilationUnit As CompilationUnitSyntax)
 
-            ProcessMembers(context, generator, [option], compilationUnit.Members)
+            ProcessMembers(context, [option], compilationUnit.Members)
         End Sub
 
-        Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+        Private Sub ProcessMembers(context As SyntaxTreeAnalysisContext,
                                    [option] As CodeStyleOption(Of AccessibilityModifiersRequired), members As SyntaxList(Of StatementSyntax))
             For Each member In members
-                ProcessMember(context, generator, [option], member)
+                ProcessMember(context, [option], member)
             Next
         End Sub
 
-        Private Sub ProcessMember(context As SyntaxTreeAnalysisContext, generator As SyntaxGenerator,
+        Private Sub ProcessMember(context As SyntaxTreeAnalysisContext,
                               [option] As CodeStyleOption(Of AccessibilityModifiersRequired), member As StatementSyntax)
 
 
             If member.Kind() = SyntaxKind.NamespaceBlock Then
                 Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
-                ProcessMembers(context, generator, [option], namespaceBlock.Members)
+                ProcessMembers(context, [option], namespaceBlock.Members)
             End If
 
             ' If we have a class or struct or module, recurse inwards.
@@ -43,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                member.IsKind(SyntaxKind.ModuleBlock) Then
 
                 Dim typeBlock = DirectCast(member, TypeBlockSyntax)
-                ProcessMembers(context, generator, [option], typeBlock.Members)
+                ProcessMembers(context, [option], typeBlock.Members)
             End If
 
             ' Have to have a name to report the issue on.
@@ -53,12 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             End If
 
             ' Certain members never have accessibility. Don't bother reporting on them.
-            If Not generator.CanHaveAccessibility(member) Then
+            If Not SyntaxFacts.CanHaveAccessibility(member) Then
                 Return
             End If
 
             ' This analyzer bases all of its decisions on the accessibility
-            Dim Accessibility = generator.GetAccessibility(member)
+            Dim Accessibility = SyntaxFacts.GetAccessibility(member)
 
             ' Omit will flag any accesibility values that exist and are default
             ' The other options will remove or ignore accessibility

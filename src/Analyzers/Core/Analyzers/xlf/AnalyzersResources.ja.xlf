@@ -12,6 +12,16 @@
         <target state="new">A source file is missing a required header.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Accessibility_modifiers_required">
+        <source>Accessibility modifiers required</source>
+        <target state="new">Accessibility modifiers required</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="new">Add accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
         <target state="new">Add readonly modifier</target>

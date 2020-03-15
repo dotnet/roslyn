@@ -122,6 +122,11 @@
         <target state="translated">Se si modifica '{0}' in '{1}', la sessione di debug non potrà continuare perché modifica la forma della macchina a stati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configura lo stile del codice di {0}</target>
@@ -480,6 +485,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -2303,11 +2313,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">in {0} (progetto {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Modificatori di accessibilità obbligatori</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">

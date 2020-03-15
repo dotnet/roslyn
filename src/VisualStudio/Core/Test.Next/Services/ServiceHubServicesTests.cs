@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -17,10 +17,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 using Nerdbank;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
@@ -152,27 +156,74 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)
+        {
+            // make sure checksum is calculated
+            await solution.State.GetChecksumAsync(CancellationToken.None);
+
+            map ??= new Dictionary<Checksum, object>();
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
+
+            var sessionId = 0;
+            var storage = new AssetStorage();
+            _ = new SimpleAssetSource(storage, map);
+            var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
+
+            return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestDesignerAttributes()
         {
-            var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
-                class Test { }";
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using var workspace = TestWorkspace.CreateCSharp(
+@"[System.ComponentModel.DesignerCategory(""Form"")]
+class Test { }");
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            var solution = workspace.CurrentSolution;
+
+            // Ensure remote workspace is in sync with normal workspace.
+            var solutionService = await GetSolutionServiceAsync(solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+
+            var callback = new DesignerListener();
+
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            var session = await client.TryCreateKeepAliveSessionAsync(
+                WellKnownServiceHubServices.RemoteDesignerAttributeService,
+                callback,
+                cancellationTokenSource.Token);
+
+            var invokeTask = session.TryInvokeAsync(
+                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
+                cancellationTokenSource.Token);
+
+            var infos = await callback.Infos;
+            Assert.Equal(1, infos.Count);
+
+            var info = infos[0];
+            Assert.Equal("Form", info.Category);
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, info.DocumentId);
+
+            cancellationTokenSource.Cancel();
+
+            await invokeTask;
+        }
+
+        private class DesignerListener : IDesignerAttributeListener
+        {
+            private readonly TaskCompletionSource<IList<DesignerInfo>> _infosSource = new TaskCompletionSource<IList<DesignerInfo>>();
+            public Task<IList<DesignerInfo>> Infos => _infosSource.Task;
+
+            public Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken)
             {
-                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
-
-                var solution = workspace.CurrentSolution;
-
-                var result = await client.TryRunRemoteAsync<DesignerAttributeResult>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    solution,
-                    new[] { solution.Projects.First().DocumentIds.First() },
-                    callbackTarget: null,
-                    CancellationToken.None);
-
-                Assert.Equal("Form", result.Value.DesignerAttributeArgument);
+                _infosSource.SetResult(infos);
+                return Task.CompletedTask;
             }
         }
 

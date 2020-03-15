@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         protected abstract bool TryAnalyzePatternCondition(
             ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
-            out SyntaxNode? conditionPartToCheck, out bool isEquals);
+            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private bool TryAnalyzeBinaryExpressionCondition(
             ISyntaxFacts syntaxFacts, TBinaryExpressionSyntax condition,
-            out SyntaxNode? conditionPartToCheck, out bool isEquals)
+            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {
             var syntaxKinds = syntaxFacts.SyntaxKinds;
             isEquals = syntaxKinds.ReferenceEqualsExpression == condition.RawKind;

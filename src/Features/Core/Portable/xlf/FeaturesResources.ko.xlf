@@ -122,6 +122,11 @@
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하면 상태 시스템의 셰이프가 변경되므로 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} 코드 스타일 구성</target>
@@ -480,6 +485,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -2303,11 +2313,6 @@ This version used in: {2}</source>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">{0}(프로젝트 {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">접근성 한정자 필요</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">

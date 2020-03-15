@@ -7,11 +7,6 @@
         <target state="translated">"await" und "ConfigureAwait(false)" hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Zugriffsmodifizierer hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">"await" hinzufügen</target>
