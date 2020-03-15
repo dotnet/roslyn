@@ -4212,8 +4212,20 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            //unaryOp("+", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //unaryOp("+", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("+", "System.IntPtr", "nint System.IntPtr.op_UnaryPlus(System.IntPtr value)", "((System.IntPtr)3)", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            unaryOp("+", "System.UIntPtr", "nuint System.UIntPtr.op_UnaryPlus(System.UIntPtr value)", "((System.UIntPtr)3)", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
             unaryOp("-", "nint", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
 @"{
   // Code size        3 (0x3)
@@ -4223,7 +4235,14 @@ $@"{{
   IL_0002:  ret
 }");
             unaryOp("-", "nuint", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            //unaryOp("-", "System.IntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("-", "System.IntPtr", "nint System.IntPtr.op_UnaryNegation(System.IntPtr value)", "((System.IntPtr)3)", "-3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
             unaryOp("-", "System.UIntPtr");
             unaryOp("!", "nint");
             unaryOp("!", "nuint");
@@ -4245,8 +4264,22 @@ $@"{{
   IL_0001:  not
   IL_0002:  ret
 }");
-            //unaryOp("~", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //unaryOp("~", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("~", "System.IntPtr", "nint System.IntPtr.op_OnesComplement(System.IntPtr value)", "((System.IntPtr)3)", "-4",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
+            unaryOp("~", "System.UIntPtr", "nuint System.UIntPtr.op_OnesComplement(System.UIntPtr value)", "((System.UIntPtr)3)", getComplement(3),
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
 
             unaryOp("+", "nint?", "nint nint.op_UnaryPlus(nint value)", "3", "3",
 @"{
@@ -4288,8 +4321,46 @@ $@"{{
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }");
-            //unaryOp("+", "System.IntPtr?"); // PROTOTYPE: Not handled.
-            //unaryOp("+", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+            unaryOp("+", "System.IntPtr?", "nint System.IntPtr.op_UnaryPlus(System.IntPtr value)", "((System.IntPtr)3)", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}");
+            unaryOp("+", "System.UIntPtr?", "nuint System.UIntPtr.op_UnaryPlus(System.UIntPtr value)", "((System.UIntPtr)3)", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}");
             unaryOp("-", "nint?", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
 @"{
   // Code size       35 (0x23)
@@ -4312,7 +4383,27 @@ $@"{{
   IL_0022:  ret
 }");
             unaryOp("-", "nuint?", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            //unaryOp("-", "System.IntPtr?"); // PROTOTYPE: Not handled.
+            unaryOp("-", "System.IntPtr?", "nint System.IntPtr.op_UnaryNegation(System.IntPtr value)", "((System.IntPtr)3)", "-3",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  neg
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
             unaryOp("-", "System.UIntPtr?");
             unaryOp("!", "nint?");
             unaryOp("!", "nuint?");
@@ -4360,8 +4451,48 @@ $@"{{
   IL_001d:  newobj     ""nuint?..ctor(nuint)""
   IL_0022:  ret
 }");
-            //unaryOp("~", "System.IntPtr?"); // PROTOTYPE: Not handled.
-            //unaryOp("~", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+            unaryOp("~", "System.IntPtr?", "nint System.IntPtr.op_OnesComplement(System.IntPtr value)", "((System.IntPtr)3)", "-4",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            unaryOp("~", "System.UIntPtr?", "nuint System.UIntPtr.op_OnesComplement(System.UIntPtr value)", "((System.UIntPtr)3)", getComplement(3),
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nuint?..ctor(nuint)""
+  IL_0022:  ret
+}");
 
             void unaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
@@ -4487,8 +4618,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            //incrementOps("++", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //incrementOps("++", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            incrementOps("++", "System.IntPtr", "System.IntPtr System.IntPtr.op_Increment(System.IntPtr value)", useChecked: false,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)(-1)), ((System.IntPtr)0), ((System.IntPtr){int.MaxValue - 1}), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Increment(System.UIntPtr value)", useChecked: false,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr){int.MaxValue}), ((System.UIntPtr){uint.MaxValue - 1}), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "0" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: false,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
                 expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
@@ -4561,8 +4762,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            //incrementOps("--", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //incrementOps("--", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            incrementOps("--", "System.IntPtr", "System.IntPtr System.IntPtr.op_Decrement(System.IntPtr value)", useChecked: false,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)({int.MinValue + 1})), ((System.IntPtr)0), ((System.IntPtr)1), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Decrement(System.UIntPtr value)", useChecked: false,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr)1), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString())}, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: true,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
@@ -4636,6 +4907,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
+            incrementOps("++", "System.IntPtr", "System.IntPtr System.IntPtr.op_Increment(System.IntPtr value)", useChecked: true,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)(-1)), ((System.IntPtr)0), ((System.IntPtr){int.MaxValue - 1}), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Increment(System.UIntPtr value)", useChecked: true,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr){int.MaxValue}), ((System.UIntPtr){uint.MaxValue - 1}), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "System.OverflowException" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: true,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
                 expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
@@ -4701,6 +5044,78 @@ $@"{{
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
   IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.IntPtr", "System.IntPtr System.IntPtr.op_Decrement(System.IntPtr value)", useChecked: true,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)({int.MinValue + 1})), ((System.IntPtr)0), ((System.IntPtr)1), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Decrement(System.UIntPtr value)", useChecked: true,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr)1), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"System.OverflowException, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub.ovf.un
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -5841,7 +6256,7 @@ $@"1
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -5858,7 +6273,7 @@ $@"1
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -5879,7 +6294,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -5896,7 +6311,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -5918,7 +6333,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -5935,7 +6350,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 // PROTOTYPE: Test all:
@@ -5956,7 +6371,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -5973,7 +6388,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in comparisonOperators)
@@ -5996,7 +6411,7 @@ $@"1
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6013,7 +6428,7 @@ $@"1
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -6033,7 +6448,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6050,7 +6465,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -6071,7 +6486,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -6088,7 +6503,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
@@ -6108,7 +6523,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -6125,7 +6540,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in additionOperators)
@@ -6148,7 +6563,7 @@ $@"1
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6165,7 +6580,7 @@ $@"1
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
@@ -6185,7 +6600,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6202,7 +6617,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
@@ -6223,7 +6638,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6240,7 +6655,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
                 binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
@@ -6260,7 +6675,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6277,7 +6692,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in shiftOperators)
@@ -6452,7 +6867,7 @@ $@"1
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6469,7 +6884,7 @@ $@"1
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -6489,7 +6904,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6506,7 +6921,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -6527,7 +6942,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -6544,7 +6959,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
@@ -6564,7 +6979,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -6581,7 +6996,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
             }
 
             foreach ((string symbol, string name) in logicalOperators)
@@ -6604,7 +7019,7 @@ $@"1
                 binaryOps(symbol, "nint", "float");
                 binaryOps(symbol, "nint", "double");
                 binaryOps(symbol, "nint", "decimal");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6621,7 +7036,7 @@ $@"1
                 binaryOps(symbol, "nint", "float?");
                 binaryOps(symbol, "nint", "double?");
                 binaryOps(symbol, "nint", "decimal?");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -6641,7 +7056,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float");
                 binaryOps(symbol, "nint?", "double");
                 binaryOps(symbol, "nint?", "decimal");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6658,7 +7073,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float?");
                 binaryOps(symbol, "nint?", "double?");
                 binaryOps(symbol, "nint?", "decimal?");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -6679,7 +7094,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double");
                 binaryOps(symbol, "nuint", "decimal");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6696,7 +7111,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double?");
                 binaryOps(symbol, "nuint", "decimal?");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
@@ -6716,7 +7131,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double");
                 binaryOps(symbol, "nuint?", "decimal");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6733,7 +7148,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?");
                 binaryOps(symbol, "nuint?", "decimal?");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             void binaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
