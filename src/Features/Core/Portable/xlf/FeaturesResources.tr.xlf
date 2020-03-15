@@ -1668,11 +1668,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="needs-review-translation">TODO: büyük alanları null olarak ayarlayın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Artık çağrıları algılama</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">Statik bir değişken içeren '{0}' öğesinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>

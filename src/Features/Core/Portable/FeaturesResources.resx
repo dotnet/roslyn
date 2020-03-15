@@ -748,9 +748,6 @@ Do you want to continue?</value>
   <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
     <value>TODO: set large fields to null</value>
   </data>
-  <data name="To_detect_redundant_calls" xml:space="preserve">
-    <value>To detect redundant calls</value>
-  </data>
   <data name="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
   </data>

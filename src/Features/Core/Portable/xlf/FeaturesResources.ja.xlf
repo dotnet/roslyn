@@ -1668,11 +1668,6 @@ Do you want to continue?</source>
         <target state="needs-review-translation">TODO: 大きなフィールドを null に設定します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">重複する呼び出しを検出するには</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">静的変数を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>

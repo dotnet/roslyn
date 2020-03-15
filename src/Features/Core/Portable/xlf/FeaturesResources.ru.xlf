@@ -1668,11 +1668,6 @@ Do you want to continue?</source>
         <target state="needs-review-translation">TODO: задать большим полям значение NULL.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Для определения избыточных вызовов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">Изменение элемента "{0}", который содержит статическую переменную, помешает продолжению сеанса отладки.</target>

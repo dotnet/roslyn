@@ -1668,11 +1668,6 @@ Möchten Sie fortfahren?</target>
         <target state="needs-review-translation">TODO: große Felder auf Null setzen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Dient zur Erkennung redundanter Aufrufe.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">Nach dem Ändern von "{0}", das eine statische Variable enthält, kann die Debugsitzung nicht mehr fortgesetzt werden.</target>

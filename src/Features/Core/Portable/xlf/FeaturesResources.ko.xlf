@@ -1668,11 +1668,6 @@ Do you want to continue?</source>
         <target state="needs-review-translation">TODO: 큰 필드를 null로 설정합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">중복 호출을 검색하려면</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">정적 변수가 포함된 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>

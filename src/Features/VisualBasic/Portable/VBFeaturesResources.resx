@@ -994,9 +994,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Generate_widening_conversion_in_0" xml:space="preserve">
     <value>Generate widening conversion in '{0}'</value>
   </data>
-  <data name="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above" xml:space="preserve">
-    <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
-  </data>
   <data name="Try_block" xml:space="preserve">
     <value>Try block</value>
     <comment>{Locked="Try"} "Try" is a VB keyword and should not be localized.</comment>

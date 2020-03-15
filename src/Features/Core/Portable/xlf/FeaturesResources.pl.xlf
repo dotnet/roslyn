@@ -1668,11 +1668,6 @@ Czy chcesz kontynuować?</target>
         <target state="needs-review-translation">TODO: ustaw wartość null dla dużych pól.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Aby wykryć nadmiarowe wywołania</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">Zmodyfikowanie elementu „{0}”, który zawiera zmienną statyczną, uniemożliwi kontynuowanie sesji debugowania.</target>

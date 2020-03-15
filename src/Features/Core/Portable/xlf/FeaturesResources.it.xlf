@@ -1668,11 +1668,6 @@ Continuare?</target>
         <target state="needs-review-translation">TODO: impostare campi di grandi dimensioni su Null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Per rilevare chiamate ridondanti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
         <target state="translated">Se si modifica '{0}', che contiene una variabile statica, la sessione di debug non potrà continuare.</target>
