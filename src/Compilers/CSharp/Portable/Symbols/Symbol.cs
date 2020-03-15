@@ -1218,6 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableContextAttribute = 1 << 7,
             NullablePublicOnlyAttribute = 1 << 8,
             NativeIntegerAttribute = 1 << 9,
+            CaseSensitiveExtensionAttribute = 1 << 10,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1263,6 +1264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((reserved & ReservedAttributes.NativeIntegerAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NativeIntegerAttribute))
             {
+            }
+            else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+            {
+                // ExtensionAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {
