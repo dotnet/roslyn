@@ -2,6 +2,8 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed partial class AnalyzerConfigOptionSet
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _fallbackOptions = fallbackOptions;
             }
 
-            public override bool TryGetValue(string key, out string value)
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 if (_options.TryGetValue(key, out value))
                 {

@@ -72,16 +72,6 @@
         <target state="translated">Alinear parámetros ajustados</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
-        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Evite las asignaciones de valores innecesarias en el código, ya que probablemente indican cálculos de valores redundantes. Si el cálculo de valor no es redundante y tiene intención de retener la asignación, cambie el destino de la asignación a una variable local cuyo nombre empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">La tarea esperada devuelve "{0}".</target>
@@ -230,11 +220,6 @@
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Error al leer el archivo "{0}": {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_value_is_never_used">
-        <source>Expression value is never used</source>
-        <target state="translated">El valor de la expresión no se utiliza nunca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -457,16 +442,6 @@
         <target state="translated">Mover a espacio de nombres...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
-        <target state="needs-review-translation">Se puede quitar el parámetro "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed; its initial value is never used</source>
-        <target state="needs-review-translation">Se puede quitar el parámetro "{0}"; su valor inicial no se usa nunca</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">Modificar fuente archivo {0} evitará que la sesión de depuración continua debido a un error interno: {1}.</target>
@@ -490,26 +465,6 @@
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">Las signaturas de método relacionadas encontradas en los metadatos no se actualizarán.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_redundant_assignment">
-        <source>Remove redundant assignment</source>
-        <target state="translated">Quitar asignación redundante</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter">
-        <source>Remove unused parameter</source>
-        <target state="translated">Quitar el parámetro no utilizado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0">
-        <source>Remove unused parameter '{0}'</source>
-        <target state="translated">Retirar el parámetro "{0}" sin usar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="translated">Quitar el parámetro "{0}" sin usar si no forma parte de una API pública enviada</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -572,16 +527,6 @@
         <target state="translated">No se puede leer el archivo de origen "{0}" o el PDB compilado para el proyecto que lo contiene. Los cambios realizados en este archivo durante la depuración no se aplicarán hasta que su contenido coincida con el del origen compilado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value">
-        <source>Unnecessary assignment of a value</source>
-        <target state="translated">Asignación innecesaria de un valor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
-        <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">Asignación innecesaria de un valor a "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="translated">Desajustar todos los argumentos</target>
@@ -642,34 +587,14 @@
         <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">Usar cuerpo del bloque para las funciones locales</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
         <target state="translated">Usar la asignación compuesta</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_discard_underscore">
-        <source>Use discard '_'</source>
-        <target state="translated">Usar opción de descarte "_"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_discarded_local">
-        <source>Use discarded local</source>
-        <target state="translated">Usar el local descartado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Usar órgano de expresión para expresiones lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">Usar el cuerpo de la expresión para las funciones locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
@@ -1873,11 +1798,6 @@ Do you want to continue?</source>
         <target state="translated">Convertir el método en sincrónico</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Agregar cualificación 'this' o 'Me'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">desde {0}</target>
@@ -2000,29 +1920,9 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Parámetros:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Agregar casos que faltan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Agregar ambos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Agregar caso predeterminado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">El elemento variádico SignatureHelpItem debe tener al menos un parámetro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Agregar llaves</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2100,16 +2000,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Instalar paquete '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">La inicialización del objeto se puede simplificar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Usar expresión "throw"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">proyecto {0}</target>
@@ -2123,66 +2013,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usar coincidencia de patrones</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">Usar cuerpo de expresiones para los métodos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">Usar cuerpo del bloque para los métodos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">Usar cuerpo del bloque para los descriptores de acceso</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">Usar cuerpo del bloque para los constructores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">Usar cuerpo del bloque para los indizadores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">Usar cuerpo del bloque para los operadores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">Usar cuerpo del bloque para las propiedades</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">Usar cuerpo de expresiones para los descriptores de acceso</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">Usar cuerpo de expresiones para los constructores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">Usar cuerpo de expresiones para los indizadores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">Usar cuerpo de expresiones para los operadores</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">Usar cuerpo de expresiones para las propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
@@ -2225,11 +2055,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Pascal Case</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">La inicialización de la recopilación se pueden simplificar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="translated">Usar expresión coalesce</target>
@@ -2243,21 +2068,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">La declaración de variables se puede insertar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">La comprobación de valores null se puede simplificar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Simplificar la inicialización de la recopilación</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Simplificar la inicialización de objetos</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
@@ -2510,11 +2320,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Usar función local</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
-        <source>Warning: Declaration changes scope and may change meaning.</source>
-        <target state="translated">Advertencia: La declaración cambia el ámbito y puede cambiar el significado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Mover la declaración cerca de la referencia</target>
@@ -2608,16 +2413,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Advertencia: es posible que la colección se modifique durante la iteración.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Agregar modificador de solo lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Hacer el archivo de solo lectura</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

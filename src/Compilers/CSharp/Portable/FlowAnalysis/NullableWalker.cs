@@ -8516,9 +8516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 #if REFERENCE_STATE
-        internal class LocalState : ILocalState
+        internal class LocalState : ILocalDataFlowState
 #else
-        internal struct LocalState : ILocalState
+        internal struct LocalState : ILocalDataFlowState
 #endif
         {
             // The representation of a state is a bit vector with two bits per slot:
@@ -8529,6 +8529,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private LocalState(BitVector state) => this._state = state;
 
             public bool Reachable => _state[0];
+
+            public bool NormalizeToBottom => false;
 
             public static LocalState ReachableState(int capacity)
             {
@@ -8612,7 +8614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public LocalState StartingState;
             public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState)
+                : base(unreachableState.Clone(), unreachableState.Clone())
             {
                 StartingState = unreachableState;
             }

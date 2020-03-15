@@ -103,6 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private readonly IInlineRenameInfo _renameInfo;
 
+        /// <summary>
+        /// The initial text being renamed.
+        /// </summary>
+        private readonly string _initialRenameText;
+
         public InlineRenameSession(
             IThreadingContext threadingContext,
             InlineRenameService renameService,
@@ -150,7 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ? workspace.Options.WithChangedOption(RenameOptions.RenameOverloads, true)
                 : workspace.Options;
 
-            this.ReplacementText = triggerSpan.GetText();
+            _initialRenameText = triggerSpan.GetText();
+            this.ReplacementText = _initialRenameText;
 
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
@@ -674,14 +680,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Commit(bool previewChanges = false)
+            => CommitWorker(previewChanges);
+
+        /// <returns><see langword="true"/> if the rename operation was commited, <see
+        /// langword="false"/> otherwise</returns>
+        private bool CommitWorker(bool previewChanges)
         {
             AssertIsForeground();
             VerifyNotDismissed();
 
-            if (this.ReplacementText == string.Empty)
+            // If the identifier was deleted (or didn't change at all) then cancel the operation.
+            // Note: an alternative approach would be for the work we're doing (like detecting
+            // conflicts) to quickly bail in the case of no change.  However, that involves deeper
+            // changes to the system and is less easy to validate that nothing happens.
+            //
+            // The only potential downside here would be if there was a language that wanted to
+            // still 'rename' even if the identifier went away (or was unchanged).  But that isn't
+            // a case we're aware of, so it's fine to be opinionated here that we can quickly bail
+            // in these cases.
+            if (this.ReplacementText == string.Empty ||
+                this.ReplacementText == _initialRenameText)
             {
                 Cancel();
-                return;
+                return false;
             }
 
             previewChanges = previewChanges || OptionSet.GetOption(RenameOptions.PreviewChanges);
@@ -697,7 +718,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
                 Dismiss(rollbackTemporaryEdits: true);
                 EndRenameSession();
+
+                return false;
             }
+
+            return true;
         }
 
         private void EndRenameSession()
@@ -842,6 +867,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             return false;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        public struct TestAccessor
+        {
+            private readonly InlineRenameSession _inlineRenameSession;
+
+            public TestAccessor(InlineRenameSession inlineRenameSession)
+                => _inlineRenameSession = inlineRenameSession;
+
+            public bool CommitWorker(bool previewChanges)
+                => _inlineRenameSession.CommitWorker(previewChanges);
         }
     }
 }

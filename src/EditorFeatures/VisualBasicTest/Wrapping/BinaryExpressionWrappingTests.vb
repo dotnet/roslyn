@@ -618,5 +618,28 @@ end class",
     end sub
 end class")
         End Function
+
+        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrapLowerPrecedenceInLargeBinary() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        dim goo = [||]a + b + c + d = x * y * z
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = a + b + c + d _
+            = x * y * z
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = a + b + c + d _
+                  = x * y * z
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
