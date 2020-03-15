@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
@@ -63,29 +64,6 @@ namespace Roslyn.Utilities
             }
 
             return ImmutableArray.CreateRange(items);
-        }
-
-        /// <summary>
-        /// Use to validate public API input for properties that are exposed as <see cref="IReadOnlyList{T}"/>.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithNonNullItems<T>(this IEnumerable<T>? sequence, string argumentName) where T : class
-        {
-            var list = sequence.ToBoxedImmutableArray();
-
-            if (list.Contains(default(T)))
-            {
-                ThrowArgumentItemNullException(list, argumentName);
-            }
-
-            return list;
-        }
-
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowArgumentItemNullException<T>(IReadOnlyList<T> list, string argumentName) where T : class
-        {
-            throw new ArgumentNullException($"{argumentName}[{list.IndexOf(null!)}]");
         }
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
