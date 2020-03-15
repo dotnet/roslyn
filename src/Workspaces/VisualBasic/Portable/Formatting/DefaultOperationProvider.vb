@@ -6,6 +6,13 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Internal.Editing
+#Else
+Imports Microsoft.CodeAnalysis.Editing
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ' the default provider that will be called by the engine at the end of provider's chain.
@@ -33,7 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
-        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
+                previousToken As SyntaxToken,
+                currentToken As SyntaxToken,
+                options As AnalyzerConfigOptions,
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If
@@ -50,9 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return Nothing
             End If
 
-            ' return line break operation after statement terminator token so that we can enforce indentation for the line
-            If previousToken.IsLastTokenOfStatement() AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
-                Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
+            ' return line break operation after statement terminator token so that we can enforce
+            ' indentation for the line
+            Dim previousStatement As StatementSyntax = Nothing
+            If previousToken.IsLastTokenOfStatement(statement:=previousStatement) AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
+                Return AdjustNewLinesBetweenStatements(previousStatement, currentToken, options)
             End If
 
             If previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
@@ -93,6 +106,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Return Nothing
+        End Function
+
+        Private Shared Function AdjustNewLinesBetweenStatements(
+                previousStatement As StatementSyntax,
+                currentToken As SyntaxToken,
+                options As AnalyzerConfigOptions) As AdjustNewLinesOperation
+
+            ' if the user is separating import-groups, And we're between two imports, and these
+            ' imports *should* be separated, then do so (if the imports were already properly
+            ' sorted).
+            If currentToken.Kind() = SyntaxKind.ImportsKeyword AndAlso
+               TypeOf currentToken.Parent Is ImportsStatementSyntax AndAlso
+               TypeOf previousStatement Is ImportsStatementSyntax Then
+
+                Dim previousImports = DirectCast(previousStatement, ImportsStatementSyntax)
+                Dim currentImports = DirectCast(currentToken.Parent, ImportsStatementSyntax)
+
+                Dim separateGroups = False
+                Dim succeeded = options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, separateGroups)
+                If succeeded AndAlso
+                   separateGroups AndAlso
+                   ImportsOrganizer.NeedsGrouping(previousImports, currentImports) Then
+
+                    Dim [imports] = DirectCast(previousImports.Parent, CompilationUnitSyntax).Imports
+                    If [imports].IsSorted(ImportsStatementComparer.SystemFirstInstance) OrElse
+                       [imports].IsSorted(ImportsStatementComparer.NormalInstance) Then
+
+                        ' Force at least one blank line here.
+                        Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines)
+                    End If
+                End If
+            End If
+
+            ' For any other two statements we will normally ensure at least one new-line between
+            ' them.
+            Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
         End Function
 
         Private Shared Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean

@@ -5,10 +5,15 @@
 #nullable enable
 
 using System.Collections.Immutable;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+namespace Microsoft.CodeAnalysis.Internal.Editing
+#else
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-
 namespace Microsoft.CodeAnalysis.Editing
+#endif
 {
     internal class GenerationOptions
     {
