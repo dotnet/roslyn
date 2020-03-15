@@ -1507,11 +1507,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Générer une conversation étendue dans '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: supprimer les marques de commentaire pour la ligne suivante si Finalize() est remplacé ci-dessus.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Bloc Try</target>

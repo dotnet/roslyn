@@ -1507,11 +1507,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Erweiternde Konvertierung in "{0}" generieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: Auskommentierung der folgenden Zeile aufheben, wenn Finalize() oben überschrieben wird.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try-Block</target>

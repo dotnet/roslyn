@@ -6615,28 +6615,27 @@ partial class C
     {{
         if (!{disposeField})
         {{
+            // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             if (disposing)
             {{
-                // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
-
-            // {CSharpFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below}
+            // {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
             {disposeField} = true;
         }}
     }}
 
-    // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
+    // {FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources}
     // ~{className}()
     // {{
-    //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-    //   Dispose(false);
+    //   // {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
+    //   Dispose(disposing: false);
     // }}
 
     {implementationVisibility}Dispose()
     {{
-        // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
-        Dispose(true);
+        // {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
+        Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }}";
         }

@@ -4295,27 +4295,25 @@ Class _
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-            If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
+            If disposing Then
             End If
-
-            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
+            disposedValue = True
         End If
-
-        disposedValue = True
     End Sub
 
-    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
+    ' { FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources }
     'Protected Overrides Sub Finalize()
-    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-    '    Dispose(False)
+    '    ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
+    '    Dispose(disposing:=False)
     '    MyBase.Finalize()
     'End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-        Dispose(True)
+        ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
+        Dispose(disposing:=True)
         GC.SuppressFinalize(Me)
     End Sub
 End Class
@@ -4368,27 +4366,26 @@ Partial Class C
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
+            ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             If disposing Then
-                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
 
-            ' { VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below }
+            ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
+            disposedValue = True
         End If
-
-        disposedValue = True
     End Sub
 
-    ' { VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources }
+    ' { FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources }
     'Protected Overrides Sub Finalize()
-    '    ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
+    '    ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
     '    Dispose(False)
     '    MyBase.Finalize()
     'End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above }
-        Dispose(True)
+        ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
+        Dispose(disposing:=True)
         GC.SuppressFinalize(Me)
     End Sub
 End Class
@@ -4407,27 +4404,26 @@ End Interface",
             Dim code = $"
     Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
         If Not {disposeField} Then
+            ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             If disposing Then
-                ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
 
-            ' {VBFeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below}
+            ' {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
+            {disposeField} = True
         End If
-
-        {disposeField} = True
     End Sub
 
-    ' {VBFeaturesResources.TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources}
+    ' {FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources}
     'Protected Overrides Sub Finalize()
-    '    ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-    '    Dispose(False)
+    '    ' {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
+    '    Dispose(disposing:=False)
     '    MyBase.Finalize()
     'End Sub
 
     Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' {VBFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above}
-        Dispose(True)
+        ' {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
+        Dispose(disposing:=True)
         GC.SuppressFinalize(Me)
     End Sub"
 
