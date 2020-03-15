@@ -2410,16 +2410,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Avertissement : La collection risque d'être modifiée durant l'itération.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Ajouter un modificateur readonly</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Rendre le champ readonly</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">Convertir en expression conditionnelle</target>

@@ -876,6 +876,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return list;
         }
 
+        public bool IsClassDeclaration(SyntaxNode node)
+            => node?.Kind() == SyntaxKind.ClassDeclaration;
+
+        public bool IsNamespaceDeclaration(SyntaxNode node)
+            => node?.Kind() == SyntaxKind.NamespaceDeclaration;
+
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 

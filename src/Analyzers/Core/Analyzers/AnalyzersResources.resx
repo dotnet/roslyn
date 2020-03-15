@@ -177,6 +177,12 @@
   <data name="Object_initialization_can_be_simplified" xml:space="preserve">
     <value>Object initialization can be simplified</value>
   </data>
+  <data name="Add_readonly_modifier" xml:space="preserve">
+    <value>Add readonly modifier</value>
+  </data>
+  <data name="Make_field_readonly" xml:space="preserve">
+    <value>Make field readonly</value>
+  </data>
   <data name="Naming_rule_violation_0" xml:space="preserve">
     <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>

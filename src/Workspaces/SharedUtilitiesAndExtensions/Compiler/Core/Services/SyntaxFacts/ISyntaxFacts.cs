@@ -353,6 +353,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
+        bool IsClassDeclaration(SyntaxNode node);
+        bool IsNamespaceDeclaration(SyntaxNode node);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
