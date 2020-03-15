@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.DateTime.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
         protected AbstractEmbeddedLanguageEditorFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
+                new DateTimeEmbeddedLanguageFeatures(this, info),
                 new RegexEmbeddedLanguageEditorFeatures(this, info),
                 new FallbackEmbeddedLanguage(info));
         }

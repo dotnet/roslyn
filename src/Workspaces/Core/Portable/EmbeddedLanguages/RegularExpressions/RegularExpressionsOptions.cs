@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RegularExpressionsOptions.ColorizeRegexPatterns,
             RegularExpressionsOptions.ReportInvalidRegexPatterns,
-            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor);
+            RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor,
+            RegularExpressionsOptions.ProvideRegexCompletions);
     }
 }
