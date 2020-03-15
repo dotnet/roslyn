@@ -2415,16 +2415,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Advertencia: es posible que la colección se modifique durante la iteración.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Agregar modificador de solo lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Hacer el archivo de solo lectura</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">Convertir a expresión condicional</target>
