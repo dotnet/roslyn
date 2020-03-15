@@ -2315,11 +2315,6 @@ This version used in: {2}</source>
         <target state="translated">{0}(프로젝트 {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">접근성 한정자 필요</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">접근성 한정자 추가</target>

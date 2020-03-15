@@ -6,8 +6,13 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Internal.Options
+#Else
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Options
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
     Public Class AddAccessibilityModifiersTests

@@ -2315,11 +2315,6 @@ Questa versione è usata {2}</target>
         <target state="translated">in {0} (progetto {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Modificatori di accessibilità obbligatori</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">Aggiungi i modificatori di accessibilità</target>
