@@ -117,81 +117,82 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateTime
 
         private void ProvideStandardFormats(EmbeddedCompletionContext context)
         {
-            context.AddStandard("d", "short date", FeaturesResources.short_date_description);
-            context.AddStandard("D", "long date", "blah blah");
-            context.AddStandard("f", "full short date/time", "blah blah");
-            context.AddStandard("F", "full long date/time", "blah blah");
-            context.AddStandard("g", "general short date/time", "blah blah");
-            context.AddStandard("G", "general long date/time", "blah blah");
-            context.AddStandard("M", "month day", "blah blah");
-            context.AddStandard("O", "round-trip date/time", "blah blah");
-            context.AddStandard("R", "rfc1123 date/time", "blah blah");
-            context.AddStandard("t", "short time", "blah blah");
-            context.AddStandard("T", "long time", "blah blah");
-            context.AddStandard("u", "universal sortable date/time", "blah blah");
-            context.AddStandard("U", "universal full date/time", "blah blah");
-            context.AddStandard("Y", "year month", "blah blah");
+            context.AddStandard("d", FeaturesResources.short_date, FeaturesResources.short_date_description);
+            context.AddStandard("D", FeaturesResources.long_date, FeaturesResources.long_date_description);
+            context.AddStandard("f", FeaturesResources.full_short_date_time, FeaturesResources.full_short_date_time_description);
+            context.AddStandard("F", FeaturesResources.full_long_date_time, FeaturesResources.full_long_date_time_description);
+            context.AddStandard("g", FeaturesResources.general_short_date_time, FeaturesResources.general_short_date_time_description);
+            context.AddStandard("G", FeaturesResources.general_long_date_time, FeaturesResources.general_long_date_time_description);
+            context.AddStandard("M", FeaturesResources.month_day, FeaturesResources.month_day_description);
+            context.AddStandard("O", FeaturesResources.round_trip_date_time, FeaturesResources.round_trip_date_time_description);
+            context.AddStandard("R", FeaturesResources.rfc1123_date_time, FeaturesResources.rfc1123_date_time_description);
+            context.AddStandard("s", FeaturesResources.sortable_date_time, FeaturesResources.sortable_date_time_description);
+            context.AddStandard("t", FeaturesResources.short_time, FeaturesResources.short_time_description);
+            context.AddStandard("T", FeaturesResources.long_time, FeaturesResources.long_time_description);
+            context.AddStandard("u", FeaturesResources.universal_sortable_date_time, FeaturesResources.universal_sortable_date_time_description);
+            context.AddStandard("U", FeaturesResources.universal_full_date_time, FeaturesResources.universal_full_date_time_description);
+            context.AddStandard("Y", FeaturesResources.year_month, FeaturesResources.year_month_description);
         }
 
         private void ProvideCustomFormats(EmbeddedCompletionContext context)
         {
-            context.AddCustom("d", "day of the month (1-digit)", "blah blah");
-            context.AddCustom("dd", "day of the month (2-digits)", "blah blah");
-            context.AddCustom("ddd", "day of the week (abbreviated)", "blah blah");
-            context.AddCustom("dddd", "day of the week (full)", "blah blah");
+            context.AddCustom("d", FeaturesResources.day_of_the_month_1_2_digits, FeaturesResources.day_of_the_month_1_2_digits_description);
+            context.AddCustom("dd", FeaturesResources.day_of_the_month_2_digits, FeaturesResources.day_of_the_month_2_digits_description);
+            context.AddCustom("ddd", FeaturesResources.day_of_the_week_abbreviated, FeaturesResources.day_of_the_week_abbreviated_description);
+            context.AddCustom("dddd", FeaturesResources.day_of_the_week_full, FeaturesResources.day_of_the_week_full_description);
 
-            context.AddCustom("f", "10ths of a second", "blah blah");
-            context.AddCustom("ff", "100ths of a second", "blah blah");
-            context.AddCustom("fff", "1,000ths of a second", "blah blah");
-            context.AddCustom("ffff", "10,000ths of a second", "blah blah");
-            context.AddCustom("fffff", "100,000ths of a second", "blah blah");
-            context.AddCustom("ffffff", "1,000,000ths of a second", "blah blah");
-            context.AddCustom("fffffff", "10,000,000ths of a second", "blah blah");
+            context.AddCustom("f", FeaturesResources._10ths_of_a_second, FeaturesResources._10ths_of_a_second_description);
+            context.AddCustom("ff", FeaturesResources._100ths_of_a_second, FeaturesResources._100ths_of_a_second_description);
+            context.AddCustom("fff", FeaturesResources._1000ths_of_a_second, FeaturesResources._1000ths_of_a_second_description);
+            context.AddCustom("ffff", FeaturesResources._10000ths_of_a_second, FeaturesResources._10000ths_of_a_second_description);
+            context.AddCustom("fffff", FeaturesResources._100000ths_of_a_second, FeaturesResources._100000ths_of_a_second_description);
+            context.AddCustom("ffffff", FeaturesResources._1000000ths_of_a_second, FeaturesResources._1000000ths_of_a_second_description);
+            context.AddCustom("fffffff", FeaturesResources._10000000ths_of_a_second, FeaturesResources._10000000ths_of_a_second_description);
 
-            context.AddCustom("F", "10ths of a second (non-zero)", "blah blah");
-            context.AddCustom("FF", "100ths of a second (non-zero)", "blah blah");
-            context.AddCustom("FFF", "1,000th of a second (non-zero)", "blah blah");
-            context.AddCustom("FFFF", "10,000ths of a second (non-zero)", "blah blah");
-            context.AddCustom("FFFFF", "100,000ths of a second (non-zero)", "blah blah");
-            context.AddCustom("FFFFFF", "1,000,000ths of a second (non-zero)", "blah blah");
-            context.AddCustom("FFFFFFF", "10,000,000ths of a second (non-zero)", "blah blah");
+            context.AddCustom("F", FeaturesResources._10ths_of_a_second_non_zero, FeaturesResources._10ths_of_a_second_non_zero_description);
+            context.AddCustom("FF", FeaturesResources._100ths_of_a_second_non_zero, FeaturesResources._100ths_of_a_second_non_zero_description);
+            context.AddCustom("FFF", FeaturesResources._1000ths_of_a_second_non_zero, FeaturesResources._1000ths_of_a_second_non_zero_description);
+            context.AddCustom("FFFF", FeaturesResources._10000ths_of_a_second_non_zero, FeaturesResources._10000ths_of_a_second_non_zero_description);
+            context.AddCustom("FFFFF", FeaturesResources._100000ths_of_a_second_non_zero, FeaturesResources._100000ths_of_a_second_non_zero_description);
+            context.AddCustom("FFFFFF", FeaturesResources._1000000ths_of_a_second_non_zero, FeaturesResources._1000000ths_of_a_second_non_zero_description);
+            context.AddCustom("FFFFFFF", FeaturesResources._10000000ths_of_a_second_non_zero, FeaturesResources._10000000ths_of_a_second_non_zero_description);
 
-            context.AddCustom("gg", "period/era", "blah blah");
+            context.AddCustom("gg", FeaturesResources.period_era, FeaturesResources.period_era_description);
 
-            context.AddCustom("h", "12 hour clock (1-2 digits)", "blah blah");
-            context.AddCustom("hh", "12 hour clock (2-digits)", "blah blah");
+            context.AddCustom("h", FeaturesResources._12_hour_clock_1_2_digits, FeaturesResources._12_hour_clock_1_2_digits_description);
+            context.AddCustom("hh", FeaturesResources._12_hour_clock_2_digits, FeaturesResources._12_hour_clock_2_digits_description);
 
-            context.AddCustom("H", "24 hour clock (1-digit)", "blah blah");
-            context.AddCustom("HH", "24 hour clock (2-digits)", "blah blah");
+            context.AddCustom("H", FeaturesResources._24_hour_clock_1_2_digits, FeaturesResources._24_hour_clock_1_2_digits_description);
+            context.AddCustom("HH", FeaturesResources._24_hour_clock_2_digits, FeaturesResources._24_hour_clock_2_digits_description);
 
-            context.AddCustom("K", "time zone", "blah blah");
+            context.AddCustom("K", FeaturesResources.time_zone, FeaturesResources.time_zone_description);
 
-            context.AddCustom("m", "minute (1-2 digits)", "blah blah");
-            context.AddCustom("mm", "minute (2 digits)", "blah blah");
+            context.AddCustom("m", FeaturesResources.minute_1_2_digits, FeaturesResources.minute_1_2_digits_description);
+            context.AddCustom("mm", FeaturesResources.minute_2_digits, FeaturesResources.minute_2_digits_description);
 
-            context.AddCustom("M", "month (1-2 digits)", "blah blah");
-            context.AddCustom("MM", "month (2 digits)", "blah blah");
-            context.AddCustom("MMM", "month (abbreviated)", "blah blah");
-            context.AddCustom("MMMM", "month (full)", "blah blah");
+            context.AddCustom("M", FeaturesResources.month_1_2_digits, FeaturesResources.month_1_2_digits_description);
+            context.AddCustom("MM", FeaturesResources.month_2_digits, FeaturesResources.month_2_digits_description);
+            context.AddCustom("MMM", FeaturesResources.month_abbreviated, FeaturesResources.month_abbreviated_description);
+            context.AddCustom("MMMM", FeaturesResources.month_full, FeaturesResources.month_full_description);
 
-            context.AddCustom("s", "second (1-2 digits)", "blah blah");
-            context.AddCustom("ss", "second (2 digits)", "blah blah");
+            context.AddCustom("s", FeaturesResources.second_1_2_digits, FeaturesResources.second_1_2_digits_description);
+            context.AddCustom("ss", FeaturesResources.second_2_digits, FeaturesResources.second_2_digits_description);
 
-            context.AddCustom("t", "AM/PM (abbreviated)", "blah blah");
-            context.AddCustom("tt", "AM/PM (full)", "blah blah");
+            context.AddCustom("t", FeaturesResources.AM_PM_abbreviated, FeaturesResources.AM_PM_abbreviated_description);
+            context.AddCustom("tt", FeaturesResources.AM_PM_full, FeaturesResources.AM_PM_full_description);
 
-            context.AddCustom("y", "year (1-2 digits)", "blah blah");
-            context.AddCustom("yy", "year (2 digits)", "blah blah");
-            context.AddCustom("yyy", "year (3-4 digits)", "blah blah");
-            context.AddCustom("yyyy", "year (4 digits)", "blah blah");
-            context.AddCustom("yyyyy", "year (5 digits)", "blah blah");
+            context.AddCustom("y", FeaturesResources.year_1_2_digits, FeaturesResources.year_1_2_digits_description);
+            context.AddCustom("yy", FeaturesResources.year_2_digits, FeaturesResources.year_2_digits_description);
+            context.AddCustom("yyy", FeaturesResources.year_3_4_digits, FeaturesResources.year_3_4_digits_description);
+            context.AddCustom("yyyy", FeaturesResources.year_4_digits, FeaturesResources.year_4_digits_description);
+            context.AddCustom("yyyyy", FeaturesResources.year_5_digits, FeaturesResources.year_5_digits_description);
 
-            context.AddCustom("z", "utc hour offset (1-2 digits)", "blah blah");
-            context.AddCustom("zz", "utc hour offset (2 digits)", "blah blah");
-            context.AddCustom("zzz", "utc hour and minute offset", "blah blah");
+            context.AddCustom("z", FeaturesResources.utc_hour_offset_1_2_digits, FeaturesResources.utc_hour_offset_1_2_digits_description);
+            context.AddCustom("zz", FeaturesResources.utc_hour_offset_2_digits, FeaturesResources.utc_hour_offset_2_digits_description);
+            context.AddCustom("zzz", FeaturesResources.utc_hour_and_minute_offset, FeaturesResources.utc_hour_and_minute_offset_description);
 
-            context.AddCustom(":", "time separator", "blah blah");
-            context.AddCustom("/", "date separator", "blah blah");
+            context.AddCustom(":", FeaturesResources.time_separator, FeaturesResources.time_separator_description);
+            context.AddCustom("/", FeaturesResources.date_separator, FeaturesResources.date_separator_description);
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
