@@ -6,8 +6,13 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
@@ -25,8 +30,8 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
                    option,
                    language,
-                   new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Order_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Modifiers_are_not_ordered), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
             _option = option;
