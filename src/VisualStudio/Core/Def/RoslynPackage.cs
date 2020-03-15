@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -155,6 +156,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
+
+            // Load the designer attribute service and tell it to start watching the solution for
+            // designable files.
+            var designerAttributeService = _workspace.Services.GetService<IDesignerAttributeService>();
+            designerAttributeService.Start(this.DisposalToken);
 
             // Load the telemetry service and tell it to start watching the solution for project info.
             var projectTelemetryService = _workspace.Services.GetService<IProjectTelemetryService>();

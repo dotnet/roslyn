@@ -2415,16 +2415,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Uyarı: Yineleme sırasında koleksiyon değiştirilebilir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Salt okunur değiştirici ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Alanı salt okunur yap</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">Koşullu ifadeye dönüştürme</target>

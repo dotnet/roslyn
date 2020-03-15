@@ -12,6 +12,11 @@
         <target state="new">A source file is missing a required header.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="new">Add readonly modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification.</source>
         <target state="new">Add 'this' or 'Me' qualification.</target>
@@ -35,6 +40,11 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="new">Collection initialization can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
