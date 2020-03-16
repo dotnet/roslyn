@@ -42,18 +42,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
             if (idisposable?.TypeKind == TypeKind.Interface)
             {
-                var idisposableMembers = idisposable.GetMembers();
-
-                // Get symbol for 'System.IDisposable.Dispose()'.
-                if (idisposableMembers.Length == 1 &&
-                    idisposableMembers[0] is IMethodSymbol disposeMethod &&
-                    disposeMethod.Name == nameof(IDisposable.Dispose) &&
-                    !disposeMethod.IsStatic &&
-                    disposeMethod.ReturnsVoid &&
-                    disposeMethod.Arity == 0 &&
-                    disposeMethod.Parameters.Length == 0)
+                var idisposableMembers = idisposable.GetMembers(nameof(IDisposable.Dispose));
+                foreach (var member in idisposableMembers)
                 {
-                    return disposeMethod;
+                    if (member is IMethodSymbol disposeMethod &&
+                        !disposeMethod.IsStatic &&
+                        disposeMethod.ReturnsVoid &&
+                        disposeMethod.Arity == 0 &&
+                        disposeMethod.Parameters.Length == 0)
+                    {
+                        return disposeMethod;
+                    }
                 }
             }
 
