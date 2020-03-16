@@ -451,30 +451,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return
                     baseTypes.Any(ts => ts.GetMembers(memberName)
                                           .Where(m => m.IsAccessibleWithin(State.ClassOrStructType))
-                                          .Any(m => HasNameConflict(member, memberName, m)));
+                                          .Any(m => HasNameConflict(member, m)));
             }
 
-            private static bool HasNameConflict(
-                ISymbol member,
-                string memberName,
-                ISymbol baseMember)
+            private static bool HasNameConflict(ISymbol member, ISymbol baseMember)
             {
-                Debug.Assert(memberName == baseMember.Name);
-
-                if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
+                if (member is IMethodSymbol method1 && baseMember is IMethodSymbol method2)
                 {
                     // A method only conflicts with another method if they have the same parameter
                     // signature (return type is irrelevant). 
-                    var method1 = (IMethodSymbol)member;
-                    var method2 = (IMethodSymbol)baseMember;
-
-                    if (method1.MethodKind == MethodKind.Ordinary &&
-                        method2.MethodKind == MethodKind.Ordinary &&
-                        method1.TypeParameters.Length == method2.TypeParameters.Length)
-                    {
-                        return method1.Parameters.Select(p => p.Type)
-                                                 .SequenceEqual(method2.Parameters.Select(p => p.Type));
-                    }
+                    return method1.MethodKind == MethodKind.Ordinary &&
+                           method2.MethodKind == MethodKind.Ordinary &&
+                           method1.TypeParameters.Length == method2.TypeParameters.Length &&
+                           method1.Parameters.SequenceEqual(method2.Parameters, SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer);
                 }
 
                 // Any non method members with the same name simple name conflict.

@@ -7,11 +7,6 @@
         <target state="translated">新增 await 和 ConfigureAwait(false)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">新增協助工具修飾元</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">新增等候</target>

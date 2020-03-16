@@ -151,13 +151,35 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string MemberNotNullAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class MemberNotNullAttribute : Attribute
+    {
+        public MemberNotNullAttribute(params string[] members) { }
+    }
+}
+";
+
+        protected const string MemberNotNullWhenAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class MemberNotNullWhenAttribute : Attribute
+    {
+        public MemberNotNullWhenAttribute(bool when, params string[] members) { }
+    }
+}
+";
+
         protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class DoesNotReturnIfAttribute : Attribute
     {
-        public DoesNotReturnIfAttribute (bool condition) { }
+        public DoesNotReturnIfAttribute(bool condition) { }
     }
 }
 ";
@@ -168,7 +190,7 @@ namespace System.Diagnostics.CodeAnalysis
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class DoesNotReturnAttribute : Attribute
     {
-        public DoesNotReturnAttribute () { }
+        public DoesNotReturnAttribute() { }
     }
 }
 ";

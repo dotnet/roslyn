@@ -7,11 +7,6 @@
         <target state="translated">await と ConfigureAwait(false) を追加</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">'アクセシビリティ修飾子を追加します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">await を追加する</target>

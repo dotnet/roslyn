@@ -523,9 +523,6 @@
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
-  <data name="Add_accessibility_modifiers" xml:space="preserve">
-    <value>Add accessibility modifiers</value>
-  </data>
   <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
     <value>Add/remove braces for single-line control statements</value>
   </data>

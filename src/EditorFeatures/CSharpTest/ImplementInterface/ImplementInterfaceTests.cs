@@ -8293,5 +8293,42 @@ class A : [|IFoo<int>|]
     }}
 }}");
         }
+
+        [WorkItem(13427, "https://github.com/dotnet/roslyn/issues/13427")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestDoNotAddNewWithGenericAndNonGenericMethods()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"class B
+{
+    public void M<T>() { }
+}
+
+interface I
+{
+    void M();
+}
+
+class D : B, [|I|]
+{
+}",
+@"class B
+{
+    public void M<T>() { }
+}
+
+interface I
+{
+    void M();
+}
+
+class D : B, I
+{
+    public void M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }

@@ -54,10 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression,
             ITypeSymbol targetType)
         {
-            return SyntaxFactory.CastExpression(
-                type: targetType.GenerateTypeSyntax(),
-                expression: expression.Parenthesize())
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var parenthesized = expression.Parenthesize();
+            var castExpression = SyntaxFactory.CastExpression(
+                targetType.GenerateTypeSyntax(), parenthesized.WithoutTrivia()).WithTriviaFrom(parenthesized);
+
+            return castExpression.WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         /// <summary>

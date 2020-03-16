@@ -122,6 +122,11 @@
         <target state="translated">Alterar '{0}' para '{1}' impedirá a continuação da sessão de depuração porque altera a forma da máquina de estado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar estilo de código de {0}</target>
@@ -485,6 +490,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edição rudimentar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -2315,11 +2325,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">em {0} (projeto {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Modificadores de acessibilidade necessários</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">Adicionar modificadores de acessibilidade</target>
@@ -2423,16 +2428,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Aviso: a coleção pode ser modificada durante a iteração.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Adicionar modificador somente leitura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Tornar campo somente leitura</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
