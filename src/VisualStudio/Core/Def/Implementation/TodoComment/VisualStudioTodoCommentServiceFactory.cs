@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,8 +14,9 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
 {
+    [Export(typeof(ITodoListProvider))]
     [ExportWorkspaceServiceFactory(typeof(ITodoCommentService), ServiceLayer.Host), Shared]
-    internal class VisualStudioTodoCommentServiceFactory : IWorkspaceServiceFactory
+    internal class VisualStudioTodoCommentServiceFactory : IWorkspaceServiceFactory, ITodoListProvider
     {
         private readonly IThreadingContext _threadingContext;
 

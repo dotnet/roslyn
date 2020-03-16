@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TodoComment;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<ProjectTelemetryInfo> _workQueue = null!;
+        private AsyncBatchingWorkQueue<TodoCommentInfo> _workQueue = null!;
 
         public VisualStudioTodoCommentService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
@@ -65,9 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryInfo>(
+            _workQueue = new AsyncBatchingWorkQueue<TodoCommentInfo>(
                 TimeSpan.FromSeconds(1),
-                NotifyTelemetryServiceAsync,
+                ProcessTodoCommentInfosAsync,
                 cancellationToken);
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
 
             // Now kick off scanning in the OOP process.
             var success = await _keepAliveSession.TryInvokeAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
+                nameof(IRemoteTodoCommentService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
@@ -93,18 +95,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task RegisterProjectTelemetryInfoAsync(ProjectTelemetryInfo info, CancellationToken cancellationToken)
+        public Task ReportTodoCommentsAsync(List<TodoCommentInfo> infos, CancellationToken cancellationToken)
         {
-            _workQueue.AddWork(info);
+            _workQueue.AddWork(infos);
             return Task.CompletedTask;
         }
 
-        private async Task NotifyTelemetryServiceAsync(
-            ImmutableArray<ProjectTelemetryInfo> infos, CancellationToken cancellationToken)
+        private async Task ProcessTodoCommentInfosAsync(
+            ImmutableArray<TodoCommentInfo> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var filteredInfos);
+            using var _1 = ArrayBuilder<TodoCommentInfo>.GetInstance(out var filteredInfos);
             AddFilteredInfos(infos, filteredInfos);
 
             using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -114,22 +116,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private void AddFilteredInfos(ImmutableArray<ProjectTelemetryInfo> infos, ArrayBuilder<ProjectTelemetryInfo> filteredInfos)
+        private void AddFilteredInfos(ImmutableArray<TodoCommentInfo> infos, ArrayBuilder<TodoCommentInfo> filteredInfos)
         {
-            using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenProjectIds);
 
-            // Walk the list of telemetry items in reverse, and skip any items for a project once
+            // Walk the list of telemetry items in reverse, and skip any items for a document once
             // we've already seen it once.  That way, we're only reporting the most up to date
-            // information for a project, and we're skipping the stale information.
+            // information for a document, and we're skipping the stale information.
             for (var i = infos.Length - 1; i >= 0; i--)
             {
                 var info = infos[i];
-                if (seenProjectIds.Add(info.ProjectId))
+                if (seenProjectIds.Add(info.DocumentId))
                     filteredInfos.Add(info);
             }
         }
 
-        private void NotifyTelemetryService(ProjectTelemetryInfo info)
+        private void ProcessTodoCommentInfosAsync(ProjectTelemetryInfo info)
         {
             try
             {
