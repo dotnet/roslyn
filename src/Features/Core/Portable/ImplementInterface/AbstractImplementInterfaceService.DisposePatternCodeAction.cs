@@ -122,23 +122,23 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override async Task<Document> GetUpdatedDocumentAsync(
                 Document document,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-                INamedTypeSymbol classOrStructType,
-                SyntaxNode classOrStructDecl,
+                INamedTypeSymbol classType,
+                SyntaxNode classDecl,
                 CancellationToken cancellationToken)
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var disposedValueField = await CreateDisposedValueFieldAsync(
-                    document, classOrStructType, cancellationToken).ConfigureAwait(false);
+                    document, classType, cancellationToken).ConfigureAwait(false);
 
                 var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(compilation);
-                var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classOrStructType, disposeMethod, disposedValueField);
+                var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classType, disposeMethod, disposedValueField);
 
                 var docWithCoreMembers = await GetUpdatedDocumentAsync(
                     document,
                     unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
-                    classOrStructType,
-                    classOrStructDecl,
+                    classType,
+                    classDecl,
                     extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
                     cancellationToken).ConfigureAwait(false);
 
@@ -190,21 +190,21 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private (ImmutableArray<ISymbol>, SyntaxNode) CreateDisposableMethods(
                 Compilation compilation,
                 Document document,
-                INamedTypeSymbol classOrStructType,
+                INamedTypeSymbol classType,
                 IMethodSymbol disposeMethod,
                 IFieldSymbol disposedValueField)
             {
-                var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classOrStructType, disposeMethod, disposedValueField);
+                var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
 
                 var symbolDisplay = document.GetRequiredLanguageService<ISymbolDisplayService>();
                 var disposeMethodDisplayString = symbolDisplay.ToDisplayString(disposeImplMethod, s_format);
 
                 var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
-                    compilation, document, classOrStructType, disposeMethod,
+                    compilation, document, classType, disposeMethod,
                     disposedValueField, disposeMethodDisplayString);
 
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-                var finalizer = this.Service.CreateFinalizer(g, classOrStructType, disposeMethodDisplayString);
+                var finalizer = this.Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
 
                 return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
             }
@@ -212,15 +212,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private IMethodSymbol CreateDisposeImplementationMethod(
                 Compilation compilation,
                 Document document,
-                INamedTypeSymbol classOrStructType,
+                INamedTypeSymbol classType,
                 IMethodSymbol disposeMethod,
                 IFieldSymbol disposedValueField)
             {
-                var accessibility = classOrStructType.IsSealed
+                var accessibility = classType.IsSealed
                     ? Accessibility.Private
                     : Accessibility.Protected;
 
-                var modifiers = classOrStructType.IsSealed
+                var modifiers = classType.IsSealed
                     ? DeclarationModifiers.None
                     : DeclarationModifiers.Virtual;
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     disposeMethod,
-                    containingType: classOrStructType,
+                    containingType: classType,
                     accessibility: accessibility,
                     modifiers: modifiers,
                     name: disposeMethod.Name,
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private IMethodSymbol CreateDisposeInterfaceMethod(
                 Compilation compilation,
                 Document document,
-                INamedTypeSymbol classOrStructType,
+                INamedTypeSymbol classType,
                 IMethodSymbol disposeMethod,
                 IFieldSymbol disposedValueField,
                 string disposeMethodDisplayString)
