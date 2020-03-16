@@ -602,6 +602,7 @@ namespace Microsoft.CodeAnalysis
             return discriminator == ConstantValueTypeDiscriminator.String;
         }
 
+        // See https://github.com/dotnet/roslyn/issues/41964: when this property is true, that implies StringValue is non-null.
         public bool IsString
         {
             get

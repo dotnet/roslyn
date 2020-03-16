@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// such as throwing an exception? This implementation is conservative, in the sense
         /// that it may return true when the statement actually may have no side effects.
         /// </summary>
-        private static bool HasSideEffects(BoundStatement? statement)
+        private static bool HasSideEffects([NotNullWhen(true)] BoundStatement? statement)
         {
             if (statement == null) return false;
             switch (statement.Kind)

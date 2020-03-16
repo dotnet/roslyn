@@ -378,9 +378,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [NotNull] T newElement)
+        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [DisallowNull] T newElement)
         {
-            Debug.Assert(newElement != null);
+            Debug.Assert(newElement is { });
             return possibleNull.NullToEmpty().Add(newElement);
         }
     }
