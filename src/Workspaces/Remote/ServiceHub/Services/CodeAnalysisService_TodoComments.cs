@@ -15,7 +15,7 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Remote
 {
     // root level service for all Roslyn services
-    internal partial class CodeAnalysisService : IRemoteTodoCommentService
+    internal partial class CodeAnalysisService : IRemoteTodoCommentsService
     {
         /// <summary>
         /// This is top level entry point for TodoComments service from client (VS).

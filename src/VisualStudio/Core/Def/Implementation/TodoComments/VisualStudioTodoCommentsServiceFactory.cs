@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -12,25 +13,32 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     [Export(typeof(ITodoListProvider))]
-    [ExportWorkspaceServiceFactory(typeof(ITodoCommentService), ServiceLayer.Host), Shared]
-    internal class VisualStudioTodoCommentServiceFactory : IWorkspaceServiceFactory, ITodoListProvider
+    [ExportWorkspaceServiceFactory(typeof(ITodoCommentsService), ServiceLayer.Host), Shared]
+    internal class VisualStudioTodoCommentsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTodoCommentServiceFactory(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        public VisualStudioTodoCommentsServiceFactory(
+            IThreadingContext threadingContext,
+            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+        {
+            _threadingContext = threadingContext;
+            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+        }
 
         public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         {
             if (!(workspaceServices.Workspace is VisualStudioWorkspaceImpl workspace))
                 return null;
 
-            return new VisualStudioTodoCommentService(workspace, _threadingContext);
+            return new VisualStudioTodoCommentsService(
+                workspace, _threadingContext, _eventListenerTracker);
         }
     }
 }

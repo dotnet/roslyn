@@ -5,29 +5,22 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.TextFormatting;
-using Microsoft.CodeAnalysis;
+
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.ProjectTelemetry;
-using Microsoft.CodeAnalysis.Remote.Services.TodoComment;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal partial class RemoteTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private const string DataKey = "TodoComment";
 
@@ -39,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IPersistentStorageService _storageService;
 
         private readonly object _gate = new object();
-        private DescriptorInfo? _lastDescriptorInfo;
+        private ParsedTodoCommentDescriptors? _lastDescriptorInfo;
 
-        public RemoteTodoCommentIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
+        public RemoteTodoCommentsIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
             _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
@@ -50,16 +43,16 @@ namespace Microsoft.CodeAnalysis.Remote
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
 
-        private DescriptorInfo GetDescriptorInfo(Document document)
+        private ParsedTodoCommentDescriptors GetParsedTodoCommentDescriptors(Document document)
         {
             var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
             lock (_gate)
             {
-                if (_lastDescriptorInfo == null || _lastDescriptorInfo.OptionText != optionText)
-                    _lastDescriptorInfo = new DescriptorInfo(optionText, TodoCommentDescriptor.Parse(optionText));
+                if (_lastDescriptorInfo == null || _lastDescriptorInfo.Value.OptionText != optionText)
+                    _lastDescriptorInfo = ParsedTodoCommentDescriptors.Parse(optionText);
 
-                return _lastDescriptorInfo;
+                return _lastDescriptorInfo.Value;
             }
         }
 
@@ -69,20 +62,20 @@ namespace Microsoft.CodeAnalysis.Remote
             if (todoCommentService == null)
                 return;
 
-            using var storage = _storageService.GetStorage(document.Project.Solution);
+            //using var storage = _storageService.GetStorage(document.Project.Solution);
 
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-            var descriptorInfo = GetDescriptorInfo(document);
+            //var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+            var descriptorInfo = GetParsedTodoCommentDescriptors(document);
 
-            var persistedInfo = await TryReadExistingCommentInfoAsync(
-                storage, document, cancellationToken).ConfigureAwait(false);
-            if (persistedInfo != null &&
-                persistedInfo.Version == version &&
-                persistedInfo.OptionText == descriptorInfo.OptionText)
-            {
-                // Our info for this file is up to date.
-                return;
-            }
+            //var persistedInfo = await TryReadExistingCommentInfoAsync(
+            //    storage, document, cancellationToken).ConfigureAwait(false);
+            //if (persistedInfo != null &&
+            //    persistedInfo.Version == version &&
+            //    persistedInfo.OptionText == descriptorInfo.OptionText)
+            //{
+            //    // Our info for this file is up to date.
+            //    return;
+            //}
 
             // We're out of date.  Recompute this info.
             var todoComments = await todoCommentService.GetTodoCommentsAsync(
@@ -99,16 +92,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 new object[] { converted },
                 cancellationToken).ConfigureAwait(false);
 
-            persistedInfo = new PersistedTodoCommentInfo
-            {
-                Version = version,
-                OptionText = descriptorInfo.OptionText,
-                TodoComments = converted.ToImmutable(),
-            };
+            //persistedInfo = new PersistedTodoCommentInfo
+            //{
+            //    Version = version,
+            //    OptionText = descriptorInfo.OptionText,
+            //    TodoComments = converted.ToImmutable(),
+            //};
 
-            // now that we've informed VS, save this information for the future.
-            await PersistTodoCommentsAsync(
-                storage, document, persistedInfo, cancellationToken).ConfigureAwait(false);
+            //// now that we've informed VS, save this information for the future.
+            //await PersistTodoCommentsAsync(
+            //    storage, document, persistedInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ConvertAsync(

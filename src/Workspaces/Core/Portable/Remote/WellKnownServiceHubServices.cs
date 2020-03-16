@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteDesignerAttributeService = "roslynRemoteDesignerAttributeService" + bit;
             RemoteProjectTelemetryService = "roslynRemoteProjectTelemetryService" + bit;
             RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
-            RemoteTodoCommentService = "roslynRemoteTodoCommentService" + bit;
+            RemoteTodoCommentsService = "roslynRemoteTodoCommentsService" + bit;
             LanguageServer = "roslynLanguageServer" + bit;
         }
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static string RemoteDesignerAttributeService { get; private set; } = "roslynRemoteDesignerAttributeService";
         public static string RemoteProjectTelemetryService { get; private set; } = "roslynRemoteProjectTelemetryService";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
-        public static string RemoteTodoCommentService { get; private set; } = "roslynRemoteTodoCommentService";
+        public static string RemoteTodoCommentsService { get; private set; } = "roslynRemoteTodoCommentsService";
         public static string LanguageServer { get; private set; } = "roslynLanguageServer";
 
         // these are OOP implementation itself should care. not features that consume OOP care

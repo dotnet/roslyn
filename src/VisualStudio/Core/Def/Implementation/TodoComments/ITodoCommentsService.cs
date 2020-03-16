@@ -7,12 +7,12 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     /// <summary>
     /// In process service responsible for listening to OOP todo comment notifications.
     /// </summary>
-    internal interface ITodoCommentService : IWorkspaceService
+    internal interface ITodoCommentsService : IWorkspaceService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background

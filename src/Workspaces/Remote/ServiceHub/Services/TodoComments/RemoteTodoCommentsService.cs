@@ -10,12 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentService : ServiceBase, IRemoteTodoCommentService
+    internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
     {
-        public RemoteTodoCommentService(
+        public RemoteTodoCommentsService(
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
@@ -29,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = SolutionService.PrimaryWorkspace;
                 var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteTodoCommentIncrementalAnalyzerProvider(endpoint);
+                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(endpoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
                     new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteTodoCommentIncrementalAnalyzerProvider),
+                        nameof(RemoteTodoCommentsIncrementalAnalyzerProvider),
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 

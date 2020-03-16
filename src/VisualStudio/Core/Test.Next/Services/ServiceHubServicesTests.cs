@@ -146,7 +146,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var comments = await client.TryRunRemoteAsync<IList<TodoComment>>(
                     WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                    nameof(IRemoteTodoCommentsService.GetTodoCommentsAsync),
                     solution,
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
                     callbackTarget: null,

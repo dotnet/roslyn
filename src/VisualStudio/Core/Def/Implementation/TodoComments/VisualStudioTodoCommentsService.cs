@@ -7,27 +7,32 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.TodoComment;
 using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
-    internal class VisualStudioTodoCommentService
-        : ForegroundThreadAffinitizedObject, ITodoCommentService, ITodoCommentServiceCallback
+    internal class VisualStudioTodoCommentsService
+        : ForegroundThreadAffinitizedObject, ITodoCommentsService, ITodoCommentsServiceCallback, ITodoListProvider
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
+
+        private readonly ConditionalWeakTable<DocumentId, StrongBox<ImmutableArray<TodoCommentInfo>>> _documentToInfos
+            = new ConditionalWeakTable<DocumentId, StrongBox<ImmutableArray<TodoCommentInfo>>>();
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -40,10 +45,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
         /// </summary>
         private AsyncBatchingWorkQueue<TodoCommentInfo> _workQueue = null!;
 
-        public VisualStudioTodoCommentService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
-            => _workspace = workspace;
+        public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
-        void ITodoCommentService.Start(CancellationToken cancellationToken)
+        public VisualStudioTodoCommentsService(
+            VisualStudioWorkspaceImpl workspace,
+            IThreadingContext threadingContext,
+            EventListenerTracker<ITodoListProvider> eventListenerTracker)
+            : base(threadingContext)
+        {
+            _workspace = workspace;
+            _eventListenerTracker = eventListenerTracker;
+        }
+
+        void ITodoCommentsService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
         private async Task StartAsync(CancellationToken cancellationToken)
@@ -79,14 +93,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteTodoCommentService,
+                WellKnownServiceHubServices.RemoteTodoCommentsService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
             if (_keepAliveSession == null)
                 return;
 
+            // Now that we've started, let the VS todo list know to start listening to us
+            _eventListenerTracker.EnsureEventListener(_workspace, this);
+
             // Now kick off scanning in the OOP process.
             var success = await _keepAliveSession.TryInvokeAsync(
-                nameof(IRemoteTodoCommentService.ComputeTodoCommentsAsync),
+                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
@@ -101,19 +118,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
             return Task.CompletedTask;
         }
 
-        private async Task ProcessTodoCommentInfosAsync(
+        private Task ProcessTodoCommentInfosAsync(
             ImmutableArray<TodoCommentInfo> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<TodoCommentInfo>.GetInstance(out var filteredInfos);
+            using var _ = ArrayBuilder<TodoCommentInfo>.GetInstance(out var filteredInfos);
             AddFilteredInfos(infos, filteredInfos);
 
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var info in filteredInfos)
-                tasks.Add(Task.Run(() => NotifyTelemetryService(info), cancellationToken));
+            foreach (var group in filteredInfos.GroupBy(i => i.DocumentId))
+            {
+                var documentId = group.Key;
+                var documentInfos = group.ToImmutableArray();
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
+                // so it's safe to remove/add here.
+                _documentToInfos.Remove(documentId);
+                _documentToInfos.Add(documentId, new StrongBox<ImmutableArray<TodoCommentInfo>>(documentInfos));
+
+                this.TodoListUpdated?.Invoke(
+                    this, new TodoItemsUpdatedArgs(
+                        documentId, _workspace, _workspace.CurrentSolution,
+                        documentId.ProjectId, documentId, documentInfos));
+            }
+
+            return Task.CompletedTask;
         }
 
         private void AddFilteredInfos(ImmutableArray<TodoCommentInfo> infos, ArrayBuilder<TodoCommentInfo> filteredInfos)
@@ -131,38 +160,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
             }
         }
 
-        private void ProcessTodoCommentInfosAsync(ProjectTelemetryInfo info)
+        public ImmutableArray<TodoCommentInfo> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            try
-            {
-                var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
-                telemetryEvent.SetStringProperty(TelemetryProjectIdName, info.ProjectId.Id.ToString());
-                telemetryEvent.SetStringProperty(TelemetryProjectGuidName, Guid.Empty.ToString());
-                telemetryEvent.SetStringProperty(TelemetryLanguageName, info.Language);
-                telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, info.AnalyzerReferencesCount);
-                telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, info.ProjectReferencesCount);
-                telemetryEvent.SetIntProperty(TelemetryMetadataReferencesCountName, info.MetadataReferencesCount);
-                telemetryEvent.SetIntProperty(TelemetryDocumentsCountName, info.DocumentsCount);
-                telemetryEvent.SetIntProperty(TelemetryAdditionalDocumentsCountName, info.AdditionalDocumentsCount);
+            return _documentToInfos.TryGetValue(documentId, out var values)
+                ? values.Value
+                : ImmutableArray<TodoCommentInfo>.Empty;
+        }
 
-                TelemetryHelper.DefaultTelemetrySession.PostEvent(telemetryEvent);
-            }
-            catch (Exception e)
-            {
-                // The telemetry service itself can throw.
-                // So, to be very careful, put this in a try/catch too.
-                try
-                {
-                    var exceptionEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryExceptionEventPath);
-                    exceptionEvent.SetStringProperty("Type", e.GetTypeDisplayName());
-                    exceptionEvent.SetStringProperty("Message", e.Message);
-                    exceptionEvent.SetStringProperty("StackTrace", e.StackTrace);
-                    TelemetryHelper.DefaultTelemetrySession.PostEvent(exceptionEvent);
-                }
-                catch
-                {
-                }
-            }
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(
+            Workspace workspace, CancellationToken cancellationToken)
+        {
+            // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
+            return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
         }
     }
 }

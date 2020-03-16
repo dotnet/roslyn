@@ -7,13 +7,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.TodoComment
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
     /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
     /// reporting results back to the host.
     /// </summary>
-    internal interface IRemoteTodoCommentService
+    internal interface IRemoteTodoCommentsService
     {
         Task ComputeTodoCommentsAsync(CancellationToken cancellation);
     }
