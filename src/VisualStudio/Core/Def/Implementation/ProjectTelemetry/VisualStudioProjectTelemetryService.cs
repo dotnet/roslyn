@@ -119,7 +119,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var filteredInfos);
-            using var _2 = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
+            AddFilteredInfos(infos, filteredInfos);
+
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var info in filteredInfos)
+                tasks.Add(Task.Run(() => NotifyTelemetryService(info), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private void AddFilteredInfos(ImmutableArray<ProjectTelemetryInfo> infos, ArrayBuilder<ProjectTelemetryInfo> filteredInfos)
+        {
+            using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
             // Walk the list of telemetry items in reverse, and skip any items for a project once
             // we've already seen it once.  That way, we're only reporting the most up to date
@@ -130,12 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 if (seenProjectIds.Add(info.ProjectId))
                     filteredInfos.Add(info);
             }
-
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var info in filteredInfos)
-                tasks.Add(Task.Run(() => NotifyTelemetryService(info), cancellationToken));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private void NotifyTelemetryService(ProjectTelemetryInfo info)
