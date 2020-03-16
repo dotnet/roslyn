@@ -235,9 +235,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                provider.Items = New TodoItem() {
-                    New TodoItem(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
-                    New TodoItem(0, "test", documentId, 11, 11, 21, 21, Nothing, "test1")}
+                provider.Items = New TodoCommentInfo() {
+                    New TodoCommentInfo With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
+                    New TodoCommentInfo With {.Priority = 0, .Message = "test", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test1"}
+                }
 
                 provider.RaiseTodoListUpdated(workspace)
 
@@ -269,8 +270,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoCommentInfo() {
-                    New TodoCommentInfo(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
-                    New TodoCommentInfo(0, "test3", documentId, 11, 11, 21, 21, Nothing, "test3")}
+                    New TodoCommentInfo With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
+                    New TodoCommentInfo With {.Priority = 0, .Message = "test3", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test3"}
+                }
 
                 provider.RaiseTodoListUpdated(workspace)
 
@@ -329,7 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
 
-                provider.Items = New TodoItem() {item1, item2}
+                provider.Items = New TodoCommentInfo() {item1, item2}
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -374,15 +376,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestTodoListProvider
             Implements ITodoListProvider
 
-            Public Items As TodoItem()
+            Public Items As TodoCommentInfo()
 
-            Public Sub New(ParamArray items As TodoItem())
+            Public Sub New(ParamArray items As TodoCommentInfo())
                 Me.Items = items
             End Sub
 
             Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentInfo) Implements ITodoListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
@@ -404,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
                 RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
-                    Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoItem).Empty))
+                    Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoCommentInfo).Empty))
             End Sub
         End Class
     End Class
