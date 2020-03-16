@@ -4293,7 +4293,6 @@ Class _
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
@@ -4366,7 +4365,6 @@ Partial Class C
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
@@ -4407,7 +4405,6 @@ End Interface",
             Dim code = $"
     {disposeMethodAccessibility} {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
         If Not {disposeField} Then
-
             If disposing Then
                 ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
