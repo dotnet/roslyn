@@ -63,6 +63,49 @@ class Type
         }
 
         [Fact]
+        public async Task PreferNullLiteral_OverloadResolution()
+        {
+            var source = @"
+using System;
+
+class Type
+{
+    void Method()
+    {
+        Method2([|default(object)|]);
+        Method2([|default(string)|]);
+        Method2([|default(IComparable)|]);
+        Method2(default(int));
+    }
+
+    void Method2<T>(T value)
+    {
+    }
+}
+";
+            var fixedSource = @"
+using System;
+
+class Type
+{
+    void Method()
+    {
+        Method2((object)null);
+        Method2((string)null);
+        Method2((IComparable)null);
+        Method2(default(int));
+    }
+
+    void Method2<T>(T value)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
         public async Task PreferNullLiteral_Struct()
         {
             var source = @"

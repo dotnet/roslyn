@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
@@ -43,6 +45,10 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             var newSyntax = syntaxGenerator.NullLiteralExpression();
+            if (syntax is DefaultExpressionSyntax defaultExpression)
+            {
+                newSyntax = syntaxGenerator.CastExpression(defaultExpression.Type, newSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
+            }
 
             return document.WithSyntaxRoot(root.ReplaceNode(syntax, newSyntax));
         }
