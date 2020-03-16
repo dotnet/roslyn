@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Method signature used for return type or parameter types. Distinct from _member
         /// signature when _member is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
-        private readonly MethodSymbol _delegateInvokeMethod;
+        private MethodSymbol _delegateInvokeMethod;
 
         /// <summary>
         /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
@@ -1778,9 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateOrMethod = method.MethodKind == MethodKind.LambdaMethod
-                ? _delegateInvokeMethod ?? method
-                : method;
+            var delegateOrMethod = _delegateInvokeMethod ?? method;
             var returnType = delegateOrMethod.ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
@@ -1885,7 +1883,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
+            var delegateInvokeMethod = _delegateInvokeMethod;
             this.CurrentSymbol = localFuncSymbol;
+            _delegateInvokeMethod = null;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -1952,6 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = savedState;
             this.CurrentSymbol = oldSymbol;
+            _delegateInvokeMethod = delegateInvokeMethod;
 
             SetInvalidResult();
 
