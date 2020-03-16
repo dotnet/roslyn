@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var parameter = originalParameterList[i];
                 if (parameter is ExistingParameter existingParameter)
                 {
-                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
+                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
                     if (updatedIndex >= 0)
                     {
                         index = updatedIndex;
