@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -21,6 +23,33 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
             Text = text;
             Priority = priority;
+        }
+
+        public static ImmutableArray<TodoCommentDescriptor> Parse(string data)
+        {
+            if (string.IsNullOrWhiteSpace(data))
+                return ImmutableArray<TodoCommentDescriptor>.Empty;
+
+            var tuples = data.Split('|');
+            var result = ArrayBuilder<TodoCommentDescriptor>.GetInstance();
+
+            foreach (var tuple in tuples)
+            {
+                if (string.IsNullOrWhiteSpace(tuple))
+                    continue;
+
+                var pair = tuple.Split(':');
+
+                if (pair.Length != 2 || string.IsNullOrWhiteSpace(pair[0]))
+                    continue;
+
+                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
+                    continue;
+
+                result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 
@@ -43,6 +72,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
     internal interface ITodoCommentService : ILanguageService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

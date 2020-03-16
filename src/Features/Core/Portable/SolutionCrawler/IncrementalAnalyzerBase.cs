@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return Task.CompletedTask;
         }
 
-        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+        public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             return false;
         }

@@ -24,41 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
         }
 
-        private ImmutableArray<TodoCommentDescriptor> Parse(string data)
-        {
-            if (string.IsNullOrWhiteSpace(data))
-            {
-                return ImmutableArray<TodoCommentDescriptor>.Empty;
-            }
-
-            var tuples = data.Split('|');
-            var result = new List<TodoCommentDescriptor>(tuples.Length);
-
-            foreach (var tuple in tuples)
-            {
-                if (string.IsNullOrWhiteSpace(tuple))
-                {
-                    continue;
-                }
-
-                var pair = tuple.Split(':');
-
-                if (pair.Length != 2 || string.IsNullOrWhiteSpace(pair[0]))
-                {
-                    continue;
-                }
-
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
-                {
-                    continue;
-                }
-
-                result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
-            }
-
-            return result.ToImmutableArray();
-        }
-
         private class TokenInfo
         {
             internal readonly string OptionText;

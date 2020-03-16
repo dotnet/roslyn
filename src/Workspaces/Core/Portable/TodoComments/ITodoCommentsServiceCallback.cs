@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
-    /// interface exist to strongly type todo comment remote service
+    /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications
+    /// about todo comments.
     /// </summary>
-    internal interface IRemoteTodoCommentService
+    internal interface ITodoCommentsServiceCallback
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task ReportTodoCommentsAsync(List<TodoCommentInfo> infos, CancellationToken cancellationToken);
     }
 }
