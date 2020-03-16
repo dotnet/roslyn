@@ -269,12 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
         {
             targetArgumentConversionType = null;
+            var arguments = argumentList.Arguments;
 
             // No conversion happens under this case
-            if (parameters.Length == 0)
+            if (arguments.Count == 0 || parameters.Length == 0)
                 return false;
 
-            var arguments = argumentList.Arguments;
             var newArguments = new List<ArgumentSyntax>();
 
             for (var i = 0; i < arguments.Count; i++)
