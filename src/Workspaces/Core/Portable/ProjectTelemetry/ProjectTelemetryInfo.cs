@@ -6,6 +6,9 @@
 
 namespace Microsoft.CodeAnalysis.ProjectTelemetry
 {
+    /// <summary>
+    /// Serialization typed used to pass information to/from OOP and VS.
+    /// </summary>
     internal struct ProjectTelemetryInfo
     {
         public ProjectId ProjectId;
