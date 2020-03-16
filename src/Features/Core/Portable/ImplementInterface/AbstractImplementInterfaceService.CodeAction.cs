@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly Document Document;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
-
             private readonly string _equivalenceKey;
 
             internal ImplementInterfaceCodeAction(
