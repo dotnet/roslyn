@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
 
-        private ParsedTodoCommentDescriptors GetParsedTodoCommentDescriptors(Document document)
+        private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
         {
             var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (todoCommentService == null)
                 return;
 
-            var descriptorInfo = GetParsedTodoCommentDescriptors(document);
+            var descriptors = GetTodoCommentDescriptors(document);
 
             // We're out of date.  Recompute this info.
             var todoComments = await todoCommentService.GetTodoCommentsAsync(
-                document, descriptorInfo.Descriptors, cancellationToken).ConfigureAwait(false);
+                document, descriptors, cancellationToken).ConfigureAwait(false);
 
             // Convert the roslyn-level results to the more VS oriented line/col data.
             using var _ = ArrayBuilder<TodoCommentInfo>.GetInstance(out var converted);
