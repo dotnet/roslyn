@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Diagnostics.Analyzers;
 
@@ -43,11 +43,11 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntax = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
 
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            var newSyntax = syntaxGenerator.NullLiteralExpression();
+            ExpressionSyntax newSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             if (syntax is DefaultExpressionSyntax defaultExpression)
             {
-                newSyntax = syntaxGenerator.CastExpression(defaultExpression.Type, newSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
+                newSyntax = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(defaultExpression.Type, newSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
+                    .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             return document.WithSyntaxRoot(root.ReplaceNode(syntax, newSyntax));

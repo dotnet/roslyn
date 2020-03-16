@@ -106,6 +106,49 @@ class Type
         }
 
         [Fact]
+        public async Task PreferNullLiteral_ParenthesizeWhereNecessary()
+        {
+            var source = @"
+using System;
+
+class Type
+{
+    void Method()
+    {
+        Method2([|default(object)|]?.ToString());
+        Method2([|default(string)|]?.ToString());
+        Method2([|default(IComparable)|]?.ToString());
+        Method2(default(int).ToString());
+    }
+
+    void Method2(string value)
+    {
+    }
+}
+";
+            var fixedSource = @"
+using System;
+
+class Type
+{
+    void Method()
+    {
+        Method2(((object)null)?.ToString());
+        Method2(((string)null)?.ToString());
+        Method2(((IComparable)null)?.ToString());
+        Method2(default(int).ToString());
+    }
+
+    void Method2(string value)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
         public async Task PreferNullLiteral_Struct()
         {
             var source = @"
