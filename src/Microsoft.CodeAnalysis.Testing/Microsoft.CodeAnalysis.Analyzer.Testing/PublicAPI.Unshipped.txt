@@ -212,6 +212,8 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp10.g
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp30.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp31.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
@@ -255,6 +257,7 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandar
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard15.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard16.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int cursor) -> string
