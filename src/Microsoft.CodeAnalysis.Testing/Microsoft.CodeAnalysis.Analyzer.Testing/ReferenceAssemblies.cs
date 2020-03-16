@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed partial class ReferenceAssemblies
     {
-        private const string ReferenceAssembliesPackageVersion = "1.0.0-preview.2";
+        private const string ReferenceAssembliesPackageVersion = "1.0.0";
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
