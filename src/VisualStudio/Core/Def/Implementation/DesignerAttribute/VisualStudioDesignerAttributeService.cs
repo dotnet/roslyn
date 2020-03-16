@@ -149,7 +149,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _1 = ArrayBuilder<DesignerInfo>.GetInstance(out var filteredInfos);
-            using var _2 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
+            AddFilteredInfos(infos, filteredInfos);
+
+            // Now, group all the notifications by project and update all the projects in parallel.
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
+            }
+
+            // Wait until all project updates have happened before processing the next batch.
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private void AddFilteredInfos(ImmutableArray<DesignerInfo> infos, ArrayBuilder<DesignerInfo> filteredInfos)
+        {
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
             // Walk the list of designer items in reverse, and skip any items for a project once
             // we've already seen it once.  That way, we're only reporting the most up to date
@@ -160,17 +176,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 if (seenDocumentIds.Add(info.DocumentId))
                     filteredInfos.Add(info);
             }
-
-            // Now, group all the notifications by project and update all the projects in parallel.
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in infos.GroupBy(a => a.DocumentId.ProjectId))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
-            }
-
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private async Task NotifyProjectSystemAsync(
