@@ -6620,6 +6620,7 @@ partial class C
             {{
                 // {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             }}
+
             // {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
             {disposeField} = true;

@@ -233,7 +233,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
                 ifDisposingStatement = this.Service.AddCommentInsideIfStatement(
                     ifDisposingStatement,
-                    CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects));
+                    CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
+                        .WithoutTrivia().WithTrailingTrivia(g.CarriageReturnLineFeed, g.CarriageReturnLineFeed);
 
                 // TODO: free unmanaged ...
                 // TODO: set large fields...

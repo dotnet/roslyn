@@ -4297,6 +4297,7 @@ Class _
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
+
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
             disposedValue = True
@@ -4369,6 +4370,7 @@ Partial Class C
             If disposing Then
                 ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
+
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
             disposedValue = True
@@ -4409,6 +4411,7 @@ End Interface",
             If disposing Then
                 ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
+
             ' {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
             {disposeField} = True
