@@ -1757,16 +1757,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Warnung</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Switch mit Daten auffüllen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Der Memberzugriff sollte qualifiziert sein.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Aktivieren</target>

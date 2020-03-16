@@ -144,4 +144,49 @@
   <data name="Add_braces_to_0_statement" xml:space="preserve">
     <value>Add braces to '{0}' statement.</value>
   </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_block_body_for_methods" xml:space="preserve">
+    <value>Use block body for methods</value>
+  </data>
+  <data name="Use_block_body_for_accessors" xml:space="preserve">
+    <value>Use block body for accessors</value>
+  </data>
+  <data name="Use_block_body_for_constructors" xml:space="preserve">
+    <value>Use block body for constructors</value>
+  </data>
+  <data name="Use_block_body_for_indexers" xml:space="preserve">
+    <value>Use block body for indexers</value>
+  </data>
+  <data name="Use_block_body_for_operators" xml:space="preserve">
+    <value>Use block body for operators</value>
+  </data>
+  <data name="Use_block_body_for_properties" xml:space="preserve">
+    <value>Use block body for properties</value>
+  </data>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
+  </data>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
+  </data>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
+  </data>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
+  </data>
+  <data name="Use_block_body_for_local_functions" xml:space="preserve">
+    <value>Use block body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Use_pattern_matching" xml:space="preserve">
+    <value>Use pattern matching</value>
+  </data>
 </root>

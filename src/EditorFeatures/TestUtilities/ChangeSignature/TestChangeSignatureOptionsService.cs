@@ -6,7 +6,6 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
-        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
+        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
 

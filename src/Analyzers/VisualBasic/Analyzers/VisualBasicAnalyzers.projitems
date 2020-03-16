@@ -13,11 +13,17 @@
     <None Include="$(MSBuildThisFileDirectory)VisualBasicAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
   </ItemGroup>
 </Project>

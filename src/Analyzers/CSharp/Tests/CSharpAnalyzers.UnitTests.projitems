@@ -9,21 +9,47 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConstructorsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConversionOperatorsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForIndexersAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForLocalFunctionsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForMethodsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForOperatorsAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForPropertiesAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedParametersTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueAssignmentTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueExpressionStatementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValuesTestsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
   </ItemGroup>

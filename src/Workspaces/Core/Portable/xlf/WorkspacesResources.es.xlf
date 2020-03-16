@@ -1757,16 +1757,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Advertencia</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Rellenar switch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Debe calificarse el acceso a miembros.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Habilitar</target>

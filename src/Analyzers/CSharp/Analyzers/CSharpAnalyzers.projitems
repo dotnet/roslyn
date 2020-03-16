@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CSharpAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.Analyzer.cs" />
@@ -20,12 +21,32 @@
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\CSharpNamingStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForAccessorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForConstructorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForConversionOperatorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForIndexersHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForLocalFunctionHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForMethodsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForOperatorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyForPropertiesHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\Helpers\UseExpressionBodyHelper`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.Analyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
   </ItemGroup>
 </Project>

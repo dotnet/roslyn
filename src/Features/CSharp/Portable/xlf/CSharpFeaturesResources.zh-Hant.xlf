@@ -7,11 +7,6 @@
         <target state="translated">新增 await 和 ConfigureAwait(false)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">新增協助工具修飾元</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">新增等候</target>
@@ -725,11 +720,6 @@
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
         <target state="translated">讓方法不同步 (仍為 void)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">新增 'this.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

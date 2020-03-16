@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                INamespaceSymbol next = container.GetNestedNamespace(parts[i]);
+                INamespaceSymbol? next = container.GetNestedNamespace(parts[i]);
                 if (next == null)
                 {
                     AssertNoScriptTrees();

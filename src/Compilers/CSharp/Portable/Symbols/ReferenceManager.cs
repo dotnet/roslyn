@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var assembly = metadata.GetAssembly();
-
+                Debug.Assert(assembly is object);
                 var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
 
                 assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences);
