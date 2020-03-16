@@ -29,12 +29,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteEndPoint _endPoint;
 
         private readonly object _gate = new object();
-        private ParsedTodoCommentDescriptors? _lastDescriptorInfo;
+        private string? _lastOptionText = null;
+        private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
-        {
-            _endPoint = endPoint;
-        }
+        public RemoteTodoCommentsIncrementalAnalyzer(RemoteEndPoint endPoint)
+            => _endPoint = endPoint;
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
@@ -45,10 +44,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
-                if (_lastDescriptorInfo == null || _lastDescriptorInfo.Value.OptionText != optionText)
-                    _lastDescriptorInfo = ParsedTodoCommentDescriptors.Parse(optionText);
+                if (optionText != _lastOptionText)
+                {
+                    _lastDescriptors = TodoCommentDescriptor.Parse(optionText);
+                    _lastOptionText = optionText;
+                }
 
-                return _lastDescriptorInfo.Value;
+                return _lastDescriptors;
             }
         }
 

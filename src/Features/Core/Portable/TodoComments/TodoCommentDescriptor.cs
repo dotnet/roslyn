@@ -21,26 +21,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Text = text;
             Priority = priority;
         }
-    }
 
-    internal readonly struct ParsedTodoCommentDescriptors
-    {
-        /// <summary>
-        /// The original option text that <see cref="Descriptors"/> were parsed out of.
-        /// </summary>
-        public readonly string OptionText;
-        public readonly ImmutableArray<TodoCommentDescriptor> Descriptors;
-
-        public ParsedTodoCommentDescriptors(string optionText, ImmutableArray<TodoCommentDescriptor> descriptors)
-        {
-            this.OptionText = optionText;
-            this.Descriptors = descriptors;
-        }
-
-        public static ParsedTodoCommentDescriptors Parse(string data)
+        public static ImmutableArray<TodoCommentDescriptor> Parse(string data)
         {
             if (string.IsNullOrWhiteSpace(data))
-                return new ParsedTodoCommentDescriptors(data, ImmutableArray<TodoCommentDescriptor>.Empty);
+                return ImmutableArray<TodoCommentDescriptor>.Empty;
 
             var tuples = data.Split('|');
             var result = ArrayBuilder<TodoCommentDescriptor>.GetInstance();
@@ -61,7 +46,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
             }
 
-            return new ParsedTodoCommentDescriptors(data, result.ToImmutableAndFree());
+            return result.ToImmutableAndFree();
         }
     }
 }
