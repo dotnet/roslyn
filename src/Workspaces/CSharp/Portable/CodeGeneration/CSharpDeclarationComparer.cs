@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private int Compare(DelegateDeclarationSyntax x, DelegateDeclarationSyntax y)
         {
-            if (EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out var result))
+            if (EqualAccessibility(x, x.Modifiers, null, y, y.Modifiers, null, out var result))
             {
                 if (_includeName)
                 {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (EqualConstness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
                 EqualReadOnlyness(x.Modifiers, y.Modifiers, out result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(x, x.Modifiers, null, y, y.Modifiers, null, out result))
             {
                 if (_includeName)
                 {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static int Compare(ConstructorDeclarationSyntax x, ConstructorDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(x, x.Modifiers, null, y, y.Modifiers, null, out result))
             {
                 EqualParameterCount(x.ParameterList, y.ParameterList, out result);
             }
@@ -181,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private int Compare(MethodDeclarationSyntax x, MethodDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(
+                    x, x.Modifiers, x.ExplicitInterfaceSpecifier,
+                    y, y.Modifiers, y.ExplicitInterfaceSpecifier, out result))
             {
                 if (!_includeName)
                 {
@@ -217,7 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private int Compare(EventDeclarationSyntax x, EventDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(
+                    x, x.Modifiers, x.ExplicitInterfaceSpecifier,
+                    y, y.Modifiers, y.ExplicitInterfaceSpecifier, out result))
             {
                 if (_includeName)
                 {
@@ -231,7 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static int Compare(IndexerDeclarationSyntax x, IndexerDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(
+                    x, x.Modifiers, x.ExplicitInterfaceSpecifier,
+                    y, y.Modifiers, y.ExplicitInterfaceSpecifier, out result))
             {
                 EqualParameterCount(x.ParameterList, y.ParameterList, out result);
             }
@@ -242,7 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private int Compare(PropertyDeclarationSyntax x, PropertyDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(
+                    x, x.Modifiers, x.ExplicitInterfaceSpecifier,
+                    y, y.Modifiers, y.ExplicitInterfaceSpecifier, out result))
             {
                 if (_includeName)
                 {
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private int Compare(EnumDeclarationSyntax x, EnumDeclarationSyntax y)
         {
-            if (EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out var result))
+            if (EqualAccessibility(x, x.Modifiers, null, y, y.Modifiers, null, out var result))
             {
                 if (_includeName)
                 {
@@ -269,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private int Compare(BaseTypeDeclarationSyntax x, BaseTypeDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
+                EqualAccessibility(x, x.Modifiers, null, y, y.Modifiers, null, out result))
             {
                 if (_includeName)
                 {
@@ -394,12 +402,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static bool EqualReadOnlyness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
             => BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, out comparisonResult);
 
-        private static bool EqualAccessibility(SyntaxNode x, SyntaxTokenList xModifiers, SyntaxNode y, SyntaxTokenList yModifiers, out int comparisonResult)
+        private static bool EqualAccessibility(
+            SyntaxNode x, SyntaxTokenList xModifiers, ExplicitInterfaceSpecifierSyntax xExplicit,
+            SyntaxNode y, SyntaxTokenList yModifiers, ExplicitInterfaceSpecifierSyntax yExplicit, out int comparisonResult)
         {
-            var xAccessibility = GetAccessibilityPrecedence(x, x.Parent ?? y.Parent, xModifiers);
-            var yAccessibility = GetAccessibilityPrecedence(y, y.Parent ?? x.Parent, yModifiers);
+            if (xExplicit != null || yExplicit != null)
+            {
+                comparisonResult = 0;
+            }
+            else
+            {
+                var xAccessibility = GetAccessibilityPrecedence(x, x.Parent ?? y.Parent, xModifiers);
+                var yAccessibility = GetAccessibilityPrecedence(y, y.Parent ?? x.Parent, yModifiers);
+                comparisonResult = xAccessibility - yAccessibility;
+            }
 
-            comparisonResult = xAccessibility - yAccessibility;
             return comparisonResult == 0;
         }
 

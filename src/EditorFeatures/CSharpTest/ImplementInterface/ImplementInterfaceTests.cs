@@ -6611,7 +6611,21 @@ partial class C
             string implementationVisibility,
             string disposeField = "disposedValue")
         {
-            return $@"    {disposeVisibility}void Dispose(bool disposing)
+            return $@"    {implementationVisibility}Dispose()
+    {{
+        // {string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(bool disposing)")}
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }}
+
+    // // {string.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(bool disposing)")}
+    // ~{className}()
+    // {{
+    //     // {string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(bool disposing)")}
+    //     Dispose(disposing: false);
+    // }}
+
+    {disposeVisibility}void Dispose(bool disposing)
     {{
         if (!{disposeField})
         {{
@@ -6623,20 +6637,6 @@ partial class C
             // {FeaturesResources.TODO_colon_set_large_fields_to_null}
             {disposeField} = true;
         }}
-    }}
-
-    // {FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources}
-    // ~{className}()
-    // {{
-    //   // {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
-    //   Dispose(disposing: false);
-    // }}
-
-    {implementationVisibility}Dispose()
-    {{
-        // {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }}";
         }
 

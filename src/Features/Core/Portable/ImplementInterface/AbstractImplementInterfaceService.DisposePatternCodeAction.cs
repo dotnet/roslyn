@@ -136,18 +136,34 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     document, classOrStructType, cancellationToken).ConfigureAwait(false);
 
                 var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(compilation);
-
                 var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classOrStructType, disposeMethod, disposedValueField);
 
-                var updatedDocument = await GetUpdatedDocumentAsync(
+                var docWithCoreMembers = await GetUpdatedDocumentAsync(
                     document,
                     unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
                     classOrStructType,
                     classOrStructDecl,
-                    extraMembers: disposableMethods.Concat(disposedValueField),
+                    extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
                     cancellationToken).ConfigureAwait(false);
 
-                return await AddFinalizerCommentAsync(updatedDocument, finalizer, cancellationToken).ConfigureAwait(false);
+                var rootWithCoreMembers = await docWithCoreMembers.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
+                var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent;
+
+                var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
+                    typeDeclarationWithCoreMembers,
+                    disposableMethods,
+                    document.Project.Solution.Workspace,
+                    new CodeGenerationOptions(
+                        parseOptions: rootWithCoreMembers.SyntaxTree.Options,
+                        autoInsertionLocation: false));
+
+                var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
+                    rootWithCoreMembers.ReplaceNode(
+                        typeDeclarationWithCoreMembers, typeDeclarationWithAllMembers));
+
+                return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Document> AddFinalizerCommentAsync(
@@ -192,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
                 var finalizer = this.Service.CreateFinalizer(g, classOrStructType, disposeMethodDisplayString);
 
-                return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
+                return (ImmutableArray.Create<ISymbol>(disposeInterfaceMethod, disposeImplMethod), finalizer);
             }
 
             private IMethodSymbol CreateDisposeImplementationMethod(
