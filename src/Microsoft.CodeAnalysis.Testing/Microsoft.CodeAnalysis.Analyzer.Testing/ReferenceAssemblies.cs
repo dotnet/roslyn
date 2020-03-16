@@ -17,7 +17,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
-using NuGet.Versioning;
 
 #if NET46 || NET472 || NETSTANDARD
 using NuGet.Packaging.Signing;
@@ -46,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Testing
             AssemblyIdentityComparer = AssemblyIdentityComparer.Default;
             ReferenceAssemblyPath = null;
             Assemblies = ImmutableArray<string>.Empty;
+            FacadeAssemblies = ImmutableArray<string>.Empty;
             LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
             Packages = ImmutableArray<PackageIdentity>.Empty;
         }
@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Testing
             ReferenceAssemblyPackage = referenceAssemblyPackage ?? throw new ArgumentNullException(nameof(referenceAssemblyPackage));
             ReferenceAssemblyPath = referenceAssemblyPath;
             Assemblies = ImmutableArray<string>.Empty;
+            FacadeAssemblies = ImmutableArray<string>.Empty;
             LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
             Packages = ImmutableArray<PackageIdentity>.Empty;
         }
@@ -397,6 +398,15 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
                     }
+                }
+
+                // Prefer assemblies from the reference assembly package to ones otherwise provided
+                if (ReferenceAssemblyPackage is object)
+                {
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var referenceAssemblies = new HashSet<string>(resolvedAssemblies.Where(resolved => resolved.StartsWith(installedPath)));
+                    var referenceAssemblyNames = new HashSet<string>(referenceAssemblies.Select(Path.GetFileNameWithoutExtension));
+                    resolvedAssemblies.RemoveWhere(resolved => referenceAssemblyNames.Contains(Path.GetFileNameWithoutExtension(resolved)) && !referenceAssemblies.Contains(resolved));
                 }
 
                 // Add the facade assemblies
@@ -929,6 +939,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     "System.Xml",
                     "System.Xml.Linq",
                     "System.Xml.Serialization"));
+
+            public static ReferenceAssemblies NetStandard21 { get; }
+                = new ReferenceAssemblies(
+                    "netstandard2.1",
+                    new PackageIdentity(
+                        "NETStandard.Library.Ref",
+                        "2.1.0"),
+                    Path.Combine("ref", "netstandard2.1"));
         }
     }
 }

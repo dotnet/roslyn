@@ -374,6 +374,7 @@ class TestClass {
         [Theory]
         [InlineData("netstandard1.1", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
         [InlineData("netstandard2.0", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
+        [InlineData("netstandard2.1", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
         [InlineData("net452")]
         [InlineData("net472")]
         public async Task TestRoslynCompilerUsage_1(string targetFramework)
@@ -399,6 +400,7 @@ class TestClass {
         [Theory]
         [InlineData("netstandard1.3")]
         [InlineData("netstandard2.0")]
+        [InlineData("netstandard2.1")]
         [InlineData("net46")]
         [InlineData("net472")]
         public async Task TestRoslynCompilerUsage_2(string targetFramework)
@@ -423,6 +425,7 @@ class TestClass {
 
         [Theory]
         [InlineData("netstandard2.0")]
+        [InlineData("netstandard2.1")]
         [InlineData("net472")]
         public async Task TestRoslynCompilerUsage_3(string targetFramework)
         {

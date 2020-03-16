@@ -359,6 +359,14 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task ResolveReferenceAssemblies_NetStandard21()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
         public async Task ResolveReferenceAssemblies_NetCoreApp10()
         {
             var referenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp10;
@@ -414,6 +422,7 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("netstandard1.5")]
         [InlineData("netstandard1.6")]
         [InlineData("netstandard2.0")]
+        [InlineData("netstandard2.1")]
         public async Task ResolveHashSetExceptInNet20(string targetFramework)
         {
             var testCode = @"
@@ -459,6 +468,7 @@ class TestClass {
                 "netstandard1.5" => ReferenceAssemblies.NetStandard.NetStandard15,
                 "netstandard1.6" => ReferenceAssemblies.NetStandard.NetStandard16,
                 "netstandard2.0" => ReferenceAssemblies.NetStandard.NetStandard20,
+                "netstandard2.1" => ReferenceAssemblies.NetStandard.NetStandard21,
                 null => throw new ArgumentNullException(nameof(targetFramework)),
                 _ => throw new NotSupportedException($"Target framework '{targetFramework}' is not currently supported."),
             };
