@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (DateAndTimePatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts, out _, out _))
+            if (!DateAndTimePatternDetector.IsPossiblyDateAndTimeToken(token, syntaxFacts, out _, out _))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
-            return detector != null && detector.IsDateTimeStringToken(token, cancellationToken)
+            return detector != null && detector.IsDateAndTimeToken(token, cancellationToken)
                 ? token : default(SyntaxToken?);
         }
     }

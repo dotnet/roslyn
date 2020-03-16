@@ -67,43 +67,43 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             return new DateAndTimePatternDetector(semanticModel, info, dateTimeType, dateTimeOffsetType);
         }
 
-        public static bool IsDefinitelyNotDateTimeStringToken(
+        public static bool IsPossiblyDateAndTimeToken(
             SyntaxToken token, ISyntaxFacts syntaxFacts,
-            [NotNullWhen(false)] out SyntaxNode? argumentNode,
-            [NotNullWhen(false)] out SyntaxNode? invocationExpression)
+            [NotNullWhen(true)] out SyntaxNode? argumentNode,
+            [NotNullWhen(true)] out SyntaxNode? invocationExpression)
         {
             // Has to be a string literal passed to a method.
             argumentNode = null;
             invocationExpression = null;
 
             if (!syntaxFacts.IsStringLiteral(token))
-                return true;
+                return false;
 
             if (!IsMethodArgument(token, syntaxFacts))
-                return true;
+                return false;
 
             if (!syntaxFacts.IsLiteralExpression(token.Parent))
-                return true;
+                return false;
 
             if (!syntaxFacts.IsArgument(token.Parent.Parent))
-                return true;
+                return false;
 
             var argumentList = token.Parent.Parent.Parent;
             var invocationOrCreation = argumentList?.Parent;
             if (!syntaxFacts.IsInvocationExpression(invocationOrCreation))
-                return true;
+                return false;
 
             var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
             var name = GetNameOfInvokedExpression(syntaxFacts, invokedExpression);
             if (name != nameof(ToString) && name != nameof(System.DateTime.ParseExact) && name != nameof(System.DateTime.TryParseExact))
-                return true;
+                return false;
 
             // We have a string literal passed to a method called ToString/ParseExact/TryParseExact.
             // Have to do a more expensive semantic check now.
             argumentNode = token.Parent.Parent;
             invocationExpression = invocationOrCreation;
 
-            return false;
+            return true;
         }
 
         private static string? GetNameOfInvokedExpression(ISyntaxFacts syntaxFacts, SyntaxNode invokedExpression)
@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent!.Parent);
 
-        public bool IsDateTimeStringToken(SyntaxToken token, CancellationToken cancellationToken)
+        public bool IsDateAndTimeToken(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (IsDefinitelyNotDateTimeStringToken(
+            if (!IsPossiblyDateAndTimeToken(
                     token, _info.SyntaxFacts,
                     out var argumentNode, out var invocationOrCreation))
             {
