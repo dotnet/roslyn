@@ -783,5 +783,52 @@ class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
                 );
         }
+
+        [Fact]
+        [WorkItem(42362, "https://github.com/dotnet/roslyn/issues/42362")]
+        public void UsingDeclarationWithConstModifier()
+        {
+            var source = @"
+class Program
+{
+    static System.IDisposable F() => null;
+
+    static void Main()
+    {
+        using const System.IDisposable o = F();
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+                .VerifyDiagnostics(
+                    // (8,44): error CS0133: The expression being assigned to 'o' must be constant
+                    //         using const System.IDisposable o = F();
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "F()").WithArguments("o").WithLocation(8, 44)
+                 );
+        }
+
+        [Fact]
+        [WorkItem(42362, "https://github.com/dotnet/roslyn/issues/42362")]
+        public void UsingDeclarationWithConstModifierAndConstValue()
+        {
+            var source = @"
+#pragma warning disable CS0219
+class Program
+{
+    const System.IDisposable x = null;
+
+    static void Main()
+    {
+        using const System.IDisposable o = null;
+
+        using var y = x;
+        using const var z = x;
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+                .VerifyDiagnostics()
+                .VerifyEmitDiagnostics();
+        }
     }
 }

@@ -1105,7 +1105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
             }
-            else if (kind == LocalDeclarationKind.Constant && initializerOpt != null && !localDiagnostics.HasAnyResolvedErrors())
+
+            if ((kind == LocalDeclarationKind.Constant || kind == LocalDeclarationKind.UsingVariable) && initializerOpt != null && !localDiagnostics.HasAnyResolvedErrors())
             {
                 var constantValueDiagnostics = localSymbol.GetConstantValueDiagnostics(initializerOpt);
                 foreach (var diagnostic in constantValueDiagnostics)
