@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Func<Symbol, RetargetingFieldSymbol> _createRetargetingField;
         private readonly Func<Symbol, RetargetingPropertySymbol> _createRetargetingProperty;
         private readonly Func<Symbol, RetargetingEventSymbol> _createRetargetingEvent;
-        private readonly Func<Symbol, NativeIntegerTypeSymbol> _createRetargetingNativeInteger;
 
         private RetargetingMethodSymbol CreateRetargetingMethod(Symbol symbol)
         {
@@ -78,11 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             Debug.Assert(ReferenceEquals(symbol.ContainingModule, _underlyingModule));
             return new RetargetingTypeParameterSymbol(this, (TypeParameterSymbol)symbol);
-        }
-
-        private NativeIntegerTypeSymbol CreateRetargetingNativeInteger(Symbol symbol)
-        {
-            return new NativeIntegerTypeSymbol((NamedTypeSymbol)symbol);
         }
 
         internal class RetargetingSymbolTranslator
@@ -192,9 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (type.IsNativeIntegerType)
                 {
-                    return (NamedTypeSymbol)SymbolMap.GetOrAdd(
-                        RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options),
-                        _retargetingModule._createRetargetingNativeInteger);
+                    if (!SymbolMap.TryGetValue(type, out var retargeted))
+                    {
+                        retargeted = SymbolMap.GetOrAdd(type, Retarget(type.NativeIntegerUnderlyingType, options).AsNativeInteger());
+                    }
+                    return (NamedTypeSymbol)retargeted;
                 }
 
                 // Before we do anything else, check if we need to do special retargeting
