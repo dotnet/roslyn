@@ -27,13 +27,11 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
-        [return: MaybeNull]
-        public override object GetOption(OptionKey optionKey)
+        public override object? GetOption(OptionKey optionKey)
         {
             return _backingOptionSet.GetOption(optionKey);
         }
 
-        [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option)
         {
             return _backingOptionSet.GetOption(option, _language);

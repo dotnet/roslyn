@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        protected readonly string DescriptorId;
+        protected readonly string? DescriptorId;
 
         protected readonly DiagnosticDescriptor Descriptor;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
         /// appear for.  This is the common descriptor for code that is being faded out
         /// </summary>
-        protected readonly DiagnosticDescriptor UnnecessaryWithSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor? UnnecessaryWithSuggestionDescriptor;
 
         /// <summary>
         /// Diagnostic descriptor for code you want to fade out and do *not* want to have a smart-tag
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// same issue when they bring up the code action on that line.  Using these two descriptors
         /// helps ensure that there will not be useless code-action overload.
         /// </summary>
-        protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
+        protected readonly DiagnosticDescriptor? UnnecessaryWithoutSuggestionDescriptor;
 
         protected readonly LocalizableString _localizableTitle;
         protected readonly LocalizableString _localizableMessageFormat;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title,
-            LocalizableString messageFormat = null,
+            LocalizableString? messageFormat = null,
             bool configurable = true)
         {
             DescriptorId = descriptorId;
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = messageFormat ?? title;
             _configurable = configurable;
 
-            Descriptor = CreateDescriptor();
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
+            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat);
+            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId);
             UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(descriptorId + "WithoutSuggestion");
 
             SupportedDiagnostics = ImmutableArray.Create(
@@ -59,10 +61,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
         {
             SupportedDiagnostics = supportedDiagnostics;
-        }
 
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
-            => CreateUnnecessaryDescriptor(DescriptorId);
+            Descriptor = SupportedDiagnostics[0];
+            _localizableTitle = Descriptor.Title;
+            _localizableMessageFormat = Descriptor.MessageFormat;
+        }
 
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
@@ -71,19 +74,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags: customTags);
-
-        protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, title, title, customTags: customTags);
-
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,
             LocalizableString title,
             LocalizableString messageFormat,
             bool isUnnecessary = false,
             bool isConfigurable = true,
-            LocalizableString description = null,
+            LocalizableString? description = null,
             params string[] customTags)
             => new DiagnosticDescriptor(
                     id, title, messageFormat,

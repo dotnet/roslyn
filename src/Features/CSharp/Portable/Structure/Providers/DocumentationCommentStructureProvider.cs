@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var span = TextSpan.FromBounds(startPos, endPos);
 
             var bannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.CSharp);
-            var bannerText = CSharpSyntaxFactsService.Instance.GetBannerText(
+            var bannerText = CSharpSyntaxFacts.Instance.GetBannerText(
                 documentationComment, bannerLength, cancellationToken);
 
             spans.Add(new BlockSpan(

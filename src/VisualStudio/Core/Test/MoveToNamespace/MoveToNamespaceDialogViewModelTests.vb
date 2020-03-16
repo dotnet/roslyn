@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CSharp
+Imports Microsoft.CodeAnalysis.CSharp.LanguageServices
 Imports Microsoft.CodeAnalysis.MoveToNamespace
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -85,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
                                                             defaultNamespace & "2"})
             End If
 
-            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, CSharpSyntaxFactsService.Instance)
+            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, CSharpSyntaxFacts.Instance)
         End Function
     End Class
 End Namespace

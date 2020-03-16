@@ -1222,5 +1222,21 @@ indent_style = space
     </Project>
 </Workspace>")
         End Function
+
+        <WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestNotOnSerializableType() As Task
+            Await TestMissingAsync(
+"
+<System.Serializable>
+class Class1
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+end class")
+        End Function
     End Class
 End Namespace

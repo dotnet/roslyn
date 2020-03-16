@@ -9,7 +9,9 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -482,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim newBlock As SyntaxNode
             If options.BeforeThisLocation IsNot Nothing Then
                 Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
-                Dim newStatement = VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
+                Dim newStatement = VisualBasicSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
                     oldStatement, strippedTrivia)
 
                 statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
@@ -613,13 +615,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccessibility As Accessibility, options As CodeGenerationOptions) As SyntaxTokenList
-            Dim newModifierTokens = New List(Of SyntaxToken)()
-            VisualBasicCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
-            If newModifierTokens.Count = 0 Then
-                Return modifiersList
-            End If
+            Dim newModifierTokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(newModifierTokens)
+                AddAccessibilityModifiers(newAccessibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
+                If newModifierTokens.Count = 0 Then
+                    Return modifiersList
+                End If
 
-            Return SyntaxFactory.TokenList(GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, Function(modifier As SyntaxToken) SyntaxFacts.IsAccessibilityModifier(modifier.Kind())))
+                Return GetUpdatedDeclarationAccessibilityModifiers(
+                    newModifierTokens, modifiersList,
+                    Function(modifier) SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+            End Using
         End Function
 
         Private Function UpdateSimpleAsClause(asClause As SimpleAsClauseSyntax, newType As ITypeSymbol) As SimpleAsClauseSyntax

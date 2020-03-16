@@ -743,41 +743,6 @@ class [|Program|] : Goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestGenerateIntoNonHiddenPart()
-        {
-            await TestAllOptionsOffAsync(
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class [|Program|] : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program ",
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class Program : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program
-{
-    public override void F()
-    {
-        throw new NotImplementedException();
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
             await TestAllOptionsOffAsync(

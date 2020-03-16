@@ -3,12 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -18,24 +13,24 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private readonly int _index;
         private readonly SyntaxToken _previousToken;
         private readonly SyntaxToken _currentToken;
-        private readonly OptionSet _optionSet;
+        private readonly AnalyzerConfigOptions _options;
 
         public NextGetAdjustNewLinesOperation(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxToken previousToken,
             SyntaxToken currentToken,
-            OptionSet optionSet)
+            AnalyzerConfigOptions options)
         {
             _formattingRules = formattingRules;
             _index = index;
             _previousToken = previousToken;
             _currentToken = currentToken;
-            _optionSet = optionSet;
+            _options = options;
         }
 
         private NextGetAdjustNewLinesOperation NextOperation
-            => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _optionSet);
+            => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
 
         public AdjustNewLinesOperation Invoke()
         {
@@ -47,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                return _formattingRules[_index].GetAdjustNewLinesOperation(_previousToken, _currentToken, _optionSet, NextOperation);
+                return _formattingRules[_index].GetAdjustNewLinesOperation(_previousToken, _currentToken, _options, NextOperation);
             }
         }
     }

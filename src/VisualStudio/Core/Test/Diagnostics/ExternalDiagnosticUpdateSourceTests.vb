@@ -435,11 +435,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
+            Private ReadOnly _hostAnalyzers As HostDiagnosticAnalyzers
 
             Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing,
                            Optional analyzers As ImmutableArray(Of AnalyzerReference) = Nothing)
                 _data = data.NullToEmpty
-                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache(analyzers.NullToEmpty)
+                _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
+                _hostAnalyzers = New HostDiagnosticAnalyzers(analyzers.NullToEmpty)
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -451,6 +453,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get
                     Return _analyzerInfoCache
+                End Get
+            End Property
+
+            Public ReadOnly Property HostAnalyzers As HostDiagnosticAnalyzers Implements IDiagnosticAnalyzerService.HostAnalyzers
+                Get
+                    Return _hostAnalyzers
                 End Get
             End Property
 

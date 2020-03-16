@@ -92,11 +92,6 @@
         <target state="translated">&lt;여러 형식&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">불필요한 Imports 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">여기에 이름을 입력하여 새 필드를 선언하세요.</target>
@@ -1537,11 +1532,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">TODO: 위의 Finalize()가 재정의된 경우 다음 줄의 주석 처리를 제거합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports 문은 필요하지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try 블록</target>
@@ -1820,11 +1810,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">비동기 Sub로 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me'를 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

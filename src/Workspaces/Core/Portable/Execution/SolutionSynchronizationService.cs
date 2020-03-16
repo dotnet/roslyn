@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 _assetStorages.AddGlobalAsset(value, asset, cancellationToken);
             }
 
-            public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
+            public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
             {
                 return _assetStorages.GetGlobalAsset(value, cancellationToken);
             }

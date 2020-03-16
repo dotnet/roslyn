@@ -138,5 +138,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim type = collectionInitializer.Initializers.FirstOrDefault().DetermineType(semanticModel, cancellationToken)
             Return semanticModel.Compilation.CreateArrayTypeSymbol(type, rank)
         End Function
+
+        Private Function IsUnnecessaryCast(
+            castNode As ExpressionSyntax,
+            castExpressionNode As ExpressionSyntax,
+            semanticModel As SemanticModel,
+            assumeCallKeyword As Boolean,
+            cancellationToken As CancellationToken
+        ) As Boolean
+
+            Return CastAnalyzer.IsUnnecessary(castNode, castExpressionNode, semanticModel, assumeCallKeyword, cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function IsUnnecessaryCast(
+            node As CastExpressionSyntax,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken,
+            Optional assumeCallKeyword As Boolean = False
+        ) As Boolean
+
+            Return IsUnnecessaryCast(node, node.Expression, semanticModel, assumeCallKeyword, cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function IsUnnecessaryCast(
+            node As PredefinedCastExpressionSyntax,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken,
+            Optional assumeCallKeyword As Boolean = False
+        ) As Boolean
+
+            Return IsUnnecessaryCast(node, node.Expression, semanticModel, assumeCallKeyword, cancellationToken)
+        End Function
     End Module
 End Namespace

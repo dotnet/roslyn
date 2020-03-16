@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -24,23 +23,21 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableDictionary<string, AnalyzerConfigOptions> _lazyAnalyzerConfigOptions = s_emptyAnalyzerConfigOptions;
 
         /// <summary>
-        /// Gets the value of the option.
+        /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public abstract object? GetOption(OptionKey optionKey);
 
         /// <summary>
-        /// Gets the value of the option.
+        /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        [return: MaybeNull]
         public T GetOption<T>(Option<T> option)
         {
             return (T)GetOption(new OptionKey(option, language: null))!;
         }
 
         /// <summary>
-        /// Gets the value of the option.
+        /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        [return: MaybeNull]
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
         {
             return (T)GetOption(new OptionKey(option, language))!;
@@ -54,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public OptionSet WithChangedOption<T>(Option<T> option, [MaybeNull] T value)
+        public OptionSet WithChangedOption<T>(Option<T> option, T value)
         {
             return WithChangedOption(new OptionKey(option), value);
         }
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string? language, [MaybeNull] T value)
+        public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string? language, T value)
         {
             return WithChangedOption(new OptionKey(option, language), value);
         }
