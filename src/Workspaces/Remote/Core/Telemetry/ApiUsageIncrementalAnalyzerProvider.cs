@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
                         try
                         {
-                            RoslynServices.SessionOpt?.PostEvent(telemetryEvent);
+                            RoslynServices.TelemetrySession?.PostEvent(telemetryEvent);
                         }
                         catch
                         {
