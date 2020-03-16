@@ -20,18 +20,6 @@ namespace Analyzer.Utilities.Lightup
 
         private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
         {
-            static TProperty FallbackAccessor(T instance)
-            {
-                if (instance == null)
-                {
-                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
-                    // behavior needs to match behavior of the underlying property.
-                    throw new NullReferenceException();
-                }
-
-                return default!;
-            }
-
             if (type == null)
             {
                 return FallbackAccessor;
@@ -76,6 +64,19 @@ namespace Analyzer.Utilities.Lightup
 
             Expression<Func<T, TProperty>> expression = Expression.Lambda<Func<T, TProperty>>(result, parameter);
             return expression.Compile();
+
+            // Local function
+            static TProperty FallbackAccessor(T instance)
+            {
+                if (instance == null)
+                {
+                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
+                    // behavior needs to match behavior of the underlying property.
+                    throw new NullReferenceException();
+                }
+
+                return default!;
+            }
         }
 
         internal static Func<TSyntax, TProperty, TSyntax> CreateSyntaxWithPropertyAccessor<TSyntax, TProperty>(Type type, string propertyName)
@@ -88,23 +89,6 @@ namespace Analyzer.Utilities.Lightup
 
         private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
         {
-            static T FallbackAccessor(T instance, TProperty newValue)
-            {
-                if (instance == null)
-                {
-                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
-                    // behavior needs to match behavior of the underlying property.
-                    throw new NullReferenceException();
-                }
-
-                if (Equals(newValue, default(TProperty)))
-                {
-                    return instance;
-                }
-
-                throw new NotSupportedException();
-            }
-
             if (type == null)
             {
                 return FallbackAccessor;
@@ -159,11 +143,9 @@ namespace Analyzer.Utilities.Lightup
                     parameter,
                     valueParameter);
             return expression.Compile();
-        }
 
-        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type type, string parameterName, Type argumentType, string argumentName, string methodName)
-        {
-            static TValue FallbackAccessor(T instance, TArg argument)
+            // Local function
+            static T FallbackAccessor(T instance, TProperty newValue)
             {
                 if (instance == null)
                 {
@@ -172,9 +154,17 @@ namespace Analyzer.Utilities.Lightup
                     throw new NullReferenceException();
                 }
 
-                return default!;
-            }
+                if (Equals(newValue, default(TProperty)))
+                {
+                    return instance;
+                }
 
+                throw new NotSupportedException();
+            }
+        }
+
+        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type type, string parameterName, Type argumentType, string argumentName, string methodName)
+        {
             if (type == null)
             {
                 return FallbackAccessor;
@@ -224,6 +214,19 @@ namespace Analyzer.Utilities.Lightup
 
             Expression<Func<T, TArg, TValue>> expression = Expression.Lambda<Func<T, TArg, TValue>>(result, parameter, argument);
             return expression.Compile();
+
+            // Local function
+            static TValue FallbackAccessor(T instance, TArg argument)
+            {
+                if (instance == null)
+                {
+                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
+                    // behavior needs to match behavior of the underlying property.
+                    throw new NullReferenceException();
+                }
+
+                return default!;
+            }
         }
     }
 }
