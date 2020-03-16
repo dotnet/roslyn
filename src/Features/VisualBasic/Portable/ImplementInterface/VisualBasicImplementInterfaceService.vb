@@ -89,6 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Return TryCast(symbolInfo.GetAnySymbol(), INamedTypeSymbol)
         End Function
 
+        Protected Overrides Function AddCommentInsideIfStatement(ifStatement As SyntaxNode, trivia As SyntaxTriviaList) As SyntaxNode
+            Return ifStatement.ReplaceNode(
+                ifStatement.ChildNodes().Last(),
+                ifStatement.ChildNodes().Last().WithPrependedLeadingTrivia(trivia))
+        End Function
+
         Protected Overrides Function CreateFinalizer(
                 g As SyntaxGenerator,
                 classType As INamedTypeSymbol,

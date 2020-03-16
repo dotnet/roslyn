@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
 
-        protected abstract SyntaxNode CreateFinalizer(
-            SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
+        protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
+        protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
         public async Task<Document> ImplementInterfaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected static TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
             => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));
 
-        protected static SyntaxTriviaList CreateCommentTrivia(SyntaxGenerator generator, string[] comments)
+        protected static SyntaxTriviaList CreateCommentTrivia(SyntaxGenerator generator, params string[] comments)
         {
             using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
 

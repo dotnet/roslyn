@@ -66,6 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         protected override bool HasHiddenExplicitImplementation => true;
 
+        protected override SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifStatement, SyntaxTriviaList trivia)
+        {
+            return ifStatement.ReplaceToken(
+                ifStatement.GetLastToken(),
+                ifStatement.GetLastToken().WithPrependedLeadingTrivia(trivia));
+        }
+
         protected override SyntaxNode CreateFinalizer(
             SyntaxGenerator g, INamedTypeSymbol classType, string disposeMethodDisplayString)
         {

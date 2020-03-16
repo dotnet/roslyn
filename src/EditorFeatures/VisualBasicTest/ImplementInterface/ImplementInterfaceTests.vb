@@ -4293,8 +4293,9 @@ Class _
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-            ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
+
             If disposing Then
+                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
@@ -4364,8 +4365,9 @@ Partial Class C
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-            ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
+
             If disposing Then
+                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             End If
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
@@ -4403,8 +4405,9 @@ End Interface",
             Dim code = $"
     {disposeMethodAccessibility} {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
         If Not {disposeField} Then
-            ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
+
             If disposing Then
+                ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             End If
             ' {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}

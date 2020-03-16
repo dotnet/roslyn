@@ -226,11 +226,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-                // // TODO: dispose managed state...
-                // if (disposing) { }
-                var ifDisposingStatement = AddComment(g,
-                    FeaturesResources.TODO_colon_dispose_managed_state_managed_objects,
-                    g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>()));
+                // if (disposing)
+                // {
+                //     // TODO: dispose managed state...
+                // }
+                var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
+                ifDisposingStatement = this.Service.AddCommentInsideIfStatement(
+                    ifDisposingStatement,
+                    CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects));
 
                 // TODO: free unmanaged ...
                 // TODO: set large fields...
