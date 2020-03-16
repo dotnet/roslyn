@@ -33,19 +33,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(TProperty).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
-            {
-                if (property.PropertyType.GetTypeInfo().IsEnum
-                    && typeof(TProperty).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TProperty)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(property.PropertyType).GetTypeInfo()))
-                {
-                    // Allow this
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-            }
+            VerifyResultTypeCompatibility<TProperty>(property.PropertyType);
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
             Expression instance =
@@ -99,19 +87,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(TProperty).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
-            {
-                if (property.PropertyType.GetTypeInfo().IsEnum
-                    && typeof(TProperty).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TProperty)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(property.PropertyType).GetTypeInfo()))
-                {
-                    // Allow this
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-            }
+            VerifyResultTypeCompatibility<TProperty>(property.PropertyType);
 
             var methodInfo = type.GetTypeInfo().GetDeclaredMethods("With" + propertyName)
                 .SingleOrDefault(m => !m.IsStatic && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.Equals(property.PropertyType));
@@ -172,19 +148,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
-            {
-                if (method.ReturnType.GetTypeInfo().IsEnum
-                    && typeof(TValue).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TValue)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(method.ReturnType).GetTypeInfo()))
-                {
-                    // Allow this
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-            }
+            VerifyResultTypeCompatibility<TValue>(method.ReturnType);
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
             var argument = Expression.Parameter(typeof(TArg), argumentName);
@@ -225,6 +189,23 @@ namespace Analyzer.Utilities.Lightup
             if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
             {
                 throw new InvalidOperationException();
+            }
+        }
+
+        private static void VerifyResultTypeCompatibility<TValue>(Type resultType)
+        {
+            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(resultType.GetTypeInfo()))
+            {
+                if (resultType.GetTypeInfo().IsEnum
+                    && typeof(TValue).GetTypeInfo().IsEnum
+                    && Enum.GetUnderlyingType(typeof(TValue)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(resultType).GetTypeInfo()))
+                {
+                    // Allow this
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
             }
         }
     }
