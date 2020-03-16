@@ -2020,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">インライン変数宣言</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">パターン マッチングを使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完全修飾 '{0}'</target>
