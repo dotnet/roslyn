@@ -3520,6 +3520,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Join(ref this.State, ref leftState);
             TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.Type);
             SetResultType(node, resultType);
+
+            // We don't want to change the result of calling `GetTypeInfo` on the left side
+            // here if we can't observe that result in a later call to `GetTypeInfo` in a
+            // different context. For example:
+            //
+            //   var s = new string[1];
+            //   s[0] ??= null;
+            //   _ = s[0];
+            //
+            // GetTypeInfo on `s[0]` should return the same in both scenarios, and since we
+            // do not track nested array slots, it should be NotNull.
+            if (leftSlot > -1)
+            {
+                SetResult(node.LeftOperand, resultType, targetType, isLvalue: true);
+            }
             return null;
         }
 
@@ -6771,18 +6786,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
                 AdjustSetValue(left, declaredType, leftLValueType, ref rightState);
-                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
+                var leftSlot = MakeSlot(left);
+                TrackNullableStateForAssignment(right, leftLValueType, leftSlot, rightState, MakeSlot(right));
 
+                TypeWithAnnotations lvalueType;
+                TypeWithState resultState;
                 if (left is BoundDiscardExpression)
                 {
-                    var lvalueType = rightState.ToTypeWithAnnotations();
-                    SetResult(left, rightState, lvalueType, isLvalue: true);
-                    SetResult(node, rightState, lvalueType);
+                    lvalueType = rightState.ToTypeWithAnnotations();
+                    resultState = rightState;
                 }
                 else
                 {
-                    SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                    resultState = TypeWithState.Create(leftLValueType.Type, rightState.State);
+                    lvalueType = leftLValueType;
                 }
+
+
+                // We don't want to change the result of calling `GetTypeInfo` on the left side
+                // here if we can't observe that result in a later call to `GetTypeInfo` in a
+                // different context. For example:
+                //
+                //   var s = new string[1];
+                //   s[0] = null;
+                //   _ = s[0];
+                //
+                // GetTypeInfo on `s[0]` should return the same in both scenarios, and since we
+                // do not track nested array slots, it should be NotNull.
+                if (leftSlot > -1 || left is BoundDiscardExpression)
+                {
+                    SetResult(left, resultState, lvalueType, isLvalue: true);
+                }
+                SetResult(node, resultState, lvalueType);
             }
 
             return null;
@@ -7390,9 +7425,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AdjustSetValue(left, declaredType, leftLValueType, ref resultType);
-            TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
+            var leftSlot = MakeSlot(node.Left);
+            TrackNullableStateForAssignment(node, leftLValueType, leftSlot, resultType);
 
             SetResultType(node, resultType);
+            if (leftSlot > -1)
+            {
+                // We don't want to change the result of calling `GetTypeInfo` on the left side
+                // here if we can't observe that result in a later call to `GetTypeInfo` in a
+                // different context. For example:
+                //
+                //   var s = new string[1];
+                //   s[0] += null;
+                //   _ = s[0];
+                //
+                // GetTypeInfo on `s[0]` should return the same in both scenarios, and since we
+                // do not track nested array slots, it should be NotNull.
+                SetResult(node.Left, TypeWithState.Create(node.Left.Type, resultType.State), leftLValueType, isLvalue: true);
+            }
             return null;
         }
 
