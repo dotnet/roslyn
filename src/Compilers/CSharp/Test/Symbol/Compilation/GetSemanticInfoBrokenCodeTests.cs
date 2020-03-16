@@ -195,11 +195,12 @@ abstract void M();";
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
-            model.GetSymbolInfo(usingSyntax);
+            Assert.Empty(tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>());
 
-            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
-            model.GetSymbolInfo(identifierSyntax);
+            foreach (var identifierSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                model.GetSymbolInfo(identifierSyntax);
+            }
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]

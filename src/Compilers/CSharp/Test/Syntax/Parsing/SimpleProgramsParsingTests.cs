@@ -1744,5 +1744,713 @@ e
             }
             EOF();
         }
+
+        [Fact]
+        public void UsingLocalDeclaration_01()
+        {
+            var test = "using var a = new MyDisposable();";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "MyDisposable");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_02()
+        {
+            var test = "using static type name;";
+
+            UsingTree(test,
+                // (1,7): error CS0106: The modifier 'static' is not valid for this item
+                // using static type name;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 7)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "type");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "name");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_03()
+        {
+            var test = "using volatile;";
+
+            UsingTree(test,
+                // (1,7): error CS0106: The modifier 'volatile' is not valid for this item
+                // using volatile;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(1, 7),
+                // (1,15): error CS1031: Type expected
+                // using volatile;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
+                // (1,15): error CS1001: Identifier expected
+                // using volatile;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VolatileKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_04()
+        {
+            var test = "using const;";
+
+            UsingTree(test,
+                // (1,12): error CS1031: Type expected
+                // using const;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
+                // (1,12): error CS1001: Identifier expected
+                // using const;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 12),
+                // (1,12): error CS0145: A const field requires a value to be provided
+                // using const;
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, ";").WithLocation(1, 12)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.ConstKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_05()
+        {
+            var test = "using ref;";
+
+            UsingTree(test,
+                // (1,10): error CS1031: Type expected
+                // using ref;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 10),
+                // (1,10): error CS1001: Identifier expected
+                // using ref;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 10)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingLocalDeclaration_06()
+        {
+            var test = "using readonly;";
+
+            UsingTree(test,
+                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // using readonly;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7),
+                // (1,15): error CS1031: Type expected
+                // using readonly;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
+                // (1,15): error CS1001: Identifier expected
+                // using readonly;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_01()
+        {
+            var test = "using static type;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "type");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_02()
+        {
+            var test = "using type;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "type");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_03()
+        {
+            var test = "using alias = type;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "type");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_04()
+        {
+            var test = "using ns.type;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "type");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_05()
+        {
+            var test = "using static alias = type;";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "type");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_06()
+        {
+            var test = "using int.Parse name = value;";
+
+            UsingTree(test,
+                // (1,10): error CS1001: Identifier expected
+                // using int.Parse name = value;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 10),
+                // (1,10): error CS1003: Syntax error, ',' expected
+                // using int.Parse name = value;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 10),
+                // (1,11): error CS1002: ; expected
+                // using int.Parse name = value;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Parse").WithLocation(1, 11)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Parse");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "name");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_07()
+        {
+            var test = "using int (x, y)";
+
+            UsingTree(test,
+                // (1,11): error CS1001: Identifier expected
+                // using int (x, y)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 11),
+                // (1,11): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // using int (x, y)
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(x, y").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '[' expected
+                // using int (x, y)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(1, 11),
+                // (1,16): error CS1003: Syntax error, ']' expected
+                // using int (x, y)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(1, 16),
+                // (1,17): error CS1002: ; expected
+                // using int (x, y)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    M(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_08()
+        {
+            var test = "using int";
+
+            UsingTree(test,
+                // (1,10): error CS1001: Identifier expected
+                // using int
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1002: ; expected
+                // using int
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
+        [Fact]
+        public void Repro611177()
+        {
+            var test = @"[_<_[delegate using'";
+
+            UsingTree(test,
+                // (1,15): error CS1514: { expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "using").WithLocation(1, 15),
+                // (1,15): error CS1003: Syntax error, ',' expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",", "using").WithLocation(1, 15),
+                // (1,15): error CS0443: Syntax error; value expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(1, 15),
+                // (1,15): error CS1003: Syntax error, ']' expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                // (1,15): error CS1003: Syntax error, '>' expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">", "using").WithLocation(1, 15),
+                // (1,15): error CS1003: Syntax error, ']' expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                // (1,20): error CS1031: Type expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_TypeExpected, "'").WithLocation(1, 20),
+                // (1,20): error CS1001: Identifier expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "'").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "'").WithLocation(1, 20),
+                // (1,20): error CS1010: Newline in constant
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(1, 20),
+                // (1,20): error CS1011: Empty character literal
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_EmptyCharConst, "").WithLocation(1, 20),
+                // (1,21): error CS1002: ; expected
+                // [_<_[delegate using'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "_");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.ArrayType);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "_");
+                                            }
+                                            N(SyntaxKind.ArrayRankSpecifier);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.AnonymousMethodExpression);
+                                                {
+                                                    N(SyntaxKind.DelegateKeyword);
+                                                    M(SyntaxKind.Block);
+                                                    {
+                                                        M(SyntaxKind.OpenBraceToken);
+                                                        M(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                                M(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                                M(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.UsingKeyword);
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.CharacterLiteralExpression);
+                        {
+                            N(SyntaxKind.CharacterLiteralToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

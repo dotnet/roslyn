@@ -727,6 +727,27 @@ ref int local(bool flag, ref int a, ref int b)
         }
 
         [Fact]
+        public void LocalDeclarationStatement_09()
+        {
+            var text = @"
+using var a = new MyDisposable();
+System.Console.Write(1);
+
+class MyDisposable : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write(2);
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "12", verify: Verification.Skipped);
+        }
+
+        [Fact]
         public void LocalUsedBeforeDeclaration_01()
         {
             var text1 = @"

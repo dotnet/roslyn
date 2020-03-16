@@ -449,11 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                         case SyntaxKind.UsingKeyword:
-                            if (isGlobal && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            if (isGlobal && (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || (!IsScript && IsPossibleTopLevelUsingLocalDeclarationStatement())))
                             {
-                                // incomplete members must be processed before we add any nodes to the body:
-                                AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
-                                body.Members.Add(adjustStateAndReportStatementOutOfOrder(ref seen, ParseTopLevelUsingStatement()));
+                                // Top-level using statement or using local declaration
+                                goto default;
                             }
                             else
                             {
@@ -589,20 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return memberOrStatement;
             }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private GlobalStatementSyntax ParseTopLevelUsingStatement()
-        {
-            bool wasInAsync = IsInAsync;
-            if (!IsScript)
-            {
-                IsInAsync = true; // We are implicitly in an async context
-            }
-
-            var topLevelUsingStatement = CheckSimpleProgramsFeatureAvailability(_syntaxFactory.GlobalStatement(ParseUsingStatement(attributes: default)));
-            IsInAsync = wasInAsync;
-            return topLevelUsingStatement;
         }
 
         private GlobalStatementSyntax CheckSimpleProgramsFeatureAvailability(GlobalStatementSyntax globalStatementSyntax)
@@ -2374,7 +2359,6 @@ parse_member_name:;
                 switch (statement?.Kind)
                 {
                     case null:
-                    case SyntaxKind.LocalDeclarationStatement:
                     case SyntaxKind.LocalFunctionStatement:
                     case SyntaxKind.ExpressionStatement when
                                 !isScript &&
@@ -2385,6 +2369,9 @@ parse_member_name:;
                                 exprStatement.SemicolonToken.IsMissing:
 
                         return false;
+
+                    case SyntaxKind.LocalDeclarationStatement:
+                        return !isScript && ((LocalDeclarationStatementSyntax)statement).UsingKeyword is object;
 
                     default:
                         return true;
@@ -6957,6 +6944,11 @@ done:;
                 return true;
             }
 
+            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel);
+        }
+
+        private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
+        {
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
             {
@@ -6978,6 +6970,8 @@ done:;
             //
             // Note that we explicitly do this check when we see that the code spreads over multiple 
             // lines.  We don't want this if the user has actually written "X.Y z"
+            var tk = this.CurrentToken.ContextualKind;
+
             if (tk == SyntaxKind.IdentifierToken)
             {
                 var token1 = PeekToken(1);
@@ -7045,6 +7039,53 @@ done:;
                 }
 
                 return true;
+            }
+            finally
+            {
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+            }
+        }
+
+        private bool IsPossibleTopLevelUsingLocalDeclarationStatement()
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.UsingKeyword)
+            {
+                return false;
+            }
+
+            var tk = PeekToken(1).Kind;
+
+            if (tk == SyntaxKind.RefKeyword)
+            {
+                return true;
+            }
+
+            if (IsDeclarationModifier(tk)) // treat `const int x = 2;` as a local variable declaration
+            {
+                if (tk != SyntaxKind.StaticKeyword) // For `static` we still need to make sure we have a typed identifier after it, because `using static type;` is a valid using directive.
+                {
+                    return true;
+                }
+            }
+            else if (SyntaxFacts.IsPredefinedType(tk))
+            {
+                return true;
+            }
+
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                // Skip 'using' keyword
+                EatToken();
+
+                if (tk == SyntaxKind.StaticKeyword)
+                {
+                    // Skip 'static' keyword
+                    EatToken();
+                }
+
+                return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
             }
             finally
             {
