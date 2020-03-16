@@ -3906,7 +3906,6 @@ Public NotInheritable Class Program
 
     Private disposedValue As Boolean
 {DisposePattern("", disposeMethodAccessibility:="Private")}
-
 End Class
 ",
 index:=1)
