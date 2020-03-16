@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -209,6 +210,12 @@ namespace Microsoft.CodeAnalysis
         public SyntaxNode? GetStructure()
         {
             return HasStructure ? UnderlyingNode!.GetStructure(this) : null;
+        }
+
+        internal bool GetStructure([NotNullWhen(true)] out SyntaxNode? structure)
+        {
+            structure = GetStructure();
+            return structure is object;
         }
 
         /// <summary> 
