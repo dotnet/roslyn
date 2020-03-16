@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             {
                 // We only trigger on typing if it's the first character in a sequence.
                 return char.IsLetter(trigger.Character) &&
-                       caretPosition > 0 &&
-                       !char.IsLetter(text[caretPosition - 1]);
-
+                       caretPosition >= 2 &&
+                       !char.IsLetter(text[caretPosition - 2]);
             }
 
             return false;
@@ -90,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
             foreach (var embeddedItem in items)
             {
-                var change = embeddedItem.Change;
-                var textChange = change.TextChange;
+                var textChange = embeddedItem.Change.TextChange;
 
                 var properties = ImmutableDictionary.CreateBuilder<string, string>();
                 properties.Add(StartKey, textChange.Span.Start.ToString());
