@@ -84,12 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            // Don't change (x?.Count).GetValueOrDefault() to x?.Count.GetValueOrDefault()
-            if (expression.IsKind(SyntaxKind.ConditionalAccessExpression) && parentExpression is MemberAccessExpressionSyntax)
-            {
-                return false;
-            }
-
             // Easy statement-level cases:
             //   var y = (x);           -> var y = x;
             //   var (y, z) = (x);      -> var (y, z) = x;
@@ -275,6 +269,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // This syntax is only allowed since C# 7.2
             if (expression.IsKind(SyntaxKind.ConditionalExpression) &&
                 node.IsLeftSideOfAnyAssignExpression())
+            {
+                return false;
+            }
+
+            // Don't change (x?.Count)... to x?.Count...
+            //
+            // It very much changes the semantics to have code that always executed (outside the
+            // parenthesized expression) now only conditionally run depending on if 'x' is null or
+            // not.
+            if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
                 return false;
             }

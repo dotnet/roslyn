@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
 
         protected override bool TryAnalyzePatternCondition(
             ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
-            out SyntaxNode? conditionPartToCheck, out bool isEquals)
+            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {
             conditionPartToCheck = null;
             isEquals = true;

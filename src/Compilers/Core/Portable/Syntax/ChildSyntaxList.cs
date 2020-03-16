@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     public readonly partial struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnlyList<SyntaxNodeOrToken>
     {
-        private readonly SyntaxNode _node;
+        private readonly SyntaxNode? _node;
         private readonly int _count;
 
         internal ChildSyntaxList(SyntaxNode node)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (unchecked((uint)index < (uint)_count))
                 {
-                    return ItemInternal(_node, index);
+                    return ItemInternal(_node!, index);
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -346,6 +346,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns><see cref="Reversed"/> which contains all children of <see cref="ChildSyntaxList"/> in reversed order</returns>
         public Reversed Reverse()
         {
+            Debug.Assert(_node is object);
             return new Reversed(_node, _count);
         }
 
@@ -386,7 +387,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="obj">The object to be compared with the current instance.</param>
         public override bool Equals(object? obj)
         {
-            return obj is ChildSyntaxList && Equals((ChildSyntaxList)obj);
+            return obj is ChildSyntaxList list && Equals(list);
         }
 
         /// <summary>Determines whether the specified <see cref="ChildSyntaxList" /> structure is equal to the current instance.</summary>

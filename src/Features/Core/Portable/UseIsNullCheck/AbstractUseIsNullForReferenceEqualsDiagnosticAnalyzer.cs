@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

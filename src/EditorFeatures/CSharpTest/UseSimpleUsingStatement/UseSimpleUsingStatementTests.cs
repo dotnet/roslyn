@@ -1302,5 +1302,81 @@ parseOptions: CSharp8ParseOptions);
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNextLineIndentation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo(IDisposable disposable)
+    {
+        [||]using (var v = disposable)
+        {
+            Bar(1,
+                2,
+                3);
+            Goo(1,
+                2,
+                3);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo(IDisposable disposable)
+    {
+        using var v = disposable;
+        Bar(1,
+            2,
+            3);
+        Goo(1,
+            2,
+            3);
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNextLineIndentation2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.IO;
+
+class C
+{
+    static void Main()
+    {
+        [||]using (var stream = new MemoryStream())
+        {
+            _ = new Action(
+                    () => { }
+                );
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class C
+{
+    static void Main()
+    {
+        using var stream = new MemoryStream();
+        _ = new Action(
+                () => { }
+            );
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }

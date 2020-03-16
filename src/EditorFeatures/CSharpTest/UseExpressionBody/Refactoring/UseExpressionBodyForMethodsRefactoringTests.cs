@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
@@ -134,6 +135,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         Bar();
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
+        }
+
+        [WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferedAtStartOfMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||]void Goo()
+    {
+        Bar();
+    }
+}",
+@"class C
+{
+    void Goo() => Bar();
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferedBeforeMethodOnSameLine()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+[||]    void Goo()
+    {
+        Bar();
+    }
+}",
+@"class C
+{
+    void Goo() => Bar();
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferedBeforeAttributes()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||][A]
+    void Goo()
+    {
+        Bar();
+    }
+}",
+@"class C
+{
+    [A]
+    void Goo() => Bar();
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestNotOfferedBeforeComments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [||]/// <summary/>
+    void Goo()
+    {
+        Bar();
+    }
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(25501, "https://github.com/dotnet/roslyn/issues/25501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestNotOfferedInComments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    /// [||]<summary/>
+    void Goo()
+    {
+        Bar();
+    }
+}", parameters: new TestParameters(options: UseBlockBody));
         }
     }
 }

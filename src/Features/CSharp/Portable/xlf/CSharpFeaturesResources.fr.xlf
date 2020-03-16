@@ -7,11 +7,6 @@
         <target state="translated">Ajouter await et ConfigureAwait(false)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Ajouter des modificateurs d'accessibilité</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">Ajouter une expression await</target>
@@ -725,11 +720,6 @@
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
         <target state="translated">Rendre la méthode asynchrone (rester void)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">Ajouter 'this.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">

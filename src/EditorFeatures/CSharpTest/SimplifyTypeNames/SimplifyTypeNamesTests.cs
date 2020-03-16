@@ -5780,6 +5780,62 @@ static class M
 }");
         }
 
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyCallWithDynamicArg()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|System|].Console.WriteLine(y);
+    }
+}",
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        Console.WriteLine(y);
+    }
+}");
+        }
+
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Base
+{
+    public static void Goo(int i) { }
+}
+
+class Derived
+{
+}
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|Derived|].Goo(y);
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNameofReportsSimplifyMemberAccess()
         {
@@ -5793,6 +5849,21 @@ class Base
         var v = nameof([|System|].Int32);
     }
 }", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+        }
+
+        [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNotOnIllegalInstanceCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Console.Equals|]("""");
+    }
+}");
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)

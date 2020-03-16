@@ -1585,5 +1585,29 @@ class C
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotWhenIteratingDifferentLists()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collection.Generic;
+
+class Item { public string Value; }
+
+class C
+{
+    static void Test()
+    {
+        var first = new { list = new List<Item>() };
+        var second = new { list = new List<Item>() };
+
+        [||]for (var i = 0; i < first.list.Count; i++)
+        {
+            first.list[i].Value = second.list[i].Value;
+        }
+    }
+}");
+        }
     }
 }
