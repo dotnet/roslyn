@@ -403,6 +403,7 @@ class TestClass {
         [InlineData("netstandard2.1")]
         [InlineData("net46")]
         [InlineData("net472")]
+        [InlineData("netcoreapp3.0")]
         public async Task TestRoslynCompilerUsage_2(string targetFramework)
         {
             var testCode = @"
