@@ -4435,7 +4435,7 @@ class C
 
             var expected = @"class Program
 {
-    void AddClass(string name, [OptionalAttribute]    object position, [OptionalAttribute]    object bases)
+    void AddClass(string name, [OptionalAttribute] object position, [OptionalAttribute] object bases)
     {
     }
 }";
@@ -9588,7 +9588,7 @@ class C
 }";
             var expectedCode = @"class C
 {
-    void M([My] [My] int x)
+    void M([My][My] int x)
     {
     }
 }";
