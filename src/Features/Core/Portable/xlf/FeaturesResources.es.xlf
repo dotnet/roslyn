@@ -2955,11 +2955,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">en {0} (proyecto {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Modificadores de accesibilidad requeridos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">Agregar modificadores de accesibilidad</target>
