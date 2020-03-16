@@ -456,6 +456,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void Retargeting()
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1 = int.MinValue;
+    public static nuint F2 = int.MaxValue;
+    public static nint F3 = -1;
+    public static nuint F4 = 1;
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
+            var refA = comp.ToMetadataReference();
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""{0}, {1}, {2}, {3}"", F1, F2, F3, F4);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45);
+            CompileAndVerify(comp, expectedOutput: $"{int.MinValue}, {int.MaxValue}, -1, 1");
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            verifyField(f1, "nint A.F1");
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            verifyField(f2, "nuint A.F2");
+            var f3 = comp.GetMember<FieldSymbol>("A.F3");
+            verifyField(f3, "nint A.F3");
+            var f4 = comp.GetMember<FieldSymbol>("A.F4");
+            verifyField(f4, "nuint A.F4");
+
+            Assert.Same(f1.Type, f3.Type);
+            Assert.Same(f2.Type, f4.Type);
+
+            static void verifyField(FieldSymbol field, string expected)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expected, field.ToTestDisplayString());
+                var type = field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<NativeIntegerTypeSymbol>(type);
+            }
+        }
+
+        [Fact]
         public void Interfaces()
         {
             var sourceA =
@@ -1981,6 +2028,84 @@ False
                     return type.IsNullableType() && isNativeInt(type.GetNullableUnderlyingType(), signed);
                 }
             }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInConversions_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void F()
+    {
+        long x = F1;
+        ulong y = F2;
+        long? z = F3;
+        ulong? w = F4;
+    }
+    static void F(int x, uint y, int? z, uint? w)
+    {
+        F1 = x;
+        F2 = y;
+        F3 = z;
+        F4 = w;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInOperators_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = -F1;
+        _ = +F2;
+        _ = -F3;
+        _ = +F4;
+        _ = F1 * F1;
+        _ = F2 / F2;
+        _ = F3 * F1;
+        _ = F4 / F2;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
+        {
+            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
         }
 
         [Theory]

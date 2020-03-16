@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             _createRetargetingProperty = CreateRetargetingProperty;
             _createRetargetingEvent = CreateRetargetingEvent;
             _createRetargetingTypeParameter = CreateRetargetingTypeParameter;
+            _createRetargetingNativeInteger = CreateRetargetingNativeInteger;
         }
 
         internal override int Ordinal

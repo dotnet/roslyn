@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Func<Symbol, RetargetingFieldSymbol> _createRetargetingField;
         private readonly Func<Symbol, RetargetingPropertySymbol> _createRetargetingProperty;
         private readonly Func<Symbol, RetargetingEventSymbol> _createRetargetingEvent;
+        private readonly Func<Symbol, NativeIntegerTypeSymbol> _createRetargetingNativeInteger;
 
         private RetargetingMethodSymbol CreateRetargetingMethod(Symbol symbol)
         {
@@ -77,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             Debug.Assert(ReferenceEquals(symbol.ContainingModule, _underlyingModule));
             return new RetargetingTypeParameterSymbol(this, (TypeParameterSymbol)symbol);
+        }
+
+        private NativeIntegerTypeSymbol CreateRetargetingNativeInteger(Symbol symbol)
+        {
+            return new NativeIntegerTypeSymbol((NamedTypeSymbol)symbol);
         }
 
         internal class RetargetingSymbolTranslator
@@ -183,6 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             private NamedTypeSymbol RetargetNamedTypeDefinition(NamedTypeSymbol type, RetargetOptions options)
             {
                 Debug.Assert(type.IsDefinition);
+
+                if (type.IsNativeIntegerType)
+                {
+                    return (NamedTypeSymbol)SymbolMap.GetOrAdd(
+                        RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options),
+                        _retargetingModule._createRetargetingNativeInteger);
+                }
 
                 // Before we do anything else, check if we need to do special retargeting
                 // for primitive type references encoded with enum values in metadata signatures.
