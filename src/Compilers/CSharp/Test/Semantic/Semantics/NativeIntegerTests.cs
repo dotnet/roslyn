@@ -532,7 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var sourceA =
 @"public class A
 {
-    public static int F0 = 0;
     public static nint F1 = -1;
     public static nuint F2 = 1;
 }";
@@ -590,6 +589,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.True(type.IsNativeIntegerType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_03()
+        {
+            var sourceA =
+@"public class A
+{
+}";
+            var assemblyName = GetUniqueName();
+            var references = TargetFrameworkUtil.GetReferences(TargetFramework.Standard).ToArray();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { sourceA }, references: references);
+            var refA1 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { sourceA }, references: references);
+            var refA2 = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B
+{
+    public static A F0 = new A();
+    public static nint F1 = -1;
+    public static nuint F2 = 1;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            var refB = comp.ToMetadataReference();
+            var f0B = comp.GetMember<FieldSymbol>("B.F0");
+
+            var sourceC =
+@"class C : B
+{
+    static void Main()
+    {
+        _ = F0;
+        _ = F1;
+        _ = F2;
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refA2, refB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            comp.VerifyDiagnostics();
+
+            var f0 = comp.GetMember<FieldSymbol>("B.F0");
+            Assert.NotEqual(f0B.Type.ContainingAssembly, f0.Type.ContainingAssembly);
+            Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(f0);
+
+            var f1 = comp.GetMember<FieldSymbol>("B.F1");
+            verifyField(f1, "nint B.F1");
+            var f2 = comp.GetMember<FieldSymbol>("B.F2");
+            verifyField(f2, "nuint B.F2");
+
+            static void verifyField(FieldSymbol field, string expectedSymbol)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<NativeIntegerTypeSymbol>(type);
             }
         }
 
