@@ -786,6 +786,14 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies NetCoreApp21 { get; }
                 = new ReferenceAssemblies("netcoreapp2.1")
                 .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "2.1.13")));
+
+            public static ReferenceAssemblies NetCoreApp30 { get; }
+                = new ReferenceAssemblies(
+                    "netcoreapp3.0",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "3.0.0"),
+                    Path.Combine("ref", "netcoreapp3.0"));
         }
 
         public static class NetStandard
