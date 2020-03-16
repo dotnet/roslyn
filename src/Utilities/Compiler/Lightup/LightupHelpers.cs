@@ -25,10 +25,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
+            VerifyTypeArgument<T>(type);
 
             var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
             if (property == null)
@@ -94,10 +91,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
+            VerifyTypeArgument<T>(type);
 
             var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
             if (property == null)
@@ -170,10 +164,7 @@ namespace Analyzer.Utilities.Lightup
                 return FallbackAccessor;
             }
 
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
+            VerifyTypeArgument<T>(type);
 
             var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
             if (method == null)
@@ -226,6 +217,14 @@ namespace Analyzer.Utilities.Lightup
                 }
 
                 return default!;
+            }
+        }
+
+        private static void VerifyTypeArgument<T>(Type type)
+        {
+            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+            {
+                throw new InvalidOperationException();
             }
         }
     }
