@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static Solution GetAvailableSolution(Checksum solutionChecksum)
+        private static Solution? GetAvailableSolution(Checksum solutionChecksum)
         {
             var currentSolution = s_primarySolution;
             if (currentSolution?.Item1 == solutionChecksum)
