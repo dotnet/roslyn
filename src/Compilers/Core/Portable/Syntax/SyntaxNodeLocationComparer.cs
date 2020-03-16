@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -17,9 +18,10 @@ namespace Microsoft.CodeAnalysis
         {
             _compilation = compilation;
         }
-
-        public int Compare(SyntaxNode x, SyntaxNode y)
+        public int Compare(SyntaxNode? x, SyntaxNode? y)
         {
+            Debug.Assert(x is object);
+            Debug.Assert(y is object);
             return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
         }
     }
