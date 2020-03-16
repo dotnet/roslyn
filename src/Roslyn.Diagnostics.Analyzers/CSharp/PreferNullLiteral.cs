@@ -38,7 +38,16 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private void HandleDefaultValueOperation(OperationAnalysisContext context)
         {
-            if (!context.Operation.Type.IsReferenceType)
+            var type = context.Operation.Type;
+            if (type.IsValueType)
+            {
+                if (!(type is INamedTypeSymbol namedType)
+                    || namedType.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
+                {
+                    return;
+                }
+            }
+            else if (!type.IsReferenceType)
             {
                 return;
             }

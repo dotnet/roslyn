@@ -75,6 +75,7 @@ class Type
         Method2([|default(object)|]);
         Method2([|default(string)|]);
         Method2([|default(IComparable)|]);
+        Method2([|default(int?)|]);
         Method2(default(int));
     }
 
@@ -93,6 +94,7 @@ class Type
         Method2((object)null);
         Method2((string)null);
         Method2((IComparable)null);
+        Method2((int?)null);
         Method2(default(int));
     }
 
@@ -118,6 +120,7 @@ class Type
         Method2([|default(object)|]?.ToString());
         Method2([|default(string)|]?.ToString());
         Method2([|default(IComparable)|]?.ToString());
+        Method2([|default(int?)|]?.ToString());
         Method2(default(int).ToString());
     }
 
@@ -136,6 +139,7 @@ class Type
         Method2(((object)null)?.ToString());
         Method2(((string)null)?.ToString());
         Method2(((IComparable)null)?.ToString());
+        Method2(((int?)null)?.ToString());
         Method2(default(int).ToString());
     }
 
