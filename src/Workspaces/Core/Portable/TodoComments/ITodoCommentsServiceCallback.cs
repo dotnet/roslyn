@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface ITodoCommentsServiceCallback
     {
-        Task ReportTodoCommentsAsync(List<TodoCommentInfo> infos, CancellationToken cancellationToken);
+        Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentInfo> infos, CancellationToken cancellationToken);
     }
 }

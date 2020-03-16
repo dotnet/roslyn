@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly RemoteEndPoint _endPoint;
 
-        private readonly IPersistentStorageService _storageService;
+        // private readonly IPersistentStorageService _storageService;
 
         private readonly object _gate = new object();
         private ParsedTodoCommentDescriptors? _lastDescriptorInfo;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteTodoCommentsIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
-            _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            // _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Now inform VS about this new information
             await _endPoint.InvokeAsync(
                 nameof(ITodoCommentsServiceCallback.ReportTodoCommentsAsync),
-                new object[] { converted },
+                new object[] { document.Id, converted },
                 cancellationToken).ConfigureAwait(false);
 
             //persistedInfo = new PersistedTodoCommentInfo

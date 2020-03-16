@@ -5,10 +5,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
-        private readonly ConditionalWeakTable<DocumentId, StrongBox<ImmutableArray<TodoCommentInfo>>> _documentToInfos
-            = new ConditionalWeakTable<DocumentId, StrongBox<ImmutableArray<TodoCommentInfo>>>();
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentInfo>> _documentToInfos
+            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentInfo>>();
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<TodoCommentInfo> _workQueue = null!;
+        private AsyncBatchingWorkQueue<DocumentAndComments> _workQueue = null!;
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -55,6 +55,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             _workspace = workspace;
             _eventListenerTracker = eventListenerTracker;
+
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        }
+
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            if (e.Kind == WorkspaceChangeKind.DocumentRemoved)
+                _documentToInfos.TryRemove(e.DocumentId, out _);
         }
 
         void ITodoCommentsService.Start(CancellationToken cancellationToken)
@@ -81,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            _workQueue = new AsyncBatchingWorkQueue<TodoCommentInfo>(
+            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
                 TimeSpan.FromSeconds(1),
                 ProcessTodoCommentInfosAsync,
                 cancellationToken);
@@ -112,58 +120,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentsAsync(List<TodoCommentInfo> infos, CancellationToken cancellationToken)
+        public Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentInfo> infos, CancellationToken cancellationToken)
         {
-            _workQueue.AddWork(infos);
+            _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
             return Task.CompletedTask;
         }
 
         private Task ProcessTodoCommentInfosAsync(
-            ImmutableArray<TodoCommentInfo> infos, CancellationToken cancellationToken)
+            ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = ArrayBuilder<TodoCommentInfo>.GetInstance(out var filteredInfos);
-            AddFilteredInfos(infos, filteredInfos);
+            using var _ = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
+            AddFilteredInfos(docAndCommentsArray, filteredArray);
 
-            foreach (var group in filteredInfos.GroupBy(i => i.DocumentId))
+            foreach (var docAndComments in filteredArray)
             {
-                var documentId = group.Key;
-                var documentInfos = group.ToImmutableArray();
+                var documentId = docAndComments.DocumentId;
+                var newComments = docAndComments.Comments;
+
+                var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
+                    ? oldBoxedInfos
+                    : ImmutableArray<TodoCommentInfo>.Empty;
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                _documentToInfos.Remove(documentId);
-                _documentToInfos.Add(documentId, new StrongBox<ImmutableArray<TodoCommentInfo>>(documentInfos));
+                _documentToInfos[documentId] = newComments;
 
-                this.TodoListUpdated?.Invoke(
-                    this, new TodoItemsUpdatedArgs(
-                        documentId, _workspace, _workspace.CurrentSolution,
-                        documentId.ProjectId, documentId, documentInfos));
+                // If we have someone listening for updates, and our new items are different from
+                // our old ones, then notify them of the change.
+                if (this.TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
+                {
+                    this.TodoListUpdated?.Invoke(
+                        this, new TodoItemsUpdatedArgs(
+                            documentId, _workspace, _workspace.CurrentSolution,
+                            documentId.ProjectId, documentId, newComments));
+                }
             }
 
             return Task.CompletedTask;
         }
 
-        private void AddFilteredInfos(ImmutableArray<TodoCommentInfo> infos, ArrayBuilder<TodoCommentInfo> filteredInfos)
+        private void AddFilteredInfos(
+            ImmutableArray<DocumentAndComments> array,
+            ArrayBuilder<DocumentAndComments> filteredArray)
         {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenProjectIds);
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
-            // Walk the list of telemetry items in reverse, and skip any items for a document once
+            // Walk the list of todo comments in reverse, and skip any items for a document once
             // we've already seen it once.  That way, we're only reporting the most up to date
             // information for a document, and we're skipping the stale information.
-            for (var i = infos.Length - 1; i >= 0; i--)
+            for (var i = array.Length - 1; i >= 0; i--)
             {
-                var info = infos[i];
-                if (seenProjectIds.Add(info.DocumentId))
-                    filteredInfos.Add(info);
+                var info = array[i];
+                if (seenDocumentIds.Add(info.DocumentId))
+                    filteredArray.Add(info);
             }
         }
 
         public ImmutableArray<TodoCommentInfo> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             return _documentToInfos.TryGetValue(documentId, out var values)
-                ? values.Value
+                ? values
                 : ImmutableArray<TodoCommentInfo>.Empty;
         }
 

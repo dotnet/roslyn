@@ -4,15 +4,17 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
-    /// Serialization typed used to pass information to/from OOP and VS.
+    /// Serialization type used to pass information to/from OOP and VS.
     /// </summary>
-    internal struct TodoCommentInfo
+    internal struct TodoCommentInfo : IEquatable<TodoCommentInfo>
     {
         public int Priority;
         public string Message;
