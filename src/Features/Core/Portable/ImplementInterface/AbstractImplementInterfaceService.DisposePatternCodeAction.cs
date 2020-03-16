@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             if (state.ClassOrStructType.TypeKind != TypeKind.Class)
                 return false;
 
-            var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var disposeMethod = TryGetIDisposableDispose(state.Model.Compilation);
             if (disposeMethod == null)
                 return false;
 
             var idisposableType = disposeMethod.ContainingType;
+            var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
                 return false;
 
