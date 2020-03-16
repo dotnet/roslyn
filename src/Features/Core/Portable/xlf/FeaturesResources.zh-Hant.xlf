@@ -122,6 +122,11 @@
         <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">設定 {0} 程式碼樣式</target>
@@ -480,6 +485,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">粗略編輯</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -2010,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">內嵌變數宣告</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">使用模式比對</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完整的 '{0}'</target>
@@ -2303,11 +2308,6 @@ This version used in: {2}</source>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">在 {0} 中 (專案 {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">協助工具修飾元為必要項</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
