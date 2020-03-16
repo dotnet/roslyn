@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -20,20 +21,10 @@ namespace Analyzer.Utilities.Lightup
 
         private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName)
         {
-            if (type is null)
+            if (!TryGetProperty<T, TProperty>(type, propertyName, out var property))
             {
                 return FallbackAccessor;
             }
-
-            VerifyTypeArgument<T>(type);
-
-            var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
-            if (property == null)
-            {
-                return FallbackAccessor;
-            }
-
-            VerifyResultTypeCompatibility<TProperty>(property.PropertyType);
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
             Expression instance =
@@ -74,20 +65,10 @@ namespace Analyzer.Utilities.Lightup
 
         private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName)
         {
-            if (type is null)
+            if (!TryGetProperty<T, TProperty>(type, propertyName, out var property))
             {
                 return FallbackAccessor;
             }
-
-            VerifyTypeArgument<T>(type);
-
-            var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
-            if (property == null)
-            {
-                return FallbackAccessor;
-            }
-
-            VerifyResultTypeCompatibility<TProperty>(property.PropertyType);
 
             var methodInfo = type.GetTypeInfo().GetDeclaredMethods("With" + propertyName)
                 .SingleOrDefault(m => !m.IsStatic && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.Equals(property.PropertyType));
@@ -135,20 +116,10 @@ namespace Analyzer.Utilities.Lightup
 
         internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type? type, string parameterName, Type argumentType, string argumentName, string methodName)
         {
-            if (type is null)
+            if (!TryGetMethod<T, TValue>(type, methodName, out var method))
             {
                 return FallbackAccessor;
             }
-
-            VerifyTypeArgument<T>(type);
-
-            var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
-            if (method == null)
-            {
-                return FallbackAccessor;
-            }
-
-            VerifyResultTypeCompatibility<TValue>(method.ReturnType);
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
             var argument = Expression.Parameter(typeof(TArg), argumentName);
@@ -207,6 +178,46 @@ namespace Analyzer.Utilities.Lightup
                     throw new InvalidOperationException();
                 }
             }
+        }
+
+        private static bool TryGetProperty<T, TProperty>(Type? type, string propertyName, [NotNullWhen(true)] out PropertyInfo? propertyInfo)
+        {
+            if (type is null)
+            {
+                propertyInfo = null;
+                return false;
+            }
+
+            VerifyTypeArgument<T>(type);
+
+            propertyInfo = type.GetTypeInfo().GetDeclaredProperty(propertyName);
+            if (propertyInfo is null)
+            {
+                return false;
+            }
+
+            VerifyResultTypeCompatibility<TProperty>(propertyInfo.PropertyType);
+            return true;
+        }
+
+        private static bool TryGetMethod<T, TReturn>(Type? type, string methodName, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        {
+            if (type is null)
+            {
+                methodInfo = null;
+                return false;
+            }
+
+            VerifyTypeArgument<T>(type);
+
+            methodInfo = type.GetTypeInfo().GetDeclaredMethod(methodName);
+            if (methodInfo is null)
+            {
+                return false;
+            }
+
+            VerifyResultTypeCompatibility<TReturn>(methodInfo.ReturnType);
+            return true;
         }
     }
 }
