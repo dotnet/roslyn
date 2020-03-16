@@ -186,11 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (type.IsNativeIntegerType)
                 {
-                    if (!SymbolMap.TryGetValue(type, out var retargeted))
-                    {
-                        retargeted = SymbolMap.GetOrAdd(type, Retarget(type.NativeIntegerUnderlyingType, options).AsNativeInteger());
-                    }
-                    return (NamedTypeSymbol)retargeted;
+                    return RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options).AsNativeInteger();
                 }
 
                 // Before we do anything else, check if we need to do special retargeting
