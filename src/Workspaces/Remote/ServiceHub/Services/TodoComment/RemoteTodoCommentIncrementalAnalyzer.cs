@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
-using Microsoft.CodeAnalysis.Remote.Services.TodoComments;
+using Microsoft.CodeAnalysis.Remote.Services.TodoComment;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -27,9 +27,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal partial class RemoteTodoCommentIncrementalAnalyzer : IncrementalAnalyzerBase
     {
-        private const string DataKey = "TodoComments";
+        private const string DataKey = "TodoComment";
 
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly object _gate = new object();
         private DescriptorInfo? _lastDescriptorInfo;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
+        public RemoteTodoCommentIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
             _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();

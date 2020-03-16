@@ -15,30 +15,16 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
 {
-    internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject, ITodoCommentsService, IProjectTelemetryServiceCallback
+    internal class VisualStudioTodoCommentService
+        : ForegroundThreadAffinitizedObject, ITodoCommentService, ITodoCommentServiceCallback
     {
-        private const string EventPrefix = "VS/Compilers/Compilation/";
-        private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
-
-        private const string TelemetryEventPath = EventPrefix + "Inputs";
-        private const string TelemetryExceptionEventPath = EventPrefix + "TelemetryUnhandledException";
-
-        private const string TelemetryProjectIdName = PropertyPrefix + "ProjectId";
-        private const string TelemetryProjectGuidName = PropertyPrefix + "ProjectGuid";
-        private const string TelemetryLanguageName = PropertyPrefix + "Language";
-        private const string TelemetryAnalyzerReferencesCountName = PropertyPrefix + "AnalyzerReferences.Count";
-        private const string TelemetryProjectReferencesCountName = PropertyPrefix + "ProjectReferences.Count";
-        private const string TelemetryMetadataReferencesCountName = PropertyPrefix + "MetadataReferences.Count";
-        private const string TelemetryDocumentsCountName = PropertyPrefix + "Documents.Count";
-        private const string TelemetryAdditionalDocumentsCountName = PropertyPrefix + "AdditionalDocuments.Count";
-
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         /// <summary>
@@ -52,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// </summary>
         private AsyncBatchingWorkQueue<ProjectTelemetryInfo> _workQueue = null!;
 
-        public VisualStudioTodoCommentsService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
+        public VisualStudioTodoCommentService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
 
-        void ITodoCommentsService.Start(CancellationToken cancellationToken)
+        void ITodoCommentService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
         private async Task StartAsync(CancellationToken cancellationToken)
@@ -91,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteTodoCommentsService,
+                WellKnownServiceHubServices.RemoteTodoCommentService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
             if (_keepAliveSession == null)
                 return;

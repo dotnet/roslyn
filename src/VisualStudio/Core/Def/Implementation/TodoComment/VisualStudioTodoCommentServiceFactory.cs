@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComment
 {
-    [ExportWorkspaceServiceFactory(typeof(ITodoCommentsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioTodoCommentsServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(ITodoCommentService), ServiceLayer.Host), Shared]
+    internal class VisualStudioTodoCommentServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTodoCommentsServiceFactory(IThreadingContext threadingContext)
+        public VisualStudioTodoCommentServiceFactory(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
         public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             if (!(workspaceServices.Workspace is VisualStudioWorkspaceImpl workspace))
                 return null;
 
-            return new VisualStudioTodoCommentsService(workspace, _threadingContext);
+            return new VisualStudioTodoCommentService(workspace, _threadingContext);
         }
     }
 }

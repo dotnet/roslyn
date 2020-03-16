@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsIncrementalAnalyzer
+    internal partial class RemoteTodoCommentIncrementalAnalyzer
     {
         private const string SerializationFormat = "1";
 

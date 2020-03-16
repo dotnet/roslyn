@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Remote.Services.TodoComments
+namespace Microsoft.CodeAnalysis.Remote.Services.TodoComment
 {
     internal class DescriptorInfo
     {

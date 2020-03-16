@@ -7,7 +7,7 @@
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComment
 {
     /// <summary>
     /// Serialization typed used to pass information to/from OOP and VS.

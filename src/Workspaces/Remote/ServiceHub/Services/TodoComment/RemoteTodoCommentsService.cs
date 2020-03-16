@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
+    internal partial class RemoteTodoCommentService : ServiceBase, IRemoteTodoCommentService
     {
-        public RemoteTodoCommentsService(
+        public RemoteTodoCommentService(
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = SolutionService.PrimaryWorkspace;
                 var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(endpoint);
+                var analyzerProvider = new RemoteTodoCommentIncrementalAnalyzerProvider(endpoint);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,
                     new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteTodoCommentsIncrementalAnalyzerProvider),
+                        nameof(RemoteTodoCommentIncrementalAnalyzerProvider),
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
