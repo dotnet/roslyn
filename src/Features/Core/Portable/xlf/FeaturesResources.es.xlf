@@ -2020,11 +2020,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Declaración de variables alineada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Usar coincidencia de patrones</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' completo</target>

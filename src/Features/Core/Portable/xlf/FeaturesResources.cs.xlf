@@ -2020,11 +2020,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Vložená deklarace proměnné</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Použít porovnávání vzorů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">Plně kvalifikovat: {0}</target>

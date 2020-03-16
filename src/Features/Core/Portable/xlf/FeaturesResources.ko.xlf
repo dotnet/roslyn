@@ -2020,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">인라인 변수 선언</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">패턴 일치 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' 정규화</target>

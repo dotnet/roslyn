@@ -32,5 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
   </ItemGroup>
 </Project>
