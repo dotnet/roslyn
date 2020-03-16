@@ -4,18 +4,18 @@
 
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider
+    internal partial class DateAndTimeEmbeddedCompletionProvider
     {
-        private readonly struct DateTimeItem
+        private readonly struct DateAndTimeItem
         {
             public readonly string DisplayText;
             public readonly string InlineDescription;
             public readonly string FullDescription;
             public readonly CompletionChange Change;
 
-            public DateTimeItem(
+            public DateAndTimeItem(
                 string displayText, string inlineDescription, string fullDescription, CompletionChange change)
             {
                 DisplayText = displayText;

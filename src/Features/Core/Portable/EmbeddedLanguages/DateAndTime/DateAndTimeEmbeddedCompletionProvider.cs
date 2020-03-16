@@ -7,15 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider : CompletionProvider
+    internal partial class DateAndTimeEmbeddedCompletionProvider : CompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly DateAndTimeFormatStringEmbeddedLanguageFeatures _language;
+        private readonly DateAndTimeEmbeddedLanguageFeatures _language;
 
-        public DateAndTimeFormatStringEmbeddedCompletionProvider(DateAndTimeFormatStringEmbeddedLanguageFeatures language)
+        public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguageFeatures language)
             => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (!context.Options.GetOption(DateAndTimeFormatStringOptions.ProvideDateAndTimeFormatStringCompletions, context.Document.Project.Language))
+            if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
                 return;
 
             if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var stringTokenOpt = await _language.TryGetDateTimeStringTokenAtPositionAsync(
+            var stringTokenOpt = await _language.TryGetDateAndTimeTokenAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             if (stringTokenOpt == null)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<DateTimeItem>.GetInstance(out var items);
+            using var _ = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
 
             var embeddedContext = new EmbeddedCompletionContext(text, context, items);
             ProvideStandardFormats(embeddedContext);

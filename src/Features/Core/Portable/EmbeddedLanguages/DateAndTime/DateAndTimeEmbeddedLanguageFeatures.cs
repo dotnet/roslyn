@@ -4,20 +4,20 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal class DateAndTimeFormatStringEmbeddedLanguageFeatures : DateAndTimeFormatStringEmbeddedLanguage, IEmbeddedLanguageFeatures
+    internal class DateAndTimeEmbeddedLanguageFeatures : DateAndTimeEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
         public IDocumentHighlightsService DocumentHighlightsService { get; }
         public CompletionProvider CompletionProvider { get; }
 
-        public DateAndTimeFormatStringEmbeddedLanguageFeatures(
+        public DateAndTimeEmbeddedLanguageFeatures(
             EmbeddedLanguageInfo info) : base(info)
         {
-            CompletionProvider = new DateAndTimeFormatStringEmbeddedCompletionProvider(this);
+            CompletionProvider = new DateAndTimeEmbeddedCompletionProvider(this);
         }
     }
 }

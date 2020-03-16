@@ -7,19 +7,19 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatString
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeFormatStringEmbeddedCompletionProvider
+    internal partial class DateAndTimeEmbeddedCompletionProvider
     {
         private readonly struct EmbeddedCompletionContext
         {
-            private readonly ArrayBuilder<DateTimeItem> _items;
+            private readonly ArrayBuilder<DateAndTimeItem> _items;
             private readonly TextSpan _replacementSpan;
 
             public EmbeddedCompletionContext(
                 SourceText text,
                 CompletionContext context,
-                ArrayBuilder<DateTimeItem> items)
+                ArrayBuilder<DateAndTimeItem> items)
             {
                 _items = items;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTimeFormatStr
                 descriptionBuilder.AppendLine();
                 descriptionBuilder.Append(description);
 
-                _items.Add(new DateTimeItem(
+                _items.Add(new DateAndTimeItem(
                     displayText, suffix, descriptionBuilder.ToString(),
                     CompletionChange.Create(
                         new TextChange(_replacementSpan, displayText))));

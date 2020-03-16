@@ -9,31 +9,31 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTimeFormatString.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 {
-    internal class DateAndTimeFormatStringEmbeddedLanguage : IEmbeddedLanguage
+    internal class DateAndTimeEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
 
         public ISyntaxClassifier Classifier { get; }
 
-        public DateAndTimeFormatStringEmbeddedLanguage(EmbeddedLanguageInfo info)
+        public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Info = info;
             Classifier = new FallbackSyntaxClassifier(info);
         }
 
-        internal async Task<SyntaxToken?> TryGetDateTimeStringTokenAtPositionAsync(
+        internal async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (DateAndTimeFormatStringPatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts, out _, out _))
+            if (DateAndTimePatternDetector.IsDefinitelyNotDateTimeStringToken(token, syntaxFacts, out _, out _))
                 return null;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = DateAndTimeFormatStringPatternDetector.TryGetOrCreate(semanticModel, this.Info);
+            var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
             return detector != null && detector.IsDateTimeStringToken(token, cancellationToken)
                 ? token : default(SyntaxToken?);
         }
