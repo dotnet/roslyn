@@ -10,17 +10,17 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class LightupHelpers
     {
-        internal static Func<TSyntax, TProperty> CreateSyntaxPropertyAccessor<TSyntax, TProperty>(Type type, string propertyName)
+        internal static Func<TSyntax, TProperty> CreateSyntaxPropertyAccessor<TSyntax, TProperty>(Type? type, string propertyName)
             where TSyntax : SyntaxNode
             => CreatePropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName);
 
-        internal static Func<TSymbol, TProperty> CreateSymbolPropertyAccessor<TSymbol, TProperty>(Type type, string propertyName)
+        internal static Func<TSymbol, TProperty> CreateSymbolPropertyAccessor<TSymbol, TProperty>(Type? type, string propertyName)
             where TSymbol : ISymbol
             => CreatePropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName);
 
-        private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
+        private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName)
         {
-            if (type == null)
+            if (type is null)
             {
                 return FallbackAccessor;
             }
@@ -79,17 +79,17 @@ namespace Analyzer.Utilities.Lightup
             }
         }
 
-        internal static Func<TSyntax, TProperty, TSyntax> CreateSyntaxWithPropertyAccessor<TSyntax, TProperty>(Type type, string propertyName)
+        internal static Func<TSyntax, TProperty, TSyntax> CreateSyntaxWithPropertyAccessor<TSyntax, TProperty>(Type? type, string propertyName)
             where TSyntax : SyntaxNode
             => CreateWithPropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName);
 
-        internal static Func<TSymbol, TProperty, TSymbol> CreateSymbolWithPropertyAccessor<TSymbol, TProperty>(Type type, string propertyName)
+        internal static Func<TSymbol, TProperty, TSymbol> CreateSymbolWithPropertyAccessor<TSymbol, TProperty>(Type? type, string propertyName)
             where TSymbol : ISymbol
             => CreateWithPropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName);
 
-        private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
+        private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName)
         {
-            if (type == null)
+            if (type is null)
             {
                 return FallbackAccessor;
             }
@@ -163,9 +163,9 @@ namespace Analyzer.Utilities.Lightup
             }
         }
 
-        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type type, string parameterName, Type argumentType, string argumentName, string methodName)
+        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type? type, string parameterName, Type argumentType, string argumentName, string methodName)
         {
-            if (type == null)
+            if (type is null)
             {
                 return FallbackAccessor;
             }
