@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
+        private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
+            = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
+
+        private static ImmutableHashSet<NuGet.Packaging.Core.PackageIdentity> s_emptyPackages
+            = ImmutableHashSet.Create<NuGet.Packaging.Core.PackageIdentity>(PackageIdentityComparer.Default);
+
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new Dictionary<string, ImmutableArray<MetadataReference>>();
 
@@ -197,7 +203,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             using (var cacheContext = new SourceCacheContext())
             {
+                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
+                Directory.CreateDirectory(temporaryPackagesFolder);
+
                 var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
+                repositories = repositories.Insert(0, new SourceRepository(new PackageSource(temporaryPackagesFolder, "test-packages"), Repository.Provider.GetCoreV3(), FeedType.FileSystemPackagesConfig));
+                repositories = repositories.Insert(0, sourceRepositoryProvider.CreateRepository(new PackageSource(new Uri(SettingsUtility.GetGlobalPackagesFolder(settings)).AbsoluteUri, "global"), FeedType.FileSystemV3));
                 var dependencies = ImmutableDictionary.CreateBuilder<NuGet.Packaging.Core.PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
                 if (ReferenceAssemblyPackage is object)
@@ -243,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Enumerable.Empty<PackageReference>(),
                         preferredVersions,
                         availablePackages.Values,
-                        sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
+                        repositories.Select(repository => repository.PackageSource),
                         logger);
                     var resolver = new PackageResolver();
 
@@ -251,8 +262,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
-                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
-                Directory.CreateDirectory(temporaryPackagesFolder);
                 var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
 #if NET452
                 var packageExtractionContext = new PackageExtractionContext(logger)
@@ -280,9 +289,21 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var frameworkReducer = new FrameworkReducer();
 
+                var frameworkAssemblies = new HashSet<string>();
+                frameworkAssemblies.UnionWith(Assemblies);
+                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
+                {
+                    frameworkAssemblies.UnionWith(languageSpecificAssemblies);
+                }
+
                 var resolvedAssemblies = new HashSet<string>();
                 foreach (var packageToInstall in packagesToInstall)
                 {
+                    if (s_emptyPackages.Contains(packageToInstall))
+                    {
+                        continue;
+                    }
+
                     PackageReaderBase packageReader;
                     var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                     if (installedPath is null)
@@ -300,6 +321,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Ref).Any())
                         {
                             // This package has no compile time impact
+                            ImmutableInterlocked.Update(ref s_emptyPackages, (emptyPackages, package) => emptyPackages.Add(package), packageToInstall);
                             continue;
                         }
 
@@ -359,23 +381,11 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (!targetFramework.IsPackageBased && nearestFramework is object)
                     {
                         var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
-                        foreach (var item in nearestFrameworkItems.Items)
-                        {
-                            if (ReferenceAssemblyPackage is null)
-                            {
-                                throw new InvalidOperationException($"Cannot resolve framework item '{item}' without a reference assembly package");
-                            }
-
-                            var installedFrameworkPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                            if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
-                            {
-                                resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
-                            }
-                        }
+                        frameworkAssemblies.UnionWith(nearestFrameworkItems.Items);
                     }
                 }
 
-                foreach (var assembly in Assemblies)
+                foreach (var assembly in frameworkAssemblies)
                 {
                     if (ReferenceAssemblyPackage is null)
                     {
@@ -386,23 +396,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                    }
-                }
-
-                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
-                {
-                    foreach (var assembly in languageSpecificAssemblies)
-                    {
-                        if (ReferenceAssemblyPackage is null)
-                        {
-                            throw new InvalidOperationException($"Cannot resolve language-specific assembly '{assembly}' without a reference assembly package");
-                        }
-
-                        var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
-                        {
-                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                        }
                     }
                 }
 
@@ -429,13 +422,30 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
                 }
+                else
+                {
+                    if (!FacadeAssemblies.IsEmpty)
+                    {
+                        throw new InvalidOperationException($"Cannot resolve facade assemblies without a reference assembly package");
+                    }
+                }
 
                 return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
 
                 static string? GetInstalledPath(PackagePathResolver localPathResolver, PackagePathResolver globalPathResolver, NuGet.Packaging.Core.PackageIdentity packageIdentity)
                 {
-                    return GetInstalledPath(localPathResolver, packageIdentity)
-                        ?? GetInstalledPath(globalPathResolver, packageIdentity);
+                    string? installedPath = s_packageToInstalledLocation.GetValueOrDefault(packageIdentity);
+                    if (installedPath is null)
+                    {
+                        installedPath = GetInstalledPath(localPathResolver, packageIdentity)
+                            ?? GetInstalledPath(globalPathResolver, packageIdentity);
+                        if (installedPath is object)
+                        {
+                            installedPath = ImmutableInterlocked.GetOrAdd(ref s_packageToInstalledLocation, packageIdentity, installedPath);
+                        }
+                    }
+
+                    return installedPath;
 
                     static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
                     {
@@ -482,6 +492,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     continue;
                 }
 
+                dependencyInfo = new SourcePackageDependencyInfo(new NuGet.Packaging.Core.PackageIdentity(dependencyInfo.Id, dependencyInfo.Version), FilterDependencies(dependencyInfo.Dependencies), dependencyInfo.Listed, dependencyInfo.Source, dependencyInfo.DownloadUri, dependencyInfo.PackageHash);
                 dependencies.Add(packageIdentity, dependencyInfo);
                 foreach (var dependency in dependencyInfo.Dependencies)
                 {
@@ -489,6 +500,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 break;
+            }
+
+            static IEnumerable<PackageDependency> FilterDependencies(IEnumerable<PackageDependency> dependencies)
+            {
+                return dependencies.Where(dependency => !dependency.Exclude.Contains("Compile"));
             }
         }
 
