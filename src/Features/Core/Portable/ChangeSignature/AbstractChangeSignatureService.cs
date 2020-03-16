@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
-        protected abstract string LanguageName { get; }
-
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
             }
 
-            int? insertPosition = declarationChangeSignatureService.TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
+            int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
             if (insertPosition == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
@@ -186,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return ChangeSignatureWithContext(context, options, cancellationToken);
         }
 
-        protected abstract int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode);
+        protected abstract int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
         internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
@@ -925,7 +923,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     extraNodeList.AsEnumerable(),
                     node.GetTrailingTrivia(),
                     lastWhiteSpaceTrivia,
-                    document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageName));
+                    document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
 
                 var newTrivia = Generator.Trivia(extraDocComments);
 

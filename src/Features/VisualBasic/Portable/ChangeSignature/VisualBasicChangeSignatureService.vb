@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function TryGetInsertPositionFromDeclaration(matchingNode As SyntaxNode) As Integer?
+        Protected Overrides Function TryGetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer?
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then
@@ -628,12 +628,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService
             Get
                 Return VisualBasicSyntaxFactsService.Instance
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property LanguageName As String
-            Get
-                Return LanguageNames.VisualBasic
             End Get
         End Property
 

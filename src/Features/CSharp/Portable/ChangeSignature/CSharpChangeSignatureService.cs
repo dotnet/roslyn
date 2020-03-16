@@ -156,27 +156,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         // Find the position to insert the new parameter.
         // We will insert a new comma and a parameter.
-        protected override int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
+        protected override int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
-
-            if (parameters == null)
+            return parameters switch
             {
-                return null;
-            }
-
-            switch (parameters)
-            {
-                case ParameterListSyntax parameterListSyntax:
-                    return parameterListSyntax.CloseParenToken.SpanStart;
-                case BracketedParameterListSyntax bracketedParameterListSyntax:
-                    return bracketedParameterListSyntax.CloseBracketToken.SpanStart;
-            }
-
-            return null;
+                null => null,
+                ParameterListSyntax parameterListSyntax => parameterListSyntax.CloseParenToken.SpanStart,
+                BracketedParameterListSyntax bracketedParameterListSyntax => bracketedParameterListSyntax.CloseBracketToken.SpanStart,
+                _ => null
+            };
         }
-
-        protected override string LanguageName => LanguageNames.CSharp;
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
         {
@@ -364,14 +354,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
             {
-                bool doNotSkipParameterType = parenLambda.ParameterList.Parameters.Any() && parenLambda.ParameterList.Parameters.First().Type != null;
-                Func<AddedParameter, ParameterSyntax> createNewParameterDelegate =
-                    p => CreateNewParameterSyntax(p, !doNotSkipParameterType);
+                var doNotSkipParameterType = parenLambda.ParameterList.Parameters.FirstOrDefault()?.Type != null;
 
                 var updatedParameters = UpdateDeclaration(
                     parenLambda.ParameterList.Parameters,
                     signaturePermutation,
-                    createNewParameterDelegate);
+                    p => CreateNewParameterSyntax(p, !doNotSkipParameterType));
                 return parenLambda.WithParameterList(parenLambda.ParameterList.WithParameters(updatedParameters));
             }
 
@@ -381,14 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
-                var isReducedExtensionMethod = false;
 
-                if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    isReducedExtensionMethod = true;
-                }
+                var isReducedExtensionMethod = symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension;
 
-                bool isParamsArrayExpanded = false;
+                var isParamsArrayExpanded = false;
                 // TODO can't use symbol this way
                 if (((IMethodSymbol)symbolInfo.Symbol).Parameters.Last().IsParams)
                 {
@@ -417,17 +401,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
-                var isReducedExtensionMethod = false;
-
-                if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    isReducedExtensionMethod = true;
-                }
 
                 var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
 
                 // TODO
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod, false);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded: false);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -480,18 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 : default;
 
             return SyntaxFactory.Parameter(
-                attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
-                modifiers: SyntaxFactory.TokenList(),
+                attributeLists: default,
+                modifiers: default,
                 type: skipParameterType
                     ? default
-                    : addedParameter.Type.GenerateTypeSyntax(allowVar: false)
+                    : addedParameter.Type.GenerateTypeSyntax()
                         .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
                 SyntaxFactory.Identifier(addedParameter.Name),
                 @default: equalsValueClause);
         }
 
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
-            => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax(allowVar: false))
+            => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax())
                 .WithLeadingTrivia(SyntaxFactory.ElasticSpace);
 
         private SeparatedSyntaxList<T> UpdateDeclaration<T>(
@@ -710,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var listOfArguments = SyntaxFactory.SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
-            var objectCreation = SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(allowVar: false), initializerExpression);
+            var objectCreation = SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
             return SyntaxFactory.Argument(objectCreation);
         }
     }
