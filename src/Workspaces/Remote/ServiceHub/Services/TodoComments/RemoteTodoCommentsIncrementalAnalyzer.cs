@@ -28,15 +28,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly RemoteEndPoint _endPoint;
 
-        // private readonly IPersistentStorageService _storageService;
-
         private readonly object _gate = new object();
         private ParsedTodoCommentDescriptors? _lastDescriptorInfo;
 
         public RemoteTodoCommentsIncrementalAnalyzer(Workspace workspace, RemoteEndPoint endPoint)
         {
             _endPoint = endPoint;
-            // _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -61,20 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (todoCommentService == null)
                 return;
 
-            //using var storage = _storageService.GetStorage(document.Project.Solution);
-
-            //var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var descriptorInfo = GetParsedTodoCommentDescriptors(document);
-
-            //var persistedInfo = await TryReadExistingCommentInfoAsync(
-            //    storage, document, cancellationToken).ConfigureAwait(false);
-            //if (persistedInfo != null &&
-            //    persistedInfo.Version == version &&
-            //    persistedInfo.OptionText == descriptorInfo.OptionText)
-            //{
-            //    // Our info for this file is up to date.
-            //    return;
-            //}
 
             // We're out of date.  Recompute this info.
             var todoComments = await todoCommentService.GetTodoCommentsAsync(
@@ -90,17 +74,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 nameof(ITodoCommentsServiceCallback.ReportTodoCommentsAsync),
                 new object[] { document.Id, converted },
                 cancellationToken).ConfigureAwait(false);
-
-            //persistedInfo = new PersistedTodoCommentInfo
-            //{
-            //    Version = version,
-            //    OptionText = descriptorInfo.OptionText,
-            //    TodoComments = converted.ToImmutable(),
-            //};
-
-            //// now that we've informed VS, save this information for the future.
-            //await PersistTodoCommentsAsync(
-            //    storage, document, persistedInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ConvertAsync(
