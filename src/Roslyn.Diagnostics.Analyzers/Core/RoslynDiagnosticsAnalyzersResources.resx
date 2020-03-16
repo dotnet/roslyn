@@ -255,4 +255,16 @@
   <data name="FixNumberedComments" xml:space="preserve">
     <value>Fix numbered comments</value>
   </data>
+  <data name="PreferNullLiteralDescription" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for reference types.</value>
+  </data>
+  <data name="PreferNullLiteralMessage" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for reference types</value>
+  </data>
+  <data name="PreferNullLiteralTitle" xml:space="preserve">
+    <value>Prefer null literal</value>
+  </data>
+  <data name="PreferNullLiteralCodeFix" xml:space="preserve">
+    <value>Use 'null' instead of 'default'</value>
+  </data>
 </root>
