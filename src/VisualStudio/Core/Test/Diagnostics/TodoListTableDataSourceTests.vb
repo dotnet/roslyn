@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.TodoComments
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -83,11 +84,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
 
-                provider.Items = New TodoItem() {CreateItem(documentId)}
+                provider.Items = New TodoCommentInfo() {CreateItem(documentId)}
                 provider.RaiseTodoListUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
-                provider.Items = Array.Empty(Of TodoItem)()
+                provider.Items = Array.Empty(Of TodoCommentInfo)()
                 provider.RaiseClearTodoListUpdated(workspace, documentId)
                 Assert.Equal(0, sink.Entries.Count)
             End Using
@@ -267,9 +268,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
-                provider.Items = New TodoItem() {
-                    New TodoItem(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
-                    New TodoItem(0, "test3", documentId, 11, 11, 21, 21, Nothing, "test3")}
+                provider.Items = New TodoCommentInfo() {
+                    New TodoCommentInfo(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
+                    New TodoCommentInfo(0, "test3", documentId, 11, 11, 21, 21, Nothing, "test3")}
 
                 provider.RaiseTodoListUpdated(workspace)
 
@@ -356,8 +357,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Function CreateItem(documentId As DocumentId) As TodoItem
-            Return New TodoItem(0, "test", documentId, 10, 10, 20, 20, Nothing, "test1")
+        Private Function CreateItem(documentId As DocumentId) As TodoCommentInfo
+            Return New TodoCommentInfo With {
+                .Priority = 0,
+                .Message = "test",
+                .DocumentId = documentId,
+                .MappedLine = 10,
+                .OriginalLine = 10,
+                .MappedColumn = 20,
+                .OriginalColumn = 20,
+                .MappedFilePath = Nothing,
+                .OriginalFilePath = "test1"
+                }
         End Function
 
         Private Class TestTodoListProvider

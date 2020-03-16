@@ -88,32 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var comment in todoComments)
-                converted.Add(Convert(document, sourceText, syntaxTree, comment));
-        }
-
-        private TodoCommentInfo Convert(
-            Document document, SourceText text, SyntaxTree tree, TodoComment comment)
-        {
-            // make sure given position is within valid text range.
-            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
-
-            var location = tree.GetLocation(textSpan);
-            // var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
-            var originalLineInfo = location.GetLineSpan();
-            var mappedLineInfo = location.GetMappedLineSpan();
-
-            return new TodoCommentInfo
-            {
-                Priority = comment.Descriptor.Priority,
-                Message = comment.Message,
-                DocumentId = document.Id,
-                OriginalLine = originalLineInfo.StartLinePosition.Line,
-                OriginalColumn = originalLineInfo.StartLinePosition.Character,
-                OriginalFilePath = document.FilePath,
-                MappedLine = mappedLineInfo.StartLinePosition.Line,
-                MappedColumn = mappedLineInfo.StartLinePosition.Character,
-                MappedFilePath = mappedLineInfo.GetMappedFilePathIfExist(),
-            };
+                converted.Add(comment.Convert(document, sourceText, syntaxTree));
         }
     }
 }

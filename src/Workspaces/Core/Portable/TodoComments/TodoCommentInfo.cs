@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
