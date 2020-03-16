@@ -794,6 +794,14 @@ namespace Microsoft.CodeAnalysis.Testing
                         "Microsoft.NETCore.App.Ref",
                         "3.0.0"),
                     Path.Combine("ref", "netcoreapp3.0"));
+
+            public static ReferenceAssemblies NetCoreApp31 { get; }
+                = new ReferenceAssemblies(
+                    "netcoreapp3.1",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "3.1.0"),
+                    Path.Combine("ref", "netcoreapp3.1"));
         }
 
         public static class NetStandard

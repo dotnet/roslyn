@@ -406,6 +406,14 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.NotEmpty(resolved);
         }
 
+        [Fact]
+        public async Task ResolveReferenceAssemblies_NetCoreApp31()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
         [Theory]
         [InlineData("net40")]
         [InlineData("net45")]
@@ -423,6 +431,7 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("netcoreapp2.0")]
         [InlineData("netcoreapp2.1")]
         [InlineData("netcoreapp3.0")]
+        [InlineData("netcoreapp3.1")]
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
         [InlineData("netstandard1.2")]
@@ -470,6 +479,7 @@ class TestClass {
                 "netcoreapp2.0" => ReferenceAssemblies.NetCore.NetCoreApp20,
                 "netcoreapp2.1" => ReferenceAssemblies.NetCore.NetCoreApp21,
                 "netcoreapp3.0" => ReferenceAssemblies.NetCore.NetCoreApp30,
+                "netcoreapp3.1" => ReferenceAssemblies.NetCore.NetCoreApp31,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
