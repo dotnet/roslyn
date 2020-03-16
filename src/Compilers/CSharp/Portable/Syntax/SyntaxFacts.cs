@@ -492,8 +492,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
         }
 
-#nullable enable
-
         internal static bool IsTopLevelStatement([NotNullWhen(true)] GlobalStatementSyntax? syntax)
         {
             return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;
@@ -507,8 +505,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasAwaitOperations(SyntaxNode node)
         {
             // Do not descend into functions
-            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).
-                OfType<AwaitExpressionSyntax>().Any(); // PROTOTYPE(SimplePrograms): Recognize other async operations.
+            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).Any(node =>
+                                                                                      {
+                                                                                          switch (node)
+                                                                                          {
+                                                                                              case AwaitExpressionSyntax _:
+                                                                                              case LocalDeclarationStatementSyntax local when local.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                                                                              case CommonForEachStatementSyntax @foreach when @foreach.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                                                                              case UsingStatementSyntax @using when @using.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                                                                                  return true;
+                                                                                              default:
+                                                                                                  return false;
+                                                                                          }
+                                                                                      });
         }
 
         internal static bool IsNestedFunction(SyntaxNode child)

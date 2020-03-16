@@ -748,6 +748,128 @@ class MyDisposable : System.IDisposable
         }
 
         [Fact]
+        public void LocalDeclarationStatement_10()
+        {
+            string source = @"
+await using var x = new C();
+System.Console.Write(""body "");
+
+class C : System.IAsyncDisposable, System.IDisposable
+{
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
+    }
+    public void Dispose()
+    {
+        System.Console.Write(""IGNORED"");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void UsingStatement_01()
+        {
+            string source = @"
+await using (var x = new C())
+{
+    System.Console.Write(""body "");
+}
+
+class C : System.IAsyncDisposable, System.IDisposable
+{
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
+    }
+    public void Dispose()
+    {
+        System.Console.Write(""IGNORED"");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void UsingStatement_02()
+        {
+            string source = @"
+await using (new C())
+{
+    System.Console.Write(""body "");
+}
+
+class C : System.IAsyncDisposable, System.IDisposable
+{
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        System.Console.Write(""DisposeAsync"");
+        return new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.CompletedTask);
+    }
+    public void Dispose()
+    {
+        System.Console.Write(""IGNORED"");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void ForeachStatement_01()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+await foreach (var i in new C())
+{
+}
+
+System.Console.Write(""Done"");
+
+class C
+{
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async Task DisposeAsync()
+        {
+            System.Console.Write(""DisposeAsync "");
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [Fact]
         public void LocalUsedBeforeDeclaration_01()
         {
             var text1 = @"
