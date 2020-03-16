@@ -2020,11 +2020,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Deklaracja zmiennej wbudowanej</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Użyj dopasowywania wzorców</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">W pełni kwalifikowany element „{0}”</target>

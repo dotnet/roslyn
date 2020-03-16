@@ -2020,11 +2020,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Satır içi değişken bildirimi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Desen eşleştirme kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' adını tam olarak belirtin</target>

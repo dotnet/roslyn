@@ -2020,11 +2020,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Inlinevariablendeklaration</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Musterabgleich verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">"{0}" voll qualifizieren</target>

@@ -2020,11 +2020,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Declaração de variável embutida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Usar a correspondência de padrão</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">Qualificar '{0}' totalmente</target>

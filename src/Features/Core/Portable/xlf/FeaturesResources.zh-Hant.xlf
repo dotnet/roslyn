@@ -2020,11 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">內嵌變數宣告</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">使用模式比對</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完整的 '{0}'</target>
