@@ -137,8 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var containingMemberOrLambda = this.ContainingMemberOrLambda;
 
-            switch (containingMemberOrLambda.Kind)
+            switch (containingMemberOrLambda?.Kind)
             {
+                case null:
                 case SymbolKind.NamedType:
                 case SymbolKind.Namespace:
                     return true;
