@@ -172,44 +172,36 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(ImmutableArray<Edit> edits)
             {
-                var leftTokenToTrailingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
-                var rightTokenToLeadingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
+                using var _1 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var leftTokenToTrailingTrivia);
+                using var _2 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var rightTokenToLeadingTrivia);
 
-                try
+                foreach (var edit in edits)
                 {
-                    foreach (var edit in edits)
+                    var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
+                    var text = OriginalSourceText.ToString(span);
+                    if (!IsSafeToRemove(text))
                     {
-                        var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
-                        var text = OriginalSourceText.ToString(span);
-                        if (!IsSafeToRemove(text))
-                        {
-                            // editing some piece of non-whitespace trivia.  We don't support this.
-                            return default;
-                        }
-
-                        // Make sure we're not about to make an edit that just changes the code to what
-                        // is already there.
-                        if (text != edit.GetNewTrivia())
-                        {
-                            leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
-                            rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
-                        }
-                    }
-
-                    if (leftTokenToTrailingTrivia.Count == 0)
-                    {
-                        // No actual edits that would change anything.  Nothing to do.
+                        // editing some piece of non-whitespace trivia.  We don't support this.
                         return default;
                     }
 
-                    return await RewriteTreeAsync(
-                        leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
+                    // Make sure we're not about to make an edit that just changes the code to what
+                    // is already there.
+                    if (text != edit.GetNewTrivia())
+                    {
+                        leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
+                        rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
+                    }
                 }
-                finally
+
+                if (leftTokenToTrailingTrivia.Count == 0)
                 {
-                    leftTokenToTrailingTrivia.Free();
-                    rightTokenToLeadingTrivia.Free();
+                    // No actual edits that would change anything.  Nothing to do.
+                    return default;
                 }
+
+                return await RewriteTreeAsync(
+                    leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
             }
 
             private static bool IsSafeToRemove(string text)

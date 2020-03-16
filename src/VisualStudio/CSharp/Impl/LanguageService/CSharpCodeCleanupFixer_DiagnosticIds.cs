@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.AddBracesDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_accessibility_modifiers))]
+        [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_accessibility_modifiers))]
         public static readonly FixIdDefinition AddAccessibilityModifiersDiagnosticId;
 
         [Export]

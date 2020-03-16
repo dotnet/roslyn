@@ -13,10 +13,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentFormattingName)]
     internal class FormatDocumentHandler : FormatDocumentHandlerBase, IRequestHandler<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
+        [ImportingConstructor]
+        public FormatDocumentHandler()
+        {
+        }
+
         public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
     }
 }

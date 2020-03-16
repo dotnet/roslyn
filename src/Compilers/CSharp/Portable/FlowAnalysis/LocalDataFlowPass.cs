@@ -14,9 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
     internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
-        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalState : LocalDataFlowPass<TLocalState, TLocalFunctionState>.ILocalDataFlowState
         where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
+        internal interface ILocalDataFlowState : ILocalState
+        {
+            /// <summary>
+            /// True if new variables introduced in <see cref="AbstractFlowPass{TLocalState, TLocalFunctionState}" /> should be set
+            /// to the bottom state. False if they should be set to the top state.
+            /// </summary>
+            bool NormalizeToBottom { get; }
+        }
+
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
         /// </summary>
@@ -172,6 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return depth;
         }
 
+        /// <summary>
+        /// Sets the starting state for any newly declared variables in the LocalDataFlowPass.
+        /// </summary>
         protected abstract void Normalize(ref TLocalState state);
 
         /// <summary>

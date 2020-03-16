@@ -246,10 +246,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return null;
             }
 
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             options ??= workspace.Options;
             rules ??= GetDefaultFormattingRules(workspace, node.Language);
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            return languageFormatter.Format(node, spans, options, rules, cancellationToken);
+            var shouldUseFormattingSpanCollapse = options.GetOption(FormattingOptions.AllowDisjointSpanMerging);
+            return languageFormatter.Format(node, spans, shouldUseFormattingSpanCollapse, options.AsAnalyzerConfigOptions(optionService, node.Language), rules, cancellationToken);
         }
 
         /// <summary>

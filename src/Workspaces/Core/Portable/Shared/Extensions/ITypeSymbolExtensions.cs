@@ -237,14 +237,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         [return: NotNullIfNotNull(parameterName: "type")]
-        public static ITypeSymbol? ReplaceTypeParametersBasedOnTypeConstraints(
+        public static ValueTask<ITypeSymbol?> ReplaceTypeParametersBasedOnTypeConstraintsAsync(
             this ITypeSymbol? type,
             Compilation compilation,
             IEnumerable<ITypeParameterSymbol> availableTypeParameters,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
+            return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken))
+                ?? new ValueTask<ITypeSymbol?>((ITypeSymbol?)null);
         }
 
         [return: NotNullIfNotNull(parameterName: "type")]

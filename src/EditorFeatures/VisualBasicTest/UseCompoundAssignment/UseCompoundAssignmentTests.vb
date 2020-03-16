@@ -364,5 +364,37 @@ end class",
     end sub
 end class")
         End Function
+
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        Public Async Function TestParenthesizedExpression() As Task
+            Await TestInRegularAndScriptAsync(
+"public class C
+    sub M(a as integer)
+        a [||]= (a + 10)
+    end sub
+end class",
+"public class C
+    sub M(a as integer)
+        a += 10
+    end sub
+end class")
+        End Function
+
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        Public Async Function TestParenthesizedExpressionTrailingTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"public class C
+    sub M(a as integer)
+        a [||]= (a + 10) ' trailing
+    end sub
+end class",
+"public class C
+    sub M(a as integer)
+        a += 10 ' trailing
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

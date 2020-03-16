@@ -7311,6 +7311,39 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
+        [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpaceBeforeCommasInLocalFunctionParameters()
+        {
+            var code = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i, string s)
+        {
+        }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i , string s)
+        {
+        }
+    }
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBeforeComma, true },
+            };
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ArrayDeclarationShouldFollowEmptySquareBrackets()
         {

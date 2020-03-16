@@ -177,6 +177,21 @@
         <target state="translated">式ツリーに ref 構造体または制限がある型 '{0}' の値を含めることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
+        <source>An expression tree may not contain a from-end index ('^') expression.</source>
+        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+        <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
+        <source>An expression tree may not contain a range ('..') expression.</source>
+        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
         <source>An expression tree may not contain a switch expression.</source>
         <target state="translated">式ツリーに switch 式を含めることはできません。</target>
@@ -914,6 +929,11 @@
         <target state="translated">ラムダ ディスカード パラメーター</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMemberNotNull">
+        <source>MemberNotNull attribute</source>
+        <target state="new">MemberNotNull attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">入れ子になった関数での名前シャドウイング</target>
@@ -1497,6 +1517,36 @@
       <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
         <source>Do not use '_' to refer to the type in an is-type expression.</source>
         <target state="translated">is 型の式の中で型を参照するために '_' を使用しないでください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNull">
+        <source>Member '{0}' may not have a null value when exiting.</source>
+        <target state="new">Member '{0}' may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember">
+        <source>Member '{0}' cannot be used in this attribute.</source>
+        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember_Title">
+        <source>Member cannot be used in this attribute.</source>
+        <target state="new">Member cannot be used in this attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullWhen">
+        <source>Member '{0}' may not have a null value when exiting with `{1}`.</source>
+        <target state="new">Member '{0}' may not have a null value when exiting with `{1}`.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullWhen_Title">
+        <source>Member may not have a null value when exiting in some condition.</source>
+        <target state="new">Member may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNull_Title">
+        <source>Member may not have a null value when exiting.</source>
+        <target state="new">Member may not have a null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -13,8 +14,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
+    <[Shared]>
     Partial Friend Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
@@ -66,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function

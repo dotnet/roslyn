@@ -78,8 +78,9 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">显示已关闭文件的诊断信息；
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="needs-review-translation">显示已关闭文件的诊断信息；
 对正则表达式着色；
 突出显示游标下的相关组件；
 报告无效的正则表达式；

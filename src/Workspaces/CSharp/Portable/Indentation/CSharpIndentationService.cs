@@ -5,14 +5,13 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
         }
 
-        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule()
+        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
         {
             return s_instance;
         }
@@ -41,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
+            IOptionService optionService,
             OptionSet optionSet,
             out SyntaxToken token)
         {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
+            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet.AsAnalyzerConfigOptions(optionService, LanguageNames.CSharp));
             if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);

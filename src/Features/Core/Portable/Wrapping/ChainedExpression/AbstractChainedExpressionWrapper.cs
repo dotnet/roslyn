@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _dotToken;
         private readonly int _questionToken;
 
         protected AbstractChainedExpressionWrapper(
             Indentation.IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts) : base(indentationService)
+            ISyntaxFacts syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _dotToken = syntaxFacts.SyntaxKinds.DotToken;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
-            var pieces = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
             Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
             BreakPiecesIntoChunks(pieces, chunks);
-
-            pieces.Free();
             return chunks.ToImmutableAndFree();
         }
 

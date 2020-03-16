@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression resultPart;
-                if (leftTargets[i].HasNestedVariables)
+                if (leftTargets[i].NestedVariables is object)
                 {
                     resultPart = ApplyDeconstructionConversion(leftTargets[i].NestedVariables, rightParts[i],
                         underlyingConversions[i], temps, effects, isUsed, inInit);

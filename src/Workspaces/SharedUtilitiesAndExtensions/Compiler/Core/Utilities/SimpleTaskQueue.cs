@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,6 +51,7 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker(
@@ -60,6 +62,7 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker(
@@ -70,6 +73,7 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker(
@@ -80,6 +84,7 @@ namespace Roslyn.Utilities
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
             AllowCaptures = false)]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker(
