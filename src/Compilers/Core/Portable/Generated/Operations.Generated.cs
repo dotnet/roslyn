@@ -2328,6 +2328,28 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation Value { get; }
     }
     /// <summary>
+    /// Represents a pattern comparing the input with a constant value using a relational operator.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# relational pattern.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface IRelationalPatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// The kind of the relational operator.
+        /// </summary>
+        BinaryOperatorKind OperatorKind { get; }
+        /// <summary>
+        /// Constant value of the pattern operation.
+        /// </summary>
+        IOperation Value { get; }
+    }
+    /// <summary>
     /// Represents a pattern that declares a symbol.
     /// <para>
     /// Current usage:
@@ -2354,6 +2376,68 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Symbol declared by the pattern, if any.
         /// </summary>
         ISymbol DeclaredSymbol { get; }
+    }
+    /// <summary>
+    /// Represents a pattern comparing the input with a given type.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# type pattern.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface ITypePatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// The type explicitly specified.
+        /// </summary>
+        ITypeSymbol MatchedType { get; }
+    }
+    /// <summary>
+    /// Represents a negated pattern.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# negated pattern.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface INegatedPatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// The negated pattern.
+        /// </summary>
+        IOperation NegatedPattern { get; }
+    }
+    /// <summary>
+    /// Represents a binary ("and" or "or") pattern.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# "and" and "or" patterns.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface IBinaryPatternOperation : IPatternOperation
+    {
+        /// <summary>
+        /// Kind of binary pattern; either <see cref="BinaryOperatorKind.And"/> or <see cref="BinaryOperatorKind.Or"/>.
+        /// </summary>
+        BinaryOperatorKind OperatorKind { get; }
+        /// <summary>
+        /// Left pattern.
+        /// </summary>
+        IOperation LeftPattern { get; }
+        /// <summary>
+        /// Right pattern.
+        /// </summary>
+        IOperation RightPattern { get; }
     }
     /// <summary>
     /// Represents a comparison of two operands that returns a bool type.
@@ -7107,6 +7191,174 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
+    internal abstract partial class BaseRelationalPatternOperation : BasePatternOperation, IRelationalPatternOperation
+    {
+        private readonly BinaryOperatorKind _operatorKind;
+        internal BaseRelationalPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, BinaryOperatorKind operatorKind, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.RelationalPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            this._operatorKind = operatorKind;
+        }
+        public BinaryOperatorKind OperatorKind => _operatorKind;
+        public abstract IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Value is object) yield return Value;
+            }
+        }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitRelationalPattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitRelationalPattern(this, argument);
+    }
+    internal sealed partial class RelationalPatternOperation : BaseRelationalPatternOperation, IRelationalPatternOperation
+    {
+        internal RelationalPatternOperation(IOperation value, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, BinaryOperatorKind operatorKind, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, semanticModel, syntax, type, operatorKind, constantValue, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+        }
+        public override IOperation Value { get; }
+    }
+    internal abstract partial class LazyRelationalPatternOperation : BaseRelationalPatternOperation, IRelationalPatternOperation
+    {
+        private IOperation _lazyValue = s_unset;
+        internal LazyRelationalPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, BinaryOperatorKind operatorKind, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, semanticModel, syntax, type, operatorKind, constantValue, isImplicit) { }
+        protected abstract IOperation CreateValue();
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+                return _lazyValue;
+            }
+        }
+    }
+
+    internal abstract partial class BaseNegatedPatternOperation : BasePatternOperation, INegatedPatternOperation
+    {
+        internal BaseNegatedPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.NegatedPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public abstract IOperation NegatedPattern { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (NegatedPattern is { } p)
+                    yield return p;
+            }
+        }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitNegatedPattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitNegatedPattern(this, argument);
+    }
+    internal sealed partial class NegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
+    {
+        internal NegatedPatternOperation(IOperation negatedPattern, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            NegatedPattern = negatedPattern;
+        }
+        public override IOperation NegatedPattern { get; }
+    }
+    internal abstract partial class LazyNegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
+    {
+        private IOperation _lazyNegatedPattern = s_unset;
+        internal LazyNegatedPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, semanticModel, syntax, type, constantValue, isImplicit) { }
+        protected abstract IOperation CreateNegatedPattern();
+        public override IOperation NegatedPattern
+        {
+            get
+            {
+                if (_lazyNegatedPattern == s_unset)
+                {
+                    IOperation negatedPattern = CreateNegatedPattern();
+                    SetParentOperation(negatedPattern, this);
+                    Interlocked.CompareExchange(ref _lazyNegatedPattern, negatedPattern, s_unset);
+                }
+                return _lazyNegatedPattern;
+            }
+        }
+    }
+
+    internal abstract partial class BaseBinaryPatternOperation : BasePatternOperation, IBinaryPatternOperation
+    {
+        internal BaseBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.BinaryPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            OperatorKind = operatorKind;
+        }
+        public BinaryOperatorKind OperatorKind { get; }
+        public abstract IOperation LeftPattern { get; }
+        public abstract IOperation RightPattern { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (LeftPattern is { })
+                    yield return LeftPattern;
+                if (RightPattern is { })
+                    yield return RightPattern;
+            }
+        }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitBinaryPattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitBinaryPattern(this, argument);
+    }
+    internal sealed partial class BinaryPatternOperation : BaseBinaryPatternOperation, IBinaryPatternOperation
+    {
+        internal BinaryPatternOperation(BinaryOperatorKind operatorKind, IOperation leftPattern, IOperation rightPattern, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, inputType, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            LeftPattern = leftPattern;
+            RightPattern = rightPattern;
+        }
+        public override IOperation LeftPattern { get; }
+        public override IOperation RightPattern { get; }
+    }
+    internal abstract partial class LazyBinaryPatternOperation : BaseBinaryPatternOperation, IBinaryPatternOperation
+    {
+        private IOperation _lazyLeftPattern = s_unset;
+        private IOperation _lazyRightPattern = s_unset;
+        internal LazyBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(operatorKind, inputType, semanticModel, syntax, type, constantValue, isImplicit) { }
+        protected abstract IOperation CreateLeftPattern();
+        protected abstract IOperation CreateRightPattern();
+        public override IOperation LeftPattern
+        {
+            get
+            {
+                if (_lazyLeftPattern == s_unset)
+                {
+                    IOperation leftPattern = CreateLeftPattern();
+                    SetParentOperation(leftPattern, this);
+                    Interlocked.CompareExchange(ref _lazyLeftPattern, leftPattern, s_unset);
+                }
+                return _lazyLeftPattern;
+            }
+        }
+        public override IOperation RightPattern
+        {
+            get
+            {
+                if (_lazyRightPattern == s_unset)
+                {
+                    IOperation rightPattern = CreateRightPattern();
+                    SetParentOperation(rightPattern, this);
+                    Interlocked.CompareExchange(ref _lazyRightPattern, rightPattern, s_unset);
+                }
+                return _lazyRightPattern;
+            }
+        }
+    }
+
     internal sealed partial class DeclarationPatternOperation : BasePatternOperation, IDeclarationPatternOperation
     {
         internal DeclarationPatternOperation(ITypeSymbol matchedType, bool matchesNull, ISymbol declaredSymbol, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
@@ -7122,6 +7374,18 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
         public override void Accept(OperationVisitor visitor) => visitor.VisitDeclarationPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDeclarationPattern(this, argument);
+    }
+    internal sealed partial class TypePatternOperation : BasePatternOperation, ITypePatternOperation
+    {
+        internal TypePatternOperation(ITypeSymbol matchedType, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(inputType, OperationKind.TypePattern, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            MatchedType = matchedType;
+        }
+        public ITypeSymbol MatchedType { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor) => visitor.VisitTypePattern(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitTypePattern(this, argument);
     }
     internal abstract partial class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
     {
@@ -8370,6 +8634,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation) => DefaultVisit(operation);
         public virtual void VisitInterpolation(IInterpolationOperation operation) => DefaultVisit(operation);
         public virtual void VisitConstantPattern(IConstantPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitNegatedPattern(INegatedPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitBinaryPattern(IBinaryPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitDeclarationPattern(IDeclarationPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitTupleBinaryOperator(ITupleBinaryOperation operation) => DefaultVisit(operation);
         public virtual void VisitMethodBodyOperation(IMethodBodyOperation operation) => DefaultVisit(operation);
@@ -8491,6 +8759,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitInterpolation(IInterpolationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitConstantPattern(IConstantPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitNegatedPattern(INegatedPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitBinaryPattern(IBinaryPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitDeclarationPattern(IDeclarationPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitTupleBinaryOperator(ITupleBinaryOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitMethodBodyOperation(IMethodBodyOperation operation, TArgument argument) => DefaultVisit(operation, argument);

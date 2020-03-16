@@ -1527,6 +1527,84 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    internal sealed class CSharpLazyRelationalPatternOperation : LazyRelationalPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNode _value;
+
+        internal CSharpLazyRelationalPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BinaryOperatorKind operatorKind, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, type: null, operatorKind: operatorKind, constantValue: default, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _value = value;
+        }
+
+        protected override IOperation CreateValue()
+        {
+            return _operationFactory.Create(_value);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# negated pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyNegatedPatternOperation : LazyNegatedPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNegatedPattern _boundNegatedPattern;
+
+        public CSharpLazyNegatedPatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundNegatedPattern boundNegatedPattern,
+            SemanticModel semanticModel)
+            : base(inputType: boundNegatedPattern.InputType.GetPublicSymbol(),
+                   semanticModel: semanticModel,
+                   syntax: boundNegatedPattern.Syntax,
+                   type: null,
+                   constantValue: default,
+                   isImplicit: boundNegatedPattern.WasCompilerGenerated)
+        {
+            _operationFactory = operationFactory;
+            _boundNegatedPattern = boundNegatedPattern;
+        }
+        protected override IOperation CreateNegatedPattern()
+        {
+            return _operationFactory.Create(_boundNegatedPattern.Negated);
+        }
+    }
+    /// <summary>
+    /// Represents a C# binary pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyBinaryPatternOperation : LazyBinaryPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundBinaryPattern _boundBinaryPattern;
+
+        public CSharpLazyBinaryPatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundBinaryPattern boundBinaryPattern,
+            SemanticModel semanticModel)
+            : base(operatorKind: boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
+                   inputType: boundBinaryPattern.InputType.GetPublicSymbol(),
+                   semanticModel: semanticModel,
+                   syntax: boundBinaryPattern.Syntax,
+                   type: null,
+                   constantValue: default,
+                   isImplicit: boundBinaryPattern.WasCompilerGenerated)
+        {
+            _operationFactory = operationFactory;
+            _boundBinaryPattern = boundBinaryPattern;
+        }
+        protected override IOperation CreateLeftPattern()
+        {
+            return _operationFactory.Create(_boundBinaryPattern.Left);
+        }
+        protected override IOperation CreateRightPattern()
+        {
+            return _operationFactory.Create(_boundBinaryPattern.Right);
+        }
+    }
+
     /// <summary>
     /// Represents a C# recursive pattern.
     /// </summary>

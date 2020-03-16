@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1117,7 +1118,7 @@ class C
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
                     Children(0)
                 Pattern: 
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop[1]')
+                  ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, MatchedType: ?)
               IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
                 Member: 
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
@@ -1501,6 +1502,84 @@ Block[B9] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_PatternCombinatorsAndRelationalPatterns_01()
+        {
+            string source = @"
+class X
+{
+    void M(char c)
+    {
+        _ = /*<bind>*/c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z')/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'c is (>= 'A ... and <= 'z')')
+      Value: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Char) (Syntax: 'c')
+      Pattern: 
+        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... and <= 'z')') (InputType: System.Char)
+          LeftPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and <= 'Z'') (InputType: System.Char)
+              LeftPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'A'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: A) (Syntax: ''A'')
+              RightPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'Z'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: Z) (Syntax: ''Z'')
+          RightPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'a' and <= 'z'') (InputType: System.Char)
+              LeftPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'a'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
+              RightPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'z'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: z) (Syntax: ''z'')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_TypePatterns_01()
+        {
+            string source = @"
+class X
+{
+    void M(object o)
+    {
+        _ = /*<bind>*/o is int or long or bool/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int or long or bool')
+      Value: 
+        IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+      Pattern: 
+        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long or bool') (InputType: System.Object)
+          LeftPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
+              LeftPattern: 
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Object)
+              RightPattern: 
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Object)
+          RightPattern: 
+            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Object)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
     }
 }
