@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 return;
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // designer attributes it will call back into us to notify VS about it.
+            // todo comments it will call back into us to notify VS about it.
             _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubServices.RemoteTodoCommentsService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
