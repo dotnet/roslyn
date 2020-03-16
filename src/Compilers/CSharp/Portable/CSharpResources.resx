@@ -6055,4 +6055,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadFuncPointerArgCount" xml:space="preserve">
     <value>Function pointer '{0}' does not take {1} arguments</value>
   </data>
+  <data name="ERR_MethFuncPtrMismatch" xml:space="preserve">
+    <value>No overload for '{0}' matches function pointer '{1}'</value>
+  </data>
+  <data name="ERR_FuncPtrRefMismatch" xml:space="preserve">
+    <value>Ref mismatch between '{0}' and function pointer '{1}'</value>
+  </data>
+  <data name="ERR_FuncPtrMethMustBeStatic" xml:space="preserve">
+    <value>Cannot bind function pointer to '{0}' because it is not a static method</value>
+  </data>
+
 </root>

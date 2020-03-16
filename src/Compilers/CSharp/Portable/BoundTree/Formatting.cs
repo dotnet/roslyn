@@ -167,4 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display => Expression.Display;
     }
+
+    internal partial class BoundUnconvertedAddressOfOperator
+    {
+        public override object Display => $"&{Operand.Display}";
+    }
 }

@@ -639,7 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
             if (!mismatch.IsNull)
             {
-                diagnostics.Add(ErrorCode.ERR_DelegateRefMismatch, location, mismatch.Member, delegateType);
+                diagnostics.Add(delegateType.IsFunctionPointer() ? ErrorCode.ERR_FuncPtrRefMismatch : ErrorCode.ERR_DelegateRefMismatch,
+                    location, mismatch.Member, delegateType);
                 return true;
             }
 
@@ -1143,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
                 }
                 else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
-                        Conversions.ReportDelegateMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
+                        Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
                 {
                     // a diagnostic has been reported by ReportDelegateMethodGroupDiagnostics
                 }

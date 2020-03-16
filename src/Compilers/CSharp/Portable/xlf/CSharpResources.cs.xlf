@@ -252,6 +252,16 @@
         <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance pro {1}. Měli jste v úmyslu await foreach místo foreach?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FuncPtrMethMustBeStatic">
+        <source>Cannot bind function pointer to '{0}' because it is not a static method</source>
+        <target state="new">Cannot bind function pointer to '{0}' because it is not a static method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FuncPtrRefMismatch">
+        <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
+        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Příkaz goto nemůže přejít na místo před deklarací using ve stejném bloku.</target>
@@ -335,6 +345,11 @@
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
         <target state="translated">Metoda {0} s blokem iterátoru musí být asynchronní, aby vrátila {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethFuncPtrMismatch">
+        <source>No overload for '{0}' matches function pointer '{1}'</source>
+        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">

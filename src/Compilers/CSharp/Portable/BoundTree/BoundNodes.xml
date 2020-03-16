@@ -317,6 +317,15 @@
          of unsafe code - such as fixed field indexing. -->
     <Field Name="IsManaged" Type="bool"/>  
   </Node>
+  <!-- Represents an AddressOf operator that has not yet been assigned to a
+       target-type. It has no natural type, and should not survive initial binding. -->
+  <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression">
+    <Field Name="Operand" Type="BoundMethodGroup"/>
+  </Node>
+  <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
+  <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
+    <Field Name="TargetMethod" Type="MethodSymbol"/>
+  </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

@@ -1748,6 +1748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DupReturnTypeMod = 8754,
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
+        ERR_MethFuncPtrMismatch = 8757,
+        ERR_FuncPtrRefMismatch = 8758,
+        ERR_FuncPtrMethMustBeStatic = 8759,
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,

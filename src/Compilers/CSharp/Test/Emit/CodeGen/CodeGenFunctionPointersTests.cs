@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source)
+        {
+            return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+        }
+
         [Theory]
         [InlineData("", CallingConvention.Default)]
         [InlineData("cdecl", CallingConvention.CDecl)]
@@ -40,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [InlineData("stdcall", CallingConvention.Standard)]
         internal void CallingConventions(string conventionString, CallingConvention expectedConvention)
         {
-            var comp = CompileAndVerifyFunctionPointers(@$"
+            var comp = CompileAndVerifyFunctionPointers($@"
 class C
 {{
     public unsafe delegate* {conventionString}<string, int> M() => throw null;
@@ -2304,6 +2309,601 @@ internal class C
 }", references: new[] { aRef, bRef }, assemblyName: "C", parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
 
             cComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_VoidReturnNoParams()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M() => Console.Write(""1"");
+    static void Main()
+    {
+        delegate*<void> ptr = &M;
+        ptr();
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""void C.M()""
+  IL_0006:  calli      0x2
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_VoidReturnValueParams()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(string s, int i) => Console.Write(s + i.ToString());
+    static void Main()
+    {
+        delegate*<string, int, void> ptr = &M;
+        ptr(""1"", 2);
+    }
+}", expectedOutput: "12");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (delegate*<string,int,void> V_0)
+  IL_0000:  ldftn      ""void C.M(string, int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldstr      ""1""
+  IL_000c:  ldc.i4.2
+  IL_000d:  ldloc.0
+  IL_000e:  calli      0x4
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_VoidReturnRefParameters()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(ref string s, in int i, out object o)
+    {
+        Console.Write(s + i.ToString());
+        s = ""3"";
+        o = ""4"";
+    }
+    static void Main()
+    {
+        delegate*<ref string, in int, out object, void> ptr = &M;
+        string s = ""1"";
+        int i = 2;
+        ptr(ref s, in i, out var o);
+        Console.Write(s);
+        Console.Write(o);
+    }
+}", expectedOutput: "1234");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (string V_0, //s
+                int V_1, //i
+                object V_2, //o
+                delegate*<ref string,in int,out object,void> V_3)
+  IL_0000:  ldftn      ""void C.M(ref string, in int, out object)""
+  IL_0006:  ldstr      ""1""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.2
+  IL_000d:  stloc.1
+  IL_000e:  stloc.3
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  ldloc.3
+  IL_0016:  calli      0x7
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""void System.Console.Write(string)""
+  IL_0021:  ldloc.2
+  IL_0022:  call       ""void System.Console.Write(object)""
+  IL_0027:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_ReturnStruct()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe struct S
+{
+    int i;
+    public S(int i)
+    {
+        this.i = i;
+    }
+    void M() => Console.Write(i);
+
+    static S MakeS(int i) => new S(i); 
+    public static void Main()
+    {
+        delegate*<int, S> ptr = &MakeS;
+        ptr(1).M();
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("S.Main()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (delegate*<int,S> V_0,
+                S V_1)
+  IL_0000:  ldftn      ""S S.MakeS(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  calli      0x4
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       ""void S.M()""
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_ReturnClass()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    int i;
+    public C(int i)
+    {
+        this.i = i;
+    }
+    void M() => Console.Write(i);
+
+    static C MakeC(int i) => new C(i); 
+    public static void Main()
+    {
+        delegate*<int, C> ptr = &MakeC;
+        ptr(1).M();
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (delegate*<int,C> V_0)
+  IL_0000:  ldftn      ""C C.MakeC(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  calli      0x5
+  IL_000e:  callvirt   ""void C.M()""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_ContravariantParameters()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(object o, void* i) => Console.Write(o.ToString() + (*((int*)i)).ToString());
+    static void Main()
+    {
+        delegate*<string, int*, void> ptr = &M;
+        int i = 2;
+        ptr(""1"", &i);
+    }
+}", expectedOutput: "12");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (int V_0, //i
+                delegate*<string,int*,void> V_1)
+  IL_0000:  ldftn      ""void C.M(object, void*)""
+  IL_0006:  ldc.i4.2
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldstr      ""1""
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  conv.u
+  IL_0011:  ldloc.1
+  IL_0012:  calli      0x6
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_CovariantReturns()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+public unsafe class C
+{
+    static string M1() => ""1"";
+    static int i = 2;
+    static int* M2()
+    {
+        fixed (int* i1 = &i)
+        {
+            return i1;
+        }
+    }
+
+    static void Main()
+    {
+        delegate*<object> ptr1 = &M1;
+        Console.Write(ptr1());
+        delegate*<void*> ptr2 = &M2;
+        Console.Write(*(int*)ptr2());
+    }
+}
+", expectedOutput: "12");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  IL_0000:  ldftn      ""string C.M1()""
+  IL_0006:  calli      0x3
+  IL_000b:  call       ""void System.Console.Write(object)""
+  IL_0010:  ldftn      ""int* C.M2()""
+  IL_0016:  calli      0x6
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.Write(int)""
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_Overloads()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(object o) => Console.Write(""object"" + o.ToString());
+    static void M(string s) => Console.Write(""string"" + s);
+    static void M(int i) => Console.Write(""int"" + i.ToString());
+    static void Main()
+    {
+        delegate*<string, void> ptr = &M;
+        ptr(""1"");
+    }
+}", expectedOutput: "string1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (delegate*<string,void> V_0)
+  IL_0000:  ldftn      ""void C.M(string)""
+  IL_0006:  stloc.0
+  IL_0007:  ldstr      ""1""
+  IL_000c:  ldloc.0
+  IL_000d:  calli      0x5
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_Overloads_NoMostSpecific()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+interface I1 {}
+interface I2 {}
+static class IHelpers
+{
+    public static void M(I1 i1) {}
+    public static void M(I2 i2) {}
+}
+class C : I1, I2
+{
+    unsafe static void Main()
+    {
+        delegate*<C, void> ptr = &IHelpers.M;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (13,34): error CS8757: No overload for 'M' matches function pointer 'delegate*<C,void>'
+                //         delegate*<C, void> ptr = &IHelpers.M;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&IHelpers.M").WithArguments("M", "delegate*<C,void>").WithLocation(13, 34)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_Initializer_Overloads_RefNotCovariant()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M1(ref object o) {}
+    void M2(in object o) {}
+    void M3(out string s) => throw null;
+    void M()
+    {
+        delegate*<ref string, void> ptr1 = &M1;
+        delegate*<string, void> ptr2 = &M1;
+        delegate*<in string, void> ptr3 = &M2;
+        delegate*<string, void> ptr4 = &M2;
+        delegate*<out object, void> ptr5 = &M3;
+        delegate*<string, void> ptr6 = &M3;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,44): error CS8757: No overload for 'M1' matches function pointer 'delegate*<ref string,void>'
+                //         delegate*<ref string, void> ptr1 = &M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<ref string,void>").WithLocation(9, 44),
+                // (10,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<string,void>'
+                //         delegate*<string, void> ptr2 = &M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<string,void>").WithLocation(10, 40),
+                // (11,43): error CS8757: No overload for 'M2' matches function pointer 'delegate*<in string,void>'
+                //         delegate*<in string, void> ptr3 = &M2;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<in string,void>").WithLocation(11, 43),
+                // (12,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<string,void>'
+                //         delegate*<string, void> ptr4 = &M2;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<string,void>").WithLocation(12, 40),
+                // (13,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<out object,void>'
+                //         delegate*<out object, void> ptr5 = &M3;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<out object,void>").WithLocation(13, 44),
+                // (14,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<string,void>'
+                //         delegate*<string, void> ptr6 = &M3;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<string,void>").WithLocation(14, 40)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_RefsMustMatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M1(ref object o) {}
+    void M2(in object o) {}
+    void M3(out object s) => throw null;
+    void M4(object s) => throw null;
+    ref object M5() => throw null;
+    ref readonly object M6() => throw null;
+    object M7() => throw null!;
+    void M()
+    {
+        delegate*<object, void> ptr1 = &M1;
+        delegate*<object, void> ptr2 = &M2;
+        delegate*<object, void> ptr3 = &M3;
+        delegate*<ref object, void> ptr4 = &M4;
+        delegate*<in object, void> ptr5 = &M4;
+        delegate*<out object, void> ptr6 = &M4;
+        delegate*<object> ptr7 = &M5;
+        delegate*<object> ptr8 = &M6;
+        delegate*<ref object> ptr9 = &M7;
+        delegate*<ref readonly object> ptr10 = &M7;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (13,40): error CS8757: No overload for 'M1' matches function pointer 'delegate*<object,void>'
+                //         delegate*<object, void> ptr1 = &M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<object,void>").WithLocation(13, 40),
+                // (14,40): error CS8757: No overload for 'M2' matches function pointer 'delegate*<object,void>'
+                //         delegate*<object, void> ptr2 = &M2;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<object,void>").WithLocation(14, 40),
+                // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object,void>'
+                //         delegate*<object, void> ptr3 = &M3;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object,void>").WithLocation(15, 40),
+                // (16,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<ref object,void>'
+                //         delegate*<ref object, void> ptr4 = &M4;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<ref object,void>").WithLocation(16, 44),
+                // (17,43): error CS8757: No overload for 'M4' matches function pointer 'delegate*<in object,void>'
+                //         delegate*<in object, void> ptr5 = &M4;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<in object,void>").WithLocation(17, 43),
+                // (18,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<out object,void>'
+                //         delegate*<out object, void> ptr6 = &M4;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<out object,void>").WithLocation(18, 44),
+                // (19,35): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<object>'
+                //         delegate*<object> ptr7 = &M5;
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<object>").WithLocation(19, 35),
+                // (20,35): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
+                //         delegate*<object> ptr8 = &M6;
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(20, 35),
+                // (21,39): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                //         delegate*<ref object> ptr9 = &M7;
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(21, 39),
+                // (22,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                //         delegate*<ref readonly object> ptr10 = &M7;
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(22, 49)
+            );
+        }
+
+        [Theory]
+        [InlineData("cdecl")]
+        [InlineData("stdcall")]
+        [InlineData("thiscall")]
+        public void AddressOf_CallingConventionMustMatch(string callingConvention)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe class C
+{{
+    void M1() {{}}
+    void M()
+    {{
+        delegate* {callingConvention}<void> ptr = &M1;
+    }}
+}}");
+
+            comp.VerifyDiagnostics(
+                // (7,37): error CS8757: No overload for 'M1' matches function pointer 'delegate*<void>'
+                //         delegate* {callingConvention}<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<void>").WithLocation(7, 32 + callingConvention.Length));
+        }
+
+        [Fact]
+        public void AddressOf_Assignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static string Convert(int i) => i.ToString();
+    static void Main()
+    {
+        delegate*<int, string> ptr;
+        ptr = &Convert;
+        Console.Write(ptr(1));
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (delegate*<int,string> V_0)
+  IL_0000:  ldftn      ""string C.Convert(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  calli      0x2
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void AddressOf_NonStaticMethods()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M()
+    {
+        delegate*<void> ptr1 = &M;
+        int? i = null;
+        delegate*<int> ptr2 = &i.GetValueOrDefault;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8759: Cannot bind function pointer to 'C.M()' because it is not a static method
+                //         delegate*<void> ptr1 = &M;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M").WithArguments("C.M()").WithLocation(6, 33),
+                // (8,32): error CS8759: Cannot bind function pointer to 'int?.GetValueOrDefault()' because it is not a static method
+                //         delegate*<int> ptr2 = &i.GetValueOrDefault;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "i.GetValueOrDefault").WithArguments("int?.GetValueOrDefault()").WithLocation(8, 32)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_MultipleInvalidOverloads()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static int M(string s) => throw null;
+    static int M(ref int i) => throw null;
+
+    static void M1()
+    {
+        delegate*<int, int> ptr = &M;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,35): error CS8757: No overload for 'M' matches function pointer 'delegate*<int,int>'
+                //         delegate*<int, int> ptr = &M;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M").WithArguments("M", "delegate*<int,int>").WithLocation(9, 35)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_AmbiguousBestMethod()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M(string s, object o) {}
+    static void M(object o, string s) {}
+    static void M1()
+    {
+        delegate*<string, string, void> ptr = &M;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,48): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(string, object)' and 'C.M(object, string)'
+                //         delegate*<string, string, void> ptr = &M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string, object)", "C.M(object, string)").WithLocation(8, 48)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_AsLvalue()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M() {}
+    static void M1()
+    {
+        delegate*<void> ptr = &M;
+        &M = ptr;
+        M2(&M);
+        ref delegate*<void> ptr2 = ref &M;
+    }
+    static void M2(ref delegate*<void> ptr) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         &M = ptr;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "&M").WithLocation(8, 9),
+                // (9,12): error CS1503: Argument 1: cannot convert from '&method group' to 'ref delegate*<void>'
+                //         M2(&M);
+                Diagnostic(ErrorCode.ERR_BadArgType, "&M").WithArguments("1", "&method group", "ref delegate*<void>").WithLocation(9, 12),
+                // (10,40): error CS1510: A ref or out value must be an assignable variable
+                //         ref delegate*<void> ptr2 = ref &M;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "&M").WithLocation(10, 40)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_MethodParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(string s) => Console.Write(s);
+    static void Caller(delegate*<string, void> ptr) => ptr(""1"");
+    static void Main()
+    {
+        Caller(&M);
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""void C.M(string)""
+  IL_0006:  call       ""void C.Caller(delegate*<string,void>)""
+  IL_000b:  ret
+}
+");
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)

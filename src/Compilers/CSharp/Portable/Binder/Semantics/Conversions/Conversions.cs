@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
         }
 
-        public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Must be a bona fide delegate type, not an expression tree type.
             if (!destination.IsDelegateType())
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            var methodSymbol = GetDelegateInvokeMethodIfAvailable(destination);
+            var methodSymbol = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
             if ((object)methodSymbol == null)
             {
                 return Conversion.NoConversion;
@@ -55,7 +55,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resolution = ResolveDelegateMethodGroup(_binder, source, methodSymbol, ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, ((NamedTypeSymbol)destination).DelegateInvokeMethod.ParameterCount);
+            resolution.Free();
+            return conversion;
+        }
+
+        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            var signature = destination.Signature;
+            GetDelegateArguments(source.Syntax, analyzedArguments, signature.Parameters, _binder.Compilation);
+            var resolution = _binder.ResolveMethodGroupForFunctionPointer(source, analyzedArguments, signature.ReturnType, signature.RefKind, signature.CallingConvention, ref useSiteDiagnostics);
+            analyzedArguments.Free();
+            var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
+                Conversion.NoConversion :
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, signature.ParameterCount);
             resolution.Free();
             return conversion;
         }
@@ -94,8 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the Invoke method symbol if the type is a delegate
         /// type and the Invoke method is available, otherwise null.
         /// </summary>
-        private static MethodSymbol GetDelegateInvokeMethodIfAvailable(TypeSymbol type)
+        private static MethodSymbol GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
         {
+            if (type is FunctionPointerTypeSymbol { Signature: { } signature })
+            {
+                return signature;
+            }
+
             var delegateType = type.GetDelegateType();
             if ((object)delegateType == null)
             {
@@ -111,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodSymbol;
         }
 
-        public static bool ReportDelegateMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
+        public static bool ReportDelegateOrFuncPtrMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
-            var invokeMethodOpt = GetDelegateInvokeMethodIfAvailable(targetType);
+            var invokeMethodOpt = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var resolution = ResolveDelegateMethodGroup(binder, expr, invokeMethodOpt, ref useSiteDiagnostics);
             diagnostics.Add(expr.Syntax, useSiteDiagnostics);
@@ -157,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     thisParameter.Type);
                                 hasErrors = true;
                             }
+                        }
+                        else if (targetType.IsFunctionPointer() && !method.IsStatic)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_FuncPtrMethMustBeStatic, expr.Syntax.Location, method);
+                            hasErrors = true;
                         }
                         else if (method.ContainingType.IsNullableType() && !method.IsOverride)
                         {
@@ -216,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
-            var conversion = ToConversion(result, methodGroup, delegateType);
+            var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod.ParameterCount);
 
             analyzedArguments.Free();
             result.Free();
@@ -247,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, NamedTypeSymbol delegateType)
+        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, int parameterCount)
         {
             // 6.6 An implicit conversion (6.1) exists from a method group (7.1) to a compatible
             // delegate type. Given a delegate type D and an expression E that is classified as
@@ -299,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
+            Debug.Assert(method.ParameterCount == parameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }

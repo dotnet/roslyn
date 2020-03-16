@@ -2135,15 +2135,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
             bool isFixedStatementAddressOfExpression = SyntaxFacts.IsFixedStatementExpression(node);
 
-            switch (operand.Kind)
+            switch (operand)
             {
-                case BoundKind.MethodGroup:
-                case BoundKind.Lambda:
-                case BoundKind.UnboundLambda:
+                case BoundLambda _:
+                case UnboundLambda _:
                     {
                         Debug.Assert(hasErrors);
                         return new BoundAddressOfOperator(node, operand, CreateErrorType(), hasErrors: true);
                     }
+
+                case BoundMethodGroup methodGroup:
+                    return new BoundUnconvertedAddressOfOperator(node, methodGroup, type: null, hasErrors);
             }
 
             TypeSymbol operandType = operand.Type;

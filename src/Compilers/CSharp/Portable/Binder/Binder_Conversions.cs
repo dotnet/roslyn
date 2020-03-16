@@ -378,13 +378,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
+            var originalGroup = source switch
+            {
+                BoundMethodGroup m => m,
+                BoundUnconvertedAddressOfOperator { Operand: { } m } => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(source),
+            };
+            BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
             BoundExpression? receiverOpt = group.ReceiverOpt;
             MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
-            NamedTypeSymbol delegateType = (NamedTypeSymbol)destination;
-            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, delegateType, diagnostics))
+            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, destination, diagnostics))
             {
                 hasErrors = true;
             }
@@ -796,26 +801,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegateOrFuncPtr(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
-            RoslynDebug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
-                         "This method should only be called for valid delegate types.");
+            Debug.Assert(delegateType is NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { HasUseSiteError: false } }
+                           || delegateType.TypeKind == TypeKind.FunctionPointer,
+                         "This method should only be called for valid delegate or function pointer types.");
 
-            MethodSymbol delegateMethod = delegateType.DelegateInvokeMethod;
+            MethodSymbol delegateOrFuncPtrMethod = delegateType switch
+            {
+                NamedTypeSymbol { DelegateInvokeMethod: { } invokeMethod } => invokeMethod,
+                FunctionPointerTypeSymbol { Signature: { } signature } => signature,
+                _ => throw ExceptionUtilities.UnexpectedValue(delegateType),
+            };
 
             Debug.Assert(!isExtensionMethod || (receiverOpt != null));
 
             // - Argument types "match", and
-            var delegateParameters = delegateMethod.Parameters;
+            var delegateOrFuncPtrParameters = delegateOrFuncPtrMethod.Parameters;
             var methodParameters = method.Parameters;
-            int numParams = delegateParameters.Length;
+            int numParams = delegateOrFuncPtrParameters.Length;
 
             if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
             {
                 // This can happen if "method" has optional parameters.
                 Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
-                Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                 return false;
             }
 
@@ -830,34 +840,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameter = delegateParameters[i];
+                var delegateParameter = delegateOrFuncPtrParameters[i];
                 var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
                 if (delegateParameter.RefKind != methodParameter.RefKind ||
-                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
+                    !hasVariantConversion(delegateType.TypeKind, Conversions, delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
-                    Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
+                    Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                     diagnostics.Add(errorLocation, useSiteDiagnostics);
                     return false;
                 }
             }
 
-            if (delegateMethod.RefKind != method.RefKind)
+            if (delegateOrFuncPtrMethod.RefKind != method.RefKind)
             {
-                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, getRefMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
             var methodReturnType = method.ReturnType;
-            var delegateReturnType = delegateMethod.ReturnType;
-            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
-                                    // - Return types identity-convertible
-                                    Conversions.HasIdentityConversion(methodReturnType, delegateReturnType) :
-                                    // - Return types "match"
-                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                                        Conversions.HasIdentityOrImplicitReferenceConversion(methodReturnType, delegateReturnType, ref useSiteDiagnostics);
+            var delegateReturnType = delegateOrFuncPtrMethod.ReturnType;
+            bool returnsMatch = delegateOrFuncPtrMethod switch
+            {
+                { RefKind: RefKind.None, ReturnsVoid: true } => method.ReturnsVoid,
+                { RefKind: RefKind.None } => hasVariantConversion(delegateType.TypeKind, Conversions, methodReturnType, delegateReturnType, ref useSiteDiagnostics),
+                _ => Conversions.HasIdentityConversion(methodReturnType, delegateReturnType)
+            };
 
             if (!returnsMatch)
             {
@@ -866,8 +876,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (delegateType.IsFunctionPointer() && !method.IsStatic)
+            {
+                Error(diagnostics, ErrorCode.ERR_FuncPtrMethMustBeStatic, errorLocation, method);
+                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                return false;
+            }
+
             diagnostics.Add(errorLocation, useSiteDiagnostics);
             return true;
+
+            static bool hasVariantConversion(TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                if (conversions.HasIdentityOrImplicitReferenceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
+
+                return targetKind == TypeKind.FunctionPointer && ConversionsBase.HasImplicitPointerConversion(source, destination);
+            }
+            static ErrorCode getMethodMismatchErrorCode(TypeKind type)
+                => type switch
+                {
+                    TypeKind.Delegate => ErrorCode.ERR_MethDelegateMismatch,
+                    TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type)
+                };
+
+            static ErrorCode getRefMismatchErrorCode(TypeKind type)
+                => type switch
+                {
+                    TypeKind.Delegate => ErrorCode.ERR_DelegateRefMismatch,
+                    TypeKind.FunctionPointer => ErrorCode.ERR_FuncPtrRefMismatch,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type)
+                };
         }
 
         /// <summary>
@@ -877,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="conversion">Conversion to be performed.</param>
         /// <param name="receiverOpt">Optional receiver.</param>
         /// <param name="isExtensionMethod">Method invoked as extension method.</param>
-        /// <param name="delegateType">Target delegate type.</param>
+        /// <param name="delegateOrFuncPtrType">Target delegate type.</param>
         /// <param name="diagnostics">Where diagnostics should be added.</param>
         /// <returns>True if a diagnostic has been added.</returns>
         private bool MethodGroupConversionHasErrors(
@@ -885,15 +927,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BoundExpression? receiverOpt,
             bool isExtensionMethod,
-            NamedTypeSymbol delegateType,
+            TypeSymbol delegateOrFuncPtrType,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
+            Debug.Assert(delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
 
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||
+            if (!MethodGroupIsCompatibleWithDelegateOrFuncPtr(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -945,11 +987,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
+            conversion = Conversions.GetMethodGroupDelegateConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
+                if (!Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);

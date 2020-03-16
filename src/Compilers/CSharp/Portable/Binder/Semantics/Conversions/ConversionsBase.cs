@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase WithNullabilityCore(bool includeNullability);
 
-        public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+        public abstract Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        public abstract Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
@@ -907,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.MethodGroup:
-                    Conversion methodGroupConversion = GetMethodGroupConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
+                    Conversion methodGroupConversion = GetMethodGroupDelegateConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
                     if (methodGroupConversion.Exists)
                     {
                         return methodGroupConversion;
@@ -927,6 +929,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stackAllocConversion.Exists)
                     {
                         return stackAllocConversion;
+                    }
+                    break;
+
+                case BoundKind.UnconvertedAddressOfOperator when destination is FunctionPointerTypeSymbol funcPtrType:
+                    var addressOfConversion = GetMethodGroupFunctionPointerConversion(((BoundUnconvertedAddressOfOperator)sourceExpression).Operand, funcPtrType, ref useSiteDiagnostics);
+                    if (addressOfConversion.Exists)
+                    {
+                        return addressOfConversion;
                     }
                     break;
 
@@ -2909,7 +2919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
+        internal static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);

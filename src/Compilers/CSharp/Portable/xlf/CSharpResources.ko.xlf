@@ -252,6 +252,16 @@
         <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공용 인스턴스 정의가 없기 때문입니다. 'foreach' 대신 'await foreach'를 사용하시겠습니까?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FuncPtrMethMustBeStatic">
+        <source>Cannot bind function pointer to '{0}' because it is not a static method</source>
+        <target state="new">Cannot bind function pointer to '{0}' because it is not a static method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FuncPtrRefMismatch">
+        <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
+        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto는 동일한 블록 내의 using 선언 앞 위치로 이동할 수 없습니다.</target>
@@ -335,6 +345,11 @@
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
         <target state="translated">{1}'을(를) 반환하려면 반복기 블록이 있는 '{0}' 메서드가 '비동기'여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethFuncPtrMismatch">
+        <source>No overload for '{0}' matches function pointer '{1}'</source>
+        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">

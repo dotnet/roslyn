@@ -363,8 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
+                case BoundKind.MethodGroup when valueKind == BindValueKind.AddressOf:
+                    // If the addressof operator is used not as an rvalue, that will get flagged at a later point.
+                    return true;
+
                 case BoundKind.MethodGroup:
-                    // method groups can only be used as RValues
+                    // method groups can only be used as RValues except when taking the address of one
                     var methodGroup = (BoundMethodGroup)expr;
                     Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
