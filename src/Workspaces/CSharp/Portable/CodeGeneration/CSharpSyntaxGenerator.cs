@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.Whitespace(text);
 
         internal override SyntaxTrivia SingleLineComment(string text)
-            => SyntaxFactory.Comment("// " + text);
+            => SyntaxFactory.Comment("//" + text);
 
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);

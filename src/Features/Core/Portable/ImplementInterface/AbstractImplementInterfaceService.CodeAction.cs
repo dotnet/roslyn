@@ -85,8 +85,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: throughMember);
             }
 
-            protected virtual bool SortMembers => true;
-
             public override string Title
             {
                 get
@@ -201,7 +199,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     memberDefinitions.Concat(extraMembers),
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
-                        autoInsertionLocation: groupMembers),
+                        autoInsertionLocation: groupMembers,
+                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
             }
 

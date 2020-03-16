@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             foreach (var comment in comments)
             {
-                trivia.Add(generator.SingleLineComment(comment));
+                trivia.Add(generator.SingleLineComment(" " + comment));
                 trivia.Add(generator.ElasticCarriageReturnLineFeed);
             }
 

@@ -86,10 +86,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
         private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
         {
-            // We want to emit our Dispose members in a very particular order (so we can give
-            // instructions in them that relate to the other).  So do not sort them.
-            protected override bool SortMembers => false;
-
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
@@ -156,7 +152,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     disposableMethods,
                     document.Project.Solution.Workspace,
                     new CodeGenerationOptions(
+                        addImports: false,
                         parseOptions: rootWithCoreMembers.SyntaxTree.Options,
+                        sortMembers: false,
                         autoInsertionLocation: false));
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
@@ -208,7 +206,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
                 var finalizer = this.Service.CreateFinalizer(g, classOrStructType, disposeMethodDisplayString);
 
-                return (ImmutableArray.Create<ISymbol>(disposeInterfaceMethod, disposeImplMethod), finalizer);
+                return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
             }
 
             private IMethodSymbol CreateDisposeImplementationMethod(

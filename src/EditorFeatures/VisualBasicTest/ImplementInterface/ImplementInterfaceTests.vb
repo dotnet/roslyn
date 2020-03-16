@@ -3816,7 +3816,6 @@ Class Program
 
     Private disposedValue As Boolean
 {DisposePattern("Overridable ")}
-
 End Class
 ",
 index:=1)
@@ -3906,7 +3905,7 @@ Public NotInheritable Class Program
     Implements IDisposable
 
     Private disposedValue As Boolean
-{DisposePattern("")}
+{DisposePattern("", disposeMethodAccessibility:="Private")}
 
 End Class
 ",
@@ -4154,7 +4153,7 @@ End Class", index:=1)
 $"Class C : Implements System.IDisposable
 
     Private disposedValue As Boolean
-{DisposePattern("Overridable ", simplifySystem:=False)}
+{DisposePattern("Overridable ", simplifySystem:=False, gcPrefix:="System.")}
 End Class
 ", index:=1)
         End Function
@@ -4295,7 +4294,7 @@ Class _
 
     Protected Overridable Sub Dispose(disposing As Boolean)
         If Not disposedValue Then
-                ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
+            ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             If disposing Then
             End If
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
@@ -4304,15 +4303,15 @@ Class _
         End If
     End Sub
 
-    ' { FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources }
-    'Protected Overrides Sub Finalize()
-    '    ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
-    '    Dispose(disposing:=False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' { String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)") }
+    ' Protected Overrides Sub Finalize()
+    '     ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
+        ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
         Dispose(disposing:=True)
         GC.SuppressFinalize(Me)
     End Sub
@@ -4369,22 +4368,21 @@ Partial Class C
             ' { FeaturesResources.TODO_colon_dispose_managed_state_managed_objects }
             If disposing Then
             End If
-
             ' { FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer }
             ' { FeaturesResources.TODO_colon_set_large_fields_to_null }
             disposedValue = True
         End If
     End Sub
 
-    ' { FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources }
-    'Protected Overrides Sub Finalize()
-    '    ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' { String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)") }
+    ' Protected Overrides Sub Finalize()
+    '     ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
-        ' { FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method }
+        ' { String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)") }
         Dispose(disposing:=True)
         GC.SuppressFinalize(Me)
     End Sub
@@ -4400,31 +4398,32 @@ End Interface",
         Private Shared Function DisposePattern(
                 disposeMethodModifiers As String,
                 Optional simplifySystem As Boolean = True,
-                Optional disposeField As String = "disposedValue") As String
+                Optional disposeField As String = "disposedValue",
+                Optional gcPrefix As String = "",
+                Optional disposeMethodAccessibility As String = "Protected") As String
             Dim code = $"
-    Protected {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
+    {disposeMethodAccessibility} {disposeMethodModifiers}Sub Dispose(disposing As Boolean)
         If Not {disposeField} Then
             ' {FeaturesResources.TODO_colon_dispose_managed_state_managed_objects}
             If disposing Then
             End If
-
             ' {FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer}
             ' {FeaturesResources.TODO_colon_set_large_fields_to_null}
             {disposeField} = True
         End If
     End Sub
 
-    ' {FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources}
-    'Protected Overrides Sub Finalize()
-    '    ' {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
-    '    Dispose(disposing:=False)
-    '    MyBase.Finalize()
-    'End Sub
+    ' ' {String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, "Dispose(disposing As Boolean)")}
+    ' Protected Overrides Sub Finalize()
+    '     ' {String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
+    '     Dispose(disposing:=False)
+    '     MyBase.Finalize()
+    ' End Sub
 
     Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' {FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method}
+        ' {String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, "Dispose(disposing As Boolean)")}
         Dispose(disposing:=True)
-        GC.SuppressFinalize(Me)
+        {gcPrefix}GC.SuppressFinalize(Me)
     End Sub"
 
             ' some tests count on "System." being simplified out
