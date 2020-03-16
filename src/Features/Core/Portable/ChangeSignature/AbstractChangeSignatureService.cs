@@ -723,14 +723,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
-                if (i >= arguments.SeparatorCount)
-                {
-                    separators.Add(Generator.CommaTokenWithElasticSpace());
-                }
-                else
-                {
-                    separators.Add(arguments.GetSeparator(i));
-                }
+                separators.Add(i < arguments.SeparatorCount
+                    ? arguments.GetSeparator(i)
+                    : Generator.CommaTokenWithElasticSpace());
             }
 
             return separators;
@@ -753,7 +748,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             int indexInExistingList = 0;
 
-            bool seenNameEquals = false;
+            bool seenNamedArguments = false;
             bool seenOmitted = false;
             bool paramsHandled = false;
 
@@ -768,13 +763,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         if (addedParameter.IsCallsiteOmitted)
                         {
                             seenOmitted = true;
-                            seenNameEquals = true;
+                            seenNamedArguments = true;
                             continue;
                         }
 
                         fullList.Add(
                             Generator.Argument(
-                                name: seenNameEquals || addedParameter.UseNamedArguments ? addedParameter.Name : default,
+                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : default,
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
                         separators.Add(Generator.CommaTokenWithElasticSpace());
@@ -806,7 +801,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         {
                             if (SyntaxFacts.IsNamedParameter(newArguments[indexInExistingList]))
                             {
-                                seenNameEquals = true;
+                                seenNamedArguments = true;
                             }
 
                             if (indexInExistingList < newArguments.SeparatorCount)
@@ -816,7 +811,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                             var newArgument = newArguments[indexInExistingList];
 
-                            if (seenNameEquals && !SyntaxFacts.IsNamedParameter(newArgument))
+                            if (seenNamedArguments && !SyntaxFacts.IsNamedParameter(newArgument))
                             {
                                 newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
                             }
@@ -923,7 +918,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     extraNodeList.AsEnumerable(),
                     node.GetTrailingTrivia(),
                     lastWhiteSpaceTrivia,
-                    document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
+                    document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
 
                 var newTrivia = Generator.Trivia(extraDocComments);
 
