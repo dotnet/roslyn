@@ -68,15 +68,14 @@ namespace Microsoft.CodeAnalysis
             //PROTOTYPE: should be possible to parallelize this
             foreach (var generator in state.Generators)
             {
+                // initialize the generator if needed
+                if (!state.GeneratorStates.TryGetValue(generator, out GeneratorState generatorState))
+                {
+                    generatorState = InitializeGenerator(generator, cancellationToken);
+                }
+
                 try
                 {
-                    // initialize the generator if needed
-                    GeneratorState generatorState;
-                    if (!state.GeneratorStates.TryGetValue(generator, out generatorState))
-                    {
-                        generatorState = InitializeGenerator(generator, cancellationToken);
-                    }
-
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty));
                     generator.Execute(context);
