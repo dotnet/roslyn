@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return document;
             }
 
-            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemoved(memberContainingDocument, cancellationToken).ConfigureAwait(false);
+            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot);
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode().ToString().Trim();
         }
 
-        private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemoved(
+        private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
             Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

@@ -85,6 +85,41 @@ End Namespace";
 
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }
+
+            [Fact, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
+            public async Task TestValueTuple()
+            {
+                using var context = TestContext.Create(LanguageNames.VisualBasic);
+                await context.GenerateAndVerifySourceAsync("System.ValueTuple",
+@$"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
+' System.ValueTuple.dll
+#End Region
+
+Imports System
+Imports System
+Imports System.Collections
+
+Namespace System
+    Public Structure [|ValueTuple|]
+        Implements IEquatable(Of ValueTuple), IStructuralEquatable, IStructuralComparable, IComparable, IComparable(Of ValueTuple), ITupleInternal
+
+        Public Shared Function Create() As ValueTuple
+        Public Shared Function Create(Of T1)(item1 As T1) As ValueTuple(Of T1)
+        Public Shared Function Create(Of T1, T2)(item1 As T1, item2 As T2) As (T1, T2)
+        Public Shared Function Create(Of T1, T2, T3)(item1 As T1, item2 As T2, item3 As T3) As (T1, T2, T3)
+        Public Shared Function Create(Of T1, T2, T3, T4)(item1 As T1, item2 As T2, item3 As T3, item4 As T4) As (T1, T2, T3, T4)
+        Public Shared Function Create(Of T1, T2, T3, T4, T5)(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5) As (T1, T2, T3, T4, T5)
+        Public Shared Function Create(Of T1, T2, T3, T4, T5, T6)(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6) As (T1, T2, T3, T4, T5, T6)
+        Public Shared Function Create(Of T1, T2, T3, T4, T5, T6, T7)(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7) As (T1, T2, T3, T4, T5, T6, T7)
+        Public Shared Function Create(Of T1, T2, T3, T4, T5, T6, T7, T8)(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, item8 As T8) As (T1, T2, T3, T4, T5, T6, T7, T8)
+        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Function Equals(other As ValueTuple) As Boolean
+        Public Function CompareTo(other As ValueTuple) As Integer
+        Public Overrides Function GetHashCode() As Integer
+        Public Overrides Function ToString() As String
+    End Structure
+End Namespace");
+            }
         }
     }
 }

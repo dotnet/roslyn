@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal abstract class FormatDocumentHandlerBase
     {
-        protected async Task<LSP.TextEdit[]> GetTextEdits(Solution solution, Uri documentUri, CancellationToken cancellationToken, LSP.Range? range = null)
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(Solution solution, Uri documentUri, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
             var document = solution.GetDocumentFromURI(documentUri);

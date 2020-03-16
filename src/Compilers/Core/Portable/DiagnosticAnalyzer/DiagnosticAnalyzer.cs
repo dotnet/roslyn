@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -23,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="context"></param>
         public abstract void Initialize(AnalysisContext context);
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(object? obj)
         {
-            return (object)this == obj;
+            return (object?)this == obj;
         }
 
         public sealed override int GetHashCode()

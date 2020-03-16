@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass.Equals(coclassSymbol));
+            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
         }
     }
 }

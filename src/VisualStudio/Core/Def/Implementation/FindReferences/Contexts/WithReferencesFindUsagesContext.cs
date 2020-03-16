@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // lock, and I'd like to avoid that.  That does mean that we might do extra
                 // work if multiple threads end up down this path.  But only one of them will
                 // win when we access the lock below.
-                var declarations = ArrayBuilder<Entry>.GetInstance();
+                using var _ = ArrayBuilder<Entry>.GetInstance(out var declarations);
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
@@ -92,8 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Let all our subscriptions know that we've updated.
                     NotifyChange();
                 }
-
-                declarations.Free();
             }
 
             private bool HasDeclarationEntries(DefinitionItem definition)

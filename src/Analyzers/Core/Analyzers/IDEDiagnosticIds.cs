@@ -121,6 +121,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
 
+        /// <summary>
+        /// Reported when a file header is missing or does not match the expected string.
+        /// </summary>
+        public const string FileHeaderMismatch = "IDE0073";
+
+        public const string UseCoalesceCompoundAssignmentDiagnosticId = "IDE0074";
+
+        public const string SimplifyConditionalExpressionDiagnosticId = "IDE0075";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

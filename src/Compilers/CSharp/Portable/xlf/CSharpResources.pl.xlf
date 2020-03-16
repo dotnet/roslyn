@@ -177,6 +177,21 @@
         <target state="translated">Drzewo wyrażeń nie może zawierać wartości elementu ref struct ani typu ograniczonego „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
+        <source>An expression tree may not contain a from-end index ('^') expression.</source>
+        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
+        <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
+        <source>An expression tree may not contain a range ('..') expression.</source>
+        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
         <source>An expression tree may not contain a switch expression.</source>
         <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia switch.</target>
@@ -914,6 +929,11 @@
         <target state="translated">parametry odrzucania wyrażenia lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMemberNotNull">
+        <source>MemberNotNull attribute</source>
+        <target state="new">MemberNotNull attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">zasłanianie nazw w funkcjach zagnieżdżonych</target>
@@ -1497,6 +1517,36 @@
       <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
         <source>Do not use '_' to refer to the type in an is-type expression.</source>
         <target state="translated">Nie używaj elementu „_” w celu odwoływania się do typu w wyrażeniu „is” z typem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNull">
+        <source>Member '{0}' may not have a null value when exiting.</source>
+        <target state="new">Member '{0}' may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember">
+        <source>Member '{0}' cannot be used in this attribute.</source>
+        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullBadMember_Title">
+        <source>Member cannot be used in this attribute.</source>
+        <target state="new">Member cannot be used in this attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullWhen">
+        <source>Member '{0}' may not have a null value when exiting with `{1}`.</source>
+        <target state="new">Member '{0}' may not have a null value when exiting with `{1}`.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNullWhen_Title">
+        <source>Member may not have a null value when exiting in some condition.</source>
+        <target state="new">Member may not have a null value when exiting in some condition.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MemberNotNull_Title">
+        <source>Member may not have a null value when exiting.</source>
+        <target state="new">Member may not have a null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">

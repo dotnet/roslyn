@@ -1973,5 +1973,40 @@ namespace ConsoleApp1
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethod_LocalVariableCrossingLocalFunction()
+        {
+            var code = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        [|void Local() { }
+        Console.WriteLine(x);|]
+    }
+}";
+            var expected = @"using System;
+
+class C
+{
+    public void Test()
+    {
+        int x = 0;
+        NewMethod(x);
+    }
+
+    private static void NewMethod(int x)
+    {
+        void Local() { }
+        Console.WriteLine(x);
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }

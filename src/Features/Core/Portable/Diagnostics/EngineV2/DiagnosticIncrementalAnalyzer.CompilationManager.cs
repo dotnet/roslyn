@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
-        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzers(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {

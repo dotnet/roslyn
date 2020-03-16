@@ -2831,7 +2831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             Stream? win32Resources,
-            string outputNameOverride,
+            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
@@ -2856,7 +2856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
+            string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
@@ -2914,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string? GetRuntimeMetadataVersion(EmitOptions emitOptions, DiagnosticBag diagnostics)
         {
-            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
+            string? runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
             if (runtimeMDVersion != null)
             {
                 return runtimeMDVersion;
@@ -2930,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty; //prevent emitter from crashing.
         }
 
-        private string GetRuntimeMetadataVersion(EmitOptions emitOptions)
+        private string? GetRuntimeMetadataVersion(EmitOptions emitOptions)
         {
             var corAssembly = Assembly.CorLibrary as Symbols.Metadata.PE.PEAssemblySymbol;
 

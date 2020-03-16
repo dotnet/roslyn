@@ -28,18 +28,18 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.TernaryConditionalExpression));
         }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 

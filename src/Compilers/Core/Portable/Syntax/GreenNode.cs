@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -835,7 +836,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Equivalence 
-        public virtual bool IsEquivalentTo(GreenNode? other)
+        public virtual bool IsEquivalentTo([NotNullWhen(true)] GreenNode? other)
         {
             if (this == other)
             {

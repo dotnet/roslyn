@@ -265,8 +265,10 @@ End Class";
 
         private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
         {
-            var infoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
-            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(AsynchronousOperationListenerProvider.NullListener, infoCache, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(
+                AsynchronousOperationListenerProvider.NullListener,
+                new DiagnosticAnalyzerInfoCache(),
+                hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
         }
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)

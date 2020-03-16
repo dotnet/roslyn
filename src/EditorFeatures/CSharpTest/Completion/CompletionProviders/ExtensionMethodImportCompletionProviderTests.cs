@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private static readonly IExportProviderFactory s_exportProviderFactory
-            = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)));
-
         public ExtensionMethodImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
@@ -39,12 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ExportProvider GetExportProvider()
-            => s_exportProviderFactory.CreateExportProvider();
-
-        internal override CompletionProvider CreateCompletionProvider()
+        protected override ComposableCatalog GetExportCatalog()
         {
-            return new ExtensionMethodImportCompletionProvider();
+            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        }
+
+        internal override Type GetCompletionProviderType()
+        {
+            return typeof(ExtensionMethodImportCompletionProvider);
         }
 
         public enum ReferenceType
