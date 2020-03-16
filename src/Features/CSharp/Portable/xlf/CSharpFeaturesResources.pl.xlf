@@ -12,6 +12,11 @@
         <target state="translated">Dodaj element await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Dodaj brakujące instrukcje using</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="new">Convert to verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
