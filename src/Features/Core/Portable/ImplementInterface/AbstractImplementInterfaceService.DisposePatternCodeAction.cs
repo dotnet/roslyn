@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,15 +25,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService
     {
+        // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
+        // the naming style that the user has specified.
         private static ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
+        // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
         private static SymbolDisplayFormat s_format = new SymbolDisplayFormat(
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static (INamedTypeSymbol, IMethodSymbol) TryGetSymbolForIDisposable(Compilation compilation)
+        private static IMethodSymbol? TryGetIDisposableDispose(Compilation compilation)
         {
             // Get symbol for 'System.IDisposable'.
             var idisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
@@ -48,11 +53,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     disposeMethod.Arity == 0 &&
                     disposeMethod.Parameters.Length == 0)
                 {
-                    return (idisposable, disposeMethod);
+                    return disposeMethod;
                 }
             }
 
-            return default;
+            return null;
         }
 
         private bool ShouldImplementDisposePattern(State state, bool explicitly)
@@ -67,21 +72,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
 
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
-            var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(state.Model.Compilation);
-            if (idisposable == null)
+            var disposeMethod = TryGetIDisposableDispose(state.Model.Compilation);
+            if (disposeMethod == null)
                 return false;
 
-            if (!unimplementedMembers.Any(m => m.type.Equals(idisposable)))
+            var idisposableType = disposeMethod.ContainingType;
+            if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
                 return false;
 
-            // The dispose pattern is only applicable if the implementing type is a class that does
-            // not already declare any conflicting members named 'disposedValue' or 'Dispose'
-            // (because we will be generating a 'disposedValue' field and a couple of methods named
-            // 'Dispose' as part of implementing the dispose pattern).
-            if (state.ClassOrStructType.GetMembers(nameof(IDisposable.Dispose)).Any())
-                return false;
-
-            return true;
+            // The dispose pattern is only applicable if the implementing type does
+            // not already have an implementation of IDisposableDispose.
+            return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
         private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol throughMember) : base(service, document, state, explicitly, abstractly, throughMember)
+                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, throughMember)
             {
             }
 
@@ -117,8 +118,6 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
                     : FeaturesResources.Implement_interface_with_Dispose_pattern;
 
-            private static readonly SyntaxAnnotation s_implementingTypeAnnotation = new SyntaxAnnotation("ImplementingType");
-
             public override async Task<Document> GetUpdatedDocumentAsync(
                 Document document,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
@@ -126,26 +125,29 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 SyntaxNode classDecl,
                 CancellationToken cancellationToken)
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var disposedValueField = await CreateDisposedValueFieldAsync(
                     document, classType, cancellationToken).ConfigureAwait(false);
 
-                var (idisposable, disposeMethod) = TryGetSymbolForIDisposable(compilation);
+                var disposeMethod = TryGetIDisposableDispose(compilation)!;
                 var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, document, classType, disposeMethod, disposedValueField);
 
+                // First, implement all the interfaces (except for IDisposable).
                 var docWithCoreMembers = await GetUpdatedDocumentAsync(
                     document,
-                    unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
+                    unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
                     classType,
                     classDecl,
                     extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
                     cancellationToken).ConfigureAwait(false);
 
+                // Next, add the Dispose pattern methods at the end of the type (we want to keep all
+                // the members together).
                 var rootWithCoreMembers = await docWithCoreMembers.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
-                var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent;
+                var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
                 var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
                     typeDeclarationWithCoreMembers,
@@ -161,6 +163,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     rootWithCoreMembers.ReplaceNode(
                         typeDeclarationWithCoreMembers, typeDeclarationWithAllMembers));
 
+                // Finally, add a commented out finalizer with the Dispose methods. We have to do
+                // this ourselves as our code-gen helpers can create real methods, but not commented
+                // out ones.
                 return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
             }
 
@@ -317,7 +322,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
 
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
                 var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
