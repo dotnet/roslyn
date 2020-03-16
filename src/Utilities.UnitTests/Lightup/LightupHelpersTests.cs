@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -20,16 +22,18 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [InlineData(typeof(SyntaxNode))]
         public void TestCanAccessNonExistentSyntaxProperty(Type type)
         {
-            var propertyAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<SyntaxNode, object>(type, "NonExistentProperty");
-            Assert.NotNull(propertyAccessor);
-            Assert.Null(propertyAccessor(SyntaxFactory.AccessorList()));
-            Assert.Throws<NullReferenceException>(() => propertyAccessor(null));
+            var fallbackResult = new object();
 
-            var withPropertyAccessor = LightupHelpers.CreateSyntaxWithPropertyAccessor<SyntaxNode, object>(type, "NonExistentProperty");
+            var propertyAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<SyntaxNode, object>(type, "NonExistentProperty", fallbackResult);
+            Assert.NotNull(propertyAccessor);
+            Assert.Same(fallbackResult, propertyAccessor(SyntaxFactory.AccessorList()));
+            Assert.Throws<NullReferenceException>(() => propertyAccessor(null!));
+
+            var withPropertyAccessor = LightupHelpers.CreateSyntaxWithPropertyAccessor<SyntaxNode, object>(type, "NonExistentProperty", fallbackResult);
             Assert.NotNull(withPropertyAccessor);
-            Assert.NotNull(withPropertyAccessor(SyntaxFactory.AccessorList(), null));
+            Assert.NotNull(withPropertyAccessor(SyntaxFactory.AccessorList(), fallbackResult));
             Assert.ThrowsAny<NotSupportedException>(() => withPropertyAccessor(SyntaxFactory.AccessorList(), new object()));
-            Assert.Throws<NullReferenceException>(() => withPropertyAccessor(null, new object()));
+            Assert.Throws<NullReferenceException>(() => withPropertyAccessor(null!, new object()));
         }
 
         [Theory]
@@ -37,16 +41,18 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [InlineData(typeof(EmptySymbol))]
         public void TestCanAccessNonExistentSymbolProperty(Type type)
         {
-            var propertyAccessor = LightupHelpers.CreateSymbolPropertyAccessor<ISymbol, object>(type, "NonExistentProperty");
-            Assert.NotNull(propertyAccessor);
-            Assert.Null(propertyAccessor(new EmptySymbol()));
-            Assert.Throws<NullReferenceException>(() => propertyAccessor(null));
+            var fallbackResult = new object();
 
-            var withPropertyAccessor = LightupHelpers.CreateSymbolWithPropertyAccessor<ISymbol, object>(type, "NonExistentProperty");
+            var propertyAccessor = LightupHelpers.CreateSymbolPropertyAccessor<ISymbol, object>(type, "NonExistentProperty", fallbackResult);
+            Assert.NotNull(propertyAccessor);
+            Assert.Same(fallbackResult, propertyAccessor(new EmptySymbol()));
+            Assert.Throws<NullReferenceException>(() => propertyAccessor(null!));
+
+            var withPropertyAccessor = LightupHelpers.CreateSymbolWithPropertyAccessor<ISymbol, object>(type, "NonExistentProperty", fallbackResult);
             Assert.NotNull(withPropertyAccessor);
-            Assert.NotNull(withPropertyAccessor(new EmptySymbol(), null));
+            Assert.NotNull(withPropertyAccessor(new EmptySymbol(), fallbackResult));
             Assert.ThrowsAny<NotSupportedException>(() => withPropertyAccessor(new EmptySymbol(), new object()));
-            Assert.Throws<NullReferenceException>(() => withPropertyAccessor(null, new object()));
+            Assert.Throws<NullReferenceException>(() => withPropertyAccessor(null!, new object()));
         }
 
         [Theory]
@@ -54,10 +60,12 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         [InlineData(typeof(SyntaxNode))]
         public void TestCanAccessNonExistentMethodWithArgument(Type type)
         {
-            var accessor = LightupHelpers.CreateAccessorWithArgument<SyntaxNode, int, object>(type, "parameterName", typeof(int), "argumentName", "NonExistentMethod");
+            var fallbackResult = new object();
+
+            var accessor = LightupHelpers.CreateAccessorWithArgument<SyntaxNode, int, object?>(type, "parameterName", typeof(int), "argumentName", "NonExistentMethod", fallbackResult);
             Assert.NotNull(accessor);
-            Assert.Null(accessor(SyntaxFactory.AccessorList(), 0));
-            Assert.Throws<NullReferenceException>(() => accessor(null, 0));
+            Assert.Same(fallbackResult, accessor(SyntaxFactory.AccessorList(), 0));
+            Assert.Throws<NullReferenceException>(() => accessor(null!, 0));
         }
 
         [Fact]
@@ -65,11 +73,11 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         {
             // The call *should* have been made with the first generic argument set to `BaseMethodDeclarationSyntax`
             // instead of `MethodDeclarationSyntax`.
-            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxPropertyAccessor<MethodDeclarationSyntax, BlockSyntax>(typeof(BaseMethodDeclarationSyntax), nameof(BaseMethodDeclarationSyntax.Body)));
+            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxPropertyAccessor<MethodDeclarationSyntax, BlockSyntax?>(typeof(BaseMethodDeclarationSyntax), nameof(BaseMethodDeclarationSyntax.Body), fallbackResult: null));
 
             // The call *should* have been made with the second generic argument set to `ArrowExpressionClauseSyntax`
             // instead of `BlockSyntax`.
-            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxPropertyAccessor<MethodDeclarationSyntax, BlockSyntax>(typeof(MethodDeclarationSyntax), nameof(MethodDeclarationSyntax.ExpressionBody)));
+            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxPropertyAccessor<MethodDeclarationSyntax, BlockSyntax?>(typeof(MethodDeclarationSyntax), nameof(MethodDeclarationSyntax.ExpressionBody), fallbackResult: null));
         }
 
         [Fact]
@@ -77,11 +85,11 @@ namespace Analyzer.Utilities.UnitTests.Lightup
         {
             // The call *should* have been made with the first generic argument set to `BaseMethodDeclarationSyntax`
             // instead of `MethodDeclarationSyntax`.
-            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxWithPropertyAccessor<MethodDeclarationSyntax, BlockSyntax>(typeof(BaseMethodDeclarationSyntax), nameof(BaseMethodDeclarationSyntax.Body)));
+            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxWithPropertyAccessor<MethodDeclarationSyntax, BlockSyntax?>(typeof(BaseMethodDeclarationSyntax), nameof(BaseMethodDeclarationSyntax.Body), fallbackResult: null));
 
             // The call *should* have been made with the second generic argument set to `ArrowExpressionClauseSyntax`
             // instead of `BlockSyntax`.
-            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxWithPropertyAccessor<MethodDeclarationSyntax, BlockSyntax>(typeof(MethodDeclarationSyntax), nameof(MethodDeclarationSyntax.ExpressionBody)));
+            Assert.ThrowsAny<InvalidOperationException>(() => LightupHelpers.CreateSyntaxWithPropertyAccessor<MethodDeclarationSyntax, BlockSyntax?>(typeof(MethodDeclarationSyntax), nameof(MethodDeclarationSyntax.ExpressionBody), fallbackResult: null));
         }
 
         [SuppressMessage("MicrosoftCodeAnalysisCompatibility", "RS1009:Only internal implementations of this interface are allowed.", Justification = "Stub for testing.")]
