@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -138,15 +140,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public bool ProduceBinaryLog
-        {
-            get => _loader.ProduceBinaryLog;
-            set => _loader.ProduceBinaryLog = value;
-        }
-
-        /// <summary>
         /// Associates a project file extension with a language name.
         /// </summary>
         public void AssociateFileExtensionWithLanguage(string projectFileExtension, string language)
@@ -177,10 +170,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="solutionFilePath">The path to the solution file to be opened. This may be an absolute path or a path relative to the
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is opened.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<Solution> OpenSolutionAsync(
             string solutionFilePath,
             IProgress<ProjectLoadProgress> progress = null,
+            ILogger msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -190,7 +185,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
             // construct workspace from loaded project infos
             this.OnSolutionAdded(solutionInfo);
@@ -206,10 +201,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<Project> OpenProjectAsync(
             string projectFilePath,
             IProgress<ProjectLoadProgress> progress = null,
+            ILogger msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -218,7 +215,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var projectMap = ProjectMap.Create(this.CurrentSolution);
-            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, projectMap, progress, cancellationToken).ConfigureAwait(false);
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
             // add projects to solution
             foreach (var project in projects)

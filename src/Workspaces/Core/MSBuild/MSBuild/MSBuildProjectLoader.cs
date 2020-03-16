@@ -7,9 +7,13 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+
 using Roslyn.Utilities;
+
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -87,11 +91,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public bool SkipUnrecognizedProjects { get; set; } = true;
 
         /// <summary>
-        /// 
-        /// </summary>
-        public bool ProduceBinaryLog { get; set; } = false;
-
-        /// <summary>
         /// Associates a project file extension with a language name.
         /// </summary>
         /// <param name="projectFileExtension">The project file extension to associate with <paramref name="language"/>.</param>
@@ -144,10 +143,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
             IProgress<ProjectLoadProgress> progress = null,
+            ILogger msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 requestedProjectOptions: reportingOptions,
                 discoveredProjectOptions: reportingOptions,
                 preferMetadataForReferencesOfDiscoveredProjects: false,
-                produceBinaryLog: ProduceBinaryLog);
+                msbuildLogger: msbuildLogger);
 
             var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
@@ -224,11 +225,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="projectMap">An optional <see cref="ProjectMap"/> that will be used to resolve project references to existing projects.
         /// This is useful when populating a custom <see cref="Workspace"/>.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
             ProjectMap projectMap = null,
             IProgress<ProjectLoadProgress> progress = null,
+            ILogger msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -260,7 +263,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 requestedProjectOptions,
                 discoveredProjectOptions,
                 this.LoadMetadataForReferencedProjects,
-                produceBinaryLog: ProduceBinaryLog);
+                msbuildLogger: msbuildLogger);
 
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }

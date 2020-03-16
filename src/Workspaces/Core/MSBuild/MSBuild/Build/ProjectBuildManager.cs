@@ -11,8 +11,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+
 using Microsoft.CodeAnalysis.MSBuild.Logging;
+
 using Roslyn.Utilities;
+
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild.Build
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         public bool BatchBuildStarted => _batchBuildStarted;
 
-        public void StartBatchBuild(IDictionary<string, string> globalProperties = null, bool produceBinaryLog = false)
+        public void StartBatchBuild(IDictionary<string, string> globalProperties = null, MSB.Framework.ILogger msbuildLogger = null)
         {
             if (_batchBuildStarted)
             {
@@ -161,37 +164,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
-
-            var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
-            {
-                Loggers = GetLoggers(produceBinaryLog)
-            };
-
-            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
-
-            _batchBuildStarted = true;
-        }
-
-        private MSB.Framework.ILogger[] GetLoggers(bool produceBinaryLog)
-        {
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
-            if (produceBinaryLog)
+            var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                var logPath = Path.Combine(Environment.CurrentDirectory, "msbuildworkspace.binlog");
-                MSB.Framework.ILogger binaryLogger = new MSB.Logging.BinaryLogger()
-                {
-                    Parameters = logPath,
-                    Verbosity = MSB.Framework.LoggerVerbosity.Diagnostic,
-                };
+                Loggers = msbuildLogger is null
+                    ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
+                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, msbuildLogger })
+            };
 
-                return new MSB.Framework.ILogger[] { _batchBuildLogger, binaryLogger };
-            }
+            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
-            return new MSB.Framework.ILogger[] { _batchBuildLogger };
+            _batchBuildStarted = true;
         }
 
         public void EndBatchBuild()
