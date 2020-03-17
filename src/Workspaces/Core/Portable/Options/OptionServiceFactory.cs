@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
             }
 
-            private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
+            private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
                 _taskQueue.ScheduleTask(() =>
                 {
@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Options
             [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
+            public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => _globalOptionService.TryMapEditorConfigKeyToOption(key, language, out storageLocation, out optionKey);
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
             public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
             public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);

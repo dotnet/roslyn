@@ -4,19 +4,13 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -24,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -54,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node.IsKind(SyntaxKind.RecursivePattern))
+            if (node.IsKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax recursivePattern))
             {
-                var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
-                var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
+                var positional = recursivePattern.PositionalPatternClause;
+                var property = recursivePattern.PropertyPatternClause;
                 if (positional != null)
                 {
                     var openParenToken = positional.OpenParenToken;
@@ -112,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
-                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern))
+                if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern, out recursivePattern))
                 {
                     // ex:
                     // ```
@@ -124,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // _ = expr is { }$$
                     // M();
                     // ```
-                    var propertyPatternClause = ((RecursivePatternSyntax)isPattern.Pattern).PropertyPatternClause;
+                    var propertyPatternClause = recursivePattern.PropertyPatternClause;
                     if (propertyPatternClause != null)
                     {
                         AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());

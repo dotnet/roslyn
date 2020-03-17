@@ -8,8 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,11 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
 
-        protected override ISyntaxFactsService SyntaxFactsService => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         private CSharpSemanticFactsService()
         {
         }
+
+        protected override SyntaxToken ToIdentifierToken(string identifier)
+            => identifier.ToIdentifierToken();
 
         protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool ShouldDescendInto(SyntaxNode node)
             {
                 var isLanguageVersionGreaterOrEqualToCSharp8 = (semanticModel.Compilation as CSharpCompilation)?.LanguageVersion >= LanguageVersion.CSharp8;
-                return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFactsService.IsAnonymousOrLocalFunction(node) : !SyntaxFactsService.IsLocalFunctionStatement(node);
+                return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFacts.IsAnonymousOrLocalFunction(node) : !SyntaxFacts.IsLocalFunctionStatement(node);
             }
         }
 
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
-                if (SyntaxFactsService.IsExecutableStatement(ancestor))
+                if (SyntaxFacts.IsExecutableStatement(ancestor))
                 {
                     return null;
                 }

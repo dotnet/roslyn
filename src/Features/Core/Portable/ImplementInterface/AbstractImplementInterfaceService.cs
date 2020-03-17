@@ -8,13 +8,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService : IImplementInterfaceService
     {
+        protected const string DisposingName = "disposing";
+
         protected AbstractImplementInterfaceService()
         {
         }
@@ -22,8 +26,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
-        protected abstract bool CanImplementDisposePattern(INamedTypeSymbol symbol, SyntaxNode classDecl);
-        protected abstract Document ImplementDisposePattern(Document document, SyntaxNode root, INamedTypeSymbol symbol, int position, bool explicitly);
+
+        protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
+        protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
         public async Task<Document> ImplementInterfaceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -38,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // While implementing just one default action, like in the case of pressing enter after interface name in VB,
                 // choose to implement with the dispose pattern as that's the Dev12 behavior.
-                var action = ShouldImplementDisposePattern(document, state, explicitly: false)
+                var action = ShouldImplementDisposePattern(state, explicitly: false)
                     ? ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state)
                     : ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
-                if (ShouldImplementDisposePattern(document, state, explicitly: false))
+                if (ShouldImplementDisposePattern(state, explicitly: false))
                 {
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementWithDisposePatternCodeAction(this, document, state);
                 }
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
 
-                if (ShouldImplementDisposePattern(document, state, explicitly: true))
+                if (ShouldImplementDisposePattern(state, explicitly: true))
                 {
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, state);
                 }
@@ -139,6 +144,28 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                                        .OfType<ISymbol>();
 
             return fields.Concat(properties).ToList();
+        }
+
+        protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
+            => AddComments(g, new[] { comment }, node);
+
+        protected static TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
+            => AddComments(g, new[] { comment1, comment2, }, node);
+
+        protected static TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
+            => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));
+
+        protected static SyntaxTriviaList CreateCommentTrivia(SyntaxGenerator generator, params string[] comments)
+        {
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
+
+            foreach (var comment in comments)
+            {
+                trivia.Add(generator.SingleLineComment(" " + comment));
+                trivia.Add(generator.ElasticCarriageReturnLineFeed);
+            }
+
+            return new SyntaxTriviaList(trivia);
         }
     }
 }

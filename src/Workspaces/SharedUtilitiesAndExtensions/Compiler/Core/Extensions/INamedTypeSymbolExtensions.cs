@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -430,6 +431,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             ISymbol within)
         {
+            using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
+
             var systemAttributeType = compilation.AttributeType();
 
             foreach (var type in attributeSymbol.GetBaseTypesAndThis())
@@ -442,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var member in type.GetMembers())
                 {
                     var namedParameter = IsAttributeNamedParameter(member, within ?? compilation.Assembly);
-                    if (namedParameter != null)
+                    if (namedParameter != null && seenNames.Add(namedParameter.Name))
                     {
                         yield return namedParameter;
                     }

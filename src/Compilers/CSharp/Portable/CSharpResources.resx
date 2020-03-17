@@ -5506,6 +5506,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ParameterConditionallyDisallowsNull_Title" xml:space="preserve">
     <value>Parameter may not have a null value when exiting in some condition.</value>
   </data>
+  <data name="WRN_MemberNotNull" xml:space="preserve">
+    <value>Member '{0}' may not have a null value when exiting.</value>
+  </data>
+  <data name="WRN_MemberNotNull_Title" xml:space="preserve">
+    <value>Member may not have a null value when exiting.</value>
+  </data>
+  <data name="WRN_MemberNotNullBadMember" xml:space="preserve">
+    <value>Member '{0}' cannot be used in this attribute.</value>
+  </data>
+  <data name="WRN_MemberNotNullBadMember_Title" xml:space="preserve">
+    <value>Member cannot be used in this attribute.</value>
+  </data>
+  <data name="WRN_MemberNotNullWhen" xml:space="preserve">
+    <value>Member '{0}' may not have a null value when exiting with `{1}`.</value>
+  </data>
+  <data name="WRN_MemberNotNullWhen_Title" xml:space="preserve">
+    <value>Member may not have a null value when exiting in some condition.</value>
+  </data>
   <data name="WRN_ShouldNotReturn" xml:space="preserve">
     <value>A method marked [DoesNotReturn] should not return.</value>
   </data>
@@ -5791,6 +5809,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureLambdaDiscardParameters" xml:space="preserve">
     <value>lambda discard parameters</value>
   </data>
+  <data name="IDS_FeatureMemberNotNull" xml:space="preserve">
+    <value>MemberNotNull attribute</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -6006,5 +6027,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer" xml:space="preserve">
+    <value>An expression tree may not contain a pattern System.Index or System.Range indexer access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsFromEndIndexExpression" xml:space="preserve">
+    <value>An expression tree may not contain a from-end index ('^') expression.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
+    <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
 </root>

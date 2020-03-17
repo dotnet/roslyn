@@ -64,15 +64,16 @@ namespace Microsoft.CodeAnalysis.Host
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
+#pragma warning disable CS8610 // Nullability of reference types in type of parameter doesn't match overridden member. (The compiler incorrectly identifies this as a change.)
+        public override bool TryGetValue([NotNullWhen(true)] out T? value)
+#pragma warning restore CS8610 // Nullability of reference types in type of parameter doesn't match overridden member.
         {
             // It has 2 fields that can hold onto the value. if we only check weakInstance, we will
             // return false for the initial case where weakInstance is set to s_noReference even if
             // value can be retrieved from _recoverySource. so we check both here.
-            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
             var weakReference = _weakReference;
             return weakReference != null && weakReference.TryGetTarget(out value) ||
-                   _recoverySource.TryGetValue(out value!);
+                   _recoverySource.TryGetValue(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = _recoverySource.GetValue(cancellationToken);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Host
                     if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        saveTask = EnsureInstanceIsSaved(instance);
+                        saveTask = EnsureInstanceIsSavedAsync(instance);
                     }
                 }
 
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Host
             }, TaskScheduler.Default);
         }
 
-        private Task? EnsureInstanceIsSaved(T instance)
+        private Task? EnsureInstanceIsSavedAsync(T instance)
         {
             if (_weakReference == null)
             {

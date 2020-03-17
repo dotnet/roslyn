@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -344,19 +346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         private static int GetNamespaceId(SyntaxNode container, NamespaceDeclarationSyntax target, ref int index)
-        {
-            if (container is CompilationUnitSyntax compilation)
+            => container switch
             {
-                return GetNamespaceId(compilation.Members, target, ref index);
-            }
-
-            if (container is NamespaceDeclarationSyntax @namespace)
-            {
-                return GetNamespaceId(@namespace.Members, target, ref index);
-            }
-
-            return Contract.FailWithReturn<int>("shouldn't reach here");
-        }
+                CompilationUnitSyntax compilation => GetNamespaceId(compilation.Members, target, ref index),
+                NamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
+                _ => throw ExceptionUtilities.UnexpectedValue(container)
+            };
 
         private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, NamespaceDeclarationSyntax target, ref int index)
         {

@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -421,8 +420,8 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New CompletionListTagCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(CompletionListTagCompletionProvider)
         End Function
     End Class
 End Namespace

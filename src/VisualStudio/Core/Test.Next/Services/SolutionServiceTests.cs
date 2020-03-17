@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Remote.Shared;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -513,7 +511,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var sessionId = 0;
             var storage = new AssetStorage();
             _ = new SimpleAssetSource(storage, map);
-            var remoteWorkspace = new RemoteWorkspace();
+            var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
 
             return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
         }

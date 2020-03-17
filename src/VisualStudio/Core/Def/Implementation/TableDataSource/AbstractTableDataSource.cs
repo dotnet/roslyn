@@ -108,9 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public ImmutableArray<TItem> AggregateItems<TData>(IEnumerable<IGrouping<TData, TItem>> groupedItems)
         {
-            var aggregateItems = ArrayBuilder<TItem>.GetInstance();
-            var projectNames = ArrayBuilder<string>.GetInstance();
-            var projectGuids = ArrayBuilder<Guid>.GetInstance();
+            using var _0 = ArrayBuilder<TItem>.GetInstance(out var aggregateItems);
+            using var _1 = ArrayBuilder<string>.GetInstance(out var projectNames);
+            using var _2 = ArrayBuilder<Guid>.GetInstance(out var projectGuids);
 
             string[] stringArrayCache = null;
             Guid[] guidArrayCache = null;
@@ -161,12 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 projectGuids.Clear();
             }
 
-            projectNames.Free();
-            projectGuids.Free();
-
-            var result = Order(aggregateItems).ToImmutableArray();
-            aggregateItems.Free();
-            return result;
+            return Order(aggregateItems).ToImmutableArray();
         }
 
         public abstract IEqualityComparer<TItem> GroupingComparer { get; }

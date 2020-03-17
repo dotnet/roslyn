@@ -85,6 +85,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
         }
 
+        protected Action<QuickInfoItem> Remarks(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.RemarksDocumentationComments, expectedClassifications);
+        }
+
+        protected Action<QuickInfoItem> Returns(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments);
+        }
+
+        protected Action<QuickInfoItem> Value(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments);
+        }
+
         protected Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
