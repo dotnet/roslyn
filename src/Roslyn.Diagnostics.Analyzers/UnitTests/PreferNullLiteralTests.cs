@@ -62,10 +62,8 @@ class Type
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
-        [Theory]
-        [InlineData("default")]
-        [InlineData("default(object)")]
-        public async Task PreferNullLiteral_ArgumentFormatting(string defaultValueExpression)
+        [Fact]
+        public async Task PreferNullLiteral_ArgumentFormatting()
         {
             var source = $@"
 class Type
@@ -74,8 +72,10 @@ class Type
     {{
         Method2(
             0,
-            [|{defaultValueExpression}|],
-            [|{defaultValueExpression}|],
+            [|default|],
+            /*1*/ [|default|] /*2*/,
+            [|default(object)|],
+            /*1*/ [|default /*2*/ ( /*3*/ object /*4*/ )|] /*5*/,
             """");
     }}
 
@@ -92,7 +92,9 @@ class Type
         Method2(
             0,
             null,
+            /*1*/ null /*2*/,
             null,
+            /*1*/  /*3*/  /*4*/ null /*2*/  /*5*/,
             """");
     }
 
