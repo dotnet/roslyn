@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(null));
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(null));
 
             // It's not particularly important that this not throw. The parsing of the metadata is now lazy, and the result is that an exception
             // will be thrown when something tugs on the metadata later.
