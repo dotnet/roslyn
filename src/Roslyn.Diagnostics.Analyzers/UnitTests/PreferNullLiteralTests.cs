@@ -260,5 +260,27 @@ class Type
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [Theory]
+        [InlineData("object")]
+        [InlineData("int?")]
+        public async Task IgnoreDefaultParameters(string defaultParameterType)
+        {
+            var source = $@"
+class Type
+{{
+    void Method1()
+    {{
+        Method2(0);
+    }}
+
+    void Method2(int first, {defaultParameterType} value = null)
+    {{
+    }}
+}}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }
