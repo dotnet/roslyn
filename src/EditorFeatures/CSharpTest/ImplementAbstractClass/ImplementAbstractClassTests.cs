@@ -1811,5 +1811,33 @@ class [|Derived|] : Base
     </Project>
 </Workspace>");
         }
+
+        [WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithIncompleteGenericInBaseList()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A<int
+{
+
+}",
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A<int
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }

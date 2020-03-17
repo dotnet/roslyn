@@ -2504,6 +2504,48 @@ End Class",
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
         Public Async Function QuickInfoWithReturnsOnFunction() As Task
             Await TestAsync("
 Class C

@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
+        internal abstract SyntaxTrivia SingleLineComment(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.

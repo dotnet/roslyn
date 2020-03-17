@@ -1491,12 +1491,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool canAssignOutputValueWhen(bool sense)
             {
-                var valueWhenTrue = ApplyUnconditionalAnnotations(
+                var valueWhen = ApplyUnconditionalAnnotations(
                     overridingType.ToTypeWithState(),
                     makeUnconditionalAnnotation(overridingAnnotations, sense));
 
-                var destAnnotationsWhenTrue = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense));
-                if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
+                var destAnnotationsWhen = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense));
+                if (isBadAssignment(valueWhen, overriddenType, destAnnotationsWhen))
                 {
                     // Can't assign value from overriding to overridden in 'sense' case
                     return false;
@@ -3936,7 +3936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
-                    && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name))
+                    && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name
+                    && !anyOverriddenMethodHasExplicitImplementation(method)))
             {
                 return;
             }
@@ -3944,7 +3945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
             if (isStaticEqualsMethod ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
+                isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
             {
                 Debug.Assert(arguments.Length == 2);
                 learnFromEqualsMethodArguments(arguments[0], results[0].RValueType, arguments[1], results[1].RValueType);
@@ -3954,17 +3955,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
                 .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
             if (isObjectEqualsMethodOrOverride ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_IEquatable_T__Equals))
+                isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals))
             {
                 Debug.Assert(arguments.Length == 1);
                 learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
                 return;
             }
 
-            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, WellKnownMember wellKnownMember)
+            static bool anyOverriddenMethodHasExplicitImplementation(MethodSymbol method)
             {
-                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
-                if (wellKnownMethod is null)
+                for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                {
+                    if (overriddenMethod.IsExplicitInterfaceImplementation)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol receiverType, WellKnownMember wellKnownMember)
+            {
+                var wellKnownMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
+                if (wellKnownMethod is null || receiverType is null)
                 {
                     return false;
                 }
@@ -3972,18 +3986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var wellKnownType = wellKnownMethod.ContainingType;
                 var parameterType = method.Parameters[0].TypeWithAnnotations;
                 var constructedType = wellKnownType.Construct(ImmutableArray.Create(parameterType));
-
-                Symbol constructedMethod = null;
-                foreach (var member in constructedType.GetMembers(WellKnownMemberNames.ObjectEquals))
-                {
-                    if (member.OriginalDefinition.Equals(wellKnownMethod))
-                    {
-                        constructedMethod = member;
-                        break;
-                    }
-                }
-
-                Debug.Assert(constructedMethod != null, "the original definition is present but the constructed method isn't present");
+                var constructedMethod = wellKnownMethod.AsMember(constructedType);
 
                 // FindImplementationForInterfaceMember doesn't check if this method is itself the interface method we're looking for
                 if (constructedMethod.Equals(method))
@@ -3991,8 +3994,70 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedMethod);
-                return method.Equals(implementationMethod);
+                // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
+                for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
+                    if (implementationMethod is null)
+                    {
+                        // we know no base type will implement this interface member either
+                        return false;
+                    }
+
+                    if (implementationMethod.ContainingType.IsInterface)
+                    {
+                        // this method cannot be called directly from source because an interface can only explicitly implement a method from its base interface.
+                        return false;
+                    }
+
+                    // could be calling an override of a method that implements the interface method
+                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                    {
+                        if (overriddenMethod.Equals(implementationMethod))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // the Equals method being called isn't the method that implements the interface method in this type.
+                    // it could be a method that implements the interface on a base type, so check again with the base type of 'implementationMethod.ContainingType'
+
+                    // e.g. in this hierarchy:
+                    // class A -> B -> C -> D
+                    // method virtual B.Equals -> override D.Equals
+                    //
+                    // we would potentially check:
+                    // 1. D.Equals when called on D, then B.Equals when called on D
+                    // 2. B.Equals when called on C
+                    // 3. B.Equals when called on B
+                    // 4. give up when checking A, since B.Equals is not overriding anything in A
+
+                    // we know that implementationMethod.ContainingType is the same type or a base type of 'baseType',
+                    // and that the implementation method will be the same between 'baseType' and 'implementationMethod.ContainingType'.
+                    // we step through the intermediate bases in order to skip unnecessary override methods.
+                    while (!baseType.Equals(implementationMethod.ContainingType) && method is object)
+                    {
+                        if (baseType.Equals(method.ContainingType))
+                        {
+                            // since we're about to move on to the base of 'method.ContainingType',
+                            // we know the implementation could only be an overridden method of 'method'.
+                            method = method.OverriddenMethod;
+                        }
+
+                        baseType = baseType.BaseTypeNoUseSiteDiagnostics;
+                        // the implementation method must be contained in this 'baseType' or one of its bases.
+                        Debug.Assert(baseType is object);
+                    }
+
+                    // now 'baseType == implementationMethod.ContainingType', so if 'method' is
+                    // contained in that same type we should advance 'method' one more time.
+                    if (method is object && baseType.Equals(method.ContainingType))
+                    {
+                        method = method.OverriddenMethod;
+                    }
+                }
+
+                return false;
             }
 
             void learnFromEqualsMethodArguments(BoundExpression left, TypeWithState leftType, BoundExpression right, TypeWithState rightType)
@@ -4164,14 +4229,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
-            if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
-            {
-                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
-            }
-
             if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
             {
                 return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+            }
+
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
+            {
+                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
             }
 
             return typeWithState;
@@ -8469,7 +8534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            var receiver = node.ReceiverOpt;
+            var receiver = node.Receiver;
             VisitRvalue(receiver);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.

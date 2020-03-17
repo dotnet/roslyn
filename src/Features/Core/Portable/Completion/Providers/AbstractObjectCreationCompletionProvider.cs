@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, bool preselect);
 
-        protected override CompletionItem CreateItem(
+        protected override CompletionItem CreateItem(CompletionContext completionContext,
             string displayText, string displayTextSuffix, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
