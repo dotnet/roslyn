@@ -9,13 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
@@ -58,8 +63,8 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var option = options.GetOption(_option);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
@@ -92,10 +97,10 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Order_modifiers, createChangedDocument, FeaturesResources.Order_modifiers)
+                : base(AnalyzersResources.Order_modifiers, createChangedDocument, AnalyzersResources.Order_modifiers)
             {
             }
         }
