@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
@@ -157,11 +156,24 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 
-            public virtual async Task<Document> GetUpdatedDocumentAsync(
+            public virtual Task<Document> GetUpdatedDocumentAsync(
                 Document document,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 INamedTypeSymbol classOrStructType,
                 SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
+            {
+                return GetUpdatedDocumentAsync(
+                    document, unimplementedMembers, classOrStructType, classOrStructDecl,
+                    ImmutableArray<ISymbol>.Empty, cancellationToken);
+            }
+
+            protected async Task<Document> GetUpdatedDocumentAsync(
+                Document document,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                ImmutableArray<ISymbol> extraMembers,
                 CancellationToken cancellationToken)
             {
                 var result = document;
@@ -181,15 +193,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var groupMembers = !isComImport &&
                     insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
-                result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType, memberDefinitions,
+                return await CodeGenerator.AddMemberDeclarationsAsync(
+                    result.Project.Solution, classOrStructType,
+                    memberDefinitions.Concat(extraMembers),
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
-
-                return result;
             }
 
             private ImmutableArray<ISymbol> GenerateMembers(
@@ -440,30 +451,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return
                     baseTypes.Any(ts => ts.GetMembers(memberName)
                                           .Where(m => m.IsAccessibleWithin(State.ClassOrStructType))
-                                          .Any(m => HasNameConflict(member, memberName, m)));
+                                          .Any(m => HasNameConflict(member, m)));
             }
 
-            private static bool HasNameConflict(
-                ISymbol member,
-                string memberName,
-                ISymbol baseMember)
+            private static bool HasNameConflict(ISymbol member, ISymbol baseMember)
             {
-                Debug.Assert(memberName == baseMember.Name);
-
-                if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
+                if (member is IMethodSymbol method1 && baseMember is IMethodSymbol method2)
                 {
                     // A method only conflicts with another method if they have the same parameter
                     // signature (return type is irrelevant). 
-                    var method1 = (IMethodSymbol)member;
-                    var method2 = (IMethodSymbol)baseMember;
-
-                    if (method1.MethodKind == MethodKind.Ordinary &&
-                        method2.MethodKind == MethodKind.Ordinary &&
-                        method1.TypeParameters.Length == method2.TypeParameters.Length)
-                    {
-                        return method1.Parameters.Select(p => p.Type)
-                                                 .SequenceEqual(method2.Parameters.Select(p => p.Type));
-                    }
+                    return method1.MethodKind == MethodKind.Ordinary &&
+                           method2.MethodKind == MethodKind.Ordinary &&
+                           method1.TypeParameters.Length == method2.TypeParameters.Length &&
+                           method1.Parameters.SequenceEqual(method2.Parameters, SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer);
                 }
 
                 // Any non method members with the same name simple name conflict.

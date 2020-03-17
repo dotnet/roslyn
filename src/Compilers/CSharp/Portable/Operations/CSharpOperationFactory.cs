@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (indexer)
             {
                 case BoundDynamicIndexerAccess boundDynamicIndexerAccess:
-                    return Create(boundDynamicIndexerAccess.ReceiverOpt);
+                    return Create(boundDynamicIndexerAccess.Receiver);
 
                 case BoundObjectInitializerMember boundObjectInitializerMember:
                     return CreateImplicitReceiver(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);

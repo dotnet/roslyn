@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -39,16 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
                 : default;
 
-            var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, options, expression, isConstant, cancellationToken),
+                    this.GetTypeSyntax(document, expression, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
                         SyntaxFactory.EqualsValueClause(expression.WithoutTrivia())))));
+
+            // If we're inserting into a multi-line parent, then add a newline after the local-var
+            // we're adding.  That way we don't end up having it and the starting statement be on
+            // the same line (which will cause indentation to be computed incorrectly).
+            var text = await document.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
+            {
+                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            }
 
             switch (containerToGenerateInto)
             {
@@ -107,17 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
+        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             return typeSymbol.GenerateTypeSyntax();
-        }
-
-        private bool CanUseVar(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.TypeKind != TypeKind.Delegate
-                && !typeSymbol.IsErrorType()
-                && !typeSymbol.IsFormattableString();
         }
 
         private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
@@ -324,23 +325,43 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             int statementIndex)
         {
             var nextStatement = oldStatements.ElementAtOrDefault(statementIndex);
-            return nextStatement == null
-                ? oldStatements.Insert(statementIndex, newStatement)
-                : oldStatements.ReplaceRange(nextStatement, new[] {
-                    newStatement.WithLeadingTrivia(nextStatement.GetLeadingTrivia()),
-                    nextStatement.WithoutLeadingTrivia() });
+            if (nextStatement == null)
+                return oldStatements.Insert(statementIndex, newStatement);
+
+            // Grab all the trivia before the line the next statement is on and move it to the new node.
+
+            var nextStatementLeading = nextStatement.GetLeadingTrivia();
+            var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+            if (precedingEndOfLine == default)
+                return oldStatements.ReplaceRange(
+                    nextStatement, new[] { newStatement, nextStatement });
+
+            var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
+
+            return oldStatements.ReplaceRange(
+                nextStatement, new[]
+                {
+                    newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
+                    nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
+                });
         }
 
         private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
 
-        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike) =>
-            blockLike is BlockSyntax block ? block.Statements :
-            blockLike is SwitchSectionSyntax switchSection ? switchSection.Statements :
-            throw ExceptionUtilities.UnexpectedValue(blockLike);
+        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
+            => blockLike switch
+            {
+                BlockSyntax block => block.Statements,
+                SwitchSectionSyntax switchSection => switchSection.Statements,
+                _ => throw ExceptionUtilities.UnexpectedValue(blockLike),
+            };
 
-        private static SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements) =>
-            blockLike is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
-            blockLike is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
-            throw ExceptionUtilities.UnexpectedValue(blockLike);
+        private static SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements)
+            => blockLike switch
+            {
+                BlockSyntax block => block.WithStatements(statements),
+                SwitchSectionSyntax switchSection => switchSection.WithStatements(statements),
+                _ => throw ExceptionUtilities.UnexpectedValue(blockLike),
+            };
     }
 }

@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CSharpAnalyzersResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.Analyzer.cs" />
@@ -43,6 +44,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.Analyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
   </ItemGroup>
 </Project>
