@@ -10,7 +10,9 @@ Microsoft.CodeAnalysis.Solution.RemoveDocuments(System.Collections.Immutable.Imm
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConditionalAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode whenNotNull) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ElementBindingExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberBindingExpression(Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.Options.Option<T>.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Options.Option<T>.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.GetHashCode() -> int
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers

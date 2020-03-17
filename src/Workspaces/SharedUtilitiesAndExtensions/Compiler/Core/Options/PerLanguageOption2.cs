@@ -111,8 +111,9 @@ namespace Microsoft.CodeAnalysis.Options
 #endif
         public override string ToString() => _optionDefinition.ToString();
 
-        public override int GetHashCode()
-            => _optionDefinition.GetHashCode();
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
 
         public bool Equals(IOption2? other)
         {

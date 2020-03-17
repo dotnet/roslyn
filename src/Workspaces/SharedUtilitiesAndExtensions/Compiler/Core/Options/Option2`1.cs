@@ -117,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override int GetHashCode() => _optionDefinition.GetHashCode();
 
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
+
         public bool Equals(IOption2? other)
         {
             if (ReferenceEquals(this, other))

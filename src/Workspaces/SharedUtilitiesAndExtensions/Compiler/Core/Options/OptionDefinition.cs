@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -60,12 +61,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool Equals(OptionDefinition other)
         {
-            return this.Feature == other.Feature &&
+            var equals = this.Name == other.Name &&
+                this.Feature == other.Feature &&
                 this.Group == other.Group &&
-                this.Name == other.Name &&
                 this.IsPerLanguage == other.IsPerLanguage &&
-                Equals(this.DefaultValue, other.DefaultValue) &&
                 this.Type == other.Type;
+
+            // TODO: Should default value participate in equality check?
+            Debug.Assert(!equals || Equals(this.DefaultValue, other.DefaultValue));
+
+            return equals;
         }
 
         public override int GetHashCode()

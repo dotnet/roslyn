@@ -84,12 +84,15 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => true;
 
+        bool IOption2.Equals(IOption2? other) => Equals(other);
+
         public override string ToString() => _optionDefinition.ToString();
 
-        public override int GetHashCode()
-            => _optionDefinition.GetHashCode();
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
 
-        bool IEquatable<IOption2?>.Equals(IOption2? other)
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
+
+        private bool Equals(IOption2? other)
         {
             if (ReferenceEquals(this, other))
             {
