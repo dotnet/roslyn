@@ -56,10 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
-
         protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel, ITypeSymbol? conversionType = null)
         {
             if (conversionType is object)
@@ -79,6 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             var newRoot = currentRoot.ReplaceNode(targetNode, castExpression);
             return newRoot;
         }
+
+        protected override bool IsObjectCreationExpression(ExpressionSyntax targetNode)
+            => targetNode.IsKind(SyntaxKind.ObjectCreationExpression);
 
         /// <summary>
         /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
@@ -131,33 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, targetNode, targetNodeType,
                 mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
-
-            static ImmutableArray<ITypeSymbol> FilterValidPotentialConversionTypes(
-                SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol targetNodeType,
-                ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
-            {
-                using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
-                foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
-                {
-                    var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
-                        targetNodeType, targetNodeConversionType);
-
-                    // For cases like object creation expression. for example:
-                    // Derived d = [||]new Base();
-                    // It is always invalid except the target node has explicit conversion operator or is numeric.
-                    if (targetNode.IsKind(SyntaxKind.ObjectCreationExpression)
-                        && !commonConversion.IsUserDefined)
-                    {
-                        continue;
-                    }
-
-                    if (commonConversion.Exists)
-                    {
-                        validPotentialConversionTypes.Add(targetNodeConversionType);
-                    }
-                }
-                return validPotentialConversionTypes.Distinct().ToImmutableArray();
-            }
         }
 
         /// <summary>
@@ -257,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 }
             }
 
-            return IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
+            return targetArgumentConversionType != null
+                && IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
         }
 
         /// <summary>

@@ -15,7 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 {
-    internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractGenerateMemberCodeFixProvider
+        : CodeFixProvider
     {
         public override FixAllProvider GetFixAllProvider()
         {

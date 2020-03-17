@@ -24,10 +24,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
     internal abstract class AbstractAddExplicitCastCodeFixProvider<
-        TExpressionSynax,
+        TExpressionSyntax,
         TArgumentListSyntax,
         TArgumentSyntax> : SyntaxEditorBasedCodeFixProvider
-        where TExpressionSynax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
         where TArgumentListSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
     {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var targetNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
-                .GetAncestorsOrThis<TExpressionSynax>().FirstOrDefault();
+                .GetAncestorsOrThis<TExpressionSyntax>().FirstOrDefault();
             if (targetNode == null)
                 return;
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             }
         }
 
-        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSynax targetNode, ITypeSymbol conversionType);
+        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
 
         private static Task<Document> ApplySingleConversionToDocumentAsync(Document document, SyntaxNode currentRoot)
             => Task.FromResult(document.WithSyntaxRoot(currentRoot));
@@ -122,9 +122,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// False, if the target node has no conversion type.
         /// </returns>
         protected abstract bool TryGetTargetTypeInfo(
-            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, TExpressionSynax targetNode,
+            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, TExpressionSyntax targetNode,
             CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetNodeType,
             out ImmutableArray<ITypeSymbol> potentialConversionTypes);
+
+
+
+        protected abstract bool IsObjectCreationExpression(TExpressionSyntax targetNode);
+
+        protected ImmutableArray<ITypeSymbol> FilterValidPotentialConversionTypes(
+            SemanticModel semanticModel, TExpressionSyntax targetNode, ITypeSymbol targetNodeType,
+            ArrayBuilder<ITypeSymbol> mutablePotentialConversionTypes)
+        {
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var validPotentialConversionTypes);
+            foreach (var targetNodeConversionType in mutablePotentialConversionTypes)
+            {
+                var commonConversion = semanticModel.Compilation.ClassifyCommonConversion(
+                    targetNodeType, targetNodeConversionType);
+
+                // For cases like object creation expression. for example:
+                // Derived d = [||]new Base();
+                // It is always invalid except the target node has explicit conversion operator or is numeric.
+                if (IsObjectCreationExpression(targetNode)
+                    && !commonConversion.IsUserDefined)
+                {
+                    continue;
+                }
+
+                if (commonConversion.Exists)
+                {
+                    validPotentialConversionTypes.Add(targetNodeConversionType);
+                }
+            }
+            return validPotentialConversionTypes.Distinct().ToImmutableArray();
+        }
 
         /// <summary>
         /// Test if all argument types can be converted to corresponding parameter types.
@@ -222,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var targetNodes = diagnostics.SelectAsArray(
                 d => root.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true)
-                         .GetAncestorsOrThis<TExpressionSynax>().FirstOrDefault());
+                         .GetAncestorsOrThis<TExpressionSyntax>().FirstOrDefault());
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, targetNodes,
