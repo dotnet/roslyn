@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 class C { }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -40,7 +40,73 @@ class C { }
 
             Assert.Single(outputCompilation.SyntaxTrees);
             Assert.Equal(compilation, outputCompilation);
+        }
 
+        [Fact]
+        public void Generator_Is_Intialized_Before_Running()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation);
+
+            Assert.Equal(1, initCount);
+            Assert.Equal(1, executeCount);
+        }
+
+        [Fact]
+        public void Generator_Is_Not_Initialized_If_Not_Run()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+
+            Assert.Equal(0, initCount);
+            Assert.Equal(0, executeCount);
+        }
+
+        [Fact]
+        public void Generator_Is_Only_Initialized_Once()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, sourceOpt: "public class C { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(outputCompilation, out outputCompilation);
+            driver.RunFullGeneration(outputCompilation, out outputCompilation);
+
+            Assert.Equal(1, initCount);
+            Assert.Equal(3, executeCount);
         }
 
         [Fact]
@@ -55,7 +121,7 @@ class GeneratedClass { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -81,7 +147,7 @@ class GeneratedClass { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -113,7 +179,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -135,7 +201,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -161,7 +227,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -191,7 +257,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -221,7 +287,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -266,7 +332,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -313,7 +379,7 @@ class C { }
 ";
 
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -336,6 +402,49 @@ class C { }
             driver.RunFullGeneration(compilation, out outputCompilation);
             Assert.Equal(5, outputCompilation.SyntaxTrees.Count());
         }
+
+        [Fact]
+        public void Adding_Another_Generator_Makes_TryApplyEdits_Fail()
+        {
+            var source = @"
+class C { }
+";
+
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
+            SingleFileTestGenerator testGenerator2 = new SingleFileTestGenerator("public class E { }");
+
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions,
+                                                               generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
+                                                               additionalTexts: ImmutableArray<AdditionalText>.Empty);
+
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+
+            // try apply edits
+            driver = driver.TryApplyEdits(compilation, out _, out bool success);
+            Assert.True(success);
+
+            // add another generator
+            driver = driver.AddGenerators(ImmutableArray.Create<ISourceGenerator>(testGenerator2));
+
+            // try apply changes should now fail
+            driver = driver.TryApplyEdits(compilation, out _, out success);
+            Assert.False(success);
+
+            // full generation
+            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
+
+            // try apply changes should now succeed
+            driver.TryApplyEdits(compilation, out _, out success);
+            Assert.True(success);
+        }
     }
 
     internal class SingleFileTestGenerator : ISourceGenerator
@@ -353,9 +462,37 @@ class C { }
         {
             context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
+
+        public void Initialize(InitializationContext context)
+        {
+        }
     }
 
-    internal class AdditionalFileAddedGenerator : ISourceGenerator, ITriggeredByAdditionalFileGenerator
+    internal class CallbackGenerator : ISourceGenerator
+    {
+        private readonly Action<InitializationContext> _onInit;
+        private readonly Action<SourceGeneratorContext> _onExecute;
+        private readonly string _sourceOpt;
+
+        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string sourceOpt = "")
+        {
+            _onInit = onInit;
+            _onExecute = onExecute;
+            _sourceOpt = sourceOpt;
+        }
+
+        public void Execute(SourceGeneratorContext context)
+        {
+            _onExecute(context);
+            if (!string.IsNullOrWhiteSpace(_sourceOpt))
+            {
+                context.AdditionalSources.Add("source.cs", SourceText.From(_sourceOpt, Encoding.UTF8));
+            }
+        }
+        public void Initialize(InitializationContext context) => _onInit(context);
+    }
+
+    internal class AdditionalFileAddedGenerator : ISourceGenerator
     {
         public bool CanApplyChanges { get; set; } = true;
 
@@ -367,7 +504,12 @@ class C { }
             }
         }
 
-        public bool UpdateContext(UpdateContext context, AdditionalFileEdit edit)
+        public void Initialize(InitializationContext context)
+        {
+            context.RegisterForAdditionalFileChanges(UpdateContext);
+        }
+
+        bool UpdateContext(EditContext context, AdditionalFileEdit edit)
         {
             if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
             {
@@ -377,7 +519,7 @@ class C { }
             return false;
         }
 
-        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(GetGeneratedFileName(file.Path)), SourceText.From("", Encoding.UTF8));
+        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
         private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
     }
