@@ -316,6 +316,8 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                        case ErrorCode.WRN_IsPatternAlways:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -358,6 +360,8 @@ class X
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                    ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
+                    ErrorCode.WRN_IsPatternAlways,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

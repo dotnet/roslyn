@@ -5833,6 +5833,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IsPatternImpossible" xml:space="preserve">
     <value>An expression of type '{0}' can never match the provided pattern.</value>
   </data>
+  <data name="WRN_IsPatternAlways" xml:space="preserve">
+    <value>An expression of type '{0}' always matches the provided pattern.</value>
+  </data>
+  <data name="WRN_IsPatternAlways_Title" xml:space="preserve">
+    <value>The input always matches the provided pattern.</value>
+  </data>
   <data name="WRN_GivenExpressionNeverMatchesPattern" xml:space="preserve">
     <value>The given expression never matches the provided pattern.</value>
   </data>
@@ -5844,6 +5850,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_GivenExpressionAlwaysMatchesConstant_Title" xml:space="preserve">
     <value>The given expression always matches the provided constant.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesPattern" xml:space="preserve">
+    <value>The given expression always matches the provided pattern.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesPattern_Title" xml:space="preserve">
+    <value>The given expression always matches the provided pattern.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion8_0" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>

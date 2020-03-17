@@ -2330,5 +2330,219 @@ public class C
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void WarnUnmatchedIsRelationalPattern()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        _ = 1 is < 0; // 1
+        _ = 1 is < 1; // 2
+        _ = 1 is < 2; // 3
+        _ = 1 is <= 0; // 4
+        _ = 1 is <= 1; // 5
+        _ = 1 is <= 2; // 6
+        _ = 1 is > 0; // 7
+        _ = 1 is > 1; // 8
+        _ = 1 is > 2; // 9
+        _ = 1 is >= 0; // 10
+        _ = 1 is >= 1; // 11
+        _ = 1 is >= 2; // 12
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 0; // 1
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 0").WithLocation(5, 13),
+                // (6,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 1; // 2
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 1").WithLocation(6, 13),
+                // (7,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is < 2; // 3
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is < 2").WithLocation(7, 13),
+                // (8,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is <= 0; // 4
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is <= 0").WithLocation(8, 13),
+                // (9,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 1; // 5
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 1").WithLocation(9, 13),
+                // (10,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 2; // 6
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 2").WithLocation(10, 13),
+                // (11,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is > 0; // 7
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is > 0").WithLocation(11, 13),
+                // (12,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 1; // 8
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 1").WithLocation(12, 13),
+                // (13,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 2; // 9
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 2").WithLocation(13, 13),
+                // (14,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 0; // 10
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 0").WithLocation(14, 13),
+                // (15,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 1; // 11
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 1").WithLocation(15, 13),
+                // (16,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is >= 2; // 12
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is >= 2").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithConstantControllingExpression()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        switch (1)
+        {
+            case < 0: break; // 1
+            case < 1: break; // 2
+            case < 2: break;
+            case < 3: break; // 3
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (7,23): warning CS0162: Unreachable code detected
+                //             case < 0: break; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(7, 23),
+                // (8,23): warning CS0162: Unreachable code detected
+                //             case < 1: break; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 23),
+                // (10,23): warning CS0162: Unreachable code detected
+                //             case < 3: break; // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 23)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        switch (i)
+        {
+            case < int.MinValue: break; // 1
+            case <= int.MinValue: break;
+            case > int.MaxValue: break; // 2
+            case >= int.MaxValue: break;
+        }
+    }
+    public void M(uint i)
+    {
+        switch (i)
+        {
+            case < 0: break; // 3
+            case <= 0: break;
+            case > uint.MaxValue: break; // 4
+            case >= uint.MaxValue: break;
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (7,18): error CS8120: The switch case has already been handled by a previous case.
+                    //             case < int.MinValue: break; // 1
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< int.MinValue").WithLocation(7, 18),
+                    // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                    //             case > int.MaxValue: break; // 2
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> int.MaxValue").WithLocation(9, 18),
+                    // (17,18): error CS8120: The switch case has already been handled by a previous case.
+                    //             case < 0: break; // 3
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< 0").WithLocation(17, 18),
+                    // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                    //             case > uint.MaxValue: break; // 4
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> uint.MaxValue").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is < int.MinValue; // 1
+        _ = i is <= int.MinValue;
+        _ = i is > int.MaxValue; // 2
+        _ = i is >= int.MaxValue;
+    }
+    public void M(uint i)
+    {
+        _ = i is < 0; // 3
+        _ = i is <= 0;
+        _ = i is > uint.MaxValue; // 4
+        _ = i is >= uint.MaxValue;
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (5,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is < int.MinValue; // 1
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < int.MinValue").WithArguments("int").WithLocation(5, 13),
+                    // (7,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is > int.MaxValue; // 2
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > int.MaxValue").WithArguments("int").WithLocation(7, 13),
+                    // (12,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is < 0; // 3
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < 0").WithArguments("uint").WithLocation(12, 13),
+                    // (14,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is > uint.MaxValue; // 4
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > uint.MaxValue").WithArguments("uint").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithAlwaysMatchingRange()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is > int.MinValue;
+        _ = i is >= int.MinValue; // 1
+        _ = i is < int.MaxValue;
+        _ = i is <= int.MaxValue; // 2
+    }
+    public void M(uint i)
+    {
+        _ = i is > 0;
+        _ = i is >= 0; // 3
+        _ = i is < uint.MaxValue;
+        _ = i is <= uint.MaxValue; // 4
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (6,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is >= int.MinValue; // 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= int.MinValue").WithArguments("int").WithLocation(6, 13),
+                // (8,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is <= int.MaxValue; // 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= int.MaxValue").WithArguments("int").WithLocation(8, 13),
+                // (13,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is >= 0; // 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= 0").WithArguments("uint").WithLocation(13, 13),
+                // (15,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is <= uint.MaxValue; // 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= uint.MaxValue").WithArguments("uint").WithLocation(15, 13)
+                );
+        }
     }
 }

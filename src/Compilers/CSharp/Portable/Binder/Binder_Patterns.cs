@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not actually emitted into the lowered code.
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
@@ -60,8 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                 hasErrors = true;
             }
-
-            if (expression.ConstantValue != null)
+            else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
+            {
+                if (pattern.Kind == BoundKind.RelationalPattern)
+                {
+                    diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                }
+            }
+            else if (expression.ConstantValue != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
                 if (!hasErrors)
@@ -70,9 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
-                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel) && pattern.Kind == BoundKind.ConstantPattern)
+                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
                     {
-                        diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                        switch (pattern)
+                        {
+                            case BoundConstantPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                                break;
+                            case BoundRelationalPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
+                                break;
+                        }
                     }
                 }
             }

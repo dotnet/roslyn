@@ -554,6 +554,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Tests MakeTestsAndBindingsForRelationalPattern(BoundDagTemp input, BoundRelationalPattern rel)
         {
+            // check if the test is always true or always false
+            var fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+            if (fac is { })
+            {
+                var values = fac.Related(rel.Relation.Operator(), rel.ConstantValue);
+                if (values.IsEmpty)
+                {
+                    return Tests.False.Instance;
+                }
+                else if (values.Complement().IsEmpty)
+                {
+                    return Tests.True.Instance;
+                }
+            }
+
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             var convertedInput = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
             tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, convertedInput, rel.HasErrors)));
