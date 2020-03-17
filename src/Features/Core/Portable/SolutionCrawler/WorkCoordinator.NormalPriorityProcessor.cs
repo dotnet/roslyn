@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
 
-                                    RemoveDocument(documentId);
+                                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -451,16 +451,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveDocument(DocumentId documentId)
+                    private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
                     {
-                        RemoveDocument(Analyzers, documentId);
+                        return RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
                     }
 
-                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in analyzers)
                         {
-                            analyzer.RemoveDocument(documentId);
+                            await analyzer.RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
