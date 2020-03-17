@@ -62,6 +62,49 @@ class Type
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
+        [Theory]
+        [InlineData("default")]
+        [InlineData("default(object)")]
+        public async Task PreferNullLiteral_ArgumentFormatting(string defaultValueExpression)
+        {
+            var source = $@"
+class Type
+{{
+    void Method()
+    {{
+        Method2(
+            0,
+            [|{defaultValueExpression}|],
+            [|{defaultValueExpression}|],
+            """");
+    }}
+
+    void Method2(params object[] values)
+    {{
+    }}
+}}
+";
+            var fixedSource = @"
+class Type
+{
+    void Method()
+    {
+        Method2(
+            0,
+            null,
+            null,
+            """");
+    }
+
+    void Method2(params object[] values)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
         [Fact]
         public async Task PreferNullLiteral_OverloadResolution()
         {

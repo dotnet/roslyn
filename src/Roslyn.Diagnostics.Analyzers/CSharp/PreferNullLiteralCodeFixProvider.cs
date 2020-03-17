@@ -50,6 +50,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                     .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
+            newSyntax = newSyntax.WithLeadingTrivia(syntax.GetLeadingTrivia());
             return document.WithSyntaxRoot(root.ReplaceNode(syntax, newSyntax));
         }
     }
