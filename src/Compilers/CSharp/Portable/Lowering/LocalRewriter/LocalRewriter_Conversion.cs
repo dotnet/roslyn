@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             @checked: @checked,
                             explicitCastInCode: false,
                             conversionGroupOpt: null,
-                            constantValueOpt: default(ConstantValue),
+                            constantValueOpt: null,
                             type: type,
                             hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
@@ -830,12 +830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, null, rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, null, rewrittenType);
             }
         }
 
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do not rewrite user defined conversion in expression trees
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, null, rewrittenType);
             }
 
             if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType);
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroupOpt: null, null, rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION: 

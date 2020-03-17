@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 parameterList: parameterList,
                 accessorList: accessorList,
-                expressionBody: default(ArrowExpressionClauseSyntax));
+                expressionBody: null);
         }
     }
 }

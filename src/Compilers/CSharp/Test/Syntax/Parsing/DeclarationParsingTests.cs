@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotEqual(default, ad.OpenBracketToken);
-            Assert.NotEqual(default, ad.Target);
+            Assert.NotEqual(null, ad.Target);
             Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal(@"as\u0073embly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
@@ -3023,14 +3023,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Type);
+            Assert.NotEqual(null, ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ms.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[1].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[1].Type);
+            Assert.NotEqual(null, ms.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ms.ParameterList.Parameters[1].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ms.ParameterList.Parameters[1].Identifier.ToString());
@@ -3038,7 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
-            Assert.NotEqual(default, ms.Body);
+            Assert.NotEqual(null, ms.Body);
             Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
             Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
@@ -3049,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class a { b X(" + SyntaxFacts.GetText(mod) + " c d) { } }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotEqual(null, file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3850,7 +3850,7 @@ class Class1<T>{
             var text = "class a { b c = { }; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotEqual(null, file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3874,15 +3874,15 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
-            Assert.NotEqual(default, fs.Declaration.Type);
+            Assert.NotEqual(null, fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(null, fs.Declaration.Variables[0].Initializer);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.Value);
+            Assert.NotEqual(null, fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{ }", fs.Declaration.Variables[0].Initializer.Value.ToString());
             Assert.NotEqual(default, fs.SemicolonToken);
@@ -3895,7 +3895,7 @@ class Class1<T>{
             var text = "class a { b c, d, e; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotEqual(null, file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);

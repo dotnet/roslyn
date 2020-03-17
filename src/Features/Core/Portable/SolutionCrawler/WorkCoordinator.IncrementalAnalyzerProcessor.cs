@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
-                            return default(object);
+                            return (object)null;
                         }, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -340,11 +340,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default;
+                        return null;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default;
+                        return null;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {

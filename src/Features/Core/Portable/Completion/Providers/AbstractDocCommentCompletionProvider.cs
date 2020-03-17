@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return $"<{kind} {NameAttributeName}=\"{name}\"/>";
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
         {
             var includesCommitCharacter = true;
 

@@ -186,13 +186,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // making those items repeatedly, so simply not returning anything from this assembly, until 
                 // we have a better understanding on this scenario.
                 // TODO: Add telemetry
-                result = default;
+                result = null;
                 return false;
             }
 
             if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
             {
-                result = default;
+                result = null;
                 return false;
             }
 

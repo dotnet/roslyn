@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 if (state == null)
                 {
-                    return default;
+                    return null;
                 }
 
                 // There was an existing constructor that matched what the user wants to create.

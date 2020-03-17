@@ -2268,8 +2268,8 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
-                default(Stream),
-                default(IEnumerable<EmbeddedText>),
+                null,
+                null,
                 cancellationToken);
         }
 

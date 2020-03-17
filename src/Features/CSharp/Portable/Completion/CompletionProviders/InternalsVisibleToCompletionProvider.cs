@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {
-            var builder = default(ImmutableList<SyntaxNode>.Builder);
+            var builder = (ImmutableList<SyntaxNode>.Builder)null;
             if (documentRoot is CompilationUnitSyntax compilationUnit)
             {
                 foreach (var attributeList in compilationUnit.AttributeLists)

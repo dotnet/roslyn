@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                commaToken = default(SyntaxToken);
+                commaToken = null;
                 alignmentExpression = null;
                 expr = ConsumeUnexpectedTokens(expr);
             }
