@@ -5,11 +5,11 @@ Microsoft.CodeAnalysis.OperationKind.NegatedPattern = 109 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.OperationKind.RelationalPattern = 112 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TypePattern = 111 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.LeftPattern.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.LeftPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.RightPattern.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.RightPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.INegatedPatternOperation
-Microsoft.CodeAnalysis.Operations.INegatedPatternOperation.NegatedPattern.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.INegatedPatternOperation.NegatedPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.Value.get -> Microsoft.CodeAnalysis.IOperation

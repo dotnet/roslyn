@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundNode _value;
 
         internal CSharpLazyRelationalPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BinaryOperatorKind operatorKind, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(inputType, semanticModel, syntax, type: null, operatorKind: operatorKind, constantValue: default, isImplicit)
+            base(operatorKind, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;
@@ -1567,9 +1567,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _operationFactory = operationFactory;
             _boundNegatedPattern = boundNegatedPattern;
         }
-        protected override IOperation CreateNegatedPattern()
+        protected override IPatternOperation CreateNegatedPattern()
         {
-            return _operationFactory.Create(_boundNegatedPattern.Negated);
+            return (IPatternOperation)_operationFactory.Create(_boundNegatedPattern.Negated);
         }
     }
     /// <summary>
@@ -1595,13 +1595,13 @@ namespace Microsoft.CodeAnalysis.Operations
             _operationFactory = operationFactory;
             _boundBinaryPattern = boundBinaryPattern;
         }
-        protected override IOperation CreateLeftPattern()
+        protected override IPatternOperation CreateLeftPattern()
         {
-            return _operationFactory.Create(_boundBinaryPattern.Left);
+            return (IPatternOperation)_operationFactory.Create(_boundBinaryPattern.Left);
         }
-        protected override IOperation CreateRightPattern()
+        protected override IPatternOperation CreateRightPattern()
         {
-            return _operationFactory.Create(_boundBinaryPattern.Right);
+            return (IPatternOperation)_operationFactory.Create(_boundBinaryPattern.Right);
         }
     }
 
