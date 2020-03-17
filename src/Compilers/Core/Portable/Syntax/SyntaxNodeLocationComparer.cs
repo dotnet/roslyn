@@ -20,9 +20,23 @@ namespace Microsoft.CodeAnalysis
         }
         public int Compare(SyntaxNode? x, SyntaxNode? y)
         {
-            Debug.Assert(x is object);
-            Debug.Assert(y is object);
-            return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+            else if (y is null)
+            {
+                return 1;
+            }
+            else
+            {
+                return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
+            }
         }
     }
 }

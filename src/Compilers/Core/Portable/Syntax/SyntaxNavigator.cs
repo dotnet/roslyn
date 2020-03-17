@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(stepInto != null);
             foreach (var trivia in triviaList)
             {
-                if (trivia.GetStructure(out var structure) && stepInto(trivia))
+                if (trivia.TryGetStructure(out var structure) && stepInto(trivia))
                 {
                     var token = GetFirstToken(structure, predicate, stepInto);
                     if (token.RawKind != None)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
         {
             token = default(SyntaxToken);
 
-            if (!trivia.GetStructure(out var structure) || stepInto == null || !stepInto(trivia))
+            if (!trivia.TryGetStructure(out var structure) || stepInto == null || !stepInto(trivia))
             {
                 return false;
             }
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (returnNext)
                 {
-                    if (trivia.GetStructure(out var structure) && stepInto != null && stepInto(trivia))
+                    if (trivia.TryGetStructure(out var structure) && stepInto != null && stepInto(trivia))
                     {
                         var token = GetFirstToken(structure!, predicate, stepInto);
                         if (token.RawKind != None)

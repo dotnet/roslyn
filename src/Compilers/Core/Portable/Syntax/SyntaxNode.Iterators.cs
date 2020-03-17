@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis
                             SyntaxTrivia trivia;
                             if (stack.TryGetNext(out trivia))
                             {
-                                if (trivia.GetStructure(out var structureNode) && IsInSpan(in span, trivia.FullSpan))
+                                if (trivia.TryGetStructure(out var structureNode) && IsInSpan(in span, trivia.FullSpan))
                                 {
                                     // parent nodes come before children (prefix document order)
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis
                                 // PERF: Push before yield return so that "trivia" is 'dead' after the yield
                                 // and therefore doesn't need to be stored in the iterator state machine. This
                                 // saves a field.
-                                if (trivia.GetStructure(out var structureNode))
+                                if (trivia.TryGetStructure(out var structureNode))
                                 {
                                     stack.PushChildren(structureNode, descendIntoChildren);
                                 }

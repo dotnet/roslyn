@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis
             return reducedChanges.Select(c => new TextChange(c.Range.Span, c.NewText!)).ToList();
         }
 
-        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxTree before, SyntaxTree after)
+        internal static IList<TextSpan> GetPossiblyDifferentTextSpans(SyntaxTree? before, SyntaxTree? after)
         {
-            if (before == after)
+            if (object.ReferenceEquals(before, after))
             {
                 // They're the same, so nothing changed.
                 return SpecializedCollections.EmptyList<TextSpan>();
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             else if (before == null)
             {
                 // The tree is completely new, everything has changed.
-                return new[] { new TextSpan(0, after.GetText().Length) };
+                return new[] { new TextSpan(0, after!.GetText().Length) };
             }
             else if (after == null)
             {

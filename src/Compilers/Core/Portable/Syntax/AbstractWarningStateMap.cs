@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.CodeAnalysis.Syntax
 {
     internal abstract class AbstractWarningStateMap<TWarningState>
+        where TWarningState : struct
     {
         /// <summary>
         /// List of entries sorted in source order, each of which captures a
@@ -74,8 +75,6 @@ namespace Microsoft.CodeAnalysis.Syntax
             public readonly int Position;
 
             // the general option applicable to all warnings, accumulated of all #pragma up to the current Line.
-            [MaybeNull]
-            [AllowNull]
             public readonly TWarningState GeneralWarningOption;
 
             // the mapping of the specific warning to the option, accumulated of all #pragma up to the current Line.

@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             return HasStructure ? UnderlyingNode!.GetStructure(this) : null;
         }
 
-        internal bool GetStructure([NotNullWhen(true)] out SyntaxNode? structure)
+        internal bool TryGetStructure([NotNullWhen(true)] out SyntaxNode? structure)
         {
             structure = GetStructure();
             return structure is object;
