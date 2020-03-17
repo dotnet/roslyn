@@ -95,7 +95,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSetAsync = GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken);
+            if (optionSetAsync.IsCompleted)
+                return optionSetAsync.GetAwaiter().GetResult();
+
+            return optionSetAsync.AsTask().GetAwaiter().GetResult();
         }
 
         public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -110,12 +114,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
+            if (optionAsync.IsCompleted)
+                return optionAsync.GetAwaiter().GetResult();
+
+            return optionAsync.AsTask().GetAwaiter().GetResult();
         }
 
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken);
+            if (optionAsync.IsCompleted)
+                return optionAsync.GetAwaiter().GetResult();
+
+            return optionAsync.AsTask().GetAwaiter().GetResult();
         }
 
         public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
