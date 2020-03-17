@@ -2,4 +2,10 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Imports.targets" />
+
+  <ItemGroup>
+    <!-- Make sure Public API files show in Solution Explorer. -->
+    <None Include="@(PublicAPI)" />
+  </ItemGroup>
+
 </Project>
