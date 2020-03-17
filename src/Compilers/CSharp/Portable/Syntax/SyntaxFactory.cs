@@ -2438,8 +2438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitInterfaceSpecifier,
                 identifier,
                 accessorList,
-                null,
-                null);
+                expressionBody: null,
+                initializer: null);
         }
 
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
@@ -2505,13 +2505,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // backwards compatibility for extended API
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, BlockSyntax body)
-                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body, null);
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body, expressionBody: null);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
-                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body, null, semicolonToken);
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body, expressionBody: null, semicolonToken);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ArrowExpressionClauseSyntax expressionBody)
-                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, null, expressionBody);
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body: null, expressionBody);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, null, expressionBody, semicolonToken);
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body: null, expressionBody, semicolonToken);
 
         public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
             => EnumMemberDeclaration(attributeLists, modifiers: default,

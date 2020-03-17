@@ -2268,8 +2268,8 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
-                null,
-                null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
                 cancellationToken);
         }
 

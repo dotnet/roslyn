@@ -1876,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // use reference equality in the absence of overloaded operators for System.Delegate.
                     operatorKind = (operatorKind & (~BinaryOperatorKind.Delegate)) | BinaryOperatorKind.Object;
-                    return new BoundBinaryOperator(syntax, operatorKind, null, null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
+                    return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
                 }
             }
             else

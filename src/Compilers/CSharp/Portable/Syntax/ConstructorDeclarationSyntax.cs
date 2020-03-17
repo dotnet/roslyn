@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 parameterList,
                 initializer,
                 body,
-                null,
+                expressionBody: null,
                 semicolonToken);
     }
 }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                null,
+                expressionBody: null,
                 default(SyntaxToken));
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                null,
+                expressionBody: null,
                 semicolonToken);
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                null,
+                body: null,
                 expressionBody,
                 default(SyntaxToken));
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                null,
+                body: null,
                 expressionBody,
                 semicolonToken);
 

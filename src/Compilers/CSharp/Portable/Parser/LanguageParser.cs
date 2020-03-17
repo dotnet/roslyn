@@ -4319,7 +4319,7 @@ tryAgain:
                                     expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
                                 }
 
-                                args.Add(_syntaxFactory.Argument(null, null, expression));
+                                args.Add(_syntaxFactory.Argument(null, refKindKeyword: null, expression));
                             }
                             else
                             {
@@ -4839,7 +4839,7 @@ tryAgain:
             {
                 return _syntaxFactory.TypeParameter(
                     default(SyntaxList<AttributeListSyntax>),
-                    null,
+                    varianceKeyword: null,
                     this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
