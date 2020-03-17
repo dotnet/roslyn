@@ -28,7 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
     internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeService, IDesignerAttributeListener
+        : ForegroundThreadAffinitizedObject, IVisualStudioDesignerAttributeService, IDesignerAttributeListener
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 _cpsProjects.TryRemove(e.ProjectId, out _);
         }
 
-        void IDesignerAttributeService.Start(CancellationToken cancellationToken)
+        void IVisualStudioDesignerAttributeService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
         private async Task StartAsync(CancellationToken cancellationToken)

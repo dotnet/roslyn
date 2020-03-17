@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     [Export(typeof(ITodoListProvider))]
-    [ExportWorkspaceServiceFactory(typeof(ITodoCommentsService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IVisualStudioTodoCommentsService), ServiceLayer.Host), Shared]
     internal class VisualStudioTodoCommentsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;

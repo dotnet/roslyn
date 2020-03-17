@@ -7,16 +7,16 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     /// <summary>
-    /// In process service responsible for listening to OOP telemetry notifications.
+    /// In process service responsible for listening to OOP todo comment notifications.
     /// </summary>
-    internal interface IProjectTelemetryService : IWorkspaceService
+    internal interface IVisualStudioTodoCommentsService : IWorkspaceService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background
-        /// analysis of the workspace to determine project telemetry.
+        /// analysis of the workspace to find todo comments
         /// </summary>
         void Start(CancellationToken cancellationToken);
     }

@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    [ExportWorkspaceServiceFactory(typeof(IDesignerAttributeService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IVisualStudioDesignerAttributeService), ServiceLayer.Host), Shared]
     internal class VisualStudioDesignerAttributeServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;

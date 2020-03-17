@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     /// In process service responsible for listening to OOP notifications whether or not a file is
     /// designable  and then notifying the respective project systems about that information.
     /// </summary>
-    internal interface IDesignerAttributeService : IWorkspaceService
+    internal interface IVisualStudioDesignerAttributeService : IWorkspaceService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background

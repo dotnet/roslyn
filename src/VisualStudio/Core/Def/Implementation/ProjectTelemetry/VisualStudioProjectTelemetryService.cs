@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
     internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IProjectTelemetryService, IProjectTelemetryListener
+        : ForegroundThreadAffinitizedObject, IVisualStudioProjectTelemetryService, IProjectTelemetryListener
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
 
-        void IProjectTelemetryService.Start(CancellationToken cancellationToken)
+        void IVisualStudioProjectTelemetryService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
         private async Task StartAsync(CancellationToken cancellationToken)

@@ -220,7 +220,7 @@ class Test { }");
             private readonly TaskCompletionSource<IList<DesignerAttributeData>> _infosSource = new TaskCompletionSource<IList<DesignerAttributeData>>();
             public Task<IList<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public Task RegisterDesignerAttributesAsync(IList<DesignerAttributeData> infos, CancellationToken cancellationToken)
+            public Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
                 return Task.CompletedTask;

@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject, ITodoCommentsService, ITodoCommentsListener, ITodoListProvider
+        : ForegroundThreadAffinitizedObject, IVisualStudioTodoCommentsService, ITodoCommentsListener, ITodoListProvider
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 _documentToInfos.TryRemove(e.DocumentId, out _);
         }
 
-        void ITodoCommentsService.Start(CancellationToken cancellationToken)
+        void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)
             => _ = StartAsync(cancellationToken);
 
         private async Task StartAsync(CancellationToken cancellationToken)
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
+        public Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
             return Task.CompletedTask;

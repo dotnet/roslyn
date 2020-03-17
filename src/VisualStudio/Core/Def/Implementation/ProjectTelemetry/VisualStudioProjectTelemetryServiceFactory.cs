@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectTelemetryService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IVisualStudioProjectTelemetryService), ServiceLayer.Host), Shared]
     internal class VisualStudioProjectTelemetryServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
