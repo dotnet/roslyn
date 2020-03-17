@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Looks like a viable property/field to convert into an auto property.
             analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration,
-                fieldDeclaration, variableDeclarator, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+                fieldDeclaration, variableDeclarator, semanticModel, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -351,6 +352,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             public readonly TPropertyDeclaration PropertyDeclaration;
             public readonly TFieldDeclaration FieldDeclaration;
             public readonly TVariableDeclarator VariableDeclarator;
+            public readonly SemanticModel SemanticModel;
             public readonly string SymbolEquivalenceKey;
 
             public AnalysisResult(
@@ -359,6 +361,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 TPropertyDeclaration propertyDeclaration,
                 TFieldDeclaration fieldDeclaration,
                 TVariableDeclarator variableDeclarator,
+                SemanticModel semanticModel,
                 string symbolEquivalenceKey)
             {
                 Property = property;
@@ -366,6 +369,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 PropertyDeclaration = propertyDeclaration;
                 FieldDeclaration = fieldDeclaration;
                 VariableDeclarator = variableDeclarator;
+                SemanticModel = semanticModel;
                 SymbolEquivalenceKey = symbolEquivalenceKey;
             }
         }
