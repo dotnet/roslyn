@@ -9,16 +9,21 @@ namespace Microsoft.CodeAnalysis
     {
         internal EditCallback<AdditionalFileEdit>? EditCallback { get; }
 
-        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback)
+        internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; }
+
+        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxReceiverCreator? receiverCreator)
         {
             EditCallback = editCallback;
+            SyntaxReceiverCreator = receiverCreator;
         }
 
         internal class Builder
         {
             internal EditCallback<AdditionalFileEdit>? EditCallback { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback);
+            internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; set; }
+
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxReceiverCreator);
         }
     }
 }

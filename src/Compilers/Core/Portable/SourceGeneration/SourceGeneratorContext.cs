@@ -18,10 +18,11 @@ namespace Microsoft.CodeAnalysis
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public readonly struct SourceGeneratorContext
     {
-        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             AnalyzerOptions = options;
+            SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
             AdditionalSources = new AdditionalSourcesCollection();
         }
@@ -31,6 +32,8 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE: replace AnalyzerOptions with an differently named type that is otherwise identical.
         // The concern being that something added to one isn't necessarily applicable to the other.
         public AnalyzerOptions AnalyzerOptions { get; }
+
+        public ISyntaxReceiver? SyntaxReceiver { get; }
 
         public CancellationToken CancellationToken { get; }
 
@@ -53,6 +56,8 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorInfo.Builder InfoBuilder { get; }
 
         public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback) => InfoBuilder.EditCallback = callback;
+
+        public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator) => InfoBuilder.SyntaxReceiverCreator = receiverCreator;
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
