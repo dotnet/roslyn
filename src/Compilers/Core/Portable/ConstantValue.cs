@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         public static ConstantValue True { get { return ConstantValueOne.Boolean; } }
         public static ConstantValue False { get { return ConstantValueDefault.Boolean; } }
 
-        public static ConstantValue Create(string value)
+        public static ConstantValue Create(string? value)
         {
             if (value == null)
             {
@@ -602,6 +602,7 @@ namespace Microsoft.CodeAnalysis
             return discriminator == ConstantValueTypeDiscriminator.String;
         }
 
+        // See https://github.com/dotnet/roslyn/issues/41964: when this property is true, that implies StringValue is non-null.
         public bool IsString
         {
             get
