@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +27,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
@@ -158,8 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // Load the designer attribute service and tell it to start watching the solution for
             // designable files.
-            var designerAttributeService = _workspace.Services.GetService<IDesignerAttributeService>();
+            var designerAttributeService = _workspace.Services.GetRequiredService<IDesignerAttributeService>();
             designerAttributeService.Start(this.DisposalToken);
+
+            // Load the telemetry service and tell it to start watching the solution for project info.
+            var projectTelemetryService = _workspace.Services.GetRequiredService<IProjectTelemetryService>();
+            projectTelemetryService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

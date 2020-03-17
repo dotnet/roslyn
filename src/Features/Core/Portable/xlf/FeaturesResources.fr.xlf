@@ -202,6 +202,11 @@
         <target state="translated">Supprimer les objets avant la mise hors de portée</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Le contenu actuel du fichier source '{0}' ne correspond pas à la source générée. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
@@ -520,6 +525,16 @@
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Supprimer {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1654,18 +1669,13 @@ Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: supprimer l'état managé (objets managés).</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: supprimer l'état managé (objets managés).</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: définir les champs de grande taille avec la valeur Null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Pour détecter les appels redondants</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: définir les champs de grande taille avec la valeur Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -2018,11 +2028,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Inline_variable_declaration">
         <source>Inline variable declaration</source>
         <target state="translated">Déclaration de variable inline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Utiliser les critères spéciaux</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">

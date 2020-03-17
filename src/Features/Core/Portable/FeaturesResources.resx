@@ -743,13 +743,10 @@ Do you want to continue?</value>
     <value>Solution</value>
   </data>
   <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
-    <value>TODO: dispose managed state (managed objects).</value>
+    <value>TODO: dispose managed state (managed objects)</value>
   </data>
   <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
-    <value>TODO: set large fields to null.</value>
-  </data>
-  <data name="To_detect_redundant_calls" xml:space="preserve">
-    <value>To detect redundant calls</value>
+    <value>TODO: set large fields to null</value>
   </data>
   <data name="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
@@ -993,9 +990,6 @@ This version used in: {2}</value>
   </data>
   <data name="Inline_variable_declaration" xml:space="preserve">
     <value>Inline variable declaration</value>
-  </data>
-  <data name="Use_pattern_matching" xml:space="preserve">
-    <value>Use pattern matching</value>
   </data>
   <data name="Use_interpolated_verbatim_string" xml:space="preserve">
     <value>Use interpolated verbatim string</value>
@@ -1608,6 +1602,15 @@ This version used in: {2}</value>
   </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
+  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
+    <value>Do not change this code. Put cleanup code in '{0}' method</value>
+  </data>
+  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer" xml:space="preserve">
+    <value>TODO: free unmanaged resources (unmanaged objects) and override finalizer</value>
+  </data>
+  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
+    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
   <data name="Simplify_conditional_expression" xml:space="preserve">
     <value>Simplify conditional expression</value>

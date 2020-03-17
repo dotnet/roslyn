@@ -76,6 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isCustomEventContext As Boolean,
             isPossibleTupleContext As Boolean,
+            isInArgumentList As Boolean,
             cancellationToken As CancellationToken
         )
 
@@ -101,6 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isPatternContext:=False,
                 isRightSideOfNumericType:=False,
+                isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -163,6 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
+                isInArgumentList:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
                 cancellationToken:=cancellationToken)
         End Function
 

@@ -808,7 +808,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
             bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
-            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
+            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == false
+            bool implementingTypeImplementsInterface = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
@@ -827,7 +828,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (explicitImpl.Count > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    if ((object)currType == implementingType || implementingTypeImplementsInterface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    }
+
                     implementationInInterfacesMightChangeResult = false;
                     return null;
                 }
@@ -849,7 +854,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         seenTypeDeclaringInterface = true;
 
-                        if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null && (object)currType != implementingType)
+                        if ((object)currType == implementingType)
+                        {
+                            implementingTypeImplementsInterface = true;
+                        }
+                        else if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null)
                         {
                             implementingBaseOpt = currType;
                         }
@@ -925,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #if !DEBUG
             // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
-            if (useSiteDiagnostics != null)
+            if (useSiteDiagnostics != null && implementingTypeImplementsInterface)
 #endif
             {
                 diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteDiagnostics);
@@ -933,31 +942,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (defaultImpl is object)
             {
-                ReportDefaultInterfaceImplementationMatchDiagnostics(interfaceMember, implementingType, defaultImpl, diagnostics);
+                if (implementingTypeImplementsInterface)
+                {
+                    ReportDefaultInterfaceImplementationMatchDiagnostics(interfaceMember, implementingType, defaultImpl, diagnostics);
+                }
+
                 return defaultImpl;
             }
 
-            if ((object)implicitImpl != null)
+            if (implementingTypeImplementsInterface)
             {
-                if (!canBeImplementedImplicitly)
+                if ((object)implicitImpl != null)
                 {
-                    if (interfaceMember.Kind == SymbolKind.Method &&
-                        (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                    if (!canBeImplementedImplicitly)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
-                                        implementingType, interfaceMember, implicitImpl);
+                        if (interfaceMember.Kind == SymbolKind.Method &&
+                            (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                            implementingType, interfaceMember, implicitImpl);
+                        }
+                    }
+                    else
+                    {
+                        ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
                     }
                 }
-                else
+                else if ((object)closestMismatch != null)
                 {
-                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                    Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
+                    Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
+                    ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
                 }
-            }
-            else if ((object)closestMismatch != null)
-            {
-                Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
-                ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
             }
 
             return implicitImpl;
