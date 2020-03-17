@@ -15,11 +15,22 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") code style analyzers for C#.
     </PackageDescription>
+    <_PackagePropsFile>$(ArtifactsBinDir)\$(NuspecPackageId)\$(NuspecPackageId).props</_PackagePropsFile>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
+  <Target Name="GeneratePackagePropsFile" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <_AnalyzerAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll" />
+      <_AnalyzerAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" />
+    </ItemGroup>
+    
+    <MSBuild Projects="..\..\Core\Tools\CodeStylePackagePropsFileGenerator.csproj" Targets="Build"/>
+    <Exec Command='"$(DotNetRoot)dotnet.exe" "$(ArtifactsBinDir)CodeStylePackagePropsFileGenerator\$(Configuration)\netcoreapp3.1\CodeStylePackagePropsFileGenerator.dll" "@(_AnalyzerAssembly)" "$(_PackagePropsFile)"' />
+  </Target>
+  
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
@@ -32,6 +43,7 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+      <TfmSpecificPackageFile Include="$(_PackagePropsFile)" PackagePath="build" />
     </ItemGroup>
   </Target>
   <ItemGroup>
