@@ -534,8 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public static nint F1 = -1;
     public static nuint F2 = 1;
+    public static nint F3 = -2;
+    public static nuint F4 = 2;
 }";
             comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
             var refA = comp.ToMetadataReference();
 
             var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
@@ -580,6 +583,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             verifyField(f1, "nint A.F1", corLibB);
             var f2 = comp.GetMember<FieldSymbol>("A.F2");
             verifyField(f2, "nuint A.F2", corLibB);
+            var f3 = comp.GetMember<FieldSymbol>("A.F3");
+            verifyField(f3, "nint A.F3", corLibB);
+            var f4 = comp.GetMember<FieldSymbol>("A.F4");
+            verifyField(f4, "nuint A.F4", corLibB);
+
+            // MissingMetadataTypeSymbol.TopLevel instances are not reused.
+            Assert.Equal(f1.Type, f3.Type);
+            Assert.NotSame(f1.Type, f3.Type);
+            Assert.Equal(f2.Type, f4.Type);
+            Assert.NotSame(f2.Type, f4.Type);
 
             static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
             {
@@ -594,6 +607,95 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
         [Fact]
         public void Retargeting_03()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyName = GetUniqueName();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public class A
+{
+    public static nint F1 = -1;
+    public static nuint F2 = 1;
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //     public static nint F1 = -1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 19),
+                // (4,19): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //     public static nuint F2 = 1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 19));
+            var refA = comp.ToMetadataReference();
+
+            var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
+            var corLibA = comp.Assembly.CorLibrary;
+            Assert.Equal(corLibA, typeA.ContainingAssembly);
+
+            var source2 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
+            var ref2 = comp.EmitToImageReference();
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = F1;
+        _ = F2;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //         _ = F1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F1").WithArguments("System.IntPtr").WithLocation(5, 13),
+                // (6,13): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //         _ = F2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F2").WithArguments("System.UIntPtr").WithLocation(6, 13));
+
+            var corLibB = comp.Assembly.CorLibrary;
+            Assert.NotEqual(corLibA, corLibB);
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            verifyField(f1, "nint A.F1", corLibA);
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            verifyField(f2, "nuint A.F2", corLibA);
+
+            static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
+                Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_04()
         {
             var sourceA =
 @"public class A
