@@ -2195,20 +2195,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportMethodGroupErrors(BoundMethodGroup methodGroup)
             {
-                if (!Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
+                if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                 {
-                    var nodeForSquiggle = syntax;
-                    while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
+                    var nodeForError = syntax;
+                    while (nodeForError.Kind() == SyntaxKind.ParenthesizedExpression)
                     {
-                        nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
+                        nodeForError = ((ParenthesizedExpressionSyntax)nodeForError).Expression;
                     }
 
-                    if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                    if (nodeForError.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForError.Kind() == SyntaxKind.PointerMemberAccessExpression)
                     {
-                        nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
+                        nodeForError = ((MemberAccessExpressionSyntax)nodeForError).Name;
                     }
 
-                    var location = nodeForSquiggle.Location;
+                    var location = nodeForError.Location;
 
                     if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
                     {

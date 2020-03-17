@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     results, members, typeArguments, receiver, arguments,
                     completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
                     allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
-                    ref useSiteDiagnostics, allowUnexpandedForm);
+                    ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -2672,7 +2672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conv.IsMethodGroup)
             {
                 DiagnosticBag ignore = DiagnosticBag.GetInstance();
-                bool result = !_binder.MethodGroupIsCompatibleWithDelegateOrFuncPtr(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
+                bool result = !_binder.MethodGroupIsCompatibleWithDelegateOrFunctionPointer(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
                 ignore.Free();
                 return result;
             }

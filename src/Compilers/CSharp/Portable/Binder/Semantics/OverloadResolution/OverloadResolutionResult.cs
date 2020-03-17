@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
                 }
                 else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
-                        Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
+                        Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
                 {
                     // a diagnostic has been reported by ReportDelegateMethodGroupDiagnostics
                 }

@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        internal bool MethodGroupIsCompatibleWithDelegateOrFuncPtr(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegateOrFunctionPointer(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType is NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { HasUseSiteError: false } }
                            || delegateType.TypeKind == TypeKind.FunctionPointer,
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodGroupIsCompatibleWithDelegateOrFuncPtr(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
+            if (!MethodGroupIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                if (!Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
+                if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);

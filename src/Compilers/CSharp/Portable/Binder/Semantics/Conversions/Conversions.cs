@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodSymbol;
         }
 
-        public static bool ReportDelegateOrFuncPtrMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
+        public static bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
             var invokeMethodOpt = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

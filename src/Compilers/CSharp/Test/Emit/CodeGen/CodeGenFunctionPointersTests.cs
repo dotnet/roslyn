@@ -2621,9 +2621,9 @@ class C : I1, I2
     }
 }");
             comp.VerifyDiagnostics(
-                // (13,34): error CS8757: No overload for 'M' matches function pointer 'delegate*<C,void>'
+                // (13,35): error CS0121: The call is ambiguous between the following methods or properties: 'IHelpers.M(I1)' and 'IHelpers.M(I2)'
                 //         delegate*<C, void> ptr = &IHelpers.M;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&IHelpers.M").WithArguments("M", "delegate*<C,void>").WithLocation(13, 34)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "IHelpers.M").WithArguments("IHelpers.M(I1)", "IHelpers.M(I2)").WithLocation(13, 35)
             );
         }
 
@@ -2740,8 +2740,8 @@ unsafe class C
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C
 {{
-    void M1() {{}}
-    void M()
+    static void M1() {{}}
+    static void M()
     {{
         delegate* {callingConvention}<void> ptr = &M1;
     }}
@@ -2904,6 +2904,25 @@ unsafe class C
   IL_000b:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void AddressOf_CannotAssignToVoidStar()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M()
+    {
+        void* ptr = &M;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0428: Cannot convert method group 'M' to non-delegate type 'void*'. Did you intend to invoke the method?
+                //         void* ptr = &M;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "&M").WithArguments("M", "void*").WithLocation(6, 21)
+            );
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)

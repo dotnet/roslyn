@@ -4129,7 +4129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var boundMethodGroup = new BoundMethodGroup(
                                 argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                                 sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, argument, LookupResultKind.Viable);
-                            if (!Conversions.ReportDelegateOrFuncPtrMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
+                            if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                             {
                                 // If we could not produce a more specialized diagnostic, we report
                                 // No overload for '{0}' matches delegate '{1}'
