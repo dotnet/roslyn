@@ -59,15 +59,6 @@ namespace Microsoft.CodeAnalysis.Options
         internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
             : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true), storageLocations)
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
         }
 
         internal PerLanguageOption(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)

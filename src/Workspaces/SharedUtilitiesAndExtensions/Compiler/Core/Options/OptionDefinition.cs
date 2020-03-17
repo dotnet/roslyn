@@ -45,9 +45,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         public OptionDefinition(string feature, OptionGroup group, string name, object? defaultValue, Type type, bool isPerLanguage)
         {
-            this.Feature = feature ?? throw new ArgumentNullException(nameof(feature));
+            if (string.IsNullOrWhiteSpace(feature))
+            {
+                throw new ArgumentNullException(nameof(feature));
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException(nameof(name));
+            }
+
+            this.Feature = feature;
             this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.Name = name;
             this.DefaultValue = defaultValue;
             this.Type = type ?? throw new ArgumentNullException(nameof(type));
             this.IsPerLanguage = isPerLanguage;
