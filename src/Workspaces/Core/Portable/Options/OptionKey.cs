@@ -38,7 +38,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool Equals(OptionKey other)
         {
-            return Option == other.Option && Language == other.Language;
+            return OptionEqual(Option, other.Option) && Language == other.Language;
+
+            static bool OptionEqual(IOption thisOption, IOption otherOption)
+            {
+                if (!(thisOption is IOption2 thisOption2) ||
+                    !(otherOption is IOption2 otherOption2))
+                {
+                    // Third party definition of 'IOption'.
+                    return thisOption.Equals(otherOption);
+                }
+
+                return thisOption2.Equals(otherOption2);
+            }
         }
 
         public override int GetHashCode()

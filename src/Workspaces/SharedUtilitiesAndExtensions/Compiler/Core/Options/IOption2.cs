@@ -9,11 +9,13 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal interface IOption2
+    internal interface IOption2 : IEquatable<IOption2?>
 #if !CODE_STYLE
-        : IOption
+        , IOption
 #endif
     {
+        OptionDefinition OptionDefinition { get; }
+
 #if CODE_STYLE
         string Feature { get; }
         string Name { get; }

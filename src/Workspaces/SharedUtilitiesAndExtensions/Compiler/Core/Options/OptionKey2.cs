@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool Equals(OptionKey2 other)
         {
-            return Option == other.Option && Language == other.Language;
+            return Option.Equals(other.Option) && Language == other.Language;
         }
 
         public override int GetHashCode()

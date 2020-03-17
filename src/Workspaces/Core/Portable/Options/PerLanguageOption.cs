@@ -12,32 +12,32 @@ namespace Microsoft.CodeAnalysis.Options
     /// <inheritdoc cref="PerLanguageOption2{T}"/>
     public class PerLanguageOption<T> : IPerLanguageOption<T>
     {
-        private readonly PerLanguageOption2<T> _perLanguageOptionImpl;
+        private readonly OptionDefinition _optionDefinition;
 
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
-        public string Feature => _perLanguageOptionImpl.Feature;
+        public string Feature => _optionDefinition.Feature;
 
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
-        internal OptionGroup Group => _perLanguageOptionImpl.Group;
+        internal OptionGroup Group => _optionDefinition.Group;
 
         /// <summary>
         /// The name of the option.
         /// </summary>
-        public string Name => _perLanguageOptionImpl.Name;
+        public string Name => _optionDefinition.Name;
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => _perLanguageOptionImpl.Type;
+        public Type Type => _optionDefinition.Type;
 
         /// <summary>
         /// The default option value.
         /// </summary>
-        public T DefaultValue => _perLanguageOptionImpl.DefaultValue;
+        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true), storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -67,10 +68,15 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 throw new ArgumentException(nameof(name));
             }
+        }
 
-            _perLanguageOptionImpl = new PerLanguageOption2<T>(feature, group, name, defaultValue);
+        internal PerLanguageOption(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
+        {
+            _optionDefinition = optionDefinition;
             StorageLocations = storageLocations;
         }
+
+        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
         OptionGroup IOptionWithGroup.Group => this.Group;
 
@@ -78,6 +84,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => true;
 
-        public override string ToString() => _perLanguageOptionImpl.ToString();
+        public override string ToString() => _optionDefinition.ToString();
+
+        public override int GetHashCode()
+            => _optionDefinition.GetHashCode();
+
+        bool IEquatable<IOption2?>.Equals(IOption2? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _optionDefinition == other?.OptionDefinition;
+        }
     }
 }

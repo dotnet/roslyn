@@ -29,30 +29,32 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal class Option2<T> : ILanguageSpecificOption<T>
     {
+        private readonly OptionDefinition _optionDefinition;
+
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
-        public string Feature { get; }
+        public string Feature => _optionDefinition.Feature;
 
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
-        internal OptionGroup Group { get; }
+        internal OptionGroup Group => _optionDefinition.Group;
 
         /// <summary>
         /// The name of the option.
         /// </summary>
-        public string Name { get; }
+        public string Name => _optionDefinition.Name;
 
         /// <summary>
         /// The default value of the option.
         /// </summary>
-        public T DefaultValue { get; }
+        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => typeof(T);
+        public Type Type => _optionDefinition.Type;
 
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
@@ -90,10 +92,7 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
+            _optionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false);
             this.StorageLocations = storageLocations;
         }
 
@@ -112,9 +111,20 @@ namespace Microsoft.CodeAnalysis.Options
 
         OptionGroup IOptionWithGroup.Group => this.Group;
 
-        public override string ToString()
+        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+
+        public override string ToString() => _optionDefinition.ToString();
+
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+        public bool Equals(IOption2? other)
         {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _optionDefinition == other?.OptionDefinition;
         }
 
         public static implicit operator OptionKey2(Option2<T> option)
@@ -127,8 +137,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             RoslynDebug.Assert(option != null);
 
-            return new Option<T>(option.Feature, option.Group, option.Name,
-                option.DefaultValue, option.StorageLocations.As<OptionStorageLocation>());
+            return new Option<T>(option._optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
 #endif
     }

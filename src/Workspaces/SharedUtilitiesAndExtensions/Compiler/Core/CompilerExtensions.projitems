@@ -317,6 +317,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionWithGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\LocalUserProfileStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionStorageLocation2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Option2`1.cs" />
