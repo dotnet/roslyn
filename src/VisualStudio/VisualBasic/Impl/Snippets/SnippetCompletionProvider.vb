@@ -92,6 +92,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
+
         Public Sub Commit(completionItem As CompletionItem,
                           textView As ITextView,
                           subjectBuffer As ITextBuffer,

@@ -118,5 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.Span,
                 selectedItem.DisplayText));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }
