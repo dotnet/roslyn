@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void WhenAll_Null()
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly (the instance is never created)
             Assert.Throws<ArgumentNullException>(() => SpecializedTasks.WhenAll<int>(null));
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         [Fact]
