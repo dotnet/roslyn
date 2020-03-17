@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ss.SwitchKeyword);
             Assert.Equal(SyntaxKind.SwitchKeyword, ss.SwitchKeyword.Kind());
             Assert.NotEqual(default, ss.OpenParenToken);
-            Assert.NotEqual(null, ss.Expression);
+            Assert.NotNull(ss.Expression);
             Assert.Equal("a", ss.Expression.ToString());
             Assert.NotEqual(default, ss.CloseParenToken);
             Assert.NotEqual(default, ss.OpenBraceToken);
