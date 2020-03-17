@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // And thereby skip the unnecessary nullable conversion.
 
+            Debug.Assert(conversion.BestUserDefinedConversionAnalysis is object); // All valid user-defined conversions have this populated
+
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(
                 syntax: source.Syntax,
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
             BoundExpression? receiverOpt = group.ReceiverOpt;
-            MethodSymbol method = conversion.Method;
+            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
             NamedTypeSymbol delegateType = (NamedTypeSymbol)destination;
@@ -890,6 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
 
+            Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
             if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||

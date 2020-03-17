@@ -3,30 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.ConflictMarkerResolution;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolution
 {
-    public class ConflictMarkerResolutionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ConflictMarkerResolutionTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpResolveConflictMarkerCodeFixProvider());
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeTop1()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -35,7 +32,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -44,9 +41,9 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -59,19 +56,27 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-}", index: 0);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBottom1()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -80,7 +85,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -89,9 +94,9 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -104,19 +109,27 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 1);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBoth1()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -125,7 +138,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -134,9 +147,9 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -157,20 +170,28 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 2);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyTop_TakeTop()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
-=======
+{|CS8300:<<<<<<<|} This is mine!
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -179,27 +200,35 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
 {
-}", index: 0);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyTop_TakeBottom()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
-=======
+{|CS8300:<<<<<<<|} This is mine!
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -208,9 +237,9 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -223,19 +252,27 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 1);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyBottom_TakeTop()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -244,10 +281,10 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:=======|}
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -260,19 +297,27 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-}", index: 0);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestEmptyBottom_TakeBottom()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -281,27 +326,35 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:=======|}
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
 {
-}", index: 1);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeTop_WhitespaceInSection()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
 
     class Program
     {
@@ -312,7 +365,7 @@ namespace N
         }
     }
 
-=======
+{|CS8300:=======|}
     class Program2
     {
         static void Main2(string[] args)
@@ -321,9 +374,9 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -338,19 +391,27 @@ namespace N
         }
     }
 
-}", index: 0);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBottom1_WhitespaceInSection()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
     class Program
     {
         static void Main(string[] args)
@@ -359,7 +420,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-=======
+{|CS8300:=======|}
 
     class Program2
     {
@@ -370,9 +431,9 @@ namespace N
         }
     }
 
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -387,19 +448,27 @@ namespace N
         }
     }
 
-}", index: 1);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
         public async Task TestTakeBoth_WhitespaceInSection()
         {
-            await TestInRegularAndScript1Async(
-@"
+            var source = @"
 using System;
 
 namespace N
 {
-[|<<<<<<<|] This is mine!
+{|CS8300:<<<<<<<|} This is mine!
 
     class Program
     {
@@ -410,7 +479,7 @@ namespace N
         }
     }
 
-=======
+{|CS8300:=======|}
 
     class Program2
     {
@@ -421,9 +490,9 @@ namespace N
         }
     }
 
->>>>>>> This is theirs!
-}",
-@"
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
 using System;
 
 namespace N
@@ -448,7 +517,181 @@ namespace N
         }
     }
 
-}", index: 2);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 1,
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll1()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+{|CS8300:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+{|CS8300:=======|}
+    class Program2
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+
+{|CS8300:<<<<<<<|} This is mine!
+    class Program3
+    {
+    }
+{|CS8300:=======|}
+    class Program4
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+    }
+
+    class Program3
+    {
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 2,
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll2()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+{|CS8300:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+{|CS8300:=======|}
+    class Program2
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+
+{|CS8300:<<<<<<<|} This is mine!
+    class Program3
+    {
+    }
+{|CS8300:=======|}
+    class Program4
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
+using System;
+
+namespace N
+{
+    class Program2
+    {
+    }
+
+    class Program4
+    {
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 2,
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(21107, "https://github.com/dotnet/roslyn/issues/21107")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestFixAll3()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+{|CS8300:<<<<<<<|} This is mine!
+    class Program
+    {
+    }
+{|CS8300:=======|}
+    class Program2
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+
+{|CS8300:<<<<<<<|} This is mine!
+    class Program3
+    {
+    }
+{|CS8300:=======|}
+    class Program4
+    {
+    }
+{|CS8300:>>>>>>>|} This is theirs!
+}";
+            var fixedSource = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+    }
+    class Program2
+    {
+    }
+
+    class Program3
+    {
+    }
+    class Program4
+    {
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                NumberOfIncrementalIterations = 2,
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
+            }.RunAsync();
         }
     }
 }

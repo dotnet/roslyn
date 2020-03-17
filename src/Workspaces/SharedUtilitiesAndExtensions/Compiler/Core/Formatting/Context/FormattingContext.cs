@@ -7,17 +7,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -115,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
                                                 formattingRules,
-                                                this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
-                                                this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
+                                                this.Options.GetOption(FormattingOptions.TabSize),
+                                                this.Options.GetOption(FormattingOptions.IndentationSize),
                                                 _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
@@ -209,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var inseparableRegionStartingPosition = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken).FullSpan.Start : operation.BaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var indentationDelta = operation.IndentationDeltaOrPosition * this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language);
+                    var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
                     var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
@@ -242,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (indentationData == null)
             {
                 // no previous indentation
-                var indentation = operation.IndentationDeltaOrPosition * this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language);
+                var indentation = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
                 _indentationTree.AddIntervalInPlace(new SimpleIndentationData(intervalTreeSpan, indentation));
                 _indentationMap.Add(intervalTreeSpan);
                 return;
@@ -251,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get indentation based on its previous indentation
             var indentationGetter = new Lazy<int>(() =>
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language);
+                var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions.IndentationSize);
 
                 return indentationData.Indentation + indentationDelta;
             }, isThreadSafe: true);
@@ -676,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsFormattingDisabled(spanBetweenTwoTokens);
         }
 
-        public OptionSet OptionSet => _engine.OptionSet;
+        public AnalyzerConfigOptions Options => _engine.Options;
 
         public TreeData TreeData => _engine.TreeData;
 

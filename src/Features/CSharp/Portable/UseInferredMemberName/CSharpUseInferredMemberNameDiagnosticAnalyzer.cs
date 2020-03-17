@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseInferredMemberName;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 {
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            RoslynDebug.Assert(context.Compilation is object);
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = options.GetOption(
                 CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     properties: null));
 
             // Also fade out the part of the name-colon syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            RoslynDebug.Assert(context.Compilation is object);
             var preference = options.GetOption(
                 CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     properties: null));
 
             // Also fade out the part of the name-equals syntax
+            RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
             context.ReportDiagnostic(
                 Diagnostic.Create(

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
         }
 
-        private async Task<Document> ReduceAsyncInternal(
+        private async Task<Document> ReduceCoreAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet,

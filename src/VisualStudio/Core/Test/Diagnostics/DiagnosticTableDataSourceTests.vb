@@ -628,7 +628,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 RunCompilerAnalyzer(workspace, service, listener)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -754,7 +754,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 updateSource.OnSolutionBuildCompleted()
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -816,10 +816,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
                     registrationService As IDiagnosticUpdateSourceRegistrationService,
                     listener As IAsynchronousOperationListener)
-                MyBase.New(New DiagnosticAnalyzerInfoCache(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap))),
-                      hostDiagnosticUpdateSource:=Nothing,
-                      registrationService:=registrationService,
-                      listener:=listener)
+                MyBase.New(New DiagnosticAnalyzerInfoCache(),
+                           New HostDiagnosticAnalyzers(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap))),
+                           hostDiagnosticUpdateSource:=Nothing,
+                           registrationService:=registrationService,
+                           listener:=listener)
             End Sub
         End Class
 

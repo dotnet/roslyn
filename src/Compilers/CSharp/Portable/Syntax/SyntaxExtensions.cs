@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the expression-body syntax from an expression-bodied member. The
         /// given syntax must be for a member which could contain an expression-body.
         /// </summary>
-        internal static ArrowExpressionClauseSyntax GetExpressionBodySyntax(this CSharpSyntaxNode node)
+        internal static ArrowExpressionClauseSyntax? GetExpressionBodySyntax(this CSharpSyntaxNode node)
         {
-            ArrowExpressionClauseSyntax arrowExpr = null;
+            ArrowExpressionClauseSyntax? arrowExpr = null;
             switch (node.Kind())
             {
                 // The ArrowExpressionClause is the declaring syntax for the
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+            return SyntaxNormalizer.Normalize(token, indentation, CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
         }
 
         /// <summary>
@@ -87,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token,
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
-            string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+            string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+            string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {
             return SyntaxNormalizer.Normalize(token, indentation, eol, elasticTrivia);
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list, string indentation, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(list, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+            return SyntaxNormalizer.Normalize(list, indentation, CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
         }
 
         /// <summary>
@@ -116,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list,
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
-            string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+            string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+            string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {
             return SyntaxNormalizer.Normalize(list, indentation, eol, elasticTrivia);
@@ -138,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parent = (XmlEmptyElementSyntax)parentSyntax;
                 parentName = parent.Name.LocalName.ValueText;
-                Debug.Assert((object)parent.Name.Prefix == null);
+                Debug.Assert(parent.Name.Prefix is null);
             }
             else if (parentKind == SyntaxKind.XmlElementStartTag)
             {
                 var parent = (XmlElementStartTagSyntax)parentSyntax;
                 parentName = parent.Name.LocalName.ValueText;
-                Debug.Assert((object)parent.Name.Prefix == null);
+                Debug.Assert(parent.Name.Prefix is null);
             }
             else
             {
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
-            while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
+            while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
             }
@@ -279,8 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thisKeyword,
                 parameterList,
                 accessorList,
-                default(ArrowExpressionClauseSyntax),
-                default(SyntaxToken));
+                expressionBody: default,
+                semicolonToken: default);
         }
 
         public static OperatorDeclarationSyntax Update(
@@ -302,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorToken,
                 parameterList,
                 block,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: default,
                 semicolonToken);
         }
 
@@ -329,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 constraintClauses,
                 block,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: default,
                 semicolonToken);
         }
 
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If found, returns either an assignment expression or a foreach variable statement.
         /// Returns null otherwise.
         /// </summary>
-        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        internal static CSharpSyntaxNode? GetContainingDeconstruction(this ExpressionSyntax expr)
         {
             var kind = expr.Kind();
             if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)

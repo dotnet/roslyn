@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        internal ImmutableArray<Symbol> BindCref(CrefSyntax syntax, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        internal ImmutableArray<Symbol> BindCref(CrefSyntax syntax, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<Symbol> symbols = BindCrefInternal(syntax, out ambiguityWinner, diagnostics);
             Debug.Assert(!symbols.IsDefault, "Prefer empty to null.");
-            Debug.Assert((symbols.Length > 1) == ((object)ambiguityWinner != null), "ambiguityWinner should be set iff more than one symbol is returned.");
+            Debug.Assert((symbols.Length > 1) == ((object?)ambiguityWinner != null), "ambiguityWinner should be set iff more than one symbol is returned.");
             return symbols;
         }
 
-        private ImmutableArray<Symbol> BindCrefInternal(CrefSyntax syntax, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindCrefInternal(CrefSyntax syntax, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             switch (syntax.Kind())
             {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<Symbol> BindTypeCref(TypeCrefSyntax syntax, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindTypeCref(TypeCrefSyntax syntax, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             NamespaceOrTypeSymbol result = BindNamespaceOrTypeSymbolInCref(syntax.Type);
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<Symbol>(result);
         }
 
-        private ImmutableArray<Symbol> BindQualifiedCref(QualifiedCrefSyntax syntax, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindQualifiedCref(QualifiedCrefSyntax syntax, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             // NOTE: we won't check whether container is an error type - we'll just let BindMemberCref fail
             // and report a blanket diagnostic.
@@ -96,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceOrTypeSymbol;
         }
 
-        private ImmutableArray<Symbol> BindMemberCref(MemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindMemberCref(MemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            if ((object)containerOpt != null && containerOpt.Kind == SymbolKind.TypeParameter)
+            if ((object?)containerOpt != null && containerOpt.Kind == SymbolKind.TypeParameter)
             {
                 // As in normal lookup (see CreateErrorIfLookupOnTypeParameter), you can't dot into a type parameter
                 // (though you can dot into an expression of type parameter type).
@@ -139,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private ImmutableArray<Symbol> BindNameMemberCref(NameMemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindNameMemberCref(NameMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            SimpleNameSyntax nameSyntax = syntax.Name as SimpleNameSyntax;
+            SimpleNameSyntax? nameSyntax = syntax.Name as SimpleNameSyntax;
 
             int arity;
             string memberName;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the name isn't a SimpleNameSyntax, then we must have a type name followed by a parameter list.
                 // Thus, we're looking for a constructor.
-                Debug.Assert((object)containerOpt == null);
+                Debug.Assert((object?)containerOpt == null);
 
                 // Could be an error type, but we'll just lookup fail below.
                 containerOpt = BindNamespaceOrTypeSymbolInCref(syntax.Name);
@@ -182,13 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sortedSymbols,
                 arity,
                 syntax,
-                typeArgumentListSyntax: arity == 0 ? null : ((GenericNameSyntax)nameSyntax).TypeArgumentList,
+                typeArgumentListSyntax: arity == 0 ? null : ((GenericNameSyntax)nameSyntax!).TypeArgumentList,
                 parameterListSyntax: syntax.Parameters,
                 ambiguityWinner: out ambiguityWinner,
                 diagnostics: diagnostics);
         }
 
-        private ImmutableArray<Symbol> BindIndexerMemberCref(IndexerMemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindIndexerMemberCref(IndexerMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             const int arity = 0;
 
@@ -216,17 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: not guaranteed to be a method (e.g. class op_Addition)
         // NOTE: constructor fallback logic applies
-        private ImmutableArray<Symbol> BindOperatorMemberCref(OperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindOperatorMemberCref(OperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             const int arity = 0;
 
-            CrefParameterListSyntax parameterListSyntax = syntax.Parameters;
+            CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
 
             // NOTE: Prefer binary to unary, unless there is exactly one parameter.
             // CONSIDER: we're following dev11 by never using a binary operator name if there's
             // exactly one parameter, but doing so would allow us to match single-parameter constructors.
             SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
-            string memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
+            string? memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
                 ? null
                 : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind);
             memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind);
@@ -256,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // NOTE: not guaranteed to be a method (e.g. class op_Implicit)
-        private ImmutableArray<Symbol> BindConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol containerOpt, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> BindConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             const int arity = 0;
 
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Never returns null.
         /// </remarks>
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteInfo);
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol containerOpt, string memberName, int arity, bool hasParameterList, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Since we may find symbols without going through the lookup API, 
             // expose the symbols via an ArrayBuilder.
@@ -371,12 +372,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As in the native compiler, we treat this as a fallback case - something that actually has the
                     // specified name is preferred.
 
-                    NamedTypeSymbol constructorType = null;
+                    NamedTypeSymbol? constructorType = null;
 
                     if (arity == 0) // Member arity
                     {
-                        NamedTypeSymbol containerType = containerOpt as NamedTypeSymbol;
-                        if ((object)containerType != null)
+                        NamedTypeSymbol? containerType = containerOpt as NamedTypeSymbol;
+                        if ((object?)containerType != null)
                         {
                             // Case 1: If the name is qualified by a type with the same name, then we want a 
                             // constructor (unless the type is generic, the cref is on/in the type (but not 
@@ -387,21 +388,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 constructorType = containerType;
                             }
                         }
-                        else if ((object)containerOpt == null && hasParameterList)
+                        else if ((object?)containerOpt == null && hasParameterList)
                         {
                             // Case 2: If the name is not qualified by anything, but we're in the scope
                             // of a type with the same name (regardless of arity), then we want a constructor,
                             // as long as there were parens after the member name.
 
-                            NamedTypeSymbol binderContainingType = this.ContainingType;
-                            if ((object)binderContainingType != null && memberName == binderContainingType.Name)
+                            NamedTypeSymbol? binderContainingType = this.ContainingType;
+                            if ((object?)binderContainingType != null && memberName == binderContainingType.Name)
                             {
                                 constructorType = binderContainingType;
                             }
                         }
                     }
 
-                    if ((object)constructorType != null)
+                    if ((object?)constructorType != null)
                     {
                         ImmutableArray<MethodSymbol> instanceConstructors = constructorType.InstanceConstructors;
                         int numInstanceConstructors = instanceConstructors.Length;
@@ -441,9 +442,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             int arity,
             MemberCrefSyntax memberSyntax,
-            TypeArgumentListSyntax typeArgumentListSyntax,
-            BaseCrefParameterListSyntax parameterListSyntax,
-            out Symbol ambiguityWinner,
+            TypeArgumentListSyntax? typeArgumentListSyntax,
+            BaseCrefParameterListSyntax? parameterListSyntax,
+            out Symbol? ambiguityWinner,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!symbols.IsEmpty);
@@ -576,8 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             int arity,
             MemberCrefSyntax memberSyntax,
-            TypeArgumentListSyntax typeArgumentListSyntax,
-            out Symbol ambiguityWinner,
+            TypeArgumentListSyntax? typeArgumentListSyntax,
+            out Symbol? ambiguityWinner,
             BindingDiagnosticBag diagnostics)
         {
             // If the syntax indicates arity zero, then we match methods of any arity.
@@ -677,13 +678,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Replace any named type in the symbol list with its instance constructors.
         /// Construct all candidates with the implicitly-declared CrefTypeParameterSymbols.
         /// </summary>
-        private void GetCrefOverloadResolutionCandidates(ImmutableArray<Symbol> symbols, int arity, TypeArgumentListSyntax typeArgumentListSyntax, ArrayBuilder<Symbol> candidates)
+        private void GetCrefOverloadResolutionCandidates(ImmutableArray<Symbol> symbols, int arity, TypeArgumentListSyntax? typeArgumentListSyntax, ArrayBuilder<Symbol> candidates)
         {
             foreach (Symbol candidate in symbols)
             {
                 Symbol constructedCandidate = ConstructWithCrefTypeParameters(arity, typeArgumentListSyntax, candidate);
-                NamedTypeSymbol constructedCandidateType = constructedCandidate as NamedTypeSymbol;
-                if ((object)constructedCandidateType == null)
+                NamedTypeSymbol? constructedCandidateType = constructedCandidate as NamedTypeSymbol;
+                if ((object?)constructedCandidateType == null)
                 {
                     // Construct before overload resolution so the signatures will match.
                     candidates.Add(constructedCandidate);
@@ -703,9 +704,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Produces a diagnostic for ambiguous matches, but not for unresolved members - WRN_BadXMLRef is
         /// handled in BindMemberCref.
         /// </remarks>
-        private static ImmutableArray<Symbol> PerformCrefOverloadResolution(ArrayBuilder<Symbol> candidates, ImmutableArray<ParameterSymbol> parameterSymbols, int arity, MemberCrefSyntax memberSyntax, out Symbol ambiguityWinner, BindingDiagnosticBag diagnostics)
+        private static ImmutableArray<Symbol> PerformCrefOverloadResolution(ArrayBuilder<Symbol> candidates, ImmutableArray<ParameterSymbol> parameterSymbols, int arity, MemberCrefSyntax memberSyntax, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            ArrayBuilder<Symbol> viable = null;
+            ArrayBuilder<Symbol>? viable = null;
 
             foreach (Symbol candidate in candidates)
             {
@@ -825,10 +826,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If the member is generic, construct it with the CrefTypeParameterSymbols that should be in scope.
         /// </summary>
-        private Symbol ConstructWithCrefTypeParameters(int arity, TypeArgumentListSyntax typeArgumentListSyntax, Symbol symbol)
+        private Symbol ConstructWithCrefTypeParameters(int arity, TypeArgumentListSyntax? typeArgumentListSyntax, Symbol symbol)
         {
             if (arity > 0)
             {
+                Debug.Assert(typeArgumentListSyntax is object);
                 SeparatedSyntaxList<TypeSyntax> typeArgumentSyntaxes = typeArgumentListSyntax.Arguments;
                 var typeArgumentsWithAnnotations = ArrayBuilder<TypeWithAnnotations>.GetInstance(arity);
 

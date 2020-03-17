@@ -7,6 +7,11 @@
         <target state="translated">Applica tutte le regole di formattazione di C# (rientro, ritorno a capo, spaziatura)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_show_completion_list_in_argument_lists">
+        <source>Automatically show completion list in argument lists (experimental)</source>
+        <target state="new">Automatically show completion list in argument lists (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>

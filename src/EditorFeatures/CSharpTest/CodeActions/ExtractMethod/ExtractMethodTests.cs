@@ -3888,5 +3888,46 @@ class C
     }
 }");
         }
+
+        [Fact, WorkItem(19461, "https://github.com/dotnet/roslyn/issues/19461")]
+        public async Task TestLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        [|var x = local();
+        
+        int local()
+        {
+            return y;
+        }|]
+    }
+}", @"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(int y)
+    {
+        var x = local();
+
+        int local()
+        {
+            return y;
+        }
+    }
+}");
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddObsoleteAttribute;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
 
         [ImportingConstructor]
         public CSharpAddObsoleteAttributeCodeFixProvider()
-            : base(CSharpSyntaxFactsService.Instance, CSharpFeaturesResources.Add_Obsolete)
+            : base(CSharpSyntaxFacts.Instance, CSharpFeaturesResources.Add_Obsolete)
         {
         }
     }
