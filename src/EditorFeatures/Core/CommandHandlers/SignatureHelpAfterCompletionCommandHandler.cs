@@ -54,8 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+            IAsyncCompletionBroker completionBroker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, listenerProvider)
+            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, completionBroker, listenerProvider)
         {
         }
 

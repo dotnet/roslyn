@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
+            // Dismiss any completion sessions when Signature Help is explicitly invoked. The
+            // primary motivation for this behavior is when both Signature Help and Completion
+            // are activated at the same time, for example in argument lists.
+            _completionBroker.GetSession(args.TextView)?.Dismiss();
+
             this.StartSession(providers, new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand));
         }
     }
