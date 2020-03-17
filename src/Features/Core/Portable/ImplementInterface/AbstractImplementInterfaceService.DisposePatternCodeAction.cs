@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+                var requireAccessiblity = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
