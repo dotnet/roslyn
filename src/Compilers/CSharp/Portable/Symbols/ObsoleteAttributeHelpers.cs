@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Errors;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -160,17 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (data.Message == null)
             {
-                // It seems like we should be able to assert that data.IsError is false, but we can't because dev11 had
-                // a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.
-                // Debug.Assert(!data.IsError);
-                return new CSDiagnosticInfo(isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAdd : ErrorCode.WRN_DeprecatedSymbol, symbol);
+                return new CustomObsoleteDiagnosticInfo(symbol, data, isColInit);
             }
             else
             {
-                ErrorCode errorCode = data.IsError
-                    ? (isColInit ? ErrorCode.ERR_DeprecatedCollectionInitAddStr : ErrorCode.ERR_DeprecatedSymbolStr)
-                    : (isColInit ? ErrorCode.WRN_DeprecatedCollectionInitAddStr : ErrorCode.WRN_DeprecatedSymbolStr);
-                return new CSDiagnosticInfo(errorCode, symbol, data.Message);
+                return new CustomObsoleteDiagnosticInfo(symbol, data, isColInit);
             }
         }
     }

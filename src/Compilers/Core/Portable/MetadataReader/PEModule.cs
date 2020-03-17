@@ -1320,14 +1320,14 @@ namespace Microsoft.CodeAnalysis
             {
                 case 0:
                     // ObsoleteAttribute()
-                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false);
+                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId: null, urlFormat: null);
 
                 case 1:
                     // ObsoleteAttribute(string)
                     string message;
                     if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out message))
                     {
-                        return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false);
+                        return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false, diagnosticId: null, urlFormat: null);
                     }
 
                     return null;
@@ -1629,7 +1629,8 @@ namespace Microsoft.CodeAnalysis
             if (CrackStringInAttributeValue(out message, ref sig) && sig.RemainingBytes >= 1)
             {
                 bool isError = sig.ReadBoolean();
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
+                // TODO: do we need to read in the diagnosticId/urlFormat when cracking the attribute?
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId: null, urlFormat: null);
                 return true;
             }
 
@@ -1642,7 +1643,7 @@ namespace Microsoft.CodeAnalysis
             StringAndInt args;
             if (CrackStringAndIntInAttributeValue(out args, ref sig))
             {
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1, diagnosticId: null, urlFormat: null);
                 return true;
             }
 

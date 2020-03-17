@@ -292,7 +292,25 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
+            TypedConstant diagnosticId = default;
+            TypedConstant urlFormat = default;
+            foreach (var pair in this.CommonNamedArguments)
+            {
+                switch (pair.Key)
+                {
+                    case "DiagnosticId":
+                        diagnosticId = pair.Value;
+                        break;
+                    case "UrlFormat":
+                        urlFormat = pair.Value;
+                        break;
+                    default:
+                        // unknown property specified on ObsoleteAttribute
+                        break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, (string?)diagnosticId.ValueInternal, (string?)urlFormat.ValueInternal);
         }
 
         /// <summary>
@@ -316,7 +334,7 @@ namespace Microsoft.CodeAnalysis
                 isError = ((int)args[1].ValueInternal == 1);
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError, diagnosticId: null, urlFormat: null);
         }
 
         /// <summary>

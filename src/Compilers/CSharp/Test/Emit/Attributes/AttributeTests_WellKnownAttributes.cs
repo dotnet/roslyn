@@ -8155,6 +8155,137 @@ class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c ?? 1").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
         }
 
+        const string ObsoleteAttributeSource = @"
+#nullable enable
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string? message) { }
+        public ObsoleteAttribute(string? message, bool error) { }
+
+        public string? DiagnosticId { get; set; }
+        public string? UrlFormat { get; set; }
+    }
+}
+";
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(DiagnosticId = ""TEST1"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("TEST1", diag.Id);
+            Assert.Equal(string.Empty, diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning TEST1: 'C.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_02()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    void M1() { }
+
+    void M2()
+    {
+        M1(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            var diags = comp.GetDiagnostics();
+
+            var diag = diags.Single();
+            Assert.Equal("TEST1", diag.Id);
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+
+            diags.Verify(
+                // (12,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(12, 9));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_Suppression_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+class C
+{
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST1"")]
+    void M1() { }
+
+    [Obsolete]
+    void M2() { }
+
+    void M3()
+    {
+        M1(); // 1
+        M2(); // 2
+
+#pragma warning disable TEST1
+        M1();
+        M2(); // 3
+#pragma warning restore TEST1
+
+#pragma warning disable 162
+        M1(); // 4
+        M2();
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
+            comp.VerifyDiagnostics(
+                // (15,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 1
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(15, 9),
+                // (16,9): warning CS0612: 'C.M2()' is obsolete
+                //         M2(); // 2
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(16, 9),
+                // (20,9): warning CS0612: 'C.M2()' is obsolete
+                //         M2(); // 3
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(20, 9),
+                // (24,9): warning TEST1: 'C.M1()' is obsolete: 'don't use'
+                //         M1(); // 4
+                Diagnostic("TEST1", "M1()").WithArguments("C.M1()", "don't use").WithLocation(24, 9),
+                // (25,9): warning CS0612: 'C.M2()' is obsolete
+                //         M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M2()").WithArguments("C.M2()").WithLocation(25, 9));
+        }
+
         [Fact]
         [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
         public void ConditionalLazyObsoleteDiagnostic()
