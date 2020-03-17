@@ -837,6 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var unusedDiagnostics =
 #if DEBUG
                     new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                Debug.Assert(unusedDiagnostics.DiagnosticBag is object);
 #else
                     BindingDiagnosticBag.Discarded;
 #endif
@@ -910,6 +911,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var localDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), // Examined, but not reported.
                                                             diagnostics.DependenciesBag);
+            Debug.Assert(localDiagnostics.DiagnosticBag is object);
+
             TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, localDiagnostics).Type;
 
             if (localDiagnostics.HasAnyErrors())

@@ -85,7 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     type = fieldSymbol.SetTypeWithAnnotations(type, inferenceDiagnostics);
+#if DEBUG
+                    Debug.Assert(inferenceDiagnostics.DependenciesBag is object);
                     Debug.Assert(inferenceDiagnostics.DependenciesBag.Count == 0);
+#endif
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
