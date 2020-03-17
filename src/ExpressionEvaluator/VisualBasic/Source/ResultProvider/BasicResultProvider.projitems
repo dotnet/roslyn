@@ -10,12 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Placeholders.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.TypeNames.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.Values.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicFormatter.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.vb" />
   </ItemGroup>
   <ItemGroup>
     <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)VisualBasicResultProvider.vsdconfigxml">
