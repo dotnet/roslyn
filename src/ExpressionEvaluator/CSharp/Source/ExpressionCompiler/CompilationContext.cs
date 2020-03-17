@@ -1533,9 +1533,9 @@ REPARSE:
             }
         }
 
-        private static bool TryParseGeneratedName(string name, out GeneratedNameKind kind, [NotNullWhen(true)]out string? part)
+        private static void TryParseGeneratedName(string name, out GeneratedNameKind kind, out string? part)
         {
-            bool result = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
+            _ = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
             switch (kind)
             {
                 case GeneratedNameKind.AnonymousTypeField:
@@ -1547,8 +1547,6 @@ REPARSE:
                     part = null;
                     break;
             }
-
-            return result;
         }
 
         private static bool IsDisplayClassType(TypeSymbol type)

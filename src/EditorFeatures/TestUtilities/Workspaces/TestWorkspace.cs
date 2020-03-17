@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -352,6 +352,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostDocument = this.GetTestAnalyzerConfigDocument(documentId);
             hostProject.RemoveAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentRemoved(documentId);
+        }
+
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        {
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
         }
 
         internal override void SetDocumentContext(DocumentId documentId)

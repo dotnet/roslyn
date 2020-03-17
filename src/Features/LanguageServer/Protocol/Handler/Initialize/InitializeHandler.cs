@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Capabilities = new ServerCapabilities
             {
                 DefinitionProvider = true,
+                RenameProvider = true,
                 ImplementationProvider = true,
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 DocumentHighlightProvider = true,
             }
         };
+
+        [ImportingConstructor]
+        public InitializeHandler()
+        {
+        }
 
         public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => Task.FromResult(s_initializeResult);

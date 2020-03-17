@@ -92,11 +92,6 @@
         <target state="translated">&lt;Più tipi&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Rimuovi Import non necessari</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Digitare qui un nome per dichiarare un nuovo campo.</target>
@@ -1537,11 +1532,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">TODO: rimuovere il commento dalla riga seguente se è stato eseguito l'override di Finalize().</target>
         <note />
       </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">L'istruzione Imports non è necessaria.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">blocco Try</target>
@@ -1820,11 +1810,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Rendi asincrona la funzione sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Aggiungi 'Me.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

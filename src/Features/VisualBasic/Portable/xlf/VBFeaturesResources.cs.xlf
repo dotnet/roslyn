@@ -92,11 +92,6 @@
         <target state="translated">&lt;Víc typů&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Odebrat nepotřebné importy</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Sem vložte název, kterým deklarujete novou položku.</target>
@@ -1537,11 +1532,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">TODO: Zrušte komentář následujícího řádku, pokud se výše přepisuje metoda Finalize().</target>
         <note />
       </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Příkaz Imports není potřebný.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Blok Try</target>
@@ -1820,11 +1810,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Převést na asynchronní proceduru Sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Přidejte položku Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

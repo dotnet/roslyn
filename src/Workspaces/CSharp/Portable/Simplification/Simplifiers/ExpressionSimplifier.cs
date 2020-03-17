@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
+            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan, cancellationToken);
         }
 
         private static bool TryReduceExplicitName(
@@ -265,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
-            out TextSpan issueSpan)
+            out TextSpan issueSpan,
+            CancellationToken cancellationToken)
         {
             replacementNode = null;
             issueSpan = default;
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
+                        if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
                         {
                             return false;
                         }
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
             }
 
-            if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
+            if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
             {
                 return false;
             }
@@ -365,22 +366,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         }
 
         /// <summary>
-        /// Tells if the Member access is the starting part of a Dynamic Invocation
+        /// Tells if the member access is dynamically invoked and cannot be reduced. In the case of
+        /// <c>NS1.NS2.T1.T2.Method(...dynamic...)</c> we can only remove the <c>NS1.NS2</c>
+        /// portion. The namespace part is not encoded into the IL, but the specific types in
+        /// <c>T1.T2</c> and cannot be removed.
         /// </summary>
-        /// <param name="memberAccess"></param>
-        /// <param name="semanticModel"></param>
-        /// <returns>Return true, if the member access is the starting point of a Dynamic Invocation</returns>
-        private static bool IsMemberAccessADynamicInvocation(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private static bool IsNonRemovablePartOfDynamicMethodInvocation(
+            SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, CancellationToken cancellationToken)
         {
             var ancestorInvocation = memberAccess.FirstAncestorOrSelf<InvocationExpressionSyntax>();
-
-            if (ancestorInvocation != null && ancestorInvocation.SpanStart == memberAccess.SpanStart)
+            if (ancestorInvocation?.SpanStart == memberAccess.SpanStart)
             {
-                var typeInfo = semanticModel.GetTypeInfo(ancestorInvocation);
-                if (typeInfo.Type != null &&
-                    typeInfo.Type.Kind == SymbolKind.DynamicType)
+                var leftSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+                if (leftSymbol is INamedTypeSymbol)
                 {
-                    return true;
+                    var type = semanticModel.GetTypeInfo(memberAccess.Parent, cancellationToken).Type;
+                    if (type?.Kind == SymbolKind.DynamicType)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -482,9 +486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
                 if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
-                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression) &&
-                    !previousToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
-                    ((ParenthesizedExpressionSyntax)previousToken.Parent).Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
+                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
+                    !parenExpr.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
+                    parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
                     symbol != null && symbol.Kind == SymbolKind.Method)
                 {
                     return false;
@@ -547,10 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNameOrMemberAccessButNoExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)node;
-
                 return memberAccess.Expression.IsKind(SyntaxKind.IdentifierName) ||
                     IsNameOrMemberAccessButNoExpression(memberAccess.Expression);
             }

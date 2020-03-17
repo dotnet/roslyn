@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (newId == Id &&
                     newName == Name &&
-                    newFolders == Folders &&
+                    newFolders.SequenceEqual(Folders) &&
                     newSourceCodeKind == SourceCodeKind &&
                     newFilePath == FilePath &&
                     newIsGenerated == IsGenerated)

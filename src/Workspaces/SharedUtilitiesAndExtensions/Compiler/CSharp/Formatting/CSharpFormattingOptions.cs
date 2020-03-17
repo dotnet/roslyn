@@ -4,12 +4,14 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting

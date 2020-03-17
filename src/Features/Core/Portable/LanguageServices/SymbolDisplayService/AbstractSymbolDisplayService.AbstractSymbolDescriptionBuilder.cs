@@ -353,6 +353,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return 0;
 
                     case SymbolDescriptionGroups.Documentation:
+                    case SymbolDescriptionGroups.ReturnsDocumentation:
+                    case SymbolDescriptionGroups.ValueDocumentation:
                         return 1;
 
                     case SymbolDescriptionGroups.AnonymousTypes:
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         return 2;
 
                     default:
-                        return Contract.FailWithReturn<int>("unknown part kind");
+                        throw ExceptionUtilities.UnexpectedValue(group);
                 }
             }
 

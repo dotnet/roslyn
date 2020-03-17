@@ -150,23 +150,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x { get; set; } = null;
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
             {
-                var propertyDeclaration = (PropertyDeclarationSyntax)node.Parent.Parent;
                 return propertyDeclaration.Type;
             }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
             {
-                var parameter = (ParameterSyntax)node.Parent.Parent;
                 return parameter.Type;
             }
 
             // static string M() => null;
-            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) && node.Parent.IsParentKind(SyntaxKind.MethodDeclaration))
+            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
+                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax arrowMethod))
             {
-                var arrowMethod = (MethodDeclarationSyntax)node.Parent.Parent;
                 return arrowMethod.ReturnType;
             }
 

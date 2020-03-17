@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -77,13 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration))
+                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
                 {
-                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current.IsKind(SyntaxKind.CompilationUnit))
+                else if (current.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
                 {
-                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)current).Usings);
+                    ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }
             }
         }
@@ -419,10 +420,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         }
 
         private string GetContainerDisplayName(SyntaxNode node)
-            => CSharpSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
+            => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
 
         private string GetFullyQualifiedContainerName(SyntaxNode node)
-            => CSharpSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
+            => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
         private Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
         {

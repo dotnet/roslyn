@@ -5565,7 +5565,8 @@ tryAgain:
         {
             NameSyntax name = this.ParseAliasQualifiedName(options);
 
-            while (this.IsDotOrColonColon())
+            // Handle .. tokens for error recovery purposes.
+            while (this.IsDotOrColonColon() || this.CurrentToken.Kind == SyntaxKind.DotDotToken)
             {
                 if (this.PeekToken(1).Kind == SyntaxKind.ThisKeyword)
                 {
@@ -5584,46 +5585,59 @@ tryAgain:
             NameSyntax left,
             SyntaxToken separator)
         {
+            Debug.Assert(
+                separator.Kind == SyntaxKind.DotToken ||
+                separator.Kind == SyntaxKind.DotDotToken ||
+                separator.Kind == SyntaxKind.ColonColonToken);
             var right = this.ParseSimpleName(options);
 
-            if (separator.Kind == SyntaxKind.DotToken)
+            switch (separator.Kind)
             {
-                return _syntaxFactory.QualifiedName(left, separator, right);
-            }
-            else if (separator.Kind == SyntaxKind.ColonColonToken)
-            {
-                if (left.Kind != SyntaxKind.IdentifierName)
-                {
-                    separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
-                }
-
-                // If the left hand side is not an identifier name then the user has done
-                // something like Goo.Bar::Blah. We've already made an error node for the
-                // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
-
-                var identifierLeft = left as IdentifierNameSyntax;
-                if (identifierLeft == null)
-                {
-                    separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                case SyntaxKind.DotToken:
                     return _syntaxFactory.QualifiedName(left, separator, right);
-                }
-                else
-                {
-                    if (identifierLeft.Identifier.ContextualKind == SyntaxKind.GlobalKeyword)
+                case SyntaxKind.DotDotToken:
+                    // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
+
+                    var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
+                    var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
+                    var rightDot = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
+
+                    return _syntaxFactory.QualifiedName(
+                        _syntaxFactory.QualifiedName(left, leftDot, missingName),
+                        rightDot, right);
+
+                case SyntaxKind.ColonColonToken:
+                    if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
                     }
 
-                    identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
+                    // If the left hand side is not an identifier name then the user has done
+                    // something like Goo.Bar::Blah. We've already made an error node for the
+                    // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
 
-                    // If the name on the right had errors or warnings then we need to preserve
-                    // them in the tree.
-                    return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());
-                }
-            }
-            else
-            {
-                return left;
+                    var identifierLeft = left as IdentifierNameSyntax;
+                    if (identifierLeft == null)
+                    {
+                        separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                        return _syntaxFactory.QualifiedName(left, separator, right);
+                    }
+                    else
+                    {
+                        if (identifierLeft.Identifier.ContextualKind == SyntaxKind.GlobalKeyword)
+                        {
+                            identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
+                        }
+
+                        identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
+
+                        // If the name on the right had errors or warnings then we need to preserve
+                        // them in the tree.
+                        return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());
+                    }
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

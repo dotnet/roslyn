@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            GenerationOptions.PlaceSystemNamespaceFirst);
+        public ImmutableArray<IOption> Options { get; } = GenerationOptions.AllOptions;
     }
 }

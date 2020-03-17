@@ -14,6 +14,11 @@ namespace AnalyzerRunner
     [Shared]
     internal class PersistentStorageLocationService : IPersistentStorageLocationService
     {
+        [ImportingConstructor]
+        public PersistentStorageLocationService()
+        {
+        }
+
         public bool IsSupported(Workspace workspace) => true;
 
         public string TryGetStorageLocation(Solution _)

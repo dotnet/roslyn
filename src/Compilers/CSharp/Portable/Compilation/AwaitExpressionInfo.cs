@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -13,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
-        public IMethodSymbol GetAwaiterMethod { get; }
+        public IMethodSymbol? GetAwaiterMethod { get; }
 
-        public IPropertySymbol IsCompletedProperty { get; }
+        public IPropertySymbol? IsCompletedProperty { get; }
 
-        public IMethodSymbol GetResultMethod { get; }
+        public IMethodSymbol? GetResultMethod { get; }
 
         public bool IsDynamic { get; }
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IsDynamic = isDynamic;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is AwaitExpressionInfo otherAwait && Equals(otherAwait);
         }

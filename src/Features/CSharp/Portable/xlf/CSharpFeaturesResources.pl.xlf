@@ -7,11 +7,6 @@
         <target state="translated">Dodaj elementy await i ConfigureAwait(false)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Dodaj modyfikatory dostępności</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">Dodaj element await</target>
@@ -72,14 +67,14 @@
         <target state="translated">Przypisz parametry „out” (na początku)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="translated">Konwertuj instrukcję switch na wyrażenie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Konwertuj na metodę</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="new">Convert to regular string</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -90,6 +85,11 @@
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
         <target state="translated">Konwertuj na instrukcję „switch”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="new">Convert to verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -152,11 +152,6 @@
         <target state="translated">Uprość wszystkie wystąpienia</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Usuń niepotrzebne użycia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Sortuj modyfikatory dostępności</target>
@@ -165,11 +160,6 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">Odpieczętuj klasę „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="translated">Użyj wyrażenia „switch”</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -432,11 +422,6 @@
         <target state="translated">TODO: Usunąć komentarz z poniższego wiersza, jeśli finalizator został przesłonięty powyżej.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Dyrektywa using jest niepotrzebna.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">instrukcja switch</target>
@@ -677,26 +662,6 @@
         <target state="translated">Właściwości</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">Użyj jawnego typu zamiast deklaracji „var”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">Użyj jawnego typu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">użyj deklaracji „var” zamiast jawnego typu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">Użyj niejawnego typu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">Automatyczne zaznaczanie zostało wyłączone z powodu deklaracji przestrzeni nazw.</target>
@@ -755,11 +720,6 @@
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
         <target state="translated">Ustaw metodę jako asynchroniczną (pozostaw jako unieważnioną)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">Dodaj „this.”</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
