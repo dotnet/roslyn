@@ -70,6 +70,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
+      
+        internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
+        {
+            return IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition, options);
+        }
+
+        private static bool IsArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
+        {
+            return IsArgumentListCharacter(text[characterPosition]);
+        }
+
+        internal static bool IsArgumentListCharacter(char ch)
+        {
+            return ch == '(' || ch == '[' || ch == ' ';
+        }
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {

@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// creates the list of completion items for them.
         /// </summary>
         private ImmutableArray<CompletionItem> CreateItems(
+            CompletionContext completionContext,
             IEnumerable<ISymbol> symbols,
             Func<ISymbol, SyntaxContext> contextLookup,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
@@ -143,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
                 var item = this.CreateItem(
-                        symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(),
-                        arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
+                    symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
@@ -173,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a Symbol, creates the completion item for it.
         /// </summary>
         private CompletionItem CreateItem(
+            CompletionContext completionContext,
             string displayText,
             string displayTextSuffix,
             string insertionText,
@@ -203,14 +205,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return CreateItem(
-                displayText, displayTextSuffix, insertionText, symbols,
-                context, preselect, supportedPlatformData);
+                completionContext, displayText, displayTextSuffix, insertionText,
+                symbols, context, preselect, supportedPlatformData);
         }
 
         protected virtual CompletionItem CreateItem(
-            string displayText, string displayTextSuffix, string insertionText,
-            List<ISymbol> symbols, SyntaxContext context, bool preselect,
-            SupportedPlatformData supportedPlatformData)
+            CompletionContext completionContext, string displayText, string displayTextSuffix, string insertionText,
+            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
@@ -244,18 +245,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
             {
-                var document = context.Document;
-                var position = context.Position;
-                var options = context.Options;
-                var cancellationToken = context.CancellationToken;
+                var document = completionContext.Document;
+                var position = completionContext.Position;
+                var options = completionContext.Options;
+                var cancellationToken = completionContext.CancellationToken;
 
                 // If we were triggered by typing a character, then do a semantic check to make sure
                 // we're still applicable.  If not, then return immediately.
-                if (context.Trigger.Kind == CompletionTriggerKind.Insertion)
+                if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion)
                 {
                     var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
                     if (!isSemanticTriggerCharacter)
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                context.IsExclusive = IsExclusive();
+                completionContext.IsExclusive = IsExclusive();
 
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
                 using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
@@ -276,11 +277,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         return typeInferenceService.InferTypes(syntaxContext.SemanticModel, position, cancellationToken);
                     });
 
-                    var regularItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
-                    context.AddItems(regularItems);
+                    var regularItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                    completionContext.AddItems(regularItems);
 
-                    var preselectedItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
-                    context.AddItems(preselectedItems);
+                    // We may or may not want to provide preselected items based on context. For example, C# avoids provide providing preselected items when
+                    // triggered via text insertion in an argument list.
+                    if (await ShouldProvidePreselectedItemsAsync(completionContext, syntaxContext, document, position, inferredTypes, options).ConfigureAwait(false))
+                    {
+                        var preselectedItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                        completionContext.AddItems(preselectedItems);
+                    }
                 }
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -289,8 +295,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
+        /// <summary>
+        /// The decision for whether to provide preselected items can be contextual, e.g. based on trigger character and syntax location
+        /// </summary>
+        protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+            => SpecializedTasks.True;
+
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            SyntaxContext context, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+            CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
+            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect,
+            TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = GetRelatedDocumentIds(document, position);
 
@@ -298,8 +312,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (relatedDocumentIds.IsEmpty)
             {
-                var itemsForCurrentDocument = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
+                var itemsForCurrentDocument = await GetSymbolsAsync(position, preselect, syntaxContext, options, cancellationToken).ConfigureAwait(false);
+                return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbolsAsync(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -307,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
+            return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)

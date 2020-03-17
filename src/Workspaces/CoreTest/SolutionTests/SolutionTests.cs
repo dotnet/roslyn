@@ -15,9 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2429,6 +2431,55 @@ class C
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOptionChangesForLanguagesNotInSolution()
+        {
+            // Create an empty solution with no projects.
+            var s0 = CreateSolution();
+            var optionService = s0.Workspace.Services.GetRequiredService<IOptionService>();
+
+            // Apply an option change to a C# option.
+            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var defaultValue = option.DefaultValue;
+            var changedValue = !defaultValue;
+            var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
+
+            // Verify option change is preserved even if the solution has no project with that language.
+            var s1 = s0.WithOptions(options);
+            VerifyOptionSet(s1.Options);
+
+            // Verify option value is preserved on adding a project for a different language.
+            var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
+            VerifyOptionSet(s2.Options);
+
+            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
+            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
+            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
+            VerifyOptionSet(roundTripOptionSet);
+
+            // Verify option value is preserved on removing a project.
+            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            VerifyOptionSet(s4.Options);
+
+            return;
+
+            void VerifyOptionSet(OptionSet optionSet)
+            {
+                Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
+                Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
+            }
+
+            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
+            {
+                using var stream = new MemoryStream();
+                using var writer = new ObjectWriter(stream);
+                optionSet.Serialize(writer, CancellationToken.None);
+                stream.Position = 0;
+                using var reader = ObjectReader.TryGetReader(stream);
+                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
+            }
         }
     }
 }

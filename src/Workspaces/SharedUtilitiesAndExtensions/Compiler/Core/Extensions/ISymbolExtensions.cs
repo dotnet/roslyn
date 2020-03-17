@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
+            if (symbol.Kind != SymbolKind.Method && symbol.Kind != SymbolKind.Property && symbol.Kind != SymbolKind.Event)
+                return ImmutableArray<ISymbol>.Empty;
+
             var containingType = symbol.ContainingType;
             var query = from iface in containingType.AllInterfaces
                         from interfaceMember in iface.GetMembers()
@@ -406,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var method = parameter.ContainingSymbol as IMethodSymbol;
                 if (method?.IsReducedExtension() == true)
                 {
-                    symbol = method.GetConstructedReducedFrom().Parameters[parameter.Ordinal + 1];
+                    symbol = method.GetConstructedReducedFrom()!.Parameters[parameter.Ordinal + 1];
                 }
             }
 

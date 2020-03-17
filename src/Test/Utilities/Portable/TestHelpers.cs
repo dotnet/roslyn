@@ -91,7 +91,7 @@ namespace Roslyn.Test.Utilities
             return result;
         }
 
-        internal static DiagnosticDescription Diagnostic(
+        public static DiagnosticDescription Diagnostic(
             object code,
             string squiggledText = null,
             object[] arguments = null,

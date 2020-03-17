@@ -600,4 +600,7 @@
   <data name="Prefer_switch_expression" xml:space="preserve">
     <value>Prefer switch expression</value>
   </data>
+  <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
+    <value>Automatically show completion list in argument lists (experimental)</value>
+  </data>
 </root>

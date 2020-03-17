@@ -141,4 +141,7 @@
   <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
     <value>The solution does not contain the specified document.</value>
   </data>
+  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
+    <value>Warning: Declaration changes scope and may change meaning.</value>
+  </data>
 </root>
