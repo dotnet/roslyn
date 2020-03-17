@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis
         EscapeNonPrintableCharacters = 1 << 4,
 
         /// <summary>
-        /// In C# when specifying <see cref="IncludeCodePoints"/>, use a hexadecimal number for the code point.
-        /// In Visual Basic, use hexadecimal numbers in calls to ChrW.
+        /// In C#, when specifying <see cref="IncludeCodePoints"/>, use a hexadecimal number for the code point.
+        /// In Visual Basic, use hexadecimal numbers in calls to <c>ChrW</c>.
         /// </summary>
-        UseHexadecimalNumbersForCharacters = 1 << 5
+        UseHexadecimalNumbersForCharacters = 1 << 5,
     }
 }

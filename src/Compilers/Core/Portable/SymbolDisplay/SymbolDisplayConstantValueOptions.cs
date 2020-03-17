@@ -8,10 +8,14 @@ namespace Microsoft.CodeAnalysis
     /// Specifies the options for how constant values are displayed in the description of a symbol.
     /// This includes values of initializers and default parameters.
     /// </summary>
+    /// <seealso cref="SymbolDisplayFormat.ConstantValueOptions"/>
     public readonly struct SymbolDisplayConstantValueOptions
     {
-        // We'd like the default value of this struct to have a CharacterValueFormat of Hexadecimal as opposed to Decimal
-        // for compatibility reasons (this used to be the behavior before these options were introduced).
+        /// <summary>
+        /// We'd like the default value of this struct to have a <see cref="CharacterValueFormat"/> of
+        /// <see cref="NumericFormat.Hexadecimal"/> as opposed to <see cref="NumericFormat.Decimal"/> for compatibility
+        /// reasons (this used to be the behavior before these options were introduced).
+        /// </summary>
         private readonly NumericFormat? _characterValueFormat;
 
         public SymbolDisplayConstantValueOptions(NumericFormat numericLiteralFormat, NumericFormat characterValueFormat, bool noQuotes)
@@ -22,18 +26,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Specifies how values of integer types are displayed.
+        /// Specifies how values of integer types are displayed. The default value is
+        /// <see cref="NumericFormat.Decimal"/>.
         /// </summary>
         public NumericFormat NumericLiteralFormat { get; }
 
         /// <summary>
-        /// For Visual Basic, specifies how numeric values of characters inside ChrW are displayed.
+        /// For Visual Basic, specifies how numeric values of characters inside <c>ChrW</c> are displayed. The default
+        /// value is <see cref="NumericFormat.Hexadecimal"/>.
         /// </summary>
         public NumericFormat CharacterValueFormat => _characterValueFormat ?? NumericFormat.Hexadecimal;
 
         /// <summary>
         /// If <see langword="true"/>, values of type <see cref="string"/> and <see cref="char"/> are displayed
-        /// without quotes and without characters being escaped.
+        /// without quotes, and without characters being escaped. The default value is <see langword="false"/>.
         /// </summary>
         public bool NoQuotes { get; }
     }
