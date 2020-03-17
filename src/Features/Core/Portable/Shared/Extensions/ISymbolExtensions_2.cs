@@ -185,6 +185,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
         }
 
+        public static IEnumerable<TaggedText> GetRemarksDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        {
+            var documentation = GetRemarksDocumentation(symbol, semanticModel.Compilation, cancellationToken);
+            return documentation != null
+                ? formatter.Format(documentation, semanticModel, position, CrefFormat)
+                : SpecializedCollections.EmptyEnumerable<TaggedText>();
+        }
+
         public static IEnumerable<TaggedText> GetReturnsDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
             var documentation = GetReturnsDocumentation(symbol, semanticModel.Compilation, cancellationToken);
@@ -209,6 +217,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).SummaryText,
                 IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
                 _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+            };
+
+        private static string? GetRemarksDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+            => symbol switch
+            {
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken).RemarksText,
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).RemarksText,
             };
 
         private static string? GetReturnsDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
