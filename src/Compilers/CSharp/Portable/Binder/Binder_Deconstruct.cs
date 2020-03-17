@@ -680,12 +680,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
-                if (outVars.Any(v => (object)v.Placeholder == null))
+                if (outVars.Any(v => v.Placeholder is null))
                 {
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
-                outPlaceholders = outVars.SelectAsArray(v => v.Placeholder);
+                outPlaceholders = outVars.SelectAsArray(v => v.Placeholder!);
 
                 return result;
             }
