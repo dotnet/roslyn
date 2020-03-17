@@ -63,6 +63,51 @@ class Type
         }
 
         [Fact]
+        public async Task PreferNullLiteral_ArgumentFormatting()
+        {
+            var source = $@"
+class Type
+{{
+    void Method()
+    {{
+        Method2(
+            0,
+            [|default|],
+            /*1*/ [|default|] /*2*/,
+            [|default(object)|],
+            /*1*/ [|default /*2*/ ( /*3*/ object /*4*/ )|] /*5*/,
+            """");
+    }}
+
+    void Method2(params object[] values)
+    {{
+    }}
+}}
+";
+            var fixedSource = @"
+class Type
+{
+    void Method()
+    {
+        Method2(
+            0,
+            null,
+            /*1*/ null /*2*/,
+            null,
+            /*1*/  /*3*/  /*4*/ null /*2*/  /*5*/,
+            """");
+    }
+
+    void Method2(params object[] values)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
         public async Task PreferNullLiteral_OverloadResolution()
         {
             var source = @"
@@ -256,6 +301,28 @@ class Type
         return default;
     }
 }
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Theory]
+        [InlineData("object")]
+        [InlineData("int?")]
+        public async Task IgnoreDefaultParameters(string defaultParameterType)
+        {
+            var source = $@"
+class Type
+{{
+    void Method1()
+    {{
+        Method2(0);
+    }}
+
+    void Method2(int first, {defaultParameterType} value = null)
+    {{
+    }}
+}}
 ";
 
             await VerifyCS.VerifyCodeFixAsync(source, source);

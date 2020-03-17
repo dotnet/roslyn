@@ -38,6 +38,12 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private void HandleDefaultValueOperation(OperationAnalysisContext context)
         {
+            if (context.Operation.IsImplicit)
+            {
+                // Ignore implicit operations since they don't appear in source code.
+                return;
+            }
+
             var type = context.Operation.Type;
             if (type.IsValueType)
             {

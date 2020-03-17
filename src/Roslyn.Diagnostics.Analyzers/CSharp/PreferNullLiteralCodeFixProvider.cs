@@ -46,10 +46,16 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             ExpressionSyntax newSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             if (syntax is DefaultExpressionSyntax defaultExpression)
             {
-                newSyntax = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(defaultExpression.Type, newSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
+                var castExpression = SyntaxFactory.CastExpression(defaultExpression.Type, newSyntax.WithTrailingTrivia(defaultExpression.Keyword.TrailingTrivia));
+                castExpression = castExpression
+                    .WithOpenParenToken(castExpression.OpenParenToken.WithTriviaFrom(defaultExpression.OpenParenToken))
+                    .WithCloseParenToken(castExpression.CloseParenToken.WithLeadingTrivia(defaultExpression.CloseParenToken.LeadingTrivia));
+
+                newSyntax = SyntaxFactory.ParenthesizedExpression(castExpression.WithAdditionalAnnotations(Simplifier.Annotation))
                     .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
+            newSyntax = newSyntax.WithTriviaFrom(syntax);
             return document.WithSyntaxRoot(root.ReplaceNode(syntax, newSyntax));
         }
     }
