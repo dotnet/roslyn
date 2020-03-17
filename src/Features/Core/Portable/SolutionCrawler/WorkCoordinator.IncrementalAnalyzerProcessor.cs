@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
-                            return (object)null;
+                            return (object?)null;
                         }, cancellationToken).ConfigureAwait(false);
                     }
                 }
