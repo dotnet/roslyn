@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            Optional<object> constantValue = new Optional<object>(1);
                                            bool isImplicit = increment.IsImplicit;
                                            var value = new LiteralOperation(increment.SemanticModel, syntax, type, constantValue, isImplicit);
+
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
                                        else
