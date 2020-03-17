@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
     /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications
     /// about telemetry.
     /// </summary>
-    internal interface IProjectTelemetryServiceCallback
+    internal interface IProjectTelemetryListener
     {
-        Task RegisterProjectTelemetryInfoAsync(ProjectTelemetryInfo infos, CancellationToken cancellationToken);
+        Task ReportProjectTelemetryDataAsync(ProjectTelemetryData data, CancellationToken cancellationToken);
     }
 }

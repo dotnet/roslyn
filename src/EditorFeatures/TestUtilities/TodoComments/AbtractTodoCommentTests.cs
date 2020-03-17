@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
                 var line = initialTextSnapshot.GetLineFromPosition(span.Start);
                 var text = initialTextSnapshot.GetText(span.ToSpan());
 
-                var converted = todo.Convert(document, sourceText, tree);
+                var converted = todo.CreateSerializableData(document, sourceText, tree);
 
                 Assert.Equal(converted.MappedLine, line.LineNumber);
                 Assert.Equal(converted.MappedColumn, span.Start - line.Start);

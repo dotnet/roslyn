@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public string Text { get; }
         public int Priority { get; }
 
-        public TodoCommentDescriptor(string text, int priority) : this()
+        public TodoCommentDescriptor(string text, int priority)
         {
             Text = text;
             Priority = priority;

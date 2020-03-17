@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
     internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IProjectTelemetryService, IProjectTelemetryServiceCallback
+        : ForegroundThreadAffinitizedObject, IProjectTelemetryService, IProjectTelemetryListener
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<ProjectTelemetryInfo> _workQueue = null!;
+        private AsyncBatchingWorkQueue<ProjectTelemetryData> _workQueue = null!;
 
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryInfo>(
+            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryData>(
                 TimeSpan.FromSeconds(1),
                 NotifyTelemetryServiceAsync,
                 cancellationToken);
@@ -107,19 +107,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task RegisterProjectTelemetryInfoAsync(ProjectTelemetryInfo info, CancellationToken cancellationToken)
+        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
             _workQueue.AddWork(info);
             return Task.CompletedTask;
         }
 
         private async Task NotifyTelemetryServiceAsync(
-            ImmutableArray<ProjectTelemetryInfo> infos, CancellationToken cancellationToken)
+            ImmutableArray<ProjectTelemetryData> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _1 = ArrayBuilder<ProjectTelemetryInfo>.GetInstance(out var filteredInfos);
-            AddFilteredInfos(infos, filteredInfos);
+            using var _1 = ArrayBuilder<ProjectTelemetryData>.GetInstance(out var filteredInfos);
+            AddFilteredData(infos, filteredInfos);
 
             using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var info in filteredInfos)
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private void AddFilteredInfos(ImmutableArray<ProjectTelemetryInfo> infos, ArrayBuilder<ProjectTelemetryInfo> filteredInfos)
+        private void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
         {
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             }
         }
 
-        private void NotifyTelemetryService(ProjectTelemetryInfo info)
+        private void NotifyTelemetryService(ProjectTelemetryData info)
         {
             try
             {

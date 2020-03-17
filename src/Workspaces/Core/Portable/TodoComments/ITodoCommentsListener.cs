@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications
     /// about todo comments.
     /// </summary>
-    internal interface ITodoCommentsServiceCallback
+    internal interface ITodoCommentsListener
     {
-        Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentInfo> infos, CancellationToken cancellationToken);
+        Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> data, CancellationToken cancellationToken);
     }
 }

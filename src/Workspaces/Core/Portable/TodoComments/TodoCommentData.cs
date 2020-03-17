@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// Serialization type used to pass information to/from OOP and VS.
     /// </summary>
-    internal struct TodoCommentInfo : IEquatable<TodoCommentInfo>
+    internal struct TodoCommentData : IEquatable<TodoCommentData>
     {
         public int Priority;
         public string Message;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public int OriginalColumn;
 
         public override bool Equals(object? obj)
-            => obj is TodoCommentInfo other && Equals(other);
+            => obj is TodoCommentData other && Equals(other);
 
         public override int GetHashCode()
             => GetHashCode(this);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override string ToString()
             => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine.ToString()}, {MappedColumn.ToString()}) [original: {OriginalFilePath ?? ""} ({OriginalLine.ToString()}, {OriginalColumn.ToString()})";
 
-        public bool Equals(TodoCommentInfo right)
+        public bool Equals(TodoCommentData right)
         {
             return DocumentId == right.DocumentId &&
                    Priority == right.Priority &&
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                    OriginalColumn == right.OriginalColumn;
         }
 
-        public static int GetHashCode(TodoCommentInfo item)
+        public static int GetHashCode(TodoCommentData item)
             => Hash.Combine(item.DocumentId,
                Hash.Combine(item.Priority,
                Hash.Combine(item.Message,
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             writer.WriteInt32(OriginalColumn);
         }
 
-        internal static TodoCommentInfo ReadFrom(ObjectReader reader)
+        internal static TodoCommentData ReadFrom(ObjectReader reader)
         {
-            return new TodoCommentInfo
+            return new TodoCommentData
             {
                 Priority = reader.ReadInt32(),
                 Message = reader.ReadString(),

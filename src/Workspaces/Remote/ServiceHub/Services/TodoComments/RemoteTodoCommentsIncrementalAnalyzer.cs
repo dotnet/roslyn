@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 document, descriptors, cancellationToken).ConfigureAwait(false);
 
             // Convert the roslyn-level results to the more VS oriented line/col data.
-            using var _ = ArrayBuilder<TodoCommentInfo>.GetInstance(out var converted);
+            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
             await ConvertAsync(
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             // Now inform VS about this new information
             await _endPoint.InvokeAsync(
-                nameof(ITodoCommentsServiceCallback.ReportTodoCommentsAsync),
+                nameof(ITodoCommentsListener.ReportTodoCommentDataAsync),
                 new object[] { document.Id, converted },
                 cancellationToken).ConfigureAwait(false);
         }
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
-            ArrayBuilder<TodoCommentInfo> converted,
+            ArrayBuilder<TodoCommentData> converted,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var comment in todoComments)
-                converted.Add(comment.Convert(document, sourceText, syntaxTree));
+                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
         }
     }
 }

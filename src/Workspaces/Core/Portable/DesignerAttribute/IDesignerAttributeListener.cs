@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IDesignerAttributeListener
     {
-        Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken);
+        Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
 }

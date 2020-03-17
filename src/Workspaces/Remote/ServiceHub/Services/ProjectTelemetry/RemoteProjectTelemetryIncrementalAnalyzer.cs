@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteEndPoint _endPoint;
 
         private readonly object _gate = new object();
-        private readonly Dictionary<ProjectId, ProjectTelemetryInfo> _projectToInfo = new Dictionary<ProjectId, ProjectTelemetryInfo>();
+        private readonly Dictionary<ProjectId, ProjectTelemetryData> _projectToData = new Dictionary<ProjectId, ProjectTelemetryData>();
 
         public RemoteProjectTelemetryIncrementalAnalyzer(RemoteEndPoint endPoint)
             => _endPoint = endPoint;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var documentsCount = project.DocumentIds.Count;
             var additionalDocumentsCount = project.AdditionalDocumentIds.Count;
 
-            var info = new ProjectTelemetryInfo
+            var info = new ProjectTelemetryData
             {
                 ProjectId = projectId,
                 Language = language,
@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
-                if (_projectToInfo.TryGetValue(projectId, out var existingInfo) &&
+                if (_projectToData.TryGetValue(projectId, out var existingInfo) &&
                     existingInfo.Equals(info))
                 {
                     // already have reported this.  No need to notify VS.
                     return;
                 }
 
-                _projectToInfo[projectId] = info;
+                _projectToData[projectId] = info;
             }
 
             await _endPoint.InvokeAsync(
-                nameof(IProjectTelemetryServiceCallback.RegisterProjectTelemetryInfoAsync),
+                nameof(IProjectTelemetryListener.ReportProjectTelemetryDataAsync),
                 new object[] { info },
                 cancellationToken).ConfigureAwait(false);
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_gate)
             {
-                _projectToInfo.Remove(projectId);
+                _projectToData.Remove(projectId);
             }
         }
     }

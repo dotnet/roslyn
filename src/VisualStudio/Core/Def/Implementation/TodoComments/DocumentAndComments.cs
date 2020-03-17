@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     internal readonly struct DocumentAndComments
     {
         public readonly DocumentId DocumentId;
-        public readonly ImmutableArray<TodoCommentInfo> Comments;
+        public readonly ImmutableArray<TodoCommentData> Comments;
 
-        public DocumentAndComments(DocumentId documentId, ImmutableArray<TodoCommentInfo> comments)
+        public DocumentAndComments(DocumentId documentId, ImmutableArray<TodoCommentData> comments)
         {
             DocumentId = documentId;
             Comments = comments;

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Position = position;
         }
 
-        internal TodoCommentInfo Convert(
+        internal TodoCommentData CreateSerializableData(
             Document document, SourceText text, SyntaxTree tree)
         {
             // make sure given position is within valid text range.
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
-            return new TodoCommentInfo
+            return new TodoCommentData
             {
                 Priority = this.Descriptor.Priority,
                 Message = this.Message,

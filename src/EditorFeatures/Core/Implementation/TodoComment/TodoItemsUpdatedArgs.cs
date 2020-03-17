@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The task items associated with the ID.
         /// </summary>
-        public ImmutableArray<TodoCommentInfo> TodoItems { get; }
+        public ImmutableArray<TodoCommentData> TodoItems { get; }
 
         public TodoItemsUpdatedArgs(
-            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoCommentInfo> todoItems)
+            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoCommentData> todoItems)
             : base(id, workspace, projectId, documentId)
         {
             Solution = solution;

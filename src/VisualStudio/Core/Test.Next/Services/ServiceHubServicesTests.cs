@@ -217,10 +217,10 @@ class Test { }");
 
         private class DesignerListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<IList<DesignerInfo>> _infosSource = new TaskCompletionSource<IList<DesignerInfo>>();
-            public Task<IList<DesignerInfo>> Infos => _infosSource.Task;
+            private readonly TaskCompletionSource<IList<DesignerAttributeData>> _infosSource = new TaskCompletionSource<IList<DesignerAttributeData>>();
+            public Task<IList<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken)
+            public Task RegisterDesignerAttributesAsync(IList<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
                 return Task.CompletedTask;

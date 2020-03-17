@@ -26,13 +26,13 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject, ITodoCommentsService, ITodoCommentsServiceCallback, ITodoListProvider
+        : ForegroundThreadAffinitizedObject, ITodoCommentsService, ITodoCommentsListener, ITodoListProvider
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentInfo>> _documentToInfos
-            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentInfo>>();
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
+            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
 
         /// <summary>
         /// Our connections to the remote OOP server. Created on demand when we startup and then
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentInfo> infos, CancellationToken cancellationToken)
+        public Task ReportTodoCommentsAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
             return Task.CompletedTask;
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
                 var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
-                    : ImmutableArray<TodoCommentInfo>.Empty;
+                    : ImmutableArray<TodoCommentData>.Empty;
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
@@ -178,11 +178,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             }
         }
 
-        public ImmutableArray<TodoCommentInfo> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             return _documentToInfos.TryGetValue(documentId, out var values)
                 ? values
-                : ImmutableArray<TodoCommentInfo>.Empty;
+                : ImmutableArray<TodoCommentData>.Empty;
         }
 
         public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(
