@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AssertEmpty(SymbolInfo info)
         {
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
@@ -63,7 +66,7 @@ class Point
             AssertEmpty(model.GetSymbolInfo(subpatterns[1].NameColon));
             var y = subpatterns[1].NameColon.Name;
             var ySymbol = model.GetSymbolInfo(y);
-            Assert.NotNull(ySymbol);
+            Assert.NotEqual(default, ySymbol);
             Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
             Assert.Equal("System.Int32 Point.Y { get; }", ySymbol.Symbol.ToTestDisplayString());
         }
@@ -424,6 +427,1513 @@ public class C
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
+        public void ValEscapeForSwitchExpression_01()
+        {
+            var source = @"
+class Program
+{
+    public enum Rainbow
+    {
+        Red,
+        Orange,
+    }
+
+    public ref struct RGBColor
+    {
+        int _r, _g, _b;
+
+        public int R => _r;
+        public int G => _g;
+        public int B => _b;
+
+        public RGBColor(int r, int g, int b)
+        {
+            _r = r;
+            _g = g;
+            _b = b;
+        }
+
+        public new string ToString() => $""RGBColor(0x{_r:X2}, 0x{_g:X2}, 0x{_b:X2})"";
+    }
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(FromRainbow(Rainbow.Red).ToString());
+    }
+
+    public static RGBColor FromRainbow(Rainbow colorBand) =>
+        colorBand switch
+    {
+        Rainbow.Red => new RGBColor(0xFF, 0x00, 0x00),
+        Rainbow.Orange => new RGBColor(0xFF, 0x7F, 0x00),
+        _ => throw null!
+    };
+}";
+            var expectedOutput = "RGBColor(0xFF, 0x00, 0x00)";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
+        public void ValEscapeForSwitchExpression_02()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public ref struct RGBColor
+    {
+        public RGBColor(Span<int> span)
+        {
+        }
+    }
+
+    public static RGBColor FromSpan(int r, int g, int b)
+    {
+        Span<int> span = stackalloc int[] { r, g, b };
+        return 1 switch
+        {
+            1 => new RGBColor(span),
+            _ => throw null!
+        };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (17,18): error CS8347: Cannot use a result of 'Program.RGBColor.RGBColor(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             1 => new RGBColor(span),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RGBColor(span)").WithArguments("Program.RGBColor.RGBColor(System.Span<int>)", "span").WithLocation(17, 18),
+                // (17,31): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //             1 => new RGBColor(span),
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(17, 31));
+        }
+
+        [Fact]
+        public void NoRefSwitch_01()
+        {
+            var source = @"
+class Program
+{
+    ref int M(bool b, ref int x, ref int y)
+    {
+        return ref (b switch { true => x, false => y });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref (b switch { true => x, false => y });
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b switch { true => x, false => y }").WithLocation(6, 21));
+        }
+
+        [Fact]
+        public void NoRefSwitch_02()
+        {
+            var source = @"
+class Program
+{
+    ref int M(bool b, ref int x, ref int y)
+    {
+        return ref (b switch { true => ref x, false => ref y });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (6,40): error CS1525: Invalid expression term 'ref'
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(6, 40),
+                // (6,40): error CS1073: Unexpected token 'ref'
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 40),
+                // (6,56): error CS1525: Invalid expression term 'ref'
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref y").WithArguments("ref").WithLocation(6, 56),
+                // (6,56): error CS1073: Unexpected token 'ref'
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 56));
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool?[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2, null => (Target)null };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2, null => (Target)null };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+class Source1
+{
+}
+class Source2
+{
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(b switch { false => s1, true => s2 });
+        }
+    }
+    static void M(Source1 s) => throw null;
+    static void M(Source2 s) => throw null;
+    static void M(Target t) => Console.Write(t);
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        M(b switch { false => 1, true => 2 });
+    }
+    static void M(Int16 s) => Console.Write(nameof(Int16));
+    static void M(Int64 l) => Console.Write(nameof(Int64));
+}
+";
+            var expectedOutput = "Int16";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        M(b switch { false => 1, true => 2 });
+    }
+    static void M(Int16 s) => Console.Write(nameof(Int16));
+}
+";
+            var expectedOutput = "Int16";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Lambda_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(() => b switch { false => s1, true => s2 });
+        }
+    }
+    static void M(Func<Source1> s) => throw null;
+    static void M(Func<Source2> s) => throw null;
+    static void M(Func<Target> t) => Console.Write(t());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Lambda_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(() => b switch { false => s1, true => s1 });
+        }
+    }
+    static void M(Func<Source2> s) => throw null;
+    static void M(Func<Target> t) => Console.Write(t());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversionViaNaturalType_01()
+        {
+            // Switch conversion is not a standard conversion, so not applicable as input to
+            // a user-defined conversion.
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = false;
+        Source1 s1 = new Source1();
+        Ultimate u = b switch { false => s1, true => s1 };
+        Console.Write(u);
+        u = b switch { false => s1, true => s1 };
+        Console.Write(u);
+    }
+}
+class Ultimate
+{
+    private readonly string Value;
+    public Ultimate(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Ultimate(Target t) => new Ultimate(t.ToString());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (10,42): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(10, 42),
+                // (10,54): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(10, 54),
+                // (12,33): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(12, 33),
+                // (12,45): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(12, 45));
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversionViaNaturalType_02()
+        {
+            // Switch conversion is not a standard conversion, so not applicable as input to
+            // a user-defined conversion.
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = false;
+        Source1 s1 = new Source1();
+        Source2 s2 = new Source2();
+        Ultimate u = b switch { false => s1, true => s2 };
+        Console.Write(u);
+        u = b switch { false => s1, true => s2 };
+        Console.Write(u);
+    }
+}
+class Ultimate
+{
+    private readonly string Value;
+    public Ultimate(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Ultimate(Target t) => new Ultimate(t.ToString());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (11,42): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(11, 42),
+                // (11,54): error CS0029: Cannot implicitly convert type 'Source2' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("Source2", "Ultimate").WithLocation(11, 54),
+                // (13,33): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(13, 33),
+                // (13,45): error CS0029: Cannot implicitly convert type 'Source2' to 'Ultimate'
+                //         u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("Source2", "Ultimate").WithLocation(13, 45));
+        }
+
+        [Fact]
+        public void SwitchExpressionDiscardedWithNoNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        _ = true switch { true => 1, false => string.Empty };
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8506: No best type was found for the switch expression.
+                //         _ = true switch { true => 1, false => string.Empty };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_04()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new TargetSubtype();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator TargetSubtype(Source self)
+    {
+        Console.WriteLine(""Source->TargetSubtype"");
+        return new TargetSubtype();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public override string ToString() => ""Target"";
+}
+class TargetSubtype : Target
+{
+    public override string ToString() => ""TargetSubtype"";
+}
+";
+            var expectedOutput = @"Source->TargetSubtype
+TargetSubtype
+TargetSubtype";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_05()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            Ultimate t = b switch { false => s1, true => s2 };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+Ultimate
+Target->Ultimate
+Ultimate";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_06()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            (int i, Ultimate t) t = (1, b switch { false => s1, true => s2 });
+            Console.WriteLine(t.t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+Ultimate
+Target->Ultimate
+Ultimate";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_07()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source();
+        var s2 = new Target();
+        foreach (var b in new bool[] { false, true })
+        {
+            (int i, Ultimate t) t = b switch { false => (1, s1), true => (2, s2) };
+            Console.WriteLine(t);
+        }
+    }
+}
+class Source
+{
+    public static implicit operator Target(Source self)
+    {
+        Console.WriteLine(""Source->Target"");
+        return new Target();
+    }
+    public override string ToString() => ""Source"";
+}
+class Target
+{
+    public static implicit operator Ultimate(Target self)
+    {
+        Console.WriteLine(""Target->Ultimate"");
+        return new Ultimate();
+    }
+    public override string ToString() => ""Target"";
+}
+class Ultimate
+{
+    public override string ToString() => ""Ultimate"";
+}
+";
+            var expectedOutput = @"Source->Target
+Target->Ultimate
+(1, Ultimate)
+Target->Ultimate
+(2, Ultimate)";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PointerAsInputType()
+        {
+            var source =
+@"unsafe class Program
+{
+    static void Main(string[] args)
+    {
+    }
+    bool M1(int* p) => p is null; // 1
+    bool M2(int* p) => p is var _; // 2
+    void M3(int* p)
+    {
+        switch (p)
+        {
+            case null: // 3
+                break;
+        }
+    }
+    void M4(int* p)
+    {
+        switch (p)
+        {
+            case var _: // 4
+                break;
+        }
+    }
+}";
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M1(int* p) => p is null; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                //     bool M2(int* p) => p is var _; // 2
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
+                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case null: // 3
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                //             case var _: // 4
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
+                );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_01()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        return name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_02()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name) => name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_03()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        return name switch
+        {
+            ""a"" => true,
+            _ => name switch
+                {
+                    ""b"" => false,
+                    _ => null,
+                },
+        };
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_04()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        var result = name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+        return result;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS8506: No best type was found for the switch expression.
+                //         var result = name switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 27)
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_05()
+        {
+            var source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.WriteLine(Get(""a"").Item1?.ToString() ?? ""null"");
+    }
+    public static (int?, int) Get(string name)
+    {
+        return name switch
+        {
+            ""a"" => (default, 1), // this is convertible to (int, int)
+            ""b"" => (1, 2),
+            _ => (3, 4),
+        };
+    }
+}
+";
+            CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "0");
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_06()
+        {
+            var source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.WriteLine(Get(""a"").Item1?.ToString() ?? ""null"");
+    }
+    public static (int?, int) Get(string name)
+    {
+        return name switch
+        {
+            ""a"" => (default, 1), // this is convertible to (int?, int)
+            ""b"" => (1, 2),
+            _ => (null, 4),
+        };
+    }
+}
+";
+            CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "null");
+        }
+
+        [Fact, WorkItem(38686, "https://github.com/dotnet/roslyn/issues/38686")]
+        public void TargetTypedSwitch_AnyTypedSwitchWithoutTargetType()
+        {
+            var source = @"
+#nullable enable
+public static class C {
+    static object o;
+    static void Main() {
+       // either of these would crash
+        _= (C)(o switch { _ => default }); 
+        _= (C)(o switch { _ => throw null! }); 
+    }
+}";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,19): warning CS8618: Non-nullable field 'o' is uninitialized. Consider declaring the field as nullable.
+                //     static object o;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(4, 19),
+                // (4,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
+                //     static object o;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "o").WithArguments("C.o", "null").WithLocation(4, 19),
+                // (7,12): error CS0716: Cannot convert to static type 'C'
+                //         _= (C)(o switch { _ => default }); 
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => default })").WithArguments("C").WithLocation(7, 12),
+                // (8,12): error CS0716: Cannot convert to static type 'C'
+                //         _= (C)(o switch { _ => throw null! }); 
+                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(o switch { _ => throw null! })").WithArguments("C").WithLocation(8, 12)
+            };
+            string expectedFlowGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2}
+    .locals {R1}
+    {
+        CaptureIds: [0]
+        .locals {R2}
+        {
+            CaptureIds: [1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
+                      Value: 
+                        IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                          Instance Receiver: 
+                            null
+                Jump if False (Regular) to Block[B3]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => default')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
+                      Pattern: 
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                    Leaving: {R2}
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                      Value: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (DefaultLiteral)
+                          Operand: 
+                            IDefaultValueOperation (OperationKind.DefaultValue, Type: C, Constant: null, IsInvalid) (Syntax: 'default')
+                Next (Regular) Block[B4]
+                    Leaving: {R2}
+        }
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+                      Left: 
+                        IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
+            Next (Regular) Block[B5]
+                Leaving: {R1}
+                Entering: {R3} {R4}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [2]
+        .locals {R4}
+        {
+            CaptureIds: [3]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
+                      Value: 
+                        IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                          Instance Receiver: 
+                            null
+                Jump if False (Regular) to Block[B8]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => throw null!')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
+                      Pattern: 
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                    Leaving: {R4}
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (0)
+                Next (Throw) Block[null]
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+            Block[B7] - Block [UnReachable]
+                Predecessors (0)
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                      Value: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitThrow)
+                          Operand: 
+                            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                Next (Regular) Block[B9]
+                    Leaving: {R4}
+        }
+        Block[B8] - Block
+            Predecessors: [B5]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Block[B9] - Block [UnReachable]
+            Predecessors: [B7]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
+                      Left: 
+                        IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+            Next (Regular) Block[B10]
+                Leaving: {R3}
+    }
+    Block[B10] - Exit [UnReachable]
+        Predecessors: [B9]
+        Statements (0)
+";
+            string expectedOperationTree = @"
+    IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'static void ... }')
+      BlockBody: 
+        IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
+            Expression: 
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
+                Left: 
+                  IDiscardOperation (Symbol: C? _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                Right: 
+                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... > default }')
+                    Value: 
+                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                        Instance Receiver: 
+                          null
+                    Arms(1):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => default')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                          Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IDefaultValueOperation (OperationKind.DefaultValue, Type: C, Constant: null, IsInvalid) (Syntax: 'default')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
+            Expression: 
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
+                Left: 
+                  IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                Right: 
+                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
+                    Value: 
+                      IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+                        Instance Receiver: 
+                          null
+                    Arms(1):
+                        ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => throw null!')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object)
+                          Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null!')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand: 
+                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+      ExpressionBody: 
+        null
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(expectedDiagnostics);
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, expectedOperationTree: expectedOperationTree);
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph: expectedFlowGraph);
+        }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyLambda()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,57): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int, decimal>'
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int, decimal>").WithLocation(5, 57)
+                );
+        }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyMethodGroup()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+    }
+    static void M(int x) {}
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,55): error CS0407: 'void C.M(int)' has the wrong return type
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.ERR_BadRetType, "M").WithArguments("C.M(int)", "void").WithLocation(5, 55)
+                );
+        }
+
+        [Fact, WorkItem(39767, "https://github.com/dotnet/roslyn/issues/39767")]
+        public void PreferUserDefinedConversionOverSwitchExpressionConversion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1(""Source1"");
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t + "" "");
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    private readonly string Value;
+    public Source1(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Target(Source1 self) => new Target(self.Value+""->Target"");
+}
+class Source2
+{
+    public static implicit operator Source1(Source2 self) => new Source1(""Source2->Source1"");
+    public static implicit operator Target(Source2 self) => new Target(""Source2->Target"");
+}
+";
+            var expectedOutput = "Source1->Target Source2->Source1->Target ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_01()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(string s)
+  {
+    (B, B) x = s switch { _ => (new A(), new A()), };
+    x.Item1.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,33): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 33),
+                // (16,42): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     (B, B) x = s switch { _ => (new A(), new A()), };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 42)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_02()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    var x = i switch { 1 => new A(), _ => new B() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,29): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     var x = i switch { 1 => new A(), _ => new B() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 29)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_03()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => new A() };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,27): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => new A() };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 27)
+                );
+        }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_04()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => i switch { _ => new A() } };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,43): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => i switch { _ => new A() } };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
+                );
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_01()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case (string str, decimal[] arr);
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (8,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(8, 26),
+                // (8,37): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(8, 37),
+                // (9,17): error CS0150: A constant value is expected
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (string str, decimal[] arr);").WithLocation(9, 17),
+                // (9,28): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string str").WithLocation(9, 28),
+                // (9,28): error CS0165: Use of unassigned local variable 'str'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "string str").WithArguments("str").WithLocation(9, 28),
+                // (9,40): error CS8185: A declaration is not allowed in this context.
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "decimal[] arr").WithLocation(9, 40),
+                // (9,40): error CS0165: Use of unassigned local variable 'arr'
+                //                 goto case (string str, decimal[] arr);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "decimal[] arr").WithArguments("arr").WithLocation(9, 40),
+                // (10,26): error CS0136: A local or parameter named 'str' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "str").WithArguments("str").WithLocation(10, 26),
+                // (10,41): error CS0136: A local or parameter named 'arr' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case (string str, decimal[] arr) _:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "arr").WithArguments("arr").WithLocation(10, 41)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var strDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "str").ToArray();
+            Assert.Equal(3, strDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, strDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+
+            var arrDecl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(s => s.Identifier.ValueText == "arr").ToArray();
+            Assert.Equal(3, arrDecl.Length);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, arrDecl[1], LocalDeclarationKind.DeclarationExpressionVariable);
+        }
+
+        [WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        [Fact]
+        public void BadGotoCase_02()
+        {
+            var source = @"
+class C
+{
+    static void Example(object a, object b)
+    {
+        switch ((a, b))
+        {
+            case (string str, int[] arr) _:
+                goto case a is (var x1, var x2);
+                x1 = x2;
+            case (string str, decimal[] arr) _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0163: Control cannot fall through from one case label ('(string str, int[] arr) _') to another
+                //             case (string str, int[] arr) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "(string str, int[] arr) _").WithArguments("(string str, int[] arr) _").WithLocation(8, 18),
+                // (9,17): error CS0029: Cannot implicitly convert type 'bool' to '(object a, object b)'
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case a is (var x1, var x2);").WithArguments("bool", "(object a, object b)").WithLocation(9, 17),
+                // (9,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32),
+                // (9,32): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("object", "2").WithLocation(9, 32)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").ToArray();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(1, x2Decl.Length);
+            Assert.Equal(1, x2Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
         }
     }
 }

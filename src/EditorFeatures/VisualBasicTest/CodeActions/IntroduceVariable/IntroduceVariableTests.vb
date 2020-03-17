@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -1169,7 +1171,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Const {|Rename:Value|} As Integer = 1
                 Console.WriteLine(Value)
@@ -1207,7 +1208,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Console.WriteLine(1)
             Else
@@ -1399,11 +1399,37 @@ End Module")
 
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestNotOnAttribute1CommentsAfterLineContinuation() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Explicit Off
+Module Program
+    <Runtime.CompilerServices.[|Extension|]()> _ ' Test
+    Function Extension(ByVal x As Integer) As Integer
+        Return x
+    End Function
+End Module")
+        End Function
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
 Module Program
     <Runtime.CompilerServices.[|Extension()|]> _
+    Function Extension(ByVal x As Integer) As Integer
+        Return x
+    End Function
+End Module")
+        End Function
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestNotOnAttribute2CommentsAfterLineContinuation() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Explicit Off
+Module Program
+    <Runtime.CompilerServices.[|Extension()|]> _ ' Test
     Function Extension(ByVal x As Integer) As Integer
         Return x
     End Function
@@ -3098,7 +3124,7 @@ end class")
     end sub
 end class",
 "class C
-    Private Const {|Rename:V|} As Integer = 2
+    Private Const {|Rename:V|} As Integer = (2)
 
     sub Goo()
         Bar(1, V)

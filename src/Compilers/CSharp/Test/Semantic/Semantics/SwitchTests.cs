@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -359,9 +361,9 @@ public class TestClass
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (11,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (11,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case (default):
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 19),
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)
@@ -1152,7 +1154,7 @@ class Program
             // Ensure the model can still bind without throwing when multiple labels values 
             // have duplicate constants (ConstantValue.Bad).  
             var symbolInfo = semanticModel.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
         }
 
         #endregion
@@ -2685,6 +2687,72 @@ class SwitchTest
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
         }
 
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_01()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_02()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true when true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case true when true:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
         #endregion
 
         #region regressions
@@ -2850,6 +2918,35 @@ public class TestClass
                 //                 break; //1
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(33783, "https://github.com/dotnet/roslyn/issues/33783")]
+        public void UnreachableDefaultInBoolSwitch()
+        {
+            var text = @"
+public class TestClass
+{
+    public static void Main()
+    {
+        bool b = false;
+        switch (b)
+        {
+            case true:
+                break;
+            case false:
+                break;
+            default:
+                break; //1
+        }
+    }
+}";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17));
         }
 
         #endregion

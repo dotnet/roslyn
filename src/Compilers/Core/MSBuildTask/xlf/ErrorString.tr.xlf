@@ -60,13 +60,13 @@
       <trans-unit id="CopyRefAssembly_BadSource3">
         <source>Failed to check the content hash of the source ref assembly '{0}': {1}
 {2}</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi: {1}
+        <target state="translated">Kaynak ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu: {1}
 {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="CopyRefAssembly_BadDestination1">
         <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi. Üzerine yazılacak.</target>
+        <target state="translated">Hedef ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu. O-ecek var overwritten.</target>
         <note />
       </trans-unit>
       <trans-unit id="General_ToolFileNotFound">
@@ -93,6 +93,11 @@
         <source>MSB3104: The referenced assembly "{0}" was not found. If this assembly is produced by another one of your projects, please make sure to build that project before building this one.</source>
         <target state="translated">MSB3104: Başvurulan "{0}" derlemesi bulunamadı. Bu derleme başka bir projeniz tarafından üretildiyse, lütfen bunu oluşturmadan önce ilgili projeyi oluşturduğunuzdan emin olun.</target>
         <note>{StrBegin="MSB3104: "}</note>
+      </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">"{0}" dosyası okunamadı: {1}</target>
+        <note />
       </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>

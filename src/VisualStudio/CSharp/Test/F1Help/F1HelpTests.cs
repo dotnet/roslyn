@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -17,14 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     {
         private async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var caret = workspace.Documents.First().CursorPosition;
+            using var workspace = TestWorkspace.CreateCSharp(markup);
+            var caret = workspace.Documents.First().CursorPosition;
 
-                var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
-                Assert.Equal(expectedText, actualText);
-            }
+            var service = new CSharpHelpContextService();
+            var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+            Assert.Equal(expectedText, actualText);
         }
 
         private async Task Test_KeywordAsync(string markup, string expectedText)
@@ -561,6 +561,20 @@ class Program
                   select [||]y;
     }
 }", "System.String");
+        }
+
+        [WorkItem(36001, "https://github.com/dotnet/roslyn/issues/36001")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNameof()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void goo()
+    {
+        var v = [||]nameof(goo);
+    }
+}", "nameof");
         }
     }
 }

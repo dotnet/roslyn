@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -59,6 +61,61 @@ class Program
                 markup: markup,
                 updatedSignature: new[] { 1, 0 },
                 expectedUpdatedInvocationDocumentCode: expectedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnLambdaWithTwoDiscardParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = $$(int _, string _) => 1;
+    }
+}";
+            var expectedCode = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = (string _, int _) => 1;
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup: markup,
+                updatedSignature: new[] { 1, 0 },
+                expectedUpdatedInvocationDocumentCode: expectedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnAnonymousMethodWithTwoParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = [||]delegate(int x, string y) { return 1; };
+    }
+}";
+            await TestMissingAsync(markup);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestOnAnonymousMethodWithTwoDiscardParameters_ViaCommand()
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        System.Func<int, string, int> f = [||]delegate(int _, string _) { return 1; };
+    }
+}";
+            await TestMissingAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

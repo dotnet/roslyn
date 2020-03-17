@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: Nie można odnaleźć przywoływanego zestawu „{0}”. Jeżeli zestaw jest tworzony przez inny projekt, upewnij się, że przed skompilowaniem tego zestawu został skompilowany ten inny projekt.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Nie można odczytać pliku „{0}”: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Udostępniona kompilacja nie powiodła się; nastąpi powrót do narzędzia: {0}</target>

@@ -1,16 +1,30 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
+    /// <summary>
+    /// Marker interface for <see cref="PerLanguageOption{T}"/>
+    /// </summary>
+    internal interface IPerLanguageOption : IOptionWithGroup
+    {
+    }
+
     /// <summary>
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOptionWithGroup
+    public class PerLanguageOption<T> : IPerLanguageOption
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -56,24 +70,19 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentNullException(nameof(feature));
             }
 
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException(nameof(name));
             }
 
             this.Feature = feature;
-            this.Group = group;
+            this.Group = group ?? throw new ArgumentNullException(nameof(group));
             this.Name = name;
             this.DefaultValue = defaultValue;
             this.StorageLocations = storageLocations.ToImmutableArray();
         }
 
-        object IOption.DefaultValue => this.DefaultValue;
+        object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
 

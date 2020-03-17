@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -16,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new PropertySubpatternCompletionProvider();
+            return typeof(PropertySubpatternCompletionProvider);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
@@ -669,6 +672,60 @@ class Program
             // Ignore browsability limiting attributes if the symbol is declared in source.
             await VerifyItemExistsAsync(markup, "P1");
             await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact]
+        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        public async Task StaticProperties_NotSuggested()
+        {
+            var markup =
+@"
+class Program
+{
+    void M()
+    {
+        _ = """" is { $$ }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "Empty");
+        }
+
+        [Fact]
+        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        public async Task StaticFields_NotSuggested()
+        {
+            var markup =
+@"
+class Program
+{
+    static int x = 42;
+
+    void M()
+    {
+        _ = this is { $$ }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "x");
+        }
+
+
+        [Fact]
+        [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
+        public async Task ConstFields_NotSuggested()
+        {
+            var markup =
+@"
+class Program
+{
+    void M()
+    {
+        _ = 5 is { $$ }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "MaxValue");
         }
     }
 }

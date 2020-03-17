@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -246,11 +248,12 @@ class X
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
-                        case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                         case ErrorCode.WRN_IsTypeNamedUnderscore:
                         case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                        case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                        case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -263,16 +266,17 @@ class X
                         case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:
                         case ErrorCode.WRN_NullReferenceArgument:
+                        case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                        case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
@@ -285,18 +289,36 @@ class X
                         case ErrorCode.WRN_UninitializedNonNullableField:
                         case ErrorCode.WRN_NullabilityMismatchInAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInArgument:
+                        case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullAsNonNullable:
-                        case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                        case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                        case ErrorCode.WRN_NoBestNullabilityArrayElements:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                        case ErrorCode.ERR_FeatureInPreview:
+                        case ErrorCode.WRN_ThrowPossibleNull:
+                        case ErrorCode.WRN_UnboxPossibleNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                        case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                        case ErrorCode.WRN_ShouldNotReturn:
+                        case ErrorCode.WRN_DoesNotReturnMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_MemberNotNull:
+                        case ErrorCode.WRN_MemberNotNullWhen:
+                        case ErrorCode.WRN_MemberNotNullBadMember:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -309,6 +331,39 @@ class X
                             break;
                     }
                 }
+            }
+        }
+
+        [Fact]
+        public void NullableWarnings()
+        {
+            foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if ((int)error < 8600 || (int)error >= 9000)
+                {
+                    continue;
+                }
+
+                if (!error.ToString().StartsWith("WRN"))
+                {
+                    // Only interested in warnings
+                    continue;
+                }
+
+                if (ErrorFacts.NullableWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)error)))
+                {
+                    continue;
+                }
+
+                // Nullable-unrelated warnings in the C# 8 range should be added to this array.
+                var nullableUnrelatedWarnings = new[]
+                {
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
+                    ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                };
+
+                Assert.Contains(error, nullableUnrelatedWarnings);
             }
         }
 
@@ -1875,105 +1930,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, "blah").WithLocation(14, 17));
         }
 
-        [Fact]
-        public void PragmaWarning_EnableSafeOnlyNullable()
-        {
-            var text = @"
-#pragma warning disable nullable
-#pragma warning enable nullable
-#pragma warning restore nullable
-#pragma warning safeonly nullable
-
-#pragma warning disable nullable, 1695
-#pragma warning enable nullable, 1695
-#pragma warning restore nullable, 1695
-#pragma warning safeonly nullable, 1695
-
-#pragma warning enable 
-#pragma warning safeonly
-#pragma warning enable 1695
-#pragma warning safeonly 1695
-";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (3,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning enable nullable
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(3, 17),
-                // (5,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning safeonly nullable
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(5, 17),
-                // (7,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning disable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(7, 33),
-                // (8,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(8, 17),
-                // (8,32): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(8, 32),
-                // (9,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning restore nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(9, 33),
-                // (10,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(10, 17),
-                // (10,34): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(10, 34),
-                // (12,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning enable 
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(12, 17),
-                // (13,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(13, 17),
-                // (13,25): warning CS8599: Expected nullable
-                // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "").WithLocation(13, 25),
-                // (14,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning enable 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(14, 17),
-                // (15,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
-                // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(15, 17),
-                // (15,26): warning CS8599: Expected nullable
-                // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26)
-                );
-
-            var expected = new DiagnosticDescription[]
-            {
-                // (7,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning disable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(7, 33),
-                // (8,32): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(8, 32),
-                // (9,33): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning restore nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(9, 33),
-                // (10,34): warning CS1696: Single-line comment or end-of-line expected
-                // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(10, 34),
-                // (13,25): warning CS8599: Expected nullable
-                // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "").WithLocation(13, 25),
-                // (15,26): warning CS8599: Expected nullable
-                // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26)
-            };
-
-            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(expected);
-            CreateCompilation(text).VerifyDiagnostics(expected);
-
-            CreateCompilation(
-@"
-#if ENABLED
-" + text + @"
-#endif
-", parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
-        }
-
-
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         public void PragmaWarning_Enable()
         {
             var text1 = @"
@@ -2040,25 +1997,11 @@ class Test
             CreateCompilation(text4, options: options).VerifyDiagnostics(expected2);
 
             var text5 = @"
-#pragma warning enable 168, nullable
+#pragma warning enable 168
 " + text1;
 
             CreateCompilation(text5, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected2);
             CreateCompilation(text5, options: options).VerifyDiagnostics(expected2);
-
-            var text6 = @"
-#pragma warning enable nullable
-" + text1;
-
-            CreateCompilation(text6, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics();
-            CreateCompilation(text6, options: options).VerifyDiagnostics();
-
-            var text7 = @"
-#pragma warning enable nullable, 168
-" + text1;
-
-            CreateCompilation(text7, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics();
-            CreateCompilation(text7, options: options).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2312,6 +2255,35 @@ public class Test
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [Fact]
+        public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
+        {
+            var text = @"
+interface IMyEnumerator { }
+
+public class Test
+{
+    static IMyEnumerator Goo()
+    {
+        yield break;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text);
+            var expected = new DiagnosticDescription[] {
+                // (6,26): error CS1624: The body of 'Test.Goo()' cannot be an iterator block because 'IMyEnumerator' is not an iterator interface type
+                //     static IMyEnumerator Goo()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Goo").WithArguments("Test.Goo()", "IMyEnumerator").WithLocation(6, 26)
+            };
+            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

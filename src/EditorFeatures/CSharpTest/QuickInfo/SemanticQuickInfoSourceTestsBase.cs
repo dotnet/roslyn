@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
+        protected async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+        {
+            using (var workspace = TestWorkspace.CreateCSharp(markup, compilationOptions: options))
+            {
+                await TestWithOptionsAsync(workspace, expectedResults);
+            }
+        }
+
         protected async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
@@ -37,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
-                var buffer = testDocument.TextBuffer;
+                var buffer = testDocument.GetTextBuffer();
                 using (var edit = buffer.CreateEdit())
                 {
                     var currentSnapshot = buffer.CurrentSnapshot;

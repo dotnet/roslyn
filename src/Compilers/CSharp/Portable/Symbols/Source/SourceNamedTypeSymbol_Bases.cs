@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
 
-                localBase.CheckAllConstraints(conversions, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
         }
 
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var @interface in set)
                     {
-                        @interface.CheckAllConstraints(conversions, location, diagnostics);
+                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                     }
 
                     if (set.Count > 1)
@@ -156,9 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
-                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                                {
+                                    diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                }
                             }
-                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames))
+                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
                             }
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var b = baseTypeSyntax.Type;
                         var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag).TypeSymbol;
+                        var curBaseSym = baseBinder.BindType(b, tmpDiag).Type;
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
@@ -255,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
-            var interfaceLocations = PooledDictionary<NamedTypeSymbol, SourceLocation>.GetInstance();
+
+            var interfaceLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -381,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
 
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))
@@ -400,14 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             // '{0}' cannot derive from special class '{1}'
-                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, Locations[0], this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, location, this, baseType);
                             continue;
                         }
                     }
 
                     if (baseType.IsSealed && !this.IsStatic) // Give precedence to ERR_StaticDerivedFromNonObject
                     {
-                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, Locations[0], this, baseType);
+                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, location, this, baseType);
                         continue;
                     }
 
@@ -449,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
                 }
 
                 switch (baseType.TypeKind)
@@ -457,10 +463,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything))
+                            if (t.Equals(baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
-                                continue;
+                            }
+                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                            {
+                                // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
+                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, baseType, this);
                             }
                         }
 
@@ -561,14 +571,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isInterface = (typeKind == TypeKind.Interface);
 
-            ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            ArrayBuilder<NamedTypeSymbol> result = isInterface ? ArrayBuilder<NamedTypeSymbol>.GetInstance() : null;
             foreach (var t in declaredInterfaces)
             {
-                if (!isClass)
+                if (isInterface)
                 {
-                    if (BaseTypeAnalysis.InterfaceDependsOn(depends: t, on: this))
+                    if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
                         result.Add(new ExtendedErrorTypeSymbol(t, LookupResultKind.NotReferencable,
                             diagnostics.Add(ErrorCode.ERR_CycleInInterfaceInheritance, Locations[0], this, t)));
@@ -601,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return isClass ? declaredInterfaces : result.ToImmutableAndFree();
+            return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
         private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)
@@ -649,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (BaseTypeAnalysis.ClassDependsOn(declaredBase, this))
+            if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
                 return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable,
                     diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredBase, this));

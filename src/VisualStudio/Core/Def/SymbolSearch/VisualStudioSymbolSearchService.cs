@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,18 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         protected override void StartWorking()
         {
-            // Kick off a database update.
-            var sources = _installerService.PackageSources;
-
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            var allSources = sources.Concat(new PackageSource(
-                SymbolSearchUpdateEngine.NugetOrgSource, source: null));
-
-            foreach (var source in allSources)
-            {
-                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
-            }
+            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -155,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // one rank, then one is at least twice as popular as the next.  Two 
             // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
             // etc.  We keep packages that within 1 rank of the best package we find.
-            int? bestRank = packagesUsedInOtherProjects.LastOrDefault()?.Rank;
+            var bestRank = packagesUsedInOtherProjects.LastOrDefault()?.Rank;
             foreach (var packageWithType in packagesNotUsedInOtherProjects)
             {
                 var rank = packageWithType.Rank;

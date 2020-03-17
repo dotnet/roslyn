@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -700,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("TypeLibImportClassAttribute").Single();
             var msym = attrObj.InstanceConstructors.First();
             attrSym = igoo.GetAttribute(msym);
-            Assert.Equal("object", ((Symbol)attrSym.CommonConstructorArguments[0].Value).ToString());
+            Assert.Equal("object", ((Symbol)attrSym.CommonConstructorArguments[0].ValueInternal).ToString());
 
             // =============================
             var mem = (MethodSymbol)igoo.GetMember("DoSomething");
@@ -925,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym = assemblies[0].Modules[0].GetAttributes().First();
             Assert.Equal("AttrNameAttribute", attrSym.AttributeClass.Name);
             attrSym.VerifyNamedArgumentValue(0, "TypeField", TypedConstantKind.Type, typeof(Dictionary<string, int>));
-            Assert.Equal(2, (attrSym.CommonNamedArguments[0].Value.Value as NamedTypeSymbol).Arity);
+            Assert.Equal(2, (attrSym.CommonNamedArguments[0].Value.ValueInternal as NamedTypeSymbol).Arity);
         }
 
         [Fact]
@@ -1001,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym.VerifyValue(0, TypedConstantKind.Array, new sbyte[] { -1, 0, 1 });
 
             Assert.Equal("ObjectField", attrSym.CommonNamedArguments[0].Key);
-            Assert.Equal("System.Collections.Generic.IList<>", (attrSym.CommonNamedArguments[0].Value.Value as NamedTypeSymbol).ToString());
+            Assert.Equal("System.Collections.Generic.IList<>", (attrSym.CommonNamedArguments[0].Value.Value as INamedTypeSymbol).ToString());
         }
 
         //[AllInheritMultiple(new char[] { '1', '2' }, UIntField = 112233)]
@@ -1155,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym = attrs.First();
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
             Assert.Equal(1, attrSym.CommonNamedArguments.Length);
-            Assert.Equal("AttributeUse.IFoo<System.Int16, System.UInt16>", (attrSym.CommonConstructorArguments[0].Value as NamedTypeSymbol).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("AttributeUse.IFoo<System.Int16, System.UInt16>", (attrSym.CommonConstructorArguments[0].Value as INamedTypeSymbol).ToDisplayString(SymbolDisplayFormat.TestFormat));
             Assert.Equal(1, attrSym.CommonNamedArguments[0].Value.Value);
         }
 
@@ -1208,12 +1210,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // [DebuggerTypeProxy(typeof(Expression.BinaryExpressionProxy))] - internal class as argument to typeof()
             // public class BinaryExpression : Expression {... }
             var attr1 = exprNS.GetTypeMembers("BinaryExpression").First().GetAttribute(dbgProxyAttr);
-            Assert.Equal("System.Linq.Expressions.Expression.BinaryExpressionProxy", ((TypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("System.Linq.Expressions.Expression.BinaryExpressionProxy", ((ITypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
 
             // [DebuggerTypeProxy(typeof(Expression.TypeBinaryExpressionProxy))]
             // public sealed class TypeBinaryExpression : Expression
             attr1 = exprNS.GetTypeMembers("TypeBinaryExpression").First().GetAttribute(dbgProxyAttr);
-            Assert.Equal("System.Linq.Expressions.Expression.TypeBinaryExpressionProxy", ((TypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("System.Linq.Expressions.Expression.TypeBinaryExpressionProxy", ((ITypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
         }
 
         [Fact]

@@ -22,7 +22,13 @@ https://help.github.com/articles/connecting-to-github-with-ssh/
 The best way to debug is using lldb with the SOS plugin. This is the same SOS as used in WinDbg and if you're familiar
 with it then lldb debugging will be pretty straight forward. 
 
-Here are the CoreCLR guidelines for Linux debugging:
+The [dotnet/diagnostics](https://github.com/dotnet/diagnostics) repo has more information:
+
+- [Getting LLDB](https://github.com/dotnet/diagnostics/blob/master/documentation/lldb/linux-instructions.md)
+- [Installing SOS](https://github.com/dotnet/diagnostics/blob/master/documentation/installing-sos-instructions.md)
+- [Using SOS](https://github.com/dotnet/diagnostics/blob/master/documentation/sos-debugging-extension.md)
+
+CoreCLR also has some guidelines for specific Linux debugging scenarios:
 
 - https://github.com/dotnet/coreclr/blob/master/Documentation/botr/xplat-minidump-generation.md
 - https://github.com/dotnet/coreclr/blob/master/Documentation/building/debugging-instructions.md#debugging-core-dumps-with-lldb.
@@ -31,25 +37,9 @@ Corrections:
 - LLDB and createdump must be run as root
 - `dotnet tool install -g dotnet-symbol` must be run from `$HOME` 
 
-Furthermore the version of SOS that comes with the runtime will likely not work with the lldb you have. In order to 
-use SOS you will need to build it by hand
-
-1. Clone git@github.com:dotnet/diagnostics.git
-1. Run `./build.sh`
-
-This will produce libsosplugin.so that can be used in lldb. Once it's built you can start lldb with the following 
-command line (replace `/home/jaredpar` as appropriate):
-
-``` bash
-> sudo lldb -o "plugin load /home/jaredpar/code/diagnostics/artifacts/Debug/bin/Linux.x64/libsosplugin.so" 
-/home/jaredpar/code/roslyn/Binaries/Tools/dotnet/dotnet
-```
-
-From there you should be able to attach to running processes or load up coredumps.
-
 ### Core Dumps
 The CoreClr does not used the standard core dumping mechanisms on Linux. Instead you must specify via 
-enviroment variables that you want a core dump to be produced. The simplest setup is to do the following:
+environment variables that you want a core dump to be produced. The simplest setup is to do the following:
 
 ```
 > export COMPlus_DbgEnableMiniDump=1
@@ -58,8 +48,10 @@ enviroment variables that you want a core dump to be produced. The simplest setu
 
 This will cause full memory dumps to be produced which can then be loaded into LLDB.
 
+A preview of [dotnet-dump](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-dump-instructions.md) is also available for interactively creating and analyzing dumps.
+
 ### GC stress failures
-When you suspect there is a GC failure related to your test then you can use the following environement variables
+When you suspect there is a GC failure related to your test then you can use the following environment variables
 to help track it down.
 
 ```
@@ -78,7 +70,7 @@ Note: this variables can also be used on Windows as well.
 
 ## Ubuntu 18.04
 The recommended OS for developing Roslyn is Ubuntu 18.04. This guide was written using Ubuntu 18.04 but should be 
-applicable to most Linux enviroments. Ubuntu 18.04 was chosen here due to it's support for enhanced VMs in Hyper-V. 
+applicable to most Linux environments. Ubuntu 18.04 was chosen here due to it's support for enhanced VMs in Hyper-V.
 This makes it easier to use from a Windows machine: full screen, copy / paste, etc ...
 
 ### Hyper-V

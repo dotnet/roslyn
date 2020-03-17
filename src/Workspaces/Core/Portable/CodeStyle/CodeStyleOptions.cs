@@ -1,12 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
+using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     public class CodeStyleOptions
     {
@@ -17,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static PerLanguageOption<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             var option = new PerLanguageOption<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
+
+        private static Option<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        {
+            var option = new Option<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -91,13 +106,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_predefined_type_for_member_access"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle")});
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferThrowExpression = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_throw_expression"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression")});
-
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferObjectInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferObjectInitializer),
             defaultValue: TrueWithSuggestionEnforcement,
@@ -123,15 +131,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedBooleanExpressions = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedBooleanExpressions),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_boolean_expressions"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSimplifiedBooleanExpressions")});
+
         internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
-            new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
-                nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
-                defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-                storageLocations:
-                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
-                        "dotnet_style_operator_placement_when_wrapping",
-                        OperatorPlacementUtilities.Parse,
-                        OperatorPlacementUtilities.GetEditorConfigString));
+            CreateOption(CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(OperatorPlacementWhenWrapping),
+            defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+            storageLocations:
+                new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                    "dotnet_style_operator_placement_when_wrapping",
+                    OperatorPlacementUtilities.Parse,
+                    OperatorPlacementUtilities.GetEditorConfigString));
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
@@ -146,20 +160,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_null_propagation"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferNullPropagation") });
-
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferInlinedVariableDeclaration),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_inlined_variable_declaration"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration") });
-
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferDeconstructedVariableDeclaration = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferDeconstructedVariableDeclaration),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_deconstructed_variable_declaration"),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferDeconstructedVariableDeclaration)}")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferExplicitTupleNames = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferExplicitTupleNames),
@@ -218,8 +218,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_compound_assignment"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedInterpolation = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedInterpolation),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_interpolation"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferSimplifiedInterpolation)}") });
+
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
-            new CodeStyleOption<UnusedParametersPreference>(default(UnusedParametersPreference), NotificationOption.None);
+            new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.None);
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
             new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
 
@@ -257,6 +264,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
 
+        internal static readonly Option<string> FileHeaderTemplate = CreateCommonOption(
+            CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
+            defaultValue: "",
+            EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
+
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]
             {
@@ -274,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (value == "never")
                 {
                     // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                    notificationOpt ??= NotificationOption.Silent;
                 }
 
                 if (notificationOpt != null)
@@ -358,6 +370,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSystemHashCode = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferSystemHashCode),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
+
         static CodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -408,13 +427,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     internal static class CodeStyleOptionGroups
     {
-        public static readonly OptionGroup Usings = new OptionGroup(WorkspacesResources.Organize_usings, priority: 1);
-        public static readonly OptionGroup ThisOrMe = new OptionGroup(WorkspacesResources.this_dot_and_Me_dot_preferences, priority: 2);
-        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(WorkspacesResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
-        public static readonly OptionGroup Parentheses = new OptionGroup(WorkspacesResources.Parentheses_preferences, priority: 4);
-        public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
-        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 6);
-        public static readonly OptionGroup Field = new OptionGroup(WorkspacesResources.Field_preferences, priority: 7);
-        public static readonly OptionGroup Parameter = new OptionGroup(WorkspacesResources.Parameter_preferences, priority: 8);
+        public static readonly OptionGroup Usings = new OptionGroup(CompilerExtensionsResources.Organize_usings, priority: 1);
+        public static readonly OptionGroup ThisOrMe = new OptionGroup(CompilerExtensionsResources.this_dot_and_Me_dot_preferences, priority: 2);
+        public static readonly OptionGroup PredefinedTypeNameUsage = new OptionGroup(CompilerExtensionsResources.Language_keywords_vs_BCL_types_preferences, priority: 3);
+        public static readonly OptionGroup Parentheses = new OptionGroup(CompilerExtensionsResources.Parentheses_preferences, priority: 4);
+        public static readonly OptionGroup Modifier = new OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority: 5);
+        public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority: 6);
+        public static readonly OptionGroup Field = new OptionGroup(CompilerExtensionsResources.Field_preferences, priority: 7);
+        public static readonly OptionGroup Parameter = new OptionGroup(CompilerExtensionsResources.Parameter_preferences, priority: 8);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generator.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
-                return syntaxFacts.Parenthesize(
+                return generator.AddParentheses(
                     generator.Negate(
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
@@ -107,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 //Workaround for https://github.com/dotnet/roslyn/issues/23956
                 //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsConditionalOr(expressionNode))
+                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalAnd;
                 }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsConditionalAnd(expressionNode))
+                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
                 {
                     negatedKind = BinaryOperatorKind.ConditionalOr;
                 }
@@ -197,23 +199,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             switch (operationKind)
             {
-                case BinaryOperatorKind.LessThanOrEqual when IsNumericLiteral(rightOperand):
+                case BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral():
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        leftOperand,
-                        (ILiteralOperation)rightOperand,
-                        cancellationToken);
-                case BinaryOperatorKind.GreaterThanOrEqual when IsNumericLiteral(leftOperand):
+                        leftOperand, (ILiteralOperation)rightOperand);
+                case BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral():
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        rightOperand,
-                        (ILiteralOperation)leftOperand,
-                        cancellationToken);
+                        rightOperand, (ILiteralOperation)leftOperand);
             }
 
             return false;
         }
-
-        private static bool IsNumericLiteral(IOperation operation)
-            => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
 
         private static IOperation RemoveImplicitConversion(IOperation operation)
         {
@@ -223,9 +218,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool CanSimplifyToLengthEqualsZeroExpression(
-            IOperation variableExpression,
-            ILiteralOperation numericLiteralExpression,
-            CancellationToken cancellationToken)
+            IOperation variableExpression, ILiteralOperation numericLiteralExpression)
         {
             var numericValue = numericLiteralExpression.ConstantValue;
             if (numericValue.HasValue && numericValue.Value is 0)
@@ -287,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetNegationOfLogicalNotExpression(
             SyntaxNode expression,
-            ISyntaxFactsService syntaxFacts)
+            ISyntaxFacts syntaxFacts)
         {
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);

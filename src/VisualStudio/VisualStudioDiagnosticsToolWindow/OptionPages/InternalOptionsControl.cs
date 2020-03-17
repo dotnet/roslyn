@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -14,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         private readonly string _featureOptionName;
 
-        public InternalOptionsControl(string featureOptionName, IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public InternalOptionsControl(string featureOptionName, OptionStore optionStore)
+            : base(optionStore)
         {
             _featureOptionName = featureOptionName;
 
@@ -104,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected virtual void AddOptions(Panel panel)
         {
-            foreach (var option in OptionService.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
+            foreach (var option in OptionStore.GetRegisteredOptions().Where(o => o.Feature == _featureOptionName).OrderBy(o => o.Name))
             {
                 if (!option.IsPerLanguage)
                 {

@@ -1,15 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -223,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // process changed projects
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
-                var documentsToProcess = projectChanges.GetChangedDocuments(true).Concat(
+                var documentsToProcess = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(
                     projectChanges.GetAddedDocuments());
 
                 foreach (var documentId in documentsToProcess)
@@ -266,6 +270,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
+                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
@@ -302,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedDocument">Function to create the <see cref="Document"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
+        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
             if (title == null)
@@ -324,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="title">Title of the <see cref="CodeAction"/>.</param>
         /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
+        [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
         public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
         {
             if (title == null)
@@ -337,6 +346,28 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CodeAction"/> representing a group of code actions.
+        /// </summary>
+        /// <param name="title">Title of the <see cref="CodeAction"/> group.</param>
+        /// <param name="nestedActions">The code actions within the group.</param>
+        /// <param name="isInlinable"><see langword="true"/> to allow inlining the members of the group into the parent;
+        /// otherwise, <see langword="false"/> to require that this group appear as a group with nested actions.</param>
+        public static CodeAction Create(string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+        {
+            if (title is null)
+            {
+                throw new ArgumentNullException(nameof(title));
+            }
+
+            if (nestedActions == null)
+            {
+                throw new ArgumentNullException(nameof(nestedActions));
+            }
+
+            return new CodeActionWithNestedActions(title, nestedActions, isInlinable);
         }
 
         internal abstract class SimpleCodeAction : CodeAction
@@ -359,13 +390,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
             public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+                string title, ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
                 : base(title, ComputeEquivalenceKey(nestedActions))
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
                 IsInlinable = isInlinable;
+                Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
 
             internal sealed override bool IsInlinable { get; }
 

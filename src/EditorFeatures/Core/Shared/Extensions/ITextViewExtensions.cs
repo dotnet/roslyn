@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -97,6 +99,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var spanInView = textView.GetSpanInView(span).Single();
             textView.Selection.Select(spanInView, isReversed);
             textView.Caret.MoveTo(isReversed ? spanInView.Start : spanInView.End);
+        }
+
+        /// <summary>
+        /// Sets a multi selection with the last span as the primary selection.
+        /// Also maps up to the correct span in view before attempting to set the selection.
+        /// </summary>
+        public static void SetMultiSelection(this ITextView textView, IEnumerable<SnapshotSpan> spans)
+        {
+            var spansInView = spans.Select(s => new Selection(textView.GetSpanInView(s).Single()));
+            textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
         }
 
         public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
@@ -304,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var targetSpan = textView.BufferGraph.MapUpToSnapshot(
                 virtualSnapshotSpan.SnapshotSpan,
                 SpanTrackingMode.EdgeExclusive,
-                textView.TextSnapshot).FirstOrNullable();
+                textView.TextSnapshot).FirstOrNull();
 
             if (targetSpan.HasValue)
             {

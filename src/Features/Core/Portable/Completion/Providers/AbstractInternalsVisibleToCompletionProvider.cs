@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
@@ -250,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var text = root.GetText();
 
                 // Expand selection in both directions until a double quote or any line break character is reached
-                bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
+                static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
 
                 result = CommonCompletionUtilities.GetWordSpan(
                     text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
             var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));

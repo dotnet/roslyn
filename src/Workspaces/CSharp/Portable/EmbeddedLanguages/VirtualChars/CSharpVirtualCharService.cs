@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,10 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
     {
         public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
 
-        protected override bool IsStringLiteralToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.StringLiteralToken;
+        [ImportingConstructor]
+        public CSharpVirtualCharService()
+        {
+        }
 
-        protected override ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token)
+        protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
+            => token.Kind() == SyntaxKind.StringLiteralToken ||
+               token.Kind() == SyntaxKind.CharacterLiteralToken;
+
+        protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
             // C# preprocessor directives can contain string literals.  However, these string
             // literals do not behave like normal literals.  Because they are used for paths (i.e.
@@ -47,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return token.IsVerbatimStringLiteral()
                     ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
                     : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
+            }
+
+            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
+            {
+                return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
             }
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
@@ -80,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private ImmutableArray<VirtualChar> TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+        private VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private ImmutableArray<VirtualChar> TryConvertStringToVirtualChars(
+        private VirtualCharSequence TryConvertStringToVirtualChars(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             var tokenText = token.Text;
@@ -101,44 +111,39 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
-            try
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+
+            var offset = token.SpanStart;
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                var offset = token.SpanStart;
-                for (var index = startIndexInclusive; index < endIndexExclusive;)
+                if (tokenText[index] == '\\')
                 {
-                    if (tokenText[index] == '\\')
+                    if (!TryAddEscape(result, tokenText, offset, index))
                     {
-                        if (!TryAddEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
+                        return default;
+                    }
 
-                        index += result.Last().Span.Length;
-                    }
-                    else if (escapeBraces &&
-                             (tokenText[index] == '{' || tokenText[index] == '}'))
-                    {
-                        if (!TryAddBraceEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
-
-                        index += result.Last().Span.Length;
-                    }
-                    else
-                    {
-                        result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                        index++;
-                    }
+                    index += result.Last().Span.Length;
                 }
+                else if (escapeBraces &&
+                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                {
+                    if (!TryAddBraceEscape(result, tokenText, offset, index))
+                    {
+                        return default;
+                    }
 
-                return result.ToImmutable();
+                    index += result.Last().Span.Length;
+                }
+                else
+                {
+                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
+                    index++;
+                }
             }
-            finally
-            {
-                result.Free();
-            }
+
+            return CreateVirtualCharSequence(
+                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
         private bool TryAddEscape(
@@ -151,6 +156,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                    TryAddMultiCharacterEscape(result, tokenText, offset, index);
         }
 
+        public override bool TryGetEscapeCharacter(char ch, out char escapedChar)
+        {
+            // Keep in sync with TryAddSingleCharacterEscape
+            switch (ch)
+            {
+                // Note: we don't care about single quote as that doesn't need to be escaped when
+                // producing a normal C# string literal.
+
+                // case '\'':
+
+                // escaped characters that translate to themselves.  
+                case '"': escapedChar = '"'; return true;
+                case '\\': escapedChar = '\\'; return true;
+
+                // translate escapes as per C# spec 2.4.4.4
+                case '\0': escapedChar = '0'; return true;
+                case '\a': escapedChar = 'a'; return true;
+                case '\b': escapedChar = 'b'; return true;
+                case '\f': escapedChar = 'f'; return true;
+                case '\n': escapedChar = 'n'; return true;
+                case '\r': escapedChar = 'r'; return true;
+                case '\t': escapedChar = 't'; return true;
+                case '\v': escapedChar = 'v'; return true;
+            }
+
+            escapedChar = default;
+            return false;
+        }
+
         private bool TryAddSingleCharacterEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
         {
@@ -158,6 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             Debug.Assert(tokenText[index] == '\\');
 
             var ch = tokenText[index + 1];
+
+            // Keep in sync with EscapeForRegularString
             switch (ch)
             {
                 // escaped characters that translate to themselves
@@ -261,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     return false;
                 }
 
-                var endIndex = index + 1;
                 for (var i = 0; i < 4; i++)
                 {
                     var ch2 = tokenText[index + i];
@@ -272,7 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     }
 
                     intChar = (intChar << 4) + HexValue(ch2);
-                    endIndex++;
                 }
 
                 character = (char)intChar;
@@ -292,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 var endIndex = index;
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < 4 && endIndex < tokenText.Length; i++)
                 {
                     var ch2 = tokenText[index + i];
                     if (!IsHexDigit(ch2))

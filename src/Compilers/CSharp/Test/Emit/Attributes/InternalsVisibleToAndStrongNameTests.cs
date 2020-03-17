@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -358,7 +360,7 @@ public class Test
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("goo", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
+            Assert.True(((string)err.Arguments[1]).EndsWith("0x80090016)", StringComparison.Ordinal), (string)err.Arguments[1]);
 
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
@@ -1147,7 +1149,7 @@ public class A
                 assemblyName: "John",
                 parseOptions: parseOptions);
 
-            Assert.True(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
+            Assert.True(other.Assembly.GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
         }
 
@@ -1179,7 +1181,7 @@ public class A
                 assemblyName: "John",
                 parseOptions: parseOptions);
 
-            Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
+            Assert.False(other.Assembly.GivesAccessTo(requestor.Assembly));
             requestor.VerifyDiagnostics(
                 // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
                 // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
@@ -1221,7 +1223,7 @@ namespace ClassLibrary2
                 assemblyName: "John",
                 parseOptions: parseOptions);
 
-            Assert.True(((IAssemblySymbol)giver.Assembly).GivesAccessTo(requestor.Assembly));
+            Assert.True(giver.Assembly.GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
         }
         #endregion
@@ -1450,7 +1452,7 @@ public class Z
             Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
             Assert.Equal(2, err.Arguments.Count);
             Assert.Equal("bogus", err.Arguments[0]);
-            Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
+            Assert.True(((string)err.Arguments[1]).EndsWith("0x80090016)", StringComparison.Ordinal), (string)err.Arguments[1]);
         }
 
         [Theory]
@@ -2268,7 +2270,7 @@ public class C
             }
         }
 
-#if !NETCOREAPP2_1
+#if !NETCOREAPP
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()

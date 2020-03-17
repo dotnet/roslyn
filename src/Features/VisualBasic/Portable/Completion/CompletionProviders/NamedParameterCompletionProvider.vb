@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -10,12 +12,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(NamedParameterCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(EnumCompletionProvider))>
+    <[Shared]>
     Partial Friend Class NamedParameterCompletionProvider
         Inherits CommonCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -165,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Dim delegateType = DirectCast(expressionType, INamedTypeSymbol)
                     Return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters.As(Of ISymbol)())
                 ElseIf indexers.Count > 0 Then
-                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughTypeOpt:=expressionType)).
+                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughType:=expressionType)).
                                     Select(Function(i) i.Parameters.As(Of ISymbol)())
                 End If
             End If

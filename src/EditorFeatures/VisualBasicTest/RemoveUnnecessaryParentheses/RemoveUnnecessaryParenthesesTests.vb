@@ -1,8 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Linq
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryParentheses
@@ -18,11 +23,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
             Return (New VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), New VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider())
         End Function
 
-        Private Shadows Async Function TestAsync(initial As String, expected As String, offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean) As Task
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses)
+        Friend Function GetRemoveUnnecessaryParenthesesDiagnostic(text As String, line As Integer, column As Integer) As DiagnosticDescription
+            Return TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation:=New LinePosition(line, column))
+        End Function
+
+        Friend Overrides Function ShouldSkipMessageDescriptionVerification(descriptor As DiagnosticDescriptor) As Boolean
+            Return descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) And descriptor.DefaultSeverity = DiagnosticSeverity.Hidden
+        End Function
+
+        Private Shadows Async Function TestAsync(initial As String, expected As String,
+                                                 offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean,
+                                                 Optional ByVal index As Integer = 0) As Task
+            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index)
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity)
+                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity, index:=index)
             Else
                 Await TestMissingAsync(initial, parameters:=New TestParameters(options:=MyBase.RequireAllParenthesesForClarity))
             End If
@@ -297,7 +312,7 @@ end class",
     sub M()
         dim i = ( 1 + 2 )
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -544,6 +559,88 @@ end class",
         dim x = 1 << 2 << 3
     end sub
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
+        End Function
+
+        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticSingleLineExpression() As Task
+            Dim parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 2, 16)
+            Await TestDiagnosticsAsync(
+"class C
+    sub M()
+        dim x = [|(1 + 2)|]
+    end sub
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), parentheticalExpressionDiagnostic)
+        End Function
+
+        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInMultiLineExpression() As Task
+            Dim firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 2, 16)
+            Await TestDiagnosticsAsync(
+"class C
+    sub M()
+        dim x = [|(1 +
+            2)|]
+    end sub
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), firstLineParentheticalExpressionDiagnostic)
+        End Function
+
+        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedExpression() As Task
+            Dim outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 2, 16)
+            Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 2, 21)
+            Dim expectedDiagnostics = New DiagnosticDescription() {outerParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
+            Await TestDiagnosticsAsync(
+"class C
+    sub M()
+        dim x = [|(1 + (2 + 3) + 4)|]
+    end sub
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+        End Function
+
+        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression() As Task
+            Dim outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 2, 16)
+            Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 3, 12)
+            Dim expectedDiagnostics = New DiagnosticDescription() {outerFirstLineParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
+            Await TestDiagnosticsAsync(
+"class C
+    sub M()
+        dim x = [|(1 + 2 +
+            (3 + 4) +
+            5 + 6)|]
+    end sub
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+        End Function
+
+        <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39529")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestUnnecessaryParenthesisIncludesFadeLocations() As Task
+            Dim input =
+"class C
+    sub M()
+        dim x = [|{|expression:{|fade:(|}1 + 2{|fade:)|}|}|]
+    end sub
+end class"
+
+            Dim parameters = New TestParameters(options:=RemoveAllUnnecessaryParentheses)
+            Using workspace As TestWorkspace = CreateWorkspaceFromOptions(input, parameters)
+                Dim expectedSpans = workspace.Documents.First().AnnotatedSpans
+
+                Dim diagnostics = Await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(False)
+                Dim diagnostic = diagnostics.Single()
+
+                Assert.Equal(3, diagnostic.AdditionalLocations.Count)
+                Assert.Equal(expectedSpans.Item("expression").Item(0), diagnostic.AdditionalLocations.Item(0).SourceSpan)
+                Assert.Equal(expectedSpans.Item("fade").Item(0), diagnostic.AdditionalLocations.Item(1).SourceSpan)
+                Assert.Equal(expectedSpans.Item("fade").Item(1), diagnostic.AdditionalLocations.Item(2).SourceSpan)
+
+                Assert.Equal("[1,2]", diagnostic.Properties.Item(WellKnownDiagnosticTags.Unnecessary))
+            End Using
+
         End Function
     End Class
 End Namespace

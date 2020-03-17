@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -129,15 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return new LinePositionSpan(position2, position1);
         }
 
-        private static LinePosition Max(LinePosition position1, LinePosition position2)
+        public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            return position1 > position2 ? position1 : position2;
-        }
-
-        public static LinePosition GetAdjustedLineColumn(Microsoft.CodeAnalysis.Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
-        {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }

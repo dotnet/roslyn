@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Raise this when new diagnostics are found
         /// </summary>
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+
+        /// <summary>
+        /// Raise this when all diagnostics reported from this update source has cleared
+        /// </summary>
+        event EventHandler DiagnosticsCleared;
 
         /// <summary>
         /// Return true if the source supports GetDiagnostics API otherwise, return false so that the engine can cache data from DiagnosticsUpdated in memory

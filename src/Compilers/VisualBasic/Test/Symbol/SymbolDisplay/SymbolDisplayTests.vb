@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -5028,6 +5030,30 @@ class Outer
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, noQuotesHexadecimalOptions),
                 ChrW(&HFFFE) & "a" & vbNullChar & vbCrLf,
                 SymbolDisplayPartKind.StringLiteral)
+        End Sub
+
+        <Fact>
+        Public Sub AllowDefaultLiteral()
+            Dim text =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Sub Method(Optional cancellationToken as CancellationToken = Nothing)
+    End Sub
+End Class
+                    </file>
+                </compilation>
+
+            Dim formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+            Dim formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral)
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+
+            ' Visual Basic doesn't have default expressions, so AllowDefaultLiteral does not change behavior
+            Const ExpectedText As String = "Sub C.Method(cancellationToken As CancellationToken = Nothing)"
+
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithoutAllowDefaultLiteral, ExpectedText)
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithAllowDefaultLiteral, ExpectedText)
         End Sub
 
         <Fact()>

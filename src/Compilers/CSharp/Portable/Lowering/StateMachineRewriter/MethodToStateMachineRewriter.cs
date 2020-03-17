@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generate return statements from the state machine method body.
         /// </summary>
         protected abstract BoundStatement GenerateReturn(bool finished);
+
+        /// <summary>
+        /// Signal the transition from `try`/`catch` blocks to the `finally` block.
+        /// </summary>
+        protected virtual void CloseTryCatchBlocks()
+        {
+        }
 
         protected readonly SyntheticBoundNodeFactory F;
 
@@ -98,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -273,13 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                Debug.Assert(local.SynthesizedKind.IsLongLived());
-
                 CapturedSymbolReplacement proxy;
                 bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol, out reused, local), isReusable: true);
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
                     proxies.Add(local, proxy);
                 }
 
@@ -387,9 +394,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
         {
-            if (MightContainReferences(field.Type.TypeSymbol))
+            if (MightContainReferences(field.Type))
             {
-                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type.TypeSymbol)));
+                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
         }
 
@@ -407,16 +414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
-                if (MightContainReferences(f.Type.TypeSymbol)) return true;
+                if (MightContainReferences(f.Type)) return true;
             }
             return false;
         }
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
-            // In debug builds we don't reuse any hoisted variable.
-            Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
-
             ArrayBuilder<StateMachineFieldSymbol> fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
@@ -441,14 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
         {
             ArrayBuilder<StateMachineFieldSymbol> fields;
-            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type.TypeSymbol, out fields))
+            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type, out fields))
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
                 }
 
-                _lazyAvailableReusableHoistedFields.Add(field.Type.TypeSymbol, fields = new ArrayBuilder<StateMachineFieldSymbol>());
+                _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
             }
 
             fields.Add(field);
@@ -471,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree);
+                syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
             {
@@ -487,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needsSacrificialEvaluation)
             {
-                var type = TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
+                var type = TypeMap.SubstituteType(local.Type).Type;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
@@ -846,6 +850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
+            CloseTryCatchBlocks();
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(

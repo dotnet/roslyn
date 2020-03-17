@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Xunit;
 using System.Linq;
@@ -291,19 +293,25 @@ class Test
 }").GetParseDiagnostics().Verify(
                 // (8,17): error CS1525: Invalid expression term 'ref'
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(8, 17),
-                // (8,17): error CS1515: 'in' expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(8, 17),
+                // (8,21): error CS1525: Invalid expression term 'readonly'
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_InExpected, "ref").WithLocation(8, 17),
-                // (8,17): error CS0230: Type and identifier are both required in a foreach statement
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(8, 21),
+                // (8,21): error CS1515: 'in' expected
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "ref").WithLocation(8, 17),
-                // (8,17): error CS1525: Invalid expression term 'ref'
+                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(8, 21),
+                // (8,21): error CS0230: Type and identifier are both required in a foreach statement
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(8, 17),
-                // (8,17): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(8, 21),
+                // (8,21): error CS1525: Invalid expression term 'readonly'
                 //         foreach(ref readonly v in ar)
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(8, 21),
+                // (8,21): error CS1026: ) expected
+                //         foreach(ref readonly v in ar)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(8, 21),
+                // (8,21): error CS0106: The modifier 'readonly' is not valid for this item
+                //         foreach(ref readonly v in ar)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(8, 21),
                 // (8,32): error CS1001: Identifier expected
                 //         foreach(ref readonly v in ar)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(8, 32),
@@ -491,7 +499,6 @@ class Test
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
                 );
-
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.ObjectCreationExpression);

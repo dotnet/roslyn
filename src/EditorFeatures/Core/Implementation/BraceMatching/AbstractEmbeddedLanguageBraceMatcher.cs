@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageEditorFeaturesProvider>();
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
             if (languagesProvider != null)
             {
                 foreach (var language in languagesProvider.Languages)
                 {
-                    var braceMatcher = language.BraceMatcher;
+                    var braceMatcher = (language as IEmbeddedLanguageEditorFeatures)?.BraceMatcher;
                     if (braceMatcher != null)
                     {
                         var result = await braceMatcher.FindBracesAsync(

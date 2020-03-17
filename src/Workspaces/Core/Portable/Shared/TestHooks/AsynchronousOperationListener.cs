@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,20 +19,39 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener() :
-            this(featureName: "noname", enableDiagnosticTokens: false)
+        public AsynchronousOperationListener()
+            : this(featureName: "noname", enableDiagnosticTokens: false)
         {
         }
 
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
             _featureName = featureName;
+            _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
+        }
+
+        public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+
+            try
+            {
+                await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
+                return true;
+            }
+            catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                // The cancellation only occurred due to a request to expedite the operation
+                return false;
+            }
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -72,12 +93,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
 
                 _pendingTasks.Clear();
+
+                // Replace the cancellation source used for expediting waits.
+                var oldSource = Interlocked.Exchange(ref _expeditedDelayCancellationTokenSource, new CancellationTokenSource());
+                oldSource.Dispose();
             }
 
             if (_trackActiveTokens)
             {
-                int i = 0;
-                bool removed = false;
+                var i = 0;
+                var removed = false;
                 while (i < _diagnosticTokenList.Count)
                 {
                     if (_diagnosticTokenList[i] == token)
@@ -94,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask()
+        public Task ExpeditedWaitAsync()
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
@@ -105,6 +130,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
+                    // Use CancelAfter to ensure cancellation callbacks are not synchronously invoked under the _gate.
+                    _expeditedDelayCancellationTokenSource.CancelAfter(TimeSpan.Zero);
+
                     // Calling SetResult on a normal TaskCompletionSource can cause continuations to run synchronously
                     // at that point. That's a problem as that may cause additional code to run while we're holding a lock. 
                     // In order to prevent that, we pass along RunContinuationsAsynchronously in order to ensure that 

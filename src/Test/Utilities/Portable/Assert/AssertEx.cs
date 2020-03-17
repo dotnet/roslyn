@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -9,6 +11,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using DiffPlex;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -176,6 +181,23 @@ namespace Roslyn.Test.Utilities
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
         }
 
+        public static void Equal(string expected, string actual)
+        {
+            if (string.Equals(expected, actual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var message = new StringBuilder();
+            message.AppendLine();
+            message.AppendLine("Expected:");
+            message.AppendLine(expected);
+            message.AppendLine("Actual:");
+            message.AppendLine(actual);
+
+            Assert.True(false, message.ToString());
+        }
+
         public static void Equal<T>(
             IEnumerable<T> expected,
             IEnumerable<T> actual,
@@ -208,6 +230,48 @@ namespace Roslyn.Test.Utilities
             }
 
             Assert.True(false, assertMessage);
+        }
+
+        /// <summary>
+        /// Asserts that two strings are equal, and prints a diff between the two if they are not.
+        /// </summary>
+        /// <param name="expected">The expected string. This is presented as the "baseline/before" side in the diff.</param>
+        /// <param name="actual">The actual string. This is presented as the changed or "after" side in the diff.</param>
+        /// <param name="message">The message to precede the diff, if the values are not equal.</param>
+        public static void EqualOrDiff(string expected, string actual, string message = null)
+        {
+            if (expected == actual)
+            {
+                return;
+            }
+
+            var diffBuilder = new InlineDiffBuilder(new Differ());
+            var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
+            var messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine(
+                string.IsNullOrEmpty(message)
+                    ? "Actual and expected values differ. Expected shown in baseline of diff:"
+                    : message);
+
+            foreach (var line in diff.Lines)
+            {
+                switch (line.Type)
+                {
+                    case ChangeType.Inserted:
+                        messageBuilder.Append("+");
+                        break;
+                    case ChangeType.Deleted:
+                        messageBuilder.Append("-");
+                        break;
+                    default:
+                        messageBuilder.Append(" ");
+                        break;
+                }
+
+                messageBuilder.AppendLine(line.Text);
+            }
+
+            Assert.True(false, messageBuilder.ToString());
         }
 
         public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
@@ -545,7 +609,7 @@ namespace Roslyn.Test.Utilities
         {
             if (itemInspector == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
@@ -557,7 +621,7 @@ namespace Roslyn.Test.Utilities
 
             if (itemSeparator == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemSeparator = ", ";
                 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -110,11 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // This uses the field directly. If we haven't yet created the CodeModelProjectCache, then we most definitely
             // don't have any source files we need to handle a rename for. There's no reason to create a cache in that case.
             _codeModelCache?.OnSourceFileRenaming(filePath, newFilePath);
-        }
-
-        EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath)
-        {
-            return this.GetOrCreateFileCodeModel(filePath).Handle;
         }
 
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)

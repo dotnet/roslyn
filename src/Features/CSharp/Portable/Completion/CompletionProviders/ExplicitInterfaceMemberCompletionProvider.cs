@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -16,6 +19,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [Shared]
     internal partial class ExplicitInterfaceMemberCompletionProvider : CommonCompletionProvider
     {
         private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
@@ -32,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        [ImportingConstructor]
+        public ExplicitInterfaceMemberCompletionProvider()
+        {
+        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
@@ -60,14 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken))
+                var targetToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                            .GetPreviousTokenIfTouchingWord(position);
+
+                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
                 {
                     return;
                 }
 
-                var node = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                     .GetPreviousTokenIfTouchingWord(position)
-                                     .Parent;
+                var node = targetToken.Parent;
 
                 if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
                 {
@@ -92,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    if (member.IsAccessor())
+                    if (member.IsAccessor() || member.Kind == SymbolKind.NamedType || !(member.IsAbstract || member.IsVirtual) ||
+                        !semanticModel.IsAccessible(node.SpanStart, member))
                     {
                         continue;
                     }

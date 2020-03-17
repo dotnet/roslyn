@@ -297,4 +297,7 @@
   <data name="Unused_local" xml:space="preserve">
     <value>Unused local</value>
   </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces (experimental)</value>
+  </data>
 </root>

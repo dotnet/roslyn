@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,8 +17,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
 
-        new public void WaitForApplicationIdle()
-            => InProcComponent.WaitForApplicationIdle();
+        public new void WaitForApplicationIdle(TimeSpan timeout)
+            => InProcComponent.WaitForApplicationIdle(timeout);
 
         new public void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void ActivateMainWindow()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var dte = GetDTE();
 

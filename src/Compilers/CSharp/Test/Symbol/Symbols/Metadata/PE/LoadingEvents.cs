@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, instanceEvent.Kind);
             Assert.False(instanceEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.ToTestDisplayString());
 
             CheckAccessorShape(instanceEvent.AddMethod, instanceEvent);
             CheckAccessorShape(instanceEvent.RemoveMethod, instanceEvent);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, staticEvent.Kind);
             Assert.True(staticEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, staticEvent.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, staticEvent.Type.ToTestDisplayString());
 
             CheckAccessorShape(staticEvent.AddMethod, staticEvent);
             CheckAccessorShape(staticEvent.RemoveMethod, staticEvent);
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(@event.IsExtern, @accessor.IsExtern);
 
             Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
-            Assert.Equal(@event.Type.TypeSymbol, accessor.Parameters.Single().Type.TypeSymbol);
+            Assert.Equal(@event.Type, accessor.Parameters.Single().Type);
         }
 
         [Fact]
@@ -128,10 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var mismatchedAddEvent = @class.GetMember<EventSymbol>("AddMismatch");
             var mismatchedRemoveEvent = @class.GetMember<EventSymbol>("RemoveMismatch");
 
-            Assert.NotEqual(mismatchedAddEvent.Type.TypeSymbol, mismatchedAddEvent.AddMethod.Parameters.Single().Type.TypeSymbol);
+            Assert.NotEqual(mismatchedAddEvent.Type, mismatchedAddEvent.AddMethod.Parameters.Single().Type);
             Assert.True(mismatchedAddEvent.MustCallMethodsDirectly);
 
-            Assert.NotEqual(mismatchedRemoveEvent.Type.TypeSymbol, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type.TypeSymbol);
+            Assert.NotEqual(mismatchedRemoveEvent.Type, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type);
             Assert.True(mismatchedRemoveEvent.MustCallMethodsDirectly);
         }
 
@@ -525,7 +527,7 @@ public class C
             Assert.NotNull(field);
 
             Assert.Equal(@event, field.AssociatedSymbol);
-            Assert.Equal(@event.Type.TypeSymbol, field.Type.TypeSymbol);
+            Assert.Equal(@event.Type, field.Type);
         }
 
         [Fact]

@@ -1,16 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 
-            return new[] { visibleSpanOpt.Value };
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
@@ -92,31 +94,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var spanToTag = context.SpansToTag.Single();
 
-            var task1 = ProduceTagsAsync(context, spanToTag, WorkspaceClassificationDelegationService.Instance);
-            var task2 = ProduceTagsAsync(context, spanToTag, EditorClassificationDelegationService.Instance);
-
-            return Task.WhenAll(task1, task2);
-        }
-
-        private Task ProduceTagsAsync<TClassificationService>(
-            TaggerContext<IClassificationTag> context,
-            DocumentSnapshotSpan spanToTag,
-            IClassificationDelegationService<TClassificationService> delegationService)
-            where TClassificationService : class, ILanguageService
-        {
             var document = spanToTag.Document;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var classificationService = document?.GetLanguageService<TClassificationService>();
+            var classificationService = document?.GetLanguageService<IClassificationService>();
             if (classificationService == null)
             {
                 return Task.CompletedTask;
             }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, delegationService, classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }

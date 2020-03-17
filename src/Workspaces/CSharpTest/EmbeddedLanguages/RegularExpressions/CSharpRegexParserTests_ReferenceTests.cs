@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
 using Xunit;
@@ -923,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void ReferenceTest15()
         {
-            Test(@"@""((\w+(\s?)){2,}""", @"<Tree>
+            Test(@"@""((\w+(\s?)){2,}""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -956,10 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
             </SimpleGrouping>
-            <OpenBraceToken>{</OpenBraceToken>
+            <OpenBraceToken>{{</OpenBraceToken>
             <NumberToken value=""2"">2</NumberToken>
             <CommaToken>,</CommaToken>
-            <CloseBraceToken>}</CloseBraceToken>
+            <CloseBraceToken>}}</CloseBraceToken>
           </OpenRangeNumericQuantifier>
         </Sequence>
         <CloseParenToken />
@@ -968,11 +970,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[25..25)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[25..25)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" Text=""((\w+(\s?)){2,}"" />
-    <Capture Name=""1"" Span=""[10..25)"" Text=""((\w+(\s?)){2,}"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""((\w+(\s?)){{2,}}"" />
+    <Capture Name=""1"" Span=""[10..25)"" Text=""((\w+(\s?)){{2,}}"" />
     <Capture Name=""2"" Span=""[11..21)"" Text=""(\w+(\s?))"" />
     <Capture Name=""3"" Span=""[15..20)"" Text=""(\s?)"" />
   </Captures>
@@ -1163,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void ReferenceTest18()
         {
-            Test(@"@""((?'Close-Open'>)[^<>]*)+""", @"<Tree>
+            Test(@"@""((?'Close-Open'>)[^<>]*)+""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <OneOrMoreQuantifier>
@@ -1207,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name Open"" Span=""[20..24)"" Text=""Open"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, "Open")}"" Span=""[20..24)"" Text=""Open"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..35)"" Text=""((?'Close-Open'&gt;)[^&lt;&gt;]*)+"" />
@@ -1823,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void ReferenceTest31()
         {
-            Test(@"@""(?'Close-Open'>)""", @"<Tree>
+            Test(@"@""(?'Close-Open'>)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <BalancingGrouping>
@@ -1845,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name Open"" Span=""[19..23)"" Text=""Open"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, "Open")}"" Span=""[19..23)"" Text=""Open"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..26)"" Text=""(?'Close-Open'&gt;)"" />

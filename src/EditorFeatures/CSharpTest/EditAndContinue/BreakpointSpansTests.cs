@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
                 markup, out var source, out var position, out TextSpan? expectedSpan);
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
-            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
+            var hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
                 tree, position.Value, CancellationToken.None, out var breakpointSpan);
 
             if (isLine)
@@ -76,8 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         public static IEnumerable<TextSpan> GetBreakpointSequence(SyntaxNode root, int position)
         {
-            int endPosition = root.Span.End;
-            int lastSpanEnd = 0;
+            var endPosition = root.Span.End;
+            var lastSpanEnd = 0;
             while (position < endPosition)
             {
                 if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)

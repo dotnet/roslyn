@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -61,12 +65,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CreateRemoteHostServices,
             LazyThreadSafetyMode.ExecutionAndPublication);
 
-        private MefHostServices _hostServices;
+        private MefHostServices? _hostServices;
 
         public override void Before(MethodInfo methodUnderTest)
         {
-            MefHostServices.HookServiceCreation(CreateMefHostServices);
-            RoslynServices.HookHostServices(() => _remoteHostServices.Value);
+            MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
+            RoslynServices.TestAccessor.HookHostServices(() => _remoteHostServices.Value);
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
@@ -90,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var exportProvider = ExportProviderCache.ExportProviderForCleanup;
             try
             {
-                var listenerProvider = exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault();
-                if (listenerProvider != null)
+                if (exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
                 {
                     if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
                     {
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // execution after a delay are not immediately purged when cancellation is requested. This code
                         // instructs the service to walk the list of queued work items and immediately cancel and purge any
                         // which are already cancelled.
-                        var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
+                        var foregroundNotificationService = exportProvider.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
                         foregroundNotificationService?.ReleaseCancelledItems();
                     }
 
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     // Verify the synchronization context was not used incorrectly
                     var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
-                    if (testExportJoinableTaskContext?.SynchronizationContext is ThreadingContext.DenyExecutionSynchronizationContext synchronizationContext)
+                    if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
                     {
                         synchronizationContext.ThrowIfSwitchOccurred();
                     }
@@ -140,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
-                MefHostServices.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
-                RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
+                MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
+                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
                 _hostServices = null;

@@ -1,25 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.Options
+#endif
 {
     internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
     {
-        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object result)
         {
-            var tuple = ParseDictionary(underlyingOption, allRawConventions, type);
+            var tuple = ParseDictionary(rawOptions, type);
             result = tuple.result;
             return tuple.succeeded;
         }
 
         private static (object result, bool succeeded) ParseDictionary(
-            object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type)
+            IReadOnlyDictionary<string, string?> allRawConventions, Type type)
         {
             if (type == typeof(NamingStylePreferences))
             {
@@ -33,21 +40,11 @@ namespace Microsoft.CodeAnalysis.Options
                     return (result: editorconfigNamingStylePreferences, succeeded: false);
                 }
 
-                if (underlyingOption is NamingStylePreferences workspaceNamingStylePreferences)
-                {
-                    // We parsed naming styles from editorconfig, append them to our existing styles
-                    var combinedNamingStylePreferences = workspaceNamingStylePreferences.PrependNamingStylePreferences(editorconfigNamingStylePreferences);
-                    return (result: combinedNamingStylePreferences, succeeded: true);
-                }
-
                 // no existing naming styles were passed so just return the set of styles that were parsed from editorconfig
                 return (result: editorconfigNamingStylePreferences, succeeded: true);
             }
-            else
-            {
-                return Contract.FailWithReturn<(object, bool)>(
-                    $"{nameof(NamingStylePreferenceEditorConfigStorageLocation)} can only be called with {nameof(PerLanguageOption<NamingStylePreferences>)}<{nameof(NamingStylePreferences)}>.");
-            }
+
+            throw ExceptionUtilities.UnexpectedValue(type);
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.IO;
@@ -16,15 +20,36 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class NamedPipeUtil
     {
+        // Size of the buffers to use: 64K
+        private const int PipeBufferSize = 0x10000;
+
+        private static string GetPipeNameOrPath(string pipeName)
+        {
+            if (PlatformInformation.IsUnix)
+            {
+                // If we're on a Unix machine then named pipes are implemented using Unix Domain Sockets.
+                // Most Unix systems have a maximum path length limit for Unix Domain Sockets, with
+                // Mac having a particularly short one. Mac also has a generated temp directory that
+                // can be quite long, leaving very little room for the actual pipe name. Fortunately,
+                // '/tmp' is mandated by POSIX to always be a valid temp directory, so we can use that
+                // instead.
+                return Path.Combine("/tmp", pipeName);
+            }
+            else
+            {
+                return pipeName;
+            }
+        }
+
         /// <summary>
         /// Create a client for the current user only.
         /// </summary>
-        internal static NamedPipeClientStream CreateClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
-            new NamedPipeClientStream(serverName, pipeName, direction, options | CurrentUserOption);
+        internal static NamedPipeClientStream CreateClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options)
+            => new NamedPipeClientStream(serverName, GetPipeNameOrPath(pipeName), direction, options | CurrentUserOption);
 
         /// <summary>
         /// Does the client of "pipeStream" have the same identity and elevation as we do? The <see cref="CreateClient"/> and 
-        /// <see cref="CreateServer" /> methods will already guarantee that the identity of the client and server are the 
+        /// <see cref="CreateServer(string, PipeDirection?)" /> methods will already guarantee that the identity of the client and server are the 
         /// same. This method is attempting to validate that the elevation level is the same between both ends of the 
         /// named pipe (want to disallow low priv session sending compilation requests to an elevated one).
         /// </summary>
@@ -53,6 +78,22 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        /// <summary>
+        /// Create a server for the current user only
+        /// </summary>
+        internal static NamedPipeServerStream CreateServer(string pipeName, PipeDirection? pipeDirection = null)
+        {
+            var pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
+            return CreateServer(
+                pipeName,
+                pipeDirection ?? PipeDirection.InOut,
+                NamedPipeServerStream.MaxAllowedServerInstances,
+                PipeTransmissionMode.Byte,
+                pipeOptions,
+                PipeBufferSize,
+                PipeBufferSize);
+        }
+
 #if NET472
 
         const int s_currentUserOnlyValue = unchecked((int)0x20000000);
@@ -65,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             ? (PipeOptions)s_currentUserOnlyValue
             : PipeOptions.None;
 
-        internal static NamedPipeServerStream CreateServer(
+        private static NamedPipeServerStream CreateServer(
             string pipeName,
             PipeDirection direction,
             int maxNumberOfServerInstances,
@@ -74,7 +115,7 @@ namespace Microsoft.CodeAnalysis
             int inBufferSize,
             int outBufferSize) =>
             new NamedPipeServerStream(
-                pipeName,
+                GetPipeNameOrPath(pipeName),
                 direction,
                 maxNumberOfServerInstances,
                 transmissionMode,
@@ -104,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        internal static PipeSecurity CreatePipeSecurity()
+        internal static PipeSecurity? CreatePipeSecurity()
         {
             if (PlatformInformation.IsRunningOnMono)
             {
@@ -125,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             return security;
         }
 
-#elif NETCOREAPP2_1
+#elif NETCOREAPP
 
         private static PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 
@@ -133,9 +174,9 @@ namespace Microsoft.CodeAnalysis
         internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream) => true;
 
         // Validation is handled by CurrentUserOnly
-        internal static PipeSecurity CreatePipeSecurity() => null;
+        internal static PipeSecurity? CreatePipeSecurity() => null;
 
-        internal static NamedPipeServerStream CreateServer(
+        private static NamedPipeServerStream CreateServer(
             string pipeName,
             PipeDirection direction,
             int maxNumberOfServerInstances,
@@ -144,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             int inBufferSize,
             int outBufferSize) =>
             new NamedPipeServerStream(
-                pipeName,
+                GetPipeNameOrPath(pipeName),
                 direction,
                 maxNumberOfServerInstances,
                 transmissionMode,

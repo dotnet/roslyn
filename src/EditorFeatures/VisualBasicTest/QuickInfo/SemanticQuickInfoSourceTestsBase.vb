@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
                     edit.Apply()

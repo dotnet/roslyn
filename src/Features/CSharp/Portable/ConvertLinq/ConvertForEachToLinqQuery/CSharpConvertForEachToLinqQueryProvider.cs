@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -21,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     internal sealed class CSharpConvertForEachToLinqQueryProvider
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForEachToLinqQueryProvider()
+        {
+        }
+
         protected override IConverter<ForEachStatementSyntax, StatementSyntax> CreateDefaultConverter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
             => new DefaultConverter(forEachInfo);
@@ -38,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var current = forEachStatement.Statement;
-            // Traverse descentants of the forEachStatement.
+            // Traverse descendants of the forEachStatement.
             // If a statement traversed can be converted into a query clause, 
             //  a. Add it to convertingNodesBuilder.
             //  b. set the current to its nested statement and proceed.
@@ -277,16 +284,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                     var yieldStatementsCount = memberDeclarationSyntax.DescendantNodes().OfType<YieldStatementSyntax>()
                         // Exclude yield statements from nested local functions.
-                        .Where(statement => semanticModel.GetEnclosingSymbol(
-                            statement.SpanStart, cancellationToken) == memberDeclarationSymbol).Count();
+                        .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
+                            statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block) &&
-                        forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)
+                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
+                        block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
                         // a. There are either just a single 'yield return' or 'yield return' with 'yield break' just after.
                         // b. Those foreach and 'yield break' (if exists) are last statements in the method (do not count local function declaration statements).
-                        var statementsOnBlockWithForEach = ((BlockSyntax)forEachInfo.ForEachStatement.Parent).Statements
+                        var statementsOnBlockWithForEach = block.Statements
                             .Where(statement => statement.Kind() != SyntaxKind.LocalFunctionStatement).ToArray();
                         var lastNonLocalFunctionStatement = statementsOnBlockWithForEach.Last();
                         if (yieldStatementsCount == 1 && lastNonLocalFunctionStatement == forEachInfo.ForEachStatement)

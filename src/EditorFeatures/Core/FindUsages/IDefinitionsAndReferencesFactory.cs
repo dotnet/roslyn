@@ -1,13 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
+        [ImportingConstructor]
+        public DefaultDefinitionsAndReferencesFactory()
+        {
+        }
+
         /// <summary>
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
@@ -79,7 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             //
             // This ensures that the type will both display properly to the user, as well as ensuring
             // that we can accurately resolve the type later on when we try to navigate to it.
-            definition = definition.OriginalDefinition;
+            if (!definition.IsTupleField())
+            {
+                // In an earlier implementation of the compiler APIs, tuples and tuple fields symbols were definitions
+                // We pretend this is still the case
+                definition = definition.OriginalDefinition;
+            }
 
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
@@ -88,9 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
             var properties = GetProperties(definition);
+
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -138,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(),
-                nameDisplayParts, properties, displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutable(),
+                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
         private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
@@ -187,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.ValueUsageInfo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
@@ -219,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
             .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

@@ -1,23 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
-    <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
-         but gets included in lots of output items like VSIX. -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">false</GenerateRuntimeConfigurationFiles>
+    <!-- 
+      Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+      but gets included in lots of output items like VSIX.
+    -->
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
 
-    <!-- Place VS insertion (CoreXT) packages to a separate directory -->
-    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(DevDivPackagesDir)</PackageOutputPath>
+    <!--
+      When building a .NET Core exe make sure to include the template runtimeconfig.json file 
+      which has all of our global settings 
+    -->
+    <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+    -->
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -38,11 +49,6 @@
     <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
     <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
-
-  <!-- Add the UnitTestContainer project capability -->
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <ProjectCapability Include="UnitTestContainer" />
-  </ItemGroup>
 
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
@@ -87,7 +93,7 @@
   <Target Name="_AddCommitHashAttribute"
           DependsOnTargets="InitializeSourceControlInformation"
           BeforeTargets="GetAssemblyAttributes"
-          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <ItemGroup>
       <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
         <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
@@ -100,9 +106,7 @@
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
 
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
-  </Target>
+  <Import Project="Bootstrap.targets" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
     When running our determinism tests we need to copy the diagnostic file from the intermediate directory
@@ -168,13 +172,6 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
-  <!-- CPS doesn't show these items by default, but we want to show them. -->
-  <ItemGroup>
-    <!-- XAML pages and resources -->
-    <None Include="@(Page)" />
-    <None Include="@(Resource)" />
-  </ItemGroup>
-
   <!-- 
     Add ThirdPartyNotices.rtf to all shipping NuGet packages.
   -->
@@ -188,7 +185,7 @@
   <Target Name="_AppendCommonPackageDescription" 
           BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
           DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(IsPackable)' == 'true'">
+          Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <PropertyGroup>
       <PackageDescription>
       $(PackageDescription)
@@ -211,7 +208,6 @@
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
@@ -223,6 +219,30 @@
     <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\install.ps1" PackagePath="tools\install.ps1" Visible="false" Pack="true"/>
     <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\uninstall.ps1" PackagePath="tools\uninstall.ps1" Visible="false" Pack="true"/>
   </ItemGroup>
+
+  <!-- RestrictedInternalsVisibleTo -->
+  <ItemDefinitionGroup>
+    <RestrictedInternalsVisibleTo>
+      <Visible>false</Visible>
+    </RestrictedInternalsVisibleTo>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="@(RestrictedInternalsVisibleTo)" Key="%(Key)" />
+  </ItemGroup>
+
+  <Target Name="PrepareGenerateRestrictedInternalsVisibleTo"
+          BeforeTargets="PrepareGenerateInternalsVisibleToFile"
+          Condition="'@(RestrictedInternalsVisibleTo)' != ''">
+    <ItemGroup>
+      <_InternalsVisibleToAttribute Include="System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute">
+        <_Parameter1>%(RestrictedInternalsVisibleTo.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(RestrictedInternalsVisibleTo.Partner)' != ''">Microsoft.CodeAnalysis.ExternalAccess.%(RestrictedInternalsVisibleTo.Partner).Api</_Parameter2>
+      </_InternalsVisibleToAttribute>
+    </ItemGroup>
+
+    <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' attribute. Target assembly: %(Identity)" />
+  </Target>
 
   <!--
     Ensure TargetFrameworkMonikerAssemblyAttributeText is treated as auto-generated
@@ -236,5 +256,63 @@
         $(TargetFrameworkMonikerAssemblyAttributeText)
       </TargetFrameworkMonikerAssemblyAttributeText>
     </PropertyGroup>
+  </Target>
+
+  <Target Name="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs">
+    <PropertyGroup>
+      <_OriginalApplicationManifestPath>$(RepositoryEngineeringDir)config\app.manifest</_OriginalApplicationManifestPath>
+      <_UpdatedApplicationManifestPath>$(IntermediateOutputPath)$(AssemblyName).exe.manifest</_UpdatedApplicationManifestPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Sets the values of "version" and "name" attributes in assemblyIdentity element in the application manifest file
+    with values $(AssemblyVersion) and $(AssemblyName) to avoid hardcoding those in the manifest file.
+  -->
+  <Target Name="_SubstituteVariablesInApplicationManifest"
+          BeforeTargets="_SetExternalWin32ManifestProperties;_SetEmbeddedWin32ManifestProperties"
+          DependsOnTargets="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs;GetAssemblyVersion"
+          Inputs="$(_OriginalApplicationManifestPath)"
+          Outputs="$(_UpdatedApplicationManifestPath)"
+          Condition="'$(OutputType)' == 'Exe' And '$(TargetFramework)' == 'net472'">
+
+    <Copy SourceFiles="$(_OriginalApplicationManifestPath)" DestinationFiles="$(_UpdatedApplicationManifestPath)" />
+
+    <PropertyGroup>
+      <_Namespace>
+        <Namespace Prefix="asm" Uri="urn:schemas-microsoft-com:asm.v1" />
+      </_Namespace>
+    </PropertyGroup>
+
+    <!-- Update version attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyVersion)"
+             Query="/asm:assembly/asm:assemblyIdentity/@version"
+             Namespaces="$(_Namespace)"/>
+
+    <!-- Update name attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyName)"
+             Query="/asm:assembly/asm:assemblyIdentity/@name"
+             Namespaces="$(_Namespace)"/>
+
+    <PropertyGroup>
+      <ApplicationManifest>$(_UpdatedApplicationManifestPath)</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <FileWrites Include="$(_UpdatedApplicationManifestPath)"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
+  -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll': '$(TargetFileName)'"
+           Condition="$(IsUnitTestProject) != $(TargetFileName.EndsWith('.UnitTests.dll'))" />
+
+    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
+           Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
   </Target>
 </Project>

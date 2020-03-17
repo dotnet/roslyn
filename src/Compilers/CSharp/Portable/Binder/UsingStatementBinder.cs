@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,6 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
+
+                // gather expression-declared variables from invalid array dimensions. eg. using(int[x is var y] z = new int[0])
+                declarationSyntax.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    foreach (var size in rankSpecifier.Sizes)
+                    {
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
+                    }
+                }, (binder: this, locals: locals));
+
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
                     locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
@@ -83,18 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)disposableInterface != null);
             bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
 
-            Conversion iDisposableConversion = Conversion.NoConversion;
+            Conversion iDisposableConversion;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations multipleDeclarationsOpt = null;
             BoundExpression expressionOpt = null;
-            AwaitableInfo awaitOpt = null;
             TypeSymbol declarationTypeOpt = null;
-            MethodSymbol disposeMethodOpt = null;
+            MethodSymbol disposeMethodOpt;
+            TypeSymbol awaitableTypeOpt;
 
             if (isExpression)
             {
                 expressionOpt = usingBinderOpt.BindTargetExpression(diagnostics, originalBinder);
-                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true);
+                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true, out iDisposableConversion, out disposeMethodOpt, out awaitableTypeOpt);
             }
             else
             {
@@ -103,29 +118,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(!declarationsOpt.IsEmpty);
                 multipleDeclarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarationsOpt);
-                declarationTypeOpt = declarationsOpt[0].DeclaredType.Type;
+                declarationTypeOpt = declarationsOpt[0].DeclaredTypeOpt.Type;
 
                 if (declarationTypeOpt.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
+                    disposeMethodOpt = null;
+                    awaitableTypeOpt = null;
                 }
                 else
                 {
-                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false);
+                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false, out iDisposableConversion, out disposeMethodOpt, out awaitableTypeOpt);
                 }
             }
 
+            BoundAwaitableInfo awaitOpt = null;
             if (hasAwait)
             {
-                TypeSymbol taskType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, awaitKeyword);
+                // even if we don't have a proper value to await, we'll still report bad usages of `await`
+                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntax, taskType).MakeCompilerGenerated();
-                awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                if (awaitableTypeOpt is null)
+                {
+                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    hasErrors |= ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
+                    awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
+                }
             }
 
             // This is not awesome, but its factored. 
-            // In the future it might be better to have a seperate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
+            // In the future it might be better to have a separate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
             if (isUsingDeclaration)
             {
                 return new BoundUsingLocalDeclarations(syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, declarationsOpt, hasErrors);
@@ -146,31 +172,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors);
             }
 
-            bool populateDisposableConversionOrDisposeMethod(bool fromExpression)
+            bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodSymbol disposeMethodOpt, out TypeSymbol awaitableTypeOpt)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
+                disposeMethodOpt = null;
+                awaitableTypeOpt = null;
 
                 diagnostics.Add(syntax, useSiteDiagnostics);
 
                 if (iDisposableConversion.IsImplicit)
                 {
+                    if (hasAwait)
+                    {
+                        awaitableTypeOpt = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                    }
                     return true;
                 }
 
                 TypeSymbol type = fromExpression ? expressionOpt.Type : declarationTypeOpt;
 
-                // If this is a ref struct, try binding via pattern.
+                // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
                 // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                if (!(type is null) && type.IsValueType && type.IsRefLikeType)
+                if (type is object && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression receiver = fromExpression
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
-                    if (!(disposeMethodOpt is null))
+                    DiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations)
+                                                       ? diagnostics
+                                                       : new DiagnosticBag();
+                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
+                    if (disposeMethodOpt is object)
                     {
+                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
+                        if (hasAwait)
+                        {
+                            awaitableTypeOpt = disposeMethodOpt.ReturnType;
+                        }
                         return true;
                     }
                 }

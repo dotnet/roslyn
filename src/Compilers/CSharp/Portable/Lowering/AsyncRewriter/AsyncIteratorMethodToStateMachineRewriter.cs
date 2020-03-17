@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
-        /// When we enter a `try` that has a `finally`, we'll use the label directly preceding the `finally`.
-        /// When we enter a `try` that has an extracted `finally`, we will use the label preceding the extracted `finally`.
+        /// Inside a `try` or `catch` with a `finally`, we'll use the label directly preceding the `finally`.
+        /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
+        /// Inside a `finally`, we will use the label terminating the `finally` (to avoid restrictions with leave opcode).
         /// </summary>
-        private LabelSymbol _enclosingFinallyOrExitLabel;
+        private LabelSymbol _enclosingFinallyEntryOrFinallyExitOrExitLabel;
+        private ArrayBuilder<LabelSymbol> _previousDisposalLabels;
 
         /// <summary>
         /// We use _exprReturnLabel for normal end of method (ie. no more values) and `yield break;`.
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
-            _enclosingFinallyOrExitLabel = _exprReturnLabel;
+            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
         }
 
@@ -66,7 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
 
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // this.promiseOfValueOrEnd.SetResult(false);
+            // this.builder.Complete();
             // return;
             // _exprReturnLabelTrue:
             // this.promiseOfValueOrEnd.SetResult(true);
@@ -74,13 +81,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... _exitLabel: ...
             // ... return; ...
 
-            return F.Block(
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            AddDisposeCombinedTokensIfNeeded(builder);
+
+            builder.AddRange(
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
+                GenerateCompleteOnBuilder(),
                 F.Return(),
                 F.Label(_exprReturnLabelTrue),
                 // this.promiseOfValueOrEnd.SetResult(true);
                 generateSetResultOnPromise(true));
+
+            return F.Block(builder.ToImmutableAndFree());
 
             BoundExpressionStatement generateSetResultOnPromise(bool result)
             {
@@ -91,23 +106,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpressionStatement GenerateCompleteOnBuilder()
+        {
+            // Produce:
+            // this.builder.Complete();
+            return F.ExpressionStatement(
+                F.Call(
+                    F.Field(F.This(), _asyncMethodBuilderField),
+                        _asyncMethodBuilderMemberCollection.SetResult, // AsyncIteratorMethodBuilder.Complete is the corresponding method to AsyncTaskMethodBuilder.SetResult
+                        ImmutableArray<BoundExpression>.Empty));
+        }
+
+        private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
+        {
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            if (_asyncIteratorInfo.CombinedTokensField is object)
+            {
+                var combinedTokens = F.Field(F.This(), _asyncIteratorInfo.CombinedTokensField);
+                TypeSymbol combinedTokensType = combinedTokens.Type;
+
+                builder.Add(
+                    F.If(F.ObjectNotEqual(combinedTokens, F.Null(combinedTokensType)),
+                        thenClause: F.Block(
+                            F.ExpressionStatement(F.Call(combinedTokens, F.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose))),
+                            F.Assignment(combinedTokens, F.Null(combinedTokensType)))));
+            }
+        }
+
         protected override BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
         {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
+            AddDisposeCombinedTokensIfNeeded(builder);
+
             // _promiseOfValueOrEnd.SetException(ex);
-            return F.ExpressionStatement(F.Call(
+            builder.Add(F.ExpressionStatement(F.Call(
                 F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
-                F.Local(exceptionLocal)));
+                F.Local(exceptionLocal))));
+
+            // this.builder.Complete();
+            builder.Add(GenerateCompleteOnBuilder());
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         private BoundStatement GenerateJumpToCurrentFinallyOrExit()
         {
-            Debug.Assert((object)_enclosingFinallyOrExitLabel != null);
+            Debug.Assert((object)_enclosingFinallyEntryOrFinallyExitOrExitLabel != null);
             return F.If(
                 // if (disposeMode)
                 F.InstanceField(_asyncIteratorInfo.DisposeModeField),
                 // goto finallyOrExitLabel;
-                thenClause: F.Goto(_enclosingFinallyOrExitLabel));
+                thenClause: F.Goto(_enclosingFinallyEntryOrFinallyExitOrExitLabel));
         }
 
         private BoundStatement AppendJumpToCurrentFinallyOrExit(BoundStatement node)
@@ -225,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // disposeMode = true;
                 SetDisposeMode(true),
                 // goto _enclosingFinallyOrExitLabel;
-                F.Goto(_enclosingFinallyOrExitLabel));
+                F.Goto(_enclosingFinallyEntryOrFinallyExitOrExitLabel));
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)
@@ -248,30 +300,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            LabelSymbol parentFinallyOrExitLabel = _enclosingFinallyOrExitLabel;
+            _previousDisposalLabels ??= new ArrayBuilder<LabelSymbol>();
+            _previousDisposalLabels.Push(_enclosingFinallyEntryOrFinallyExitOrExitLabel);
+
+            var finallyExit = F.GenerateLabel("finallyExit");
+            _previousDisposalLabels.Push(finallyExit);
 
             if (node.FinallyBlockOpt != null)
             {
                 var finallyEntry = F.GenerateLabel("finallyEntry");
-                _enclosingFinallyOrExitLabel = finallyEntry;
+                _enclosingFinallyEntryOrFinallyExitOrExitLabel = finallyEntry;
 
                 // Add finallyEntry label:
                 //  try
                 //  {
                 //      ...
                 //      finallyEntry:
+
+                // Add finallyExit label:
+                //  finally
+                //  {
+                //      ...
+                //      finallyExit:
+                //  }
                 node = node.Update(
                     tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                    node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+                    node.CatchBlocks, F.Block(node.FinallyBlockOpt, F.Label(finallyExit)), node.FinallyLabelOpt, node.PreferFaultHandler);
             }
             else if ((object)node.FinallyLabelOpt != null)
             {
-                _enclosingFinallyOrExitLabel = node.FinallyLabelOpt;
+                _enclosingFinallyEntryOrFinallyExitOrExitLabel = node.FinallyLabelOpt;
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            _enclosingFinallyOrExitLabel = parentFinallyOrExitLabel;
+            // While inside the try and catch blocks, we'll use the current finallyEntry label for disposal
+            // As soon as we close the try and catch blocks (ie. possibly enter the finally block), we'll use the finallyExit label for disposal (restored/popped from the stack by CloseTryCatchBlocks)
+            Debug.Assert(_enclosingFinallyEntryOrFinallyExitOrExitLabel == finallyExit);
+
+            // When exiting the try statement, we restore the previous disposal label.
+            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
 
             if (node.FinallyBlockOpt != null)
             {
@@ -283,6 +351,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we add this jump to extracted `finally` blocks as well, using `VisitExtractedFinallyBlock` below
 
             return result;
+        }
+
+        protected override void CloseTryCatchBlocks()
+        {
+            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
         }
 
         /// <summary>

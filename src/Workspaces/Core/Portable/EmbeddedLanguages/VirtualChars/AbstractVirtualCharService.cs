@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,8 +10,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
-        protected abstract bool IsStringLiteralToken(SyntaxToken token);
-        protected abstract ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token);
+        public abstract bool TryGetEscapeCharacter(char ch, out char escapedChar);
+
+        protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
+        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        public ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token)
+        public VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         {
             // We don't process any strings that contain diagnostics in it.  That means that we can 
             // trust that all the string's contents (most importantly, the escape sequences) are well
@@ -42,14 +44,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             var result = TryConvertToVirtualCharsWorker(token);
-
             CheckInvariants(token, result);
 
             return result;
         }
 
         [Conditional("DEBUG")]
-        private void CheckInvariants(SyntaxToken token, ImmutableArray<VirtualChar> result)
+        private void CheckInvariants(SyntaxToken token, VirtualCharSequence result)
         {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                if (IsStringLiteralToken(token))
+                if (IsStringOrCharLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
                     var actualValueText = result.CreateString();
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     var currentVC = result[0];
                     Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     var lastVC = result.Last();
 
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
                     }
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-        protected static ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
+        protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
@@ -132,9 +133,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
-
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
             var offset = token.SpanStart;
+
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
                 if (tokenText[index] == '"' &&
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     index += 2;
                 }
                 else if (escapeBraces &&
-                         (tokenText[index] == '{' || tokenText[index] == '}'))
+                            (tokenText[index] == '{' || tokenText[index] == '}'))
                 {
                     if (!TryAddBraceEscape(result, tokenText, offset, index))
                     {
@@ -160,7 +161,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return CreateVirtualCharSequence(
+                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+        }
+
+        protected static VirtualCharSequence CreateVirtualCharSequence(
+            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result)
+        {
+            // Check if we actually needed to create any special virtual chars.
+            // if not, we can avoid the entire array allocation and just wrap
+            // the text of the token and pass that back.
+
+            var textLength = endIndexExclusive - startIndexInclusive;
+            if (textLength == result.Count)
+            {
+                var sequence = VirtualCharSequence.Create(offset, tokenText);
+                return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+            }
+
+            return VirtualCharSequence.Create(result.ToImmutable());
         }
     }
 }

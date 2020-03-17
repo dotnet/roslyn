@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -39,30 +40,31 @@ namespace Microsoft.CodeAnalysis.TodoComments
             // make sure given input is right one
             Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
 
-            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
-            // so inproc one will always run
-            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null && !document.IsOpen())
+            // run todo scanner on remote host. 
+            // we only run closed files to make open document to have better responsiveness. 
+            // also we cache everything related to open files anyway, no saving by running
+            // them in remote host
+            if (!document.IsOpen())
             {
-                // run todo scanner on remote host. 
-                // we only run closed files to make open document to have better responsiveness. 
-                // also we cache everything related to open files anyway, no saving by running
-                // them in remote host
-                return await GetTodoCommentsInRemoteHostAsync(client, document, commentDescriptors, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<IList<TodoComment>>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                        document.Project.Solution,
+                        new object[] { document.Id, commentDescriptors },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
             }
 
             return await GetTodoCommentsInCurrentProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            var result = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
-                document.Project.Solution,
-                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
-
-            return result ?? SpecializedCollections.EmptyList<TodoComment>();
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(

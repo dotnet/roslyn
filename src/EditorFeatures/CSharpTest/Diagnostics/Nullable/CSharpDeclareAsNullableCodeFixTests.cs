@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
         private readonly string NonNullTypes = @"
-" + Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase.NonNullTypesOn() + @"
+#nullable enable
 ";
 
         [Fact]
@@ -469,6 +471,140 @@ class Program
         {
             yield return null;
         }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        public async Task FixReturnType_ConditionalOperator_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool? value)
+    {
+        return [|value?.ToString()|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool? value)
+    {
+        return value?.ToString();
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(39422, "https://github.com/dotnet/roslyn/issues/39422")]
+        public async Task FixAllReturnType_ConditionalOperator_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool? value)
+    {
+        return {|FixAllInDocument:value?.ToString()|};
+    }
+
+    string Test1(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string? Test1(bool? value)
+    {
+        return value?.ToString();
+    }
+
+    string Test2(bool? value)
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(39420, "https://github.com/dotnet/roslyn/issues/39420")]
+        public async Task FixReturnType_TernaryExpression_Function()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test(bool value)
+    {
+        return [|value ? ""text"" : null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test(bool value)
+    {
+        return value ? ""text"" : null;
+    }
+}", parameters: s_nullableFeature);
+        }
+        [Fact]
+        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        public async Task FixReturnType_Default()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test()
+    {
+        return [|default|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test()
+    {
+        return default;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(39423, "https://github.com/dotnet/roslyn/issues/39423")]
+        public async Task FixReturnType_DefaultWithNullableType()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    string Test()
+    {
+        return [|default(string)|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    string? Test()
+    {
+        return default(string);
     }
 }", parameters: s_nullableFeature);
         }

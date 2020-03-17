@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,27 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     internal static class IntegrationHelper
     {
-        public static bool BlockInput()
-        {
-            var success = NativeMethods.BlockInput(true);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-
-                if (hresult == VSConstants.E_ACCESSDENIED)
-                {
-                    Debug.WriteLine("Input cannot be blocked because the system requires Administrative privileges.");
-                }
-                else
-                {
-                    Debug.WriteLine("Input cannot be blocked because another thread has blocked the input.");
-                }
-            }
-
-            return success;
-        }
-
         public static void CreateDirectory(string path, bool deleteExisting = false)
         {
             if (deleteExisting)
@@ -199,7 +180,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static void SetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
+            activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
             NativeMethods.SwitchToThisWindow(activeWindow, true);
+
+            if (!NativeMethods.SetForegroundWindow(activeWindow))
+            {
+                if (!NativeMethods.AllocConsole())
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                try
+                {
+                    var consoleWindow = NativeMethods.GetConsoleWindow();
+                    if (consoleWindow == IntPtr.Zero)
+                    {
+                        throw new InvalidOperationException("Failed to obtain the console window.");
+                    }
+
+                    if (!NativeMethods.SetWindowPos(consoleWindow, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOZORDER))
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+                finally
+                {
+                    if (!NativeMethods.FreeConsole())
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+
+                if (!NativeMethods.SetForegroundWindow(activeWindow))
+                {
+                    throw new InvalidOperationException("Failed to set the foreground window.");
+                }
+            }
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
@@ -225,7 +241,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 switch (input.Type)
                 {
                     case NativeMethods.INPUT_KEYBOARD:
-                        LogKeyboardInput(input.ki);
+                        LogKeyboardInput(input.Input.ki);
                         break;
                     case NativeMethods.INPUT_MOUSE:
                         Debug.WriteLine("UNEXPECTED: Encountered mouse input");
@@ -414,7 +430,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var moniker = monikers[0];
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
-                // FullDisplayName will look something like: <ProgID>:<ProccessId>
+                // FullDisplayName will look something like: <ProgID>:<ProcessId>
                 var displayNameParts = fullDisplayName.Split(':');
                 if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
                 {
@@ -430,17 +446,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             while (dte == null);
 
             return (DTE)dte;
-        }
-
-        public static void UnblockInput()
-        {
-            var success = NativeMethods.BlockInput(false);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                throw new ExternalException("Input cannot be unblocked because it was blocked by another thread.", hresult);
-            }
         }
 
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)

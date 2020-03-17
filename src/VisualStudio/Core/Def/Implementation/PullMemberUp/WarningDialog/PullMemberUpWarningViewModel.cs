@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
                 options.MemberAnalysisResults.Any(result => result.ChangeDestinationTypeToAbstract))
             {
                 Logger.Log(FunctionId.PullMembersUpWarning_ChangeTargetToAbstract);
-                warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, options.Destination.ToDisplayString()));
+                warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, options.Destination.Name));
             }
 
             foreach (var result in options.MemberAnalysisResults)
@@ -34,13 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
                 if (result.ChangeOriginalToPublic)
                 {
                     Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToPublic);
-                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_public, result.Member.ToDisplayString()));
+                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_public, result.Member.Name));
                 }
 
                 if (result.ChangeOriginalToNonStatic)
                 {
                     Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToNonStatic);
-                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_non_static, result.Member.ToDisplayString()));
+                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_non_static, result.Member.Name));
                 }
             }
 

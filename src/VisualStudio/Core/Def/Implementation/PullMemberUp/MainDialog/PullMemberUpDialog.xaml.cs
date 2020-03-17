@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
 
 using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog;
 using Microsoft.VisualStudio.PlatformUI;
@@ -25,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public string SelectDependents => ServicesVSResources.Select_Dependents;
         public string MembersHeader => ServicesVSResources.Members;
         public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
-        public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
 
         public PullMemberUpDialogViewModel ViewModel { get; }
 
@@ -33,6 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = pullMemberUpViewModel;
+
+            // Set focus to first tab control when the window is loaded
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+
             InitializeComponent();
         }
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeUnaryOperator(
             UnaryOperatorKind kind,
             SyntaxNode syntax,
-            MethodSymbol method,
+            MethodSymbol? method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
@@ -67,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeUnaryOperator(
-            BoundUnaryOperator oldNode,
+            BoundUnaryOperator? oldNode,
             UnaryOperatorKind kind,
             SyntaxNode syntax,
-            MethodSymbol method,
+            MethodSymbol? method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((kind == UnaryOperatorKind.DynamicTrue || kind == UnaryOperatorKind.DynamicFalse) && type.SpecialType == SpecialType.System_Boolean
                     || type.IsDynamic());
-                Debug.Assert((object)method == null);
+                Debug.Assert(method is null);
 
                 // Logical operators on boxed Boolean constants:
                 var constant = UnboxConstant(loweredOperand);
@@ -104,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (kind.IsUserDefined())
             {
-                Debug.Assert((object)method != null);
-                Debug.Assert(TypeSymbol.Equals(type, method.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(method is { });
+                Debug.Assert(TypeSymbol.Equals(type, method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
                     return BoundCall.Synthesized(syntax, null, method, loweredOperand);
@@ -120,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (kind == UnaryOperatorKind.EnumBitwiseComplement)
             {
                 var underlyingType = loweredOperand.Type.GetEnumUnderlyingType();
+                Debug.Assert(underlyingType is { });
                 var upconvertSpecialType = Binder.GetEnumPromotedType(underlyingType.SpecialType);
                 var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
@@ -166,14 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression LowerLiftedUnaryOperator(
             UnaryOperatorKind kind,
             SyntaxNode syntax,
-            MethodSymbol method,
+            MethodSymbol? method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
             // First, an optimization. If we know that the operand is always null then
             // we can simply lower to the alternative.
 
-            BoundExpression optimized = OptimizeLiftedUnaryOperator(kind, syntax, method, loweredOperand, type);
+            BoundExpression? optimized = OptimizeLiftedUnaryOperator(kind, syntax, method, loweredOperand, type);
             if (optimized != null)
             {
                 return optimized;
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -226,23 +231,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundExpression OptimizeLiftedUnaryOperator(
+        private BoundExpression? OptimizeLiftedUnaryOperator(
             UnaryOperatorKind operatorKind,
             SyntaxNode syntax,
-            MethodSymbol method,
+            MethodSymbol? method,
             BoundExpression loweredOperand,
             TypeSymbol type)
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
             // then we can obtain the non-null value and skip generating the temporary. That is,
             // "~(new int?(M()))" is the same as "new int?(~M())".
 
-            BoundExpression neverNull = NullableAlwaysHasValue(loweredOperand);
+            BoundExpression? neverNull = NullableAlwaysHasValue(loweredOperand);
             if (neverNull != null)
             {
                 return GetLiftedUnaryOperatorConsequence(operatorKind, syntax, method, type, neverNull);
@@ -258,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (optimize)
             {
-                var result = LowerLiftedUnaryOperator(operatorKind, syntax, method, conditionalLeft.WhenNotNull, type);
+                var result = LowerLiftedUnaryOperator(operatorKind, syntax, method, conditionalLeft!.WhenNotNull, type);
+                Debug.Assert(result.Type is { });
 
                 return conditionalLeft.Update(
                     conditionalLeft.Receiver,
@@ -334,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
+        private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol? method, TypeSymbol type, BoundExpression nonNullOperand)
         {
             MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
@@ -420,7 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
-            TypeSymbol operandType = transformedLHS.Type; //type of the variable being incremented
+            TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
+            Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
 
             LocalSymbol tempSymbol = _factory.SynthesizedLocal(operandType);
@@ -521,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression newValue)
         {
             var tempValue = isPrefix ? newValue : MakeRValue(operand);
+            Debug.Assert(tempValue.Type is { });
             var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false);
 
             var operandValue = isPrefix ? boundTemp : newValue;
@@ -581,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeUserDefinedIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
         {
-            Debug.Assert((object)node.MethodOpt != null);
+            Debug.Assert(node.MethodOpt is { });
             Debug.Assert(node.MethodOpt.ParameterCount == 1);
 
             bool isLifted = node.OperatorKind.IsLifted();
@@ -590,11 +598,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
             SyntaxNode syntax = node.Syntax;
 
-            TypeSymbol type = node.MethodOpt.ParameterTypes[0].TypeSymbol;
+            TypeSymbol type = node.MethodOpt.GetParameterType(0);
             if (isLifted)
             {
                 type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
-                Debug.Assert(TypeSymbol.Equals(node.MethodOpt.ParameterTypes[0].TypeSymbol, node.MethodOpt.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(TypeSymbol.Equals(node.MethodOpt.GetParameterType(0), node.MethodOpt.ReturnType, TypeCompareKind.ConsiderEverything2));
             }
 
             if (!node.OperandConversion.IsIdentity)
@@ -640,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -730,8 +738,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.Pointer)
             {
                 Debug.Assert(binaryOperatorKind.OperandTypes() == BinaryOperatorKind.PointerAndInt);
-                Debug.Assert(binaryOperand.Type.IsPointerType());
-                Debug.Assert(boundOne.Type.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(binaryOperand.Type is { TypeKind: TypeKind.Pointer });
+                Debug.Assert(boundOne.Type is { SpecialType: SpecialType.System_Int32 });
                 return MakeBinaryOperator(node.Syntax, binaryOperatorKind, binaryOperand, boundOne, binaryOperand.Type, method: null);
             }
 
@@ -784,14 +792,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Build Decimal.op_Increment((Decimal)operand) or Decimal.op_Decrement((Decimal)operand)
         private BoundExpression MakeDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
-            Debug.Assert(operand.Type.SpecialType == SpecialType.System_Decimal);
+            Debug.Assert(operand.Type is { SpecialType: SpecialType.System_Decimal });
             MethodSymbol method = GetDecimalIncDecOperator(oper);
             return BoundCall.Synthesized(syntax, null, method, operand);
         }
 
         private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
         {
-            Debug.Assert(operand.Type.IsNullableType() && operand.Type.GetNullableUnderlyingType().SpecialType == SpecialType.System_Decimal);
+            Debug.Assert(operand.Type is { } && operand.Type.IsNullableType() && operand.Type.GetNullableUnderlyingType().SpecialType == SpecialType.System_Decimal);
 
             // This method assumes that operand is already a temporary and so there is no need to copy it again.
             MethodSymbol method = GetDecimalIncDecOperator(oper);
@@ -807,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);
@@ -838,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var dynamicIndexerAccess = (BoundDynamicIndexerAccess)transformedExpression;
                     return MakeDynamicGetIndex(
                         dynamicIndexerAccess,
-                        dynamicIndexerAccess.ReceiverOpt,
+                        dynamicIndexerAccess.Receiver,
                         dynamicIndexerAccess.Arguments,
                         dynamicIndexerAccess.ArgumentNamesOpt,
                         dynamicIndexerAccess.ArgumentRefKindsOpt);
@@ -964,13 +972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case UnaryOperatorKind.Enum:
                     {
-                        TypeSymbol underlyingType = node.Type;
+                        TypeSymbol? underlyingType = node.Type;
+                        Debug.Assert(underlyingType is { });
                         if (underlyingType.IsNullableType())
                         {
                             underlyingType = underlyingType.GetNullableUnderlyingType();
                         }
                         Debug.Assert(underlyingType.IsEnumType());
                         underlyingType = underlyingType.GetEnumUnderlyingType();
+                        Debug.Assert(underlyingType is { });
 
                         // Operator overload resolution will not have chosen the enumerated type
                         // unless the operand actually is of the enumerated type (or nullable enum type.)

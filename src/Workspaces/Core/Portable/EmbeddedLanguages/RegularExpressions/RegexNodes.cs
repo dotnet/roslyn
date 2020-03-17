@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// Represents a ```[:...:]``` node in a character class.  Note: the .net regex parser
+    /// Represents a ```[:...:]``` node in a character class.  Note: the .NET regex parser
     /// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
     /// They latter part has no impact on the actual match engine that is produced.
     /// </summary>

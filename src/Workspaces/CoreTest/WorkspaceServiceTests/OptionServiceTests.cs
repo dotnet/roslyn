@@ -1,6 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -22,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             Assert.Throws<System.ArgumentException>(delegate
             {
-                var option2 = new Option<bool>("Test Feature", null, false);
+                var option2 = new Option<bool>("Test Feature", null!, false);
             });
 
             Assert.Throws<System.ArgumentNullException>(delegate
@@ -32,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             Assert.Throws<System.ArgumentNullException>(delegate
             {
-                var option4 = new Option<bool>(null, "Test Name", false);
+                var option4 = new Option<bool>(null!, "Test Name", false);
             });
         }
 
@@ -49,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             Assert.Throws<System.ArgumentException>(delegate
             {
-                var option2 = new PerLanguageOption<bool>("Test Feature", null, false);
+                var option2 = new PerLanguageOption<bool>("Test Feature", null!, false);
             });
 
             Assert.Throws<System.ArgumentNullException>(delegate
@@ -59,11 +66,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             Assert.Throws<System.ArgumentNullException>(delegate
             {
-                var option4 = new PerLanguageOption<bool>(null, "Test Name", false);
+                var option4 = new PerLanguageOption<bool>(null!, "Test Name", false);
             });
 
             var optionvalid = new PerLanguageOption<bool>("Test Feature", "Test Name", false);
-            Assert.Equal(false, optionSet.GetOption(optionvalid, "CS"));
+            Assert.False(optionSet.GetOption(optionvalid, "CS"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -72,19 +79,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionService = TestOptionService.GetService();
             var optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
-            Assert.Equal(false, optionSet.GetOption(option));
+            Assert.False(optionSet.GetOption(option));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void GettingOptionWithChangedOption()
         {
             var optionService = TestOptionService.GetService();
-            var optionSet = optionService.GetOptions();
+            OptionSet optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
             var key = new OptionKey(option);
             Assert.False(optionSet.GetOption(option));
             optionSet = optionSet.WithChangedOption(key, true);
-            Assert.True((bool)optionSet.GetOption(key));
+            Assert.True((bool?)optionSet.GetOption(key));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -100,10 +107,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True(optionSet.GetOption(optionTrue));
 
             var falseKey = new OptionKey(optionFalse);
-            Assert.False((bool)optionSet.GetOption(falseKey));
+            Assert.False((bool?)optionSet.GetOption(falseKey));
 
             var trueKey = new OptionKey(optionTrue);
-            Assert.True((bool)optionSet.GetOption(trueKey));
+            Assert.True((bool?)optionSet.GetOption(trueKey));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -127,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var optionSet = optionService.GetOptions();
             var optionKey = new OptionKey(option);
-            var value = (bool)optionSet.GetOption(optionKey);
+            var value = (bool?)optionSet.GetOption(optionKey);
             Assert.True(value);
         }
 
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionKey = new OptionKey(option);
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
             optionService.SetOptions(newOptionSet);
-            var isOptionSet = (bool)optionService.GetOptions().GetOption(optionKey);
+            var isOptionSet = (bool?)optionService.GetOptions().GetOption(optionKey);
             Assert.False(isOptionSet);
         }
 
@@ -156,6 +163,54 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
             Assert.NotSame(optionSet, newOptionSet);
             Assert.NotEqual(optionSet, newOptionSet);
+        }
+
+        [Fact]
+        public void TestChangedOptions()
+        {
+            // Apply a serializable changed option to the option service
+            // and verify that serializable options snapshot contains this changed option.
+            TestChangedOptionsCore(
+                GenerationOptions.PlaceSystemNamespaceFirst,
+                optionProvider: new GenerationOptionsProvider(),
+                isSerializable: true);
+
+            // Apply a non-serializable changed option to the option service
+            // and verify that serializable options snapshot does not contain this changed option
+            TestChangedOptionsCore(
+                new PerLanguageOption<bool>("Test Feature", "Test Name", defaultValue: true),
+                optionProvider: new TestOptionService.TestOptionsProvider(),
+                isSerializable: false);
+
+            return;
+
+            static void TestChangedOptionsCore(PerLanguageOption<bool> option, IOptionProvider optionProvider, bool isSerializable)
+            {
+                var optionService = TestOptionService.GetService(optionProvider);
+                var optionSet = optionService.GetOptions();
+                var optionKey = new OptionKey(option, LanguageNames.CSharp);
+
+                var currentOptionValue = optionSet.GetOption(option, LanguageNames.CSharp);
+                var newOptionValue = !currentOptionValue;
+                var newOptionSet = optionSet.WithChangedOption(optionKey, newOptionValue);
+
+                optionService.SetOptions(newOptionSet);
+                var isOptionSet = (bool?)optionService.GetOptions().GetOption(optionKey);
+                Assert.Equal(newOptionValue, isOptionSet);
+
+                var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+                var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+                var changedOptions = serializableOptionSet.GetChangedOptions();
+                if (isSerializable)
+                {
+                    var changedOptionKey = Assert.Single(changedOptions);
+                    Assert.Equal(optionKey, changedOptionKey);
+                }
+                else
+                {
+                    Assert.Empty(changedOptions);
+                }
+            }
         }
     }
 }

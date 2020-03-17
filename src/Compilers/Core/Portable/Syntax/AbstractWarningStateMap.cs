@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,8 +17,14 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// </summary>
         private readonly WarningStateMapEntry[] _warningStateMapEntries;
 
-        protected AbstractWarningStateMap(SyntaxTree syntaxTree)
+        /// <summary>
+        /// Records if this state map is for generated code, which can have differing semantics in some cases
+        /// </summary>
+        protected readonly bool _isGeneratedCode;
+
+        protected AbstractWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode)
         {
+            _isGeneratedCode = isGeneratedCode;
             _warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
         }
 

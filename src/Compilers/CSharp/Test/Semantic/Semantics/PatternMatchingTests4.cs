@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,6 +14,134 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests4 : PatternMatchingTestBase
     {
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchOpenTypeCaseDefault()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //             case default:
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchOpenTypeCaseDefaultT()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case default(T):
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case default(T):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(T)").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchGenericParameterToMethodGroup()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M1(object o)
+    {
+        _ = o is M1;
+        switch (o)
+        {
+            case M1:
+                break;
+        }
+    }
+    public void M2<T>(T t)
+    {
+        _ = t is M2;
+        switch (t)
+        {
+            case M2:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
+                // (9,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //             case M1:
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                // (15,18): error CS0150: A constant value is expected
+                //         _ = t is M2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
+                // (18,18): error CS0150: A constant value is expected
+                //             case M2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchGenericParameterToNonConstantExprs()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case (() => 0):
+                break;
+            case stackalloc int[1] { 0 }:
+                break;
+            case new { X = 0 }:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
+                // (8,22): error CS1003: Syntax error, ',' expected
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(8, 22),
+                // (8,25): error CS1003: Syntax error, ',' expected
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
+                // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //             case stackalloc int[1] { 0 }:
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
+                // (10,18): error CS0150: A constant value is expected
+                //             case stackalloc int[1] { 0 }:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "stackalloc int[1] { 0 }").WithLocation(10, 18),
+                // (12,18): error CS0150: A constant value is expected
+                //             case new { X = 0 }:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
+                );
+        }
+
         [Fact]
         public void TestPresenceOfITuple()
         {
@@ -1648,7 +1778,7 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return (b1, b2) switch {
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 25)
                 );
@@ -1920,7 +2050,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -1963,7 +2093,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -1998,7 +2128,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2006,7 +2136,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2040,7 +2170,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2048,11 +2178,11 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,24): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
 
         [Fact]
@@ -2088,14 +2218,14 @@ namespace System.Runtime.CompilerServices
     public class SwitchExpressionException : InvalidOperationException
     {
         public SwitchExpressionException() {}
-        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException(object unmatchedValue) => throw null;
         public object UnmatchedValue { get; }
     }
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = r switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2687,7 +2817,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (7,32): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (7,32): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         Console.Write((x, 300) switch  { ((1, int x2), int y) => x2+y });
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 32)
                 );
@@ -2763,7 +2893,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,15): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         _ = o switch { null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 15)
                 );
@@ -2802,7 +2932,7 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (22,18): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (22,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return b switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(22, 18)
                 );
@@ -2835,6 +2965,7 @@ class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
+        // https://github.com/dotnet/roslyn/issues/35032: Handle switch expressions correctly
         [Fact]
         public void PointerAsInput_02()
         {
@@ -2945,7 +3076,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2953,12 +3084,12 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (17,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (17,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return (x, y) switch { (1, 2) => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
-SwitchExpressionException()");
+SwitchExpressionException((1, 3))");
         }
 
         [Fact]
@@ -3029,6 +3160,186 @@ A(5, 6).Deconstruct
 A(5, 6).Y
 A(2, 3).Y
 8");
+        }
+
+        [Fact]
+        public void MissingValueTuple()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+    }
+    int M(int x, int y)
+    {
+        return (x, y) switch { (1, 2) => 1, _ => 2 };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40(source);
+            compilation.VerifyDiagnostics(
+                // (9,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (x, y) switch { (1, 2) => 1, _ => 2 };
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, y)").WithArguments("System.ValueTuple`2").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void UnmatchedInput_07()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y, int a = 3, int b = 4, int c = 5, int d = 6, int e = 7, int f = 8, int g = 9) {
+        return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,44): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 44)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+SwitchExpressionException((1, 3, 3, 4, 5, 6, 7, 8, 9))");
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_01()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A[]? c && c : c) { }    // ok 3 (for compat)
+        if (o is A[][]? c : c) { }       // ok 4 (for compat)
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A[]?[,] b3) { }
+        if (o is A[,]?[] b4 && c) { }
+        if (o is A[,]?[]?[] b5 && c) { }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Bad_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public static bool b1, b2, b5, b6, b7, b8;
+    static void M(object o, bool c)
+    {
+        if (o is A?) { }              // error 1 (can't test for is nullable reference type)
+        if (o is A? b1) { }           // error 2 (missing :)
+        if (o is A? b2 && c) { }      // error 3 (missing :)
+        if (o is A[]? b5) { }         // error 4 (missing :)
+        if (o is A[]? b6 && c) { }    // error 5 (missing :)
+        if (o is A[][]? b7) { }       // error 6 (missing :)
+        if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+        if (o is A? && c) { }         // error 8 (can't test for is nullable reference type)
+        _ = o is A[][]?;              // error 9 (can't test for is nullable reference type)
+        _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (7,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                //         if (o is A?) { }              // error 1 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
+                // (8,23): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b1) { }           // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 23),
+                // (8,23): error CS1525: Invalid expression term ')'
+                //         if (o is A? b1) { }           // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 23),
+                // (9,28): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b2 && c) { }      // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 28),
+                // (9,28): error CS1525: Invalid expression term ')'
+                //         if (o is A? b2 && c) { }      // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 28),
+                // (10,25): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b5) { }         // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 25),
+                // (10,25): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b5) { }         // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 25),
+                // (11,30): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 30),
+                // (11,30): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 30),
+                // (12,27): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b7) { }       // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(12, 27),
+                // (12,27): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b7) { }       // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 27),
+                // (13,32): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(13, 32),
+                // (13,32): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),
+                // (14,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                //         if (o is A? && c) { }         // error 8 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(14, 18),
+                // (15,18): error CS8650: It is not legal to use nullable reference type 'A[][]?' in an is-type expression; use the underlying type 'A[][]' instead.
+                //         _ = o is A[][]?;              // error 9 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(15, 18),
+                // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
+                //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
+                Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
+                );
         }
     }
 }

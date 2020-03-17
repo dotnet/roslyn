@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2466,6 +2468,181 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefStruct_Method_RefLikeStructParameter()
+        {
+            var csharp = @"
+using System;
+
+public readonly ref struct S<T>
+{
+    public void M(Span<T> x) { }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.M(x);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyMethod_RefLikeStructParameter()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly void M(Span<T> x) { }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.M(x);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefStruct_RefLikeProperty()
+        {
+            var csharp = @"
+using System;
+
+public readonly ref struct S<T>
+{
+    public Span<T> P { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefLikeProperty_01()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly Span<T> P { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefLikeProperty_02()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public Span<T> P { get => default; readonly set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyIndexer_RefLikeStructParameter_01()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly Span<T> this[Span<T> span] { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        _ = b[x];
+        b[x] = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8347: Cannot use a result of 'S<byte>.this[Span<byte>]' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(11, 13),
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyIndexer_RefLikeStructParameter_02()
+        {
+            var csharp = @"
+using System;
+public ref struct S<T>
+{
+    public Span<T> this[Span<T> span] { get => default; readonly set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        _ = b[x];
+        b[x] = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(10, 13),
+                // (10,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(10, 15),
+                // (11,9): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         b[x] = x;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(11, 9),
+                // (11,11): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b[x] = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 11));
+        }
+
         [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
         [Fact()]
         public void RefTernaryMustMatchValEscapes()
@@ -2898,7 +3075,7 @@ public class C
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
                 // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (c, s) = (local, null);
+                //         (c, s) = (local, null); // error 7
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
             );
 

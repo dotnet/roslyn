@@ -1,10 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -15,39 +23,47 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
+
+        /// <summary>
+        /// A diagnostic descriptor used to squiggle and message the span.
+        /// </summary>
+        private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                isUnnecessary: true);
+
+        /// <summary>
+        /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.
+        /// </summary>
+        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = new Dictionary<string, IEnumerable<int>>
+        {
+            { nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 } },
+        }.ToImmutableDictionary();
+
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+            : base(ImmutableArray.Create(s_diagnosticDescriptor))
         {
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public sealed override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
+        {
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ParenthesizedExpression));
+        }
 
-        protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
             if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
@@ -68,10 +84,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 case PrecedenceKind.Shift:
                 case PrecedenceKind.Bitwise:
                 case PrecedenceKind.Coalesce:
-                    var syntaxFacts = this.GetSyntaxFactsService();
+                    var syntaxFacts = GetSyntaxFacts();
                     var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
 
-                    var parentKind = parenthesizedExpression.Parent.RawKind;
+                    var parentKind = parenthesizedExpression.Parent?.RawKind;
                     var childKind = child.RawKind;
                     if (parentKind != childKind)
                     {
@@ -84,7 +100,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
+            var preference = context.GetOption(option, parenthesizedExpression.Language);
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
@@ -107,18 +123,31 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var severity = preference.Notification.Severity;
 
-            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
+            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetFirstToken().GetLocation(), parenthesizedExpression.GetLastToken().GetLocation());
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                UnnecessaryWithSuggestionDescriptor,
-                parenthesizedExpression.GetFirstToken().GetLocation(),
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_diagnosticDescriptor,
+                GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,
-                properties: null));
+                s_fadeLocations));
+        }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                UnnecessaryWithoutSuggestionDescriptor,
-                parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+        /// <summary>
+        /// Gets the span of text to squiggle underline.
+        /// If the expression is contained within a single line, the entire expression span is returned.
+        /// Otherwise it will return the span from the expression start to the end of the same line.
+        /// </summary>
+        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
+        {
+            var parenthesizedExpressionLocation = parenthesizedExpression.GetLocation();
+
+            var lines = parenthesizedExpression.SyntaxTree.GetText(cancellationToken).Lines;
+            var expressionFirstLine = lines.GetLineFromPosition(parenthesizedExpressionLocation.SourceSpan.Start);
+
+            var textSpanEndPosition = Math.Min(parenthesizedExpressionLocation.SourceSpan.End, expressionFirstLine.Span.End);
+            return Location.Create(parenthesizedExpression.SyntaxTree, TextSpan.FromBounds(parenthesizedExpressionLocation.SourceSpan.Start, textSpanEndPosition));
         }
     }
 }

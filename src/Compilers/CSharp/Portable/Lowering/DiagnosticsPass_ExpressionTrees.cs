@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -77,6 +79,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitArrayCreation(node);
         }
 
+        public override BoundNode VisitArrayAccess(BoundArrayAccess node)
+        {
+            if (_inExpressionLambda &&
+                node.Indices.Length == 1 &&
+                node.Indices[0].Type!.SpecialType == SpecialType.None)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+            }
+
+            return base.VisitArrayAccess(node);
+        }
+
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+            }
+
+            return base.VisitIndexOrRangePatternIndexerAccess(node);
+        }
+
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsFromEndIndexExpression, node);
+            }
+
+            return base.VisitFromEndIndexExpression(node);
+        }
+
+        public override BoundNode VisitRangeExpression(BoundRangeExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsRangeExpression, node);
+            }
+
+            return base.VisitRangeExpression(node);
+        }
+
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
         {
             if (_inExpressionLambda && node.ConstantValue == null)
@@ -90,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var outerLocalFunction = _staticLocalFunction;
-            if (node.Symbol.IsStaticLocalFunction)
+            if (node.Symbol.IsStatic)
             {
                 _staticLocalFunction = node.Symbol;
             }
@@ -137,48 +181,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter);
+            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
 
-            if ((object)_staticLocalFunction != null && !IsContainedIn(_staticLocalFunction, symbol))
+            if (_staticLocalFunction is object && Symbol.IsCaptured(symbol, _staticLocalFunction))
             {
                 Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
 
-        private static bool IsContainedIn(LocalFunctionSymbol container, Symbol symbol)
+        private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
         {
-            Debug.Assert((object)container != null);
-            Debug.Assert(container != symbol);
-            while (true)
+            if (method?.OriginalDefinition is LocalFunctionSymbol localFunction)
             {
-                var containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol is null)
-                {
-                    return false;
-                }
-                if (container == containingSymbol)
-                {
-                    return true;
-                }
-                symbol = containingSymbol;
+                CheckReferenceToVariable(node, localFunction);
             }
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
             }
 
-            return base.VisitSwitchExpression(node);
+            return base.VisitConvertedSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             if (!node.HasAnyErrors)
             {
-                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+                CheckForDeconstructionAssignmentToSelf((BoundTupleExpression)node.Left, node.Right);
             }
 
             return base.VisitDeconstructionAssignmentOperator(node);
@@ -367,6 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             CheckReceiverIfField(node.ReceiverOpt);
+            CheckReferenceToMethodIfLocalFunction(node, node.Method);
             return base.VisitCall(node);
         }
 
@@ -441,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
                     }
-                    if (p.Type.IsRestrictedType())
+                    if (p.TypeWithAnnotations.IsRestrictedType())
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                     }
@@ -600,7 +634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    VisitMethodGroup((BoundMethodGroup)node.Operand, parentIsConversion: true);
+                    CheckMethodGroup((BoundMethodGroup)node.Operand, node.Conversion.Method, parentIsConversion: true);
+
                     return node;
 
                 case ConversionKind.AnonymousFunction:
@@ -646,9 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit(node.Argument);
             }
-            else if (_inExpressionLambda && node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            else
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                CheckMethodGroup((BoundMethodGroup)node.Argument, node.MethodOpt, parentIsConversion: true);
             }
 
             return null;
@@ -656,10 +691,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            return VisitMethodGroup(node, parentIsConversion: false);
+            CheckMethodGroup(node, method: null, parentIsConversion: false);
+            return null;
         }
 
-        private BoundNode VisitMethodGroup(BoundMethodGroup node, bool parentIsConversion)
+        private void CheckMethodGroup(BoundMethodGroup node, MethodSymbol method, bool parentIsConversion)
         {
             // Formerly reported ERR_MemGroupInExpressionTree when this occurred, but the expanded 
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
@@ -672,7 +708,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
-            return base.VisitMethodGroup(node);
+            CheckReferenceToMethodIfLocalFunction(node, method);
+
+            if (method is null || method.RequiresInstanceReceiver)
+            {
+                Visit(node.ReceiverOpt);
+            }
         }
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
@@ -725,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, node);
             }
 
-            CheckReceiverIfField(node.ReceiverOpt);
+            CheckReceiverIfField(node.Receiver);
             return base.VisitDynamicIndexerAccess(node);
         }
 

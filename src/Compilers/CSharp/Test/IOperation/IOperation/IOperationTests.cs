@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,12 +31,10 @@ class C
             var expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
-    Expression: 
+    Expression:
       IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
-        Instance Receiver: 
-          ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String, Constant: null) (Syntax: 'x!')
-            Expression: 
-              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+        Instance Receiver:
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
         Arguments(0)";
 
             var diagnostics = DiagnosticDescription.None;
@@ -48,14 +48,11 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
-          Expression: 
+          Expression:
             IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
-              Instance Receiver: 
-                ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String, Constant: null) (Syntax: 'x!')
-                  Expression: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              Instance Receiver:
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
               Arguments(0)
-
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
@@ -80,15 +77,13 @@ class C
             var expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '((string)nu ... ToString();')
-    Expression: 
+    Expression:
       IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '((string)nu ... .ToString()')
-        Instance Receiver: 
-          ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String, Constant: ConstantValueNull(null: Null)) (Syntax: '((string)null)!')
-            Expression: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null) (Syntax: '(string)null')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Instance Receiver:
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null) (Syntax: '(string)null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
         Arguments(0)";
 
             var diagnostics = new[]
@@ -120,7 +115,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -129,40 +123,33 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-              Value: 
+              Value:
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-              Value: 
+              Value:
                 IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
-
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(b ? x : y)!.ToString();')
-              Expression: 
+              Expression:
                 IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '(b ? x : y)!.ToString()')
-                  Instance Receiver: 
-                    ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String, Constant: null) (Syntax: '(b ? x : y)!')
-                      Expression: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? x : y')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? x : y')
                   Arguments(0)
-
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)";

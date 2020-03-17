@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -201,13 +203,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For i As Integer = 0 To ParameterTypes.Length - 1
-                    If Me.ParameterTypes(i) <> other.ParameterTypes(i) OrElse
+                    If Not TypeSymbol.Equals(Me.ParameterTypes(i), other.ParameterTypes(i), TypeCompareKind.ConsiderEverything) OrElse
                        Me.ParameterIsByRef(i) <> other.ParameterIsByRef(i) Then
                         Return False
                     End If
                 Next
 
-                Return Me.ReturnsByRef = other.ReturnsByRef AndAlso Me.ReturnType = other.ReturnType
+                Return Me.ReturnsByRef = other.ReturnsByRef AndAlso TypeSymbol.Equals(Me.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything)
             End Function
         End Class
 

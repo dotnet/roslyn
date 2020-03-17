@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowShadowingNames,
             DiagnosticBag diagnostics)
         {
-            PooledHashSet<string> tpNames = null;
+            PooledHashSet<string>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            PooledHashSet<string> pNames = null;
+            PooledHashSet<string>? pNames = null;
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
@@ -91,16 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, DiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions);
+            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
 
-            for (Binder binder = this; binder != null; binder = binder.Next)
+            for (Binder? binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
                 if (binder is InContainerBinder)
@@ -114,14 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // If shadowing is enabled, avoid checking for conflicts outside of local functions.
-                if (allowShadowing)
+                // If shadowing is enabled, avoid checking for conflicts outside of local functions or lambdas.
+                if (allowShadowing && binder.IsNestedFunctionBinder)
                 {
-                    var containingMethod = (binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol;
-                    if (containingMethod?.MethodKind == MethodKind.LocalFunction)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 

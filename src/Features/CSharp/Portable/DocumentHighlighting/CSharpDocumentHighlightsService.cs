@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -15,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
     [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
     internal class CSharpDocumentHighlightsService : AbstractDocumentHighlightsService
     {
+        [ImportingConstructor]
+        public CSharpDocumentHighlightsService()
+        {
+        }
+
         protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
@@ -48,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
                         }
 
                         var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
-                        boundSymbol = boundSymbol == null ? null : boundSymbol.OriginalDefinition;
+                        boundSymbol = boundSymbol?.OriginalDefinition;
 
                         if (originalSymbol.Equals(boundSymbol))
                         {

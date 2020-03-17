@@ -35,32 +35,37 @@ File path to global.json file
 #>
 [CmdletBinding(PositionalBinding=$false)]
 Param (
-  [string] $BaseUri = "https://netcorenativeassets.blob.core.windows.net/resource-packages/external",
+  [string] $BaseUri = 'https://netcorenativeassets.blob.core.windows.net/resource-packages/external',
   [string] $InstallDirectory,
   [switch] $Clean = $False,
   [switch] $Force = $False,
   [int] $DownloadRetries = 5,
   [int] $RetryWaitTimeInSeconds = 30,
-  [string] $GlobalJsonFile = "$PSScriptRoot\..\..\global.json"
+  [string] $GlobalJsonFile
 )
 
-Set-StrictMode -version 2.0
-$ErrorActionPreference="Stop"
+if (!$GlobalJsonFile) {
+  $GlobalJsonFile = Join-Path (Get-Item $PSScriptRoot).Parent.Parent.FullName 'global.json'
+}
 
-Import-Module -Name (Join-Path $PSScriptRoot "native\CommonLibrary.psm1")
+Set-StrictMode -version 2.0
+$ErrorActionPreference='Stop'
+
+. $PSScriptRoot\pipeline-logging-functions.ps1
+Import-Module -Name (Join-Path $PSScriptRoot 'native\CommonLibrary.psm1')
 
 try {
   # Define verbose switch if undefined
-  $Verbose = $VerbosePreference -Eq "Continue"
+  $Verbose = $VerbosePreference -Eq 'Continue'
 
-  $EngCommonBaseDir = Join-Path $PSScriptRoot "native\"
+  $EngCommonBaseDir = Join-Path $PSScriptRoot 'native\'
   $NativeBaseDir = $InstallDirectory
   if (!$NativeBaseDir) {
     $NativeBaseDir = CommonLibrary\Get-NativeInstallDirectory
   }
   $Env:CommonLibrary_NativeInstallDir = $NativeBaseDir
-  $InstallBin = Join-Path $NativeBaseDir "bin"
-  $InstallerPath = Join-Path $EngCommonBaseDir "install-tool.ps1"
+  $InstallBin = Join-Path $NativeBaseDir 'bin'
+  $InstallerPath = Join-Path $EngCommonBaseDir 'install-tool.ps1'
 
   # Process tools list
   Write-Host "Processing $GlobalJsonFile"
@@ -70,41 +75,59 @@ try {
   }
   $NativeTools = Get-Content($GlobalJsonFile) -Raw |
                     ConvertFrom-Json |
-                    Select-Object -Expand "native-tools" -ErrorAction SilentlyContinue
+                    Select-Object -Expand 'native-tools' -ErrorAction SilentlyContinue
   if ($NativeTools) {
     $NativeTools.PSObject.Properties | ForEach-Object {
       $ToolName = $_.Name
       $ToolVersion = $_.Value
-      $LocalInstallerCommand = $InstallerPath
-      $LocalInstallerCommand += " -ToolName $ToolName"
-      $LocalInstallerCommand += " -InstallPath $InstallBin"
-      $LocalInstallerCommand += " -BaseUri $BaseUri"
-      $LocalInstallerCommand += " -CommonLibraryDirectory $EngCommonBaseDir"
-      $LocalInstallerCommand += " -Version $ToolVersion"
+      $LocalInstallerArguments =  @{ ToolName = "$ToolName" }
+      $LocalInstallerArguments += @{ InstallPath = "$InstallBin" }
+      $LocalInstallerArguments += @{ BaseUri = "$BaseUri" }
+      $LocalInstallerArguments += @{ CommonLibraryDirectory = "$EngCommonBaseDir" }
+      $LocalInstallerArguments += @{ Version = "$ToolVersion" }
 
       if ($Verbose) {
-        $LocalInstallerCommand += " -Verbose"
+        $LocalInstallerArguments += @{ Verbose = $True }
       }
       if (Get-Variable 'Force' -ErrorAction 'SilentlyContinue') {
         if($Force) {
-          $LocalInstallerCommand += " -Force"
+          $LocalInstallerArguments += @{ Force = $True }
         }
       }
       if ($Clean) {
-        $LocalInstallerCommand += " -Clean"
+        $LocalInstallerArguments += @{ Clean = $True }
       }
 
       Write-Verbose "Installing $ToolName version $ToolVersion"
-      Write-Verbose "Executing '$LocalInstallerCommand'"
-      Invoke-Expression "$LocalInstallerCommand"
+      Write-Verbose "Executing '$InstallerPath $($LocalInstallerArguments.Keys.ForEach({"-$_ '$($LocalInstallerArguments.$_)'"}) -join ' ')'"
+      & $InstallerPath @LocalInstallerArguments
       if ($LASTEXITCODE -Ne "0") {
-        Write-Error "Execution failed"
-        exit 1
+        $errMsg = "$ToolName installation failed"
+        if ((Get-Variable 'DoNotAbortNativeToolsInstallationOnFailure' -ErrorAction 'SilentlyContinue') -and $DoNotAbortNativeToolsInstallationOnFailure) {
+            $showNativeToolsWarning = $true
+            if ((Get-Variable 'DoNotDisplayNativeToolsInstallationWarnings' -ErrorAction 'SilentlyContinue') -and $DoNotDisplayNativeToolsInstallationWarnings) {
+                $showNativeToolsWarning = $false
+            }
+            if ($showNativeToolsWarning) {
+                Write-Warning $errMsg
+            }
+            $toolInstallationFailure = $true
+        } else {
+            # We cannot change this to Write-PipelineTelemetryError because of https://github.com/dotnet/arcade/issues/4482
+            Write-Host $errMsg
+            exit 1
+        }
       }
+    }
+
+    if ((Get-Variable 'toolInstallationFailure' -ErrorAction 'SilentlyContinue') -and $toolInstallationFailure) {
+        # We cannot change this to Write-PipelineTelemetryError because of https://github.com/dotnet/arcade/issues/4482
+        Write-Host 'Native tools bootstrap failed'
+        exit 1
     }
   }
   else {
-    Write-Host "No native tools defined in global.json"
+    Write-Host 'No native tools defined in global.json'
     exit 0
   }
 
@@ -112,17 +135,18 @@ try {
     exit 0
   }
   if (Test-Path $InstallBin) {
-    Write-Host "Native tools are available from" (Convert-Path -Path $InstallBin)
+    Write-Host 'Native tools are available from ' (Convert-Path -Path $InstallBin)
     Write-Host "##vso[task.prependpath]$(Convert-Path -Path $InstallBin)"
+    return $InstallBin
   }
   else {
-    Write-Error "Native tools install directory does not exist, installation failed"
+    Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message 'Native tools install directory does not exist, installation failed'
     exit 1
   }
   exit 0
 }
 catch {
-  Write-Host $_
-  Write-Host $_.Exception
-  exit 1
+  Write-Host $_.ScriptStackTrace
+  Write-PipelineTelemetryError -Category 'NativeToolsBootstrap' -Message $_
+  ExitWithExitCode 1
 }

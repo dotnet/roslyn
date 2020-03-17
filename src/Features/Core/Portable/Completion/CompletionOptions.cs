@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
@@ -40,6 +44,18 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> ShowNameSuggestions =
             new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
+
+        //Dev16 options
+
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
+        public static readonly PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces =
+            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
+
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
+        public static readonly PerLanguageOption<bool?> TriggerInArgumentLists =
+            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {

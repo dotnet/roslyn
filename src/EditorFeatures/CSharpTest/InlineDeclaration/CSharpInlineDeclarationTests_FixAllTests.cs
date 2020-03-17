@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -78,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task FixAllInDocument3()
         {
-
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -93,7 +94,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // Now get final exe and args. CTtrl-F5 wraps exe in cmd prompt
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(29935, "https://github.com/dotnet/roslyn/issues/29935")]
+        public async Task FixAllInDocumentSymbolResolution()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C 
+{
+    void M()
+    {
+        string {|FixAllInDocument:s|};
+        bool b;
+        A(out s, out b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
+    }
+}",
+@"class C 
+{
+    void M()
+    {
+        A(out string s, out bool b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
     }
 }");
         }
@@ -322,8 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        // trailing
-        /* leading */
+        /* leading */ // trailing
         int.TryParse(v, out int i1);
         int.TryParse(v, out int i2);
     }
@@ -339,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        /* leading */ int dummy; /* inbetween */ int {|FixAllInDocument:i1|}; int i2; // trailing
+        /* leading */ int dummy; /* in-between */ int {|FixAllInDocument:i1|}; int i2; // trailing
         int.TryParse(v, out i1);
         int.TryParse(v, out i2);
         dummy = 42;
@@ -349,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        /* leading */ int dummy; /* inbetween */   // trailing
+        /* leading */ int dummy; /* in-between */   // trailing
         int.TryParse(v, out int i1);
         int.TryParse(v, out int i2);
         dummy = 42;

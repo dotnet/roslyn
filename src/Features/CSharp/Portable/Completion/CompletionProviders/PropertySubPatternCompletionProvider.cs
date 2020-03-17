@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,8 +18,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(PropertySubpatternCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(InternalsVisibleToCompletionProvider))]
+    [Shared]
     internal class PropertySubpatternCompletionProvider : CommonCompletionProvider
     {
+        [ImportingConstructor]
+        public PropertySubpatternCompletionProvider()
+        {
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
@@ -43,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
             members = members.Where(m => m.CanBeReferencedByName &&
                 IsFieldOrReadableProperty(m) &&
-                !m.IsImplicitlyDeclared);
+                !m.IsImplicitlyDeclared &&
+                !m.IsStatic);
 
             // Filter out those members that have already been typed
             var propertyPatternClause = (PropertyPatternClauseSyntax)token.Parent;

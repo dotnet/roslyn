@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,8 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseDefaultLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDefaultLiteralCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -45,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value;
 
             var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;
@@ -54,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
-                (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken),
+                (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken),
                 (_, currentRoot, defaultExpression) => currentRoot.ReplaceNode(
                     defaultExpression,
                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),

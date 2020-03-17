@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -179,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
-                TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
+                TypeSymbol convertsFrom = op.GetParameterType(0);
+                TypeSymbol convertsTo = op.ReturnType;
                 Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                 Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddParameter
@@ -33,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds = ImmutableArray.Create(
             CS1501, CS1503, CS1660, CS1729, CS1739,
             IDEDiagnosticIds.UnboundConstructorId);
+
+        [ImportingConstructor]
+        public CSharpAddParameterCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => AddParameterFixableDiagnosticIds;

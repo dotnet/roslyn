@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddObsoleteAttribute;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
 {
@@ -20,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
                 "CS1064"  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
             );
 
+        [ImportingConstructor]
         public CSharpAddObsoleteAttributeCodeFixProvider()
-            : base(CSharpSyntaxFactsService.Instance, CSharpFeaturesResources.Add_Obsolete)
+            : base(CSharpSyntaxFacts.Instance, CSharpFeaturesResources.Add_Obsolete)
         {
         }
     }

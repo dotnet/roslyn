@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -659,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
-            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             var members = GetCandidateMembers(type, name, options, originalBinder);
 
@@ -684,6 +686,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
+        }
+
+        // Lookup member in a class, struct, enum, delegate.
+        private void LookupMembersInClass(
+            LookupResult result,
+            TypeSymbol type,
+            string name,
+            int arity,
+            ConsList<TypeSymbol> basesBeingResolved,
+            LookupOptions options,
+            Binder originalBinder,
+            TypeSymbol accessThroughType,
+            bool diagnose,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsInterfaceType() && type.TypeKind != TypeKind.TypeParameter);
 
@@ -694,9 +712,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             while ((object)currentType != null)
             {
                 tmp.Clear();
-                LookupMembersWithoutInheritance(tmp, currentType, name, arity, options, originalBinder, type, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                LookupMembersWithoutInheritance(tmp, currentType, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
 
-                MergeHidingLookupResults(result, tmp, ref useSiteDiagnostics);
+                MergeHidingLookupResults(result, tmp, basesBeingResolved, ref useSiteDiagnostics);
 
                 // If the type is from a winmd and implements any of the special WinRT collection
                 // projections then we may need to add underlying interface members. 
@@ -799,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ShouldAddWinRTMembersForInterface(iface, idictSymbol, iroDictSymbol, iListSymbol, iCollectionSymbol, inccSymbol, inpcSymbol))
                 {
-                    LookupMembersWithoutInheritance(tmp, iface, name, arity, options, originalBinder, iface, diagnose, ref useSiteDiagnostics);
+                    LookupMembersWithoutInheritance(tmp, iface, name, arity, options, originalBinder, iface, diagnose, ref useSiteDiagnostics, basesBeingResolved: null);
                     // only add viable members
                     if (tmp.IsMultiViable)
                     {
@@ -897,6 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             string name,
             int arity,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             TypeSymbol accessThroughType,
@@ -906,10 +925,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type != null);
             Debug.Assert(type.IsInterface);
 
-            LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
-            if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) == 0 && !originalBinder.InCrefButNotParameterOrReturnType)
+            LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+            if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && !originalBinder.InCrefButNotParameterOrReturnType)
             {
-                LookupMembersInInterfacesWithoutInheritance(current, type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
+                LookupMembersInInterfacesWithoutInheritance(current, GetBaseInterfaces(type, basesBeingResolved, ref useSiteDiagnostics),
+                    name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
+            }
+
+        }
+
+        private static ImmutableArray<NamedTypeSymbol> GetBaseInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (basesBeingResolved?.Any() != true)
+            {
+                return type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            }
+
+            if (basesBeingResolved.ContainsReference(type.OriginalDefinition))
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            var interfaces = type.GetDeclaredInterfaces(basesBeingResolved);
+
+            if (interfaces.IsEmpty)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            // The C# language specification forbids an interface from extending another interface that depends on it.
+            // That prevents a legal program from having an infinite inheritance chain.  We protect most of the
+            // compiler from having to deal with infinite inheritance chains arising in such illegal programs by
+            // removing the dependent base interfaces from the interface list.  This is accomplished by calling
+            // `BaseTypeAnalysis.TypeDependsOn` in `SourceNamedTypeSymbol.MakeAcyclicInterfaces`.  With the addition
+            // of support for types nested within interfaces in C# 8.0, type lookup within an interface needs to
+            // traverse base interfaces.  We cannot depend on the interfaces having been previously bound and cleaned
+            // of these cycles because such cycles might arise while we are binding a base clause.  The following
+            // code is specifically used in that case: to get the list of base interfaces for use in name lookup
+            // while some base clause is being bound.  To prevent infinite recursion in the case of (erroneous)
+            // infinite inheritance, we stop enumerating base interfaces when we encounter an interface type that
+            // inherits from an instantiation of the same interface.  We therefore track, in `cycleGuard`, the
+            // current set of interfaces whose base interfaces we are enumerating.
+            var cycleGuard = ConsList<NamedTypeSymbol>.Empty.Prepend(type.OriginalDefinition);
+
+            // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
+            // Let's use similar sort algorithm.
+            var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var visited = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+
+            for (int i = interfaces.Length - 1; i >= 0; i--)
+            {
+                addAllInterfaces(interfaces[i], visited, result, basesBeingResolved, cycleGuard);
+            }
+
+            result.ReverseContents();
+
+            foreach (var candidate in result)
+            {
+                candidate.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            }
+
+            return result.ToImmutableAndFree();
+
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved, ConsList<NamedTypeSymbol> cycleGuard)
+            {
+                NamedTypeSymbol originalDefinition;
+
+                if (@interface.IsInterface && !cycleGuard.ContainsReference(originalDefinition = @interface.OriginalDefinition) && visited.Add(@interface))
+                {
+                    if (!basesBeingResolved.ContainsReference(originalDefinition))
+                    {
+                        ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.GetDeclaredInterfaces(basesBeingResolved);
+
+                        if (!baseInterfaces.IsEmpty)
+                        {
+                            cycleGuard = cycleGuard.Prepend(originalDefinition);
+                            for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                            {
+                                var baseInterface = baseInterfaces[i];
+                                addAllInterfaces(baseInterface, visited, result, basesBeingResolved, cycleGuard);
+                            }
+                        }
+                    }
+
+                    result.Add(@interface);
+                }
             }
         }
 
@@ -918,6 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamedTypeSymbol> interfaces,
             string name,
             int arity,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             TypeSymbol accessThroughType,
@@ -929,8 +1030,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tmp = LookupResult.GetInstance();
                 foreach (TypeSymbol baseInterface in interfaces)
                 {
-                    LookupMembersWithoutInheritance(tmp, baseInterface, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
-                    MergeHidingLookupResults(current, tmp, ref useSiteDiagnostics);
+                    LookupMembersWithoutInheritance(tmp, baseInterface, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                    MergeHidingLookupResults(current, tmp, basesBeingResolved, ref useSiteDiagnostics);
                     tmp.Clear();
                 }
                 tmp.Free();
@@ -943,14 +1044,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type != null);
             Debug.Assert(type.IsInterface);
 
-            LookupMembersInInterfaceOnly(current, type, name, arity, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
+            LookupMembersInInterfaceOnly(current, type, name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
 
             if (!originalBinder.InCrefButNotParameterOrReturnType)
             {
                 var tmp = LookupResult.GetInstance();
                 // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.
-                this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
-                MergeHidingLookupResults(current, tmp, ref useSiteDiagnostics);
+                this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
+                MergeHidingLookupResults(current, tmp, basesBeingResolved, ref useSiteDiagnostics);
                 tmp.Free();
             }
         }
@@ -972,23 +1073,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // effective interfaces. AllEffectiveInterfaces is used rather than AllInterfaces
             // to avoid including explicit implementations from the effective base class.
             LookupMembersInClass(current, typeParameter.EffectiveBaseClass(ref useSiteDiagnostics), name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
-            LookupMembersInInterfacesWithoutInheritance(current, typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), name, arity, options, originalBinder, typeParameter, diagnose, ref useSiteDiagnostics);
+            LookupMembersInInterfacesWithoutInheritance(current, typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), name, arity, basesBeingResolved: null, options, originalBinder, typeParameter, diagnose, ref useSiteDiagnostics);
         }
 
-        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
             for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
             }
-            return baseType.IsInterface && derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains(baseType);
+            return baseType.IsInterface && GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteDiagnostics).Contains(baseType);
         }
 
         // Merge resultHidden into resultHiding, whereby viable results in resultHiding should hide results
         // in resultHidden if the owner of the symbol in resultHiding is a subtype of the owner of the symbol
         // in resultHidden. We merge together methods [indexers], but non-methods [non-indexers] hide everything and methods [indexers] hide non-methods [non-indexers].
-        private static void MergeHidingLookupResults(LookupResult resultHiding, LookupResult resultHidden, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static void MergeHidingLookupResults(LookupResult resultHiding, LookupResult resultHidden, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Methods hide non-methods, non-methods hide everything.
 
@@ -1017,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
 
-                            if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingSym.ContainingType, useSiteDiagnostics: ref useSiteDiagnostics) &&
+                            if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingSym.ContainingType, basesBeingResolved, useSiteDiagnostics: ref useSiteDiagnostics) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1428,11 +1529,11 @@ symIsHidden:;
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).Type;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
             }
 
@@ -1447,7 +1548,7 @@ symIsHidden:;
                 case SymbolKind.Property:
                 case SymbolKind.Method:
                 case SymbolKind.Event:
-                    return !symbol.IsStatic;
+                    return symbol.RequiresInstanceReceiver();
                 default:
                     return false;
             }
@@ -1648,7 +1749,7 @@ symIsHidden:;
             PooledHashSet<NamedTypeSymbol> visited = null;
             // We need a check for SpecialType.System_Void as its base type is
             // ValueType but we don't wish to return any members for void type
-            while ((object)type != null && type.SpecialType != SpecialType.System_Void)
+            while ((object)type != null && !type.IsVoidType())
             {
                 AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType);
 

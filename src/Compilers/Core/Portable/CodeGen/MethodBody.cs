@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ushort _maxStack;
         private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
+        private readonly bool _areLocalsZeroed;
 
         // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
         private readonly ImmutableArray<Cci.SequencePoint> _sequencePoints;
@@ -50,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
+            bool areLocalsZeroed,
+            bool hasStackalloc,
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
             Cci.IImportScope importScopeOpt,
@@ -72,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _methodId = methodId;
             _locals = locals;
             _exceptionHandlers = exceptionHandlers;
+            _areLocalsZeroed = areLocalsZeroed;
+            HasStackalloc = hasStackalloc;
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
@@ -86,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _sequencePoints = GetSequencePoints(sequencePoints, debugDocumentProvider);
         }
 
-        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList sequencePoints, DebugDocumentProvider debugDocumentProvider)
+        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList? sequencePoints, DebugDocumentProvider debugDocumentProvider)
         {
             if (sequencePoints == null || sequencePoints.IsEmpty)
             {
@@ -102,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 
-        bool Cci.IMethodBody.LocalsAreZeroed => true;
+        bool Cci.IMethodBody.AreLocalsZeroed => _areLocalsZeroed;
 
         ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => _locals;
 
@@ -141,5 +150,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
 
         public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        public bool HasStackalloc { get; }
     }
 }
