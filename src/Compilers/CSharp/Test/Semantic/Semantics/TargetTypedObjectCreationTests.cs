@@ -3561,6 +3561,7 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C");
         }
 
         [Fact]
