@@ -2305,16 +2305,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Usuń nieosiągalny kod</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Modyfikatory nie są uporządkowane</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Uporządkuj modyfikatory</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">w {0} (projekt {1})</target>
