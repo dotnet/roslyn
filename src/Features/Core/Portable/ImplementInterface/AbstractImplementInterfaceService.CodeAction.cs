@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
@@ -157,11 +156,24 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 
-            public virtual async Task<Document> GetUpdatedDocumentAsync(
+            public virtual Task<Document> GetUpdatedDocumentAsync(
                 Document document,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 INamedTypeSymbol classOrStructType,
                 SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
+            {
+                return GetUpdatedDocumentAsync(
+                    document, unimplementedMembers, classOrStructType, classOrStructDecl,
+                    ImmutableArray<ISymbol>.Empty, cancellationToken);
+            }
+
+            protected async Task<Document> GetUpdatedDocumentAsync(
+                Document document,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                ImmutableArray<ISymbol> extraMembers,
                 CancellationToken cancellationToken)
             {
                 var result = document;
@@ -181,15 +193,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var groupMembers = !isComImport &&
                     insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
-                result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType, memberDefinitions,
+                return await CodeGenerator.AddMemberDeclarationsAsync(
+                    result.Project.Solution, classOrStructType,
+                    memberDefinitions.Concat(extraMembers),
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
-
-                return result;
             }
 
             private ImmutableArray<ISymbol> GenerateMembers(

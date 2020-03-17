@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// This allows Completion Providers that indicated they were triggered textually to use syntax to
+        /// confirm they are really triggered, or decide they are not actually triggered and should become 
+        /// an augmenting provider instead.
+        /// </summary>
+        internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+            => ShouldTriggerCompletion(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
+
+        /// <summary>
         /// Gets the description of the specified item.
         /// </summary>
         public virtual Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
