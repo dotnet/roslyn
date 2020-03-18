@@ -20,18 +20,43 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <completionlist cref="NotificationOption2"/>
     internal partial class NotificationOption2
     {
+        /// <summary>
+        /// Name for the notification option.
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Diagnostic severity associated with notification option.
+        /// </summary>
         public ReportDiagnostic Severity
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Notification option to disable or suppress an option with <see cref="ReportDiagnostic.Suppress"/>.
+        /// </summary>
         public static readonly NotificationOption2 None = new NotificationOption2(WorkspacesResources.None, ReportDiagnostic.Suppress);
+
+        /// <summary>
+        /// Notification option for a silent or hidden option with <see cref="ReportDiagnostic.Hidden"/>.
+        /// </summary>
         public static readonly NotificationOption2 Silent = new NotificationOption2(WorkspacesResources.Refactoring_Only, ReportDiagnostic.Hidden);
+
+        /// <summary>
+        /// Notification option for a suggestion or an info option with <see cref="ReportDiagnostic.Info"/>.
+        /// </summary>
         public static readonly NotificationOption2 Suggestion = new NotificationOption2(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
+
+        /// <summary>
+        /// Notification option for a warning option with <see cref="ReportDiagnostic.Warn"/>.
+        /// </summary>
         public static readonly NotificationOption2 Warning = new NotificationOption2(WorkspacesResources.Warning, ReportDiagnostic.Warn);
+
+        /// <summary>
+        /// Notification option for an error option with <see cref="ReportDiagnostic.Error"/>.
+        /// </summary>
         public static readonly NotificationOption2 Error = new NotificationOption2(WorkspacesResources.Error, ReportDiagnostic.Error);
 
         private NotificationOption2(string name, ReportDiagnostic severity)

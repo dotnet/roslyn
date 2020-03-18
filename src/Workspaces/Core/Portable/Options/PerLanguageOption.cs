@@ -14,31 +14,22 @@ namespace Microsoft.CodeAnalysis.Options
     {
         private readonly OptionDefinition _optionDefinition;
 
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
         public string Feature => _optionDefinition.Feature;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Name"/>
         public string Name => _optionDefinition.Name;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
-        /// <summary>
-        /// The default option value.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
+        /// <inheritdoc cref="PerLanguageOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)

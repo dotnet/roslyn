@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         private readonly NotificationOption2 _notificationOptionImpl;
 
+        /// <inheritdoc cref="NotificationOption2.Name"/>
         public string Name
         {
             get => _notificationOptionImpl.Name;
             set => _notificationOptionImpl.Name = value;
         }
 
+        /// <inheritdoc cref="NotificationOption2.Severity"/>
         public ReportDiagnostic Severity
         {
             get => _notificationOptionImpl.Severity;
@@ -35,10 +37,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => Severity = value.ToReportDiagnostic();
         }
 
+        /// <inheritdoc cref="NotificationOption2.None"/>
         public static readonly NotificationOption None = new NotificationOption(NotificationOption2.None);
+
+        /// <inheritdoc cref="NotificationOption2.Silent"/>
         public static readonly NotificationOption Silent = new NotificationOption(NotificationOption2.Silent);
+
+        /// <inheritdoc cref="NotificationOption2.Suggestion"/>
         public static readonly NotificationOption Suggestion = new NotificationOption(NotificationOption2.Suggestion);
+
+        /// <inheritdoc cref="NotificationOption2.Warning"/>
         public static readonly NotificationOption Warning = new NotificationOption(NotificationOption2.Warning);
+
+        /// <inheritdoc cref="NotificationOption2.Error"/>
         public static readonly NotificationOption Error = new NotificationOption(NotificationOption2.Error);
 
         private NotificationOption(NotificationOption2 notificationOptionImpl)

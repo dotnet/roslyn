@@ -9,10 +9,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
+    /// <inheritdoc cref="OptionKey2"/>
     [NonDefaultable]
     public readonly struct OptionKey : IEquatable<OptionKey>
     {
+        /// <inheritdoc cref="OptionKey2.Option"/>
         public IOption Option { get; }
+
+        /// <inheritdoc cref="OptionKey2.Language"/>
         public string? Language { get; }
 
         public OptionKey(IOption option, string? language = null)

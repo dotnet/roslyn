@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Options
     internal readonly struct OptionDefinition : IEquatable<OptionDefinition>
     {
         /// <summary>
-        /// Feature this option definition is associated with.
+        /// Feature this option is associated with.
         /// </summary>
         public string Feature { get; }
 
         /// <summary>
-        /// Optional group/sub-feature for this option definition.
+        /// Optional group/sub-feature for this option.
         /// </summary>
         internal OptionGroup Group { get; }
 
         /// <summary>
-        /// The name of the option definition.
+        /// The name of the option.
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// The default value of the option definition.
+        /// The default value of the option.
         /// </summary>
         public object? DefaultValue { get; }
 

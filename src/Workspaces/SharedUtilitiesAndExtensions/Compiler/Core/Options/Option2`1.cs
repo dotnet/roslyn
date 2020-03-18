@@ -31,31 +31,24 @@ namespace Microsoft.CodeAnalysis.Options
     {
         public OptionDefinition OptionDefinition { get; }
 
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
         public string Feature => OptionDefinition.Feature;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => OptionDefinition.Group;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Name"/>
         public string Name => OptionDefinition.Name;
 
-        /// <summary>
-        /// The default value of the option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)OptionDefinition.DefaultValue!;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => OptionDefinition.Type;
 
+        /// <summary>
+        /// Storage locations for the option.
+        /// </summary>
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]

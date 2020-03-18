@@ -9,38 +9,27 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <summary>
-    /// An global option. An instance of this class can be used to access an option value from an OptionSet.
-    /// </summary>
+    /// <inheritdoc cref="Option2{T}"/>
     public class Option<T> : ILanguageSpecificOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
 
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
         public string Feature => _optionDefinition.Feature;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Group"/>
         internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Name"/>
         public string Name => _optionDefinition.Name;
 
-        /// <summary>
-        /// The default value of the option.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
+        /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
+        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]
