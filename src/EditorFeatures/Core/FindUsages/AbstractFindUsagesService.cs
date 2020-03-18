@@ -14,25 +14,16 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SymbolMonikers;
 using Roslyn.Utilities;
-using VS.IntelliNav.Contracts;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService : IFindUsagesService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ICodeIndexProvider? _codeIndexProvider;
 
-        protected AbstractFindUsagesService(
-            IThreadingContext threadingContext,
-            ICodeIndexProvider? codeIndexProvider)
-        {
-            _threadingContext = threadingContext;
-            _codeIndexProvider = codeIndexProvider;
-        }
+        protected AbstractFindUsagesService(IThreadingContext threadingContext)
+            => _threadingContext = threadingContext;
 
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
@@ -138,8 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return;
 
             await FindSymbolReferencesAsync(
-                _threadingContext, _codeIndexProvider, context,
-                symbolAndProject.Value.symbol, symbolAndProject.Value.project, cancellationToken).ConfigureAwait(false);
+                _threadingContext, context, symbolAndProject.Value.symbol, symbolAndProject.Value.project, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -147,9 +137,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
-            IThreadingContext threadingContext, ICodeIndexProvider? codeIndexProvider,
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IThreadingContext threadingContext, IFindUsagesContext context,
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
+            var monikerUsagesService = project.Solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
+
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
@@ -176,8 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 cancellationToken);
 
             // Kick off work to search the online code index system in parallel
-            var codeIndexReferencesTask = FindCodeIndexReferencesAsync(
-                codeIndexProvider,
+            var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
+                monikerUsagesService,
                 symbol,
                 codeIndexFindUsagesContext,
                 cancellationToken);

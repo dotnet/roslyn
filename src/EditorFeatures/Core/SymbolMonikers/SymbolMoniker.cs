@@ -5,17 +5,16 @@
 #nullable enable
 
 using System;
-using VS.IntelliNav.Contracts;
 
-namespace Microsoft.CodeAnalysis.SymbolMonikers
+namespace Microsoft.CodeAnalysis.Editor.SymbolMonikers
 {
-    internal class SymbolMoniker : ISymbolMoniker
+    internal class SymbolMoniker
     {
         public string Scheme { get; }
 
         public string Identifier { get; }
 
-        public IPackageInformation? PackageInformation { get; }
+        //public IPackageInformation? PackageInformation { get; }
 
         public SymbolMoniker(string scheme, string identifier)
         {
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolMonikers
             this.Identifier = identifier;
         }
 
-        public static ISymbolMoniker? TryCreate(ISymbol symbol)
+        public static SymbolMoniker? TryCreate(ISymbol symbol)
         {
             // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
             // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.

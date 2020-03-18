@@ -6,7 +6,6 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports VS.IntelliNav.Contracts
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
     <ExportLanguageService(GetType(IFindUsagesService), LanguageNames.VisualBasic), [Shared]>
@@ -15,9 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext,
-                       <Import(AllowDefault:=True)> codeIndexProvider As ICodeIndexProvider)
-            MyBase.New(threadingContext, codeIndexProvider)
+        Public Sub New(threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
         End Sub
     End Class
 End Namespace

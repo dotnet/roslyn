@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// editor.  These generally reference items outside of the Roslyn <see cref="Solution"/> model
     /// provided by external sources (for example: RichNav).
     /// </summary>
-    internal sealed class ExternalReferenceItem
+    internal abstract class ExternalReferenceItem
     {
         /// <summary>
         /// The definition this reference corresponds to.
@@ -39,5 +39,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </remarks> 
         public object Text { get; }
         public string DisplayPath { get; }
+
+        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
     }
 }

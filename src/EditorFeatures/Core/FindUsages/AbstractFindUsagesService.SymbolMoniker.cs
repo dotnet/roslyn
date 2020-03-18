@@ -4,21 +4,15 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Editor.SymbolMonikers;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SymbolMonikers;
 using Roslyn.Utilities;
-using VS.IntelliNav.Contracts;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -26,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal abstract partial class AbstractFindUsagesService
     {
-        private static async Task FindCodeIndexReferencesAsync(
-            ICodeIndexProvider? codeIndexProvider,
+        private static async Task FindSymbolMonikerReferencesAsync(
+            IFindSymbolMonikerUsagesService monikerUsagesService,
             ISymbol definition,
             IFindUsagesContext context,
             CancellationToken cancellationToken)
         {
-            if (codeIndexProvider == null)
+            if (monikerUsagesService == null)
                 return;
 
             var moniker = SymbolMoniker.TryCreate(definition);
@@ -57,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var currentPage = 0;
                 while (true)
                 {
-                    var keepGoing = await FindCodeIndexReferencesAsync(
-                        codeIndexProvider, monikers, context,
+                    var keepGoing = await FindSymbolMonikerReferencesAsync(
+                        monikerUsagesService, monikers, context,
                         progress, definitionItem, currentPage, cancellationToken).ConfigureAwait(false);
                     if (!keepGoing)
                         break;
@@ -73,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// <summary>
         /// Returns <c>false</c> when it's time to stop searching.
         /// </summary>
-        private static async Task<bool> FindCodeIndexReferencesAsync(
-            ICodeIndexProvider codeIndexProvider,
-            IEnumerable<ISymbolMoniker> monikers,
+        private static async Task<bool> FindSymbolMonikerReferencesAsync(
+            IFindSymbolMonikerUsagesService monikerUsagesService,
+            IEnumerable<SymbolMoniker> monikers,
             IFindUsagesContext context,
             IStreamingProgressTracker progress,
             DefinitionItem definitionItem,
@@ -86,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 await progress.AddItemsAsync(1).ConfigureAwait(false);
 
-                var results = await codeIndexProvider.FindReferencesByMonikerAsync(
-                    monikers, includeDecleration: true, pageIndex: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (results == null || results.Count == 0)
+                var results = await monikerUsagesService.FindReferencesByMonikerAsync(
+                    monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (results == null || results.Length == 0)
                     return false;
 
                 if (currentPage == 0)
@@ -98,28 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
 
                 currentPage++;
-                await ProcessCodeIndexResultsAsync(
-                    codeIndexProvider, context, definitionItem, results, cancellationToken).ConfigureAwait(false);
+
+                foreach (var referenceItem in results)
+                    await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
+
                 return true;
             }
             finally
             {
                 await progress.ItemCompletedAsync().ConfigureAwait(false);
-            }
-        }
-
-        private static async Task ProcessCodeIndexResultsAsync(
-            ICodeIndexProvider codeIndexProvider,
-            IFindUsagesContext context,
-            DefinitionItem definitionItem,
-            ICollection<string> results,
-            CancellationToken cancellationToken)
-        {
-            foreach (var result in results)
-            {
-                var referenceItem = new ExternalReferenceItem(
-                    definitionItem, null, null, null, null);
-                await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
             }
         }
     }
