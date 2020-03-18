@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -1547,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
             var initializersExpressions = node.Declaration.Variables
                 .Where(v => v.Initializer != null)
-                .SelectAsArray<VariableDeclaratorSyntax, ExpressionSyntax>(initializedV => initializedV.Initializer.Value);
+                .SelectAsArray(initializedV => initializedV.Initializer.Value);
             return IsOnHeader(root, position, node, node, holes: initializersExpressions);
         }
 
@@ -1701,14 +1700,5 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => node.GetAttributeLists();
-
-        public bool IsImplicitObjectCreation(SyntaxNode node)
-        {
-#if CODE_STYLE
-            return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;
-#else
-            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
-#endif
-        }
     }
 }

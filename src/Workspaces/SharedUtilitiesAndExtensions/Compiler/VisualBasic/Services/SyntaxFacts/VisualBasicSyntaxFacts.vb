@@ -1869,9 +1869,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return False
         End Function
-
-        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
-            Return False
-        End Function
     End Class
 End Namespace

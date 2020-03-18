@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal static class SyntaxKindEx
     {
-        public const SyntaxKind ImplicitObjectCreationExpression = (SyntaxKind)8659;
-
         // The code style layer does not currently need access to any syntax defined in newer versions of Roslyn. This
         // type is included as an example should this change in future updates.
 #if false

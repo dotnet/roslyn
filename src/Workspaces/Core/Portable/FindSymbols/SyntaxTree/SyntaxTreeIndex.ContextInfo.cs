@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType,
-                bool containsImplicitObjectCreation)
+                bool containsTupleExpressionOrTupleType)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
-                         containsTupleExpressionOrTupleType,
-                         containsImplicitObjectCreation))
+                         containsTupleExpressionOrTupleType))
             {
             }
 
@@ -66,8 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType,
-                bool containsImplicitObjectCreation)
+                bool containsTupleExpressionOrTupleType)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -82,7 +79,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
-                containingNodes |= containsImplicitObjectCreation ? ContainingNodes.ContainsImplicitObjectCreation : 0;
 
                 return containingNodes;
             }
@@ -101,9 +97,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsAwait
                 => (_containingNodes & ContainingNodes.ContainsAwait) == ContainingNodes.ContainsAwait;
-
-            public bool ContainsImplicitObjectCreation
-                => (_containingNodes & ContainingNodes.ContainsImplicitObjectCreation) == ContainingNodes.ContainsImplicitObjectCreation;
 
             public bool ContainsLockStatement
                 => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
@@ -168,7 +161,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
-                ContainsImplicitObjectCreation = 1 << 11,
             }
         }
     }
