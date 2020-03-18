@@ -6,13 +6,8 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
