@@ -50,9 +50,19 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
+        /// <summary>
+        /// Whether or not our constructor made it all the way to the end, and thus
+        /// 
+        /// </summary>
+        private readonly bool _constructedCompletely;
+
         public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
+
+            // Allocate dictionary before doing any sqlite work.  That way if it throws
+            // we don't have to do any additional cleanup.
+            var queryToStatement = new Dictionary<string, SqlStatement>();
 
             // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
             // one is only used from a single thread at a time.
@@ -67,24 +77,34 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
             Contract.ThrowIfNull(handle);
 
-            raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-
-            var queryToStatement = new Dictionary<string, SqlStatement>();
-            return new SqlConnection(handle, faultInjector, queryToStatement);
+            try
+            {
+                raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+                return new SqlConnection(handle, faultInjector, queryToStatement);
+            }
+            catch
+            {
+                // If we failed to create connection, ensure that we still release the sqlite
+                // handle.
+                raw.sqlite3_close(handle);
+                throw;
+            }
         }
 
         private SqlConnection(sqlite3 handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
-            // This constructor avoids allocations since failure (e.g. OutOfMemoryException) would leave the object
-            // partially-constructed, and the finalizer would run later triggering a crash.
+            // This constructor avoids allocations since failure (e.g. OutOfMemoryException) would
+            // leave the object partially-constructed, and the finalizer would run later triggering
+            // a crash.
             _handle = handle;
             _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
+            _constructedCompletely = true;
         }
 
         ~SqlConnection()
         {
-            if (!Environment.HasShutdownStarted)
+            if (!Environment.HasShutdownStarted && _constructedCompletely)
             {
                 var ex = new InvalidOperationException("SqlConnection was not properly closed");
                 _faultInjector?.OnFatalError(ex);
@@ -99,7 +119,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             Contract.ThrowIfNull(_handle);
 
             // release all the cached statements we have.
-            foreach (var statement in _queryToStatement.Values)
+            //
+            // use the struct-enumerator of our dictionary to prevent any allocations here.  We
+            // don't want to risk an allocation causing an OOM which prevents executing the
+            // following cleanup code.
+            foreach (var (_, statement) in _queryToStatement)
             {
                 statement.Close_OnlyForUseBySqlConnection();
             }
