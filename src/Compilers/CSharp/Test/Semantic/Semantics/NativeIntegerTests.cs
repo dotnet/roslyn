@@ -2320,6 +2320,7 @@ False
             }
         }
 
+        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -2431,6 +2432,7 @@ False
 }");
         }
 
+        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
