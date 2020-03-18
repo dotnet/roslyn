@@ -2454,19 +2454,33 @@ namespace System { public struct HashCode { } }
         <Document>
 using System;
 
-struct S
+struct S : IEquatable&lt;S&gt;
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        return obj is S s &amp;&amp;
-               j == s.j;
+        return obj is S s &amp;&amp; Equals(s);
+    }
+
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(j);
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }
         </Document>
@@ -2509,19 +2523,35 @@ namespace System { internal struct HashCode { } }
     <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
         <ProjectReference>P1</ProjectReference>
         <Document>
-struct S
+using System;
+
+struct S : IEquatable&lt;S&gt;
 {
     int j;
 
     public override bool Equals(object obj)
     {
-        return obj is S s &amp;&amp;
-               j == s.j;
+        return obj is S s &amp;&amp; Equals(s);
+    }
+
+    public bool Equals(S other)
+    {
+        return j == other.j;
     }
 
     public override int GetHashCode()
     {
         return 1424088837 + j.GetHashCode();
+    }
+
+    public static bool operator ==(S left, S right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(S left, S right)
+    {
+        return !(left == right);
     }
 }
         </Document>
