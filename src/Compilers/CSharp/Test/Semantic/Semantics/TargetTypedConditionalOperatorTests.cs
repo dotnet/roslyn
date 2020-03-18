@@ -21,19 +21,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         // PROTOTYPE(ngafter): Testing for target-typed semantics is needed.
 
-        /*
         /// <summary>
         /// Both branches have the same type, so no conversion is necessary.
         /// </summary>
         [Fact]
         public void TestSameType()
         {
-            TestConditional("true ? 1 : 2", targetType: "System.Int32");
-            TestConditional("false ? 'a' : 'b'", targetType: "System.Char");
-            TestConditional("true ? 1.5 : GetDouble()", targetType: "System.Double");
-            TestConditional("false ? GetObject() : GetObject()", targetType: "System.Object");
-            TestConditional("true ? GetUserGeneric<T>() : GetUserGeneric<T>()", targetType: "D<T>");
-            TestConditional("false ? GetTypeParameter<T>() : GetTypeParameter<T>()", targetType: "T");
+            TestConditional("true ? 1 : 2", targetType: null, naturalType: "System.Int32");
+            TestConditional("false ? 'a' : 'b'", targetType: null, naturalType: "System.Char");
+            TestConditional("true ? 1.5 : GetDouble()", targetType: null, naturalType: "System.Double");
+            TestConditional("false ? GetObject() : GetObject()", targetType: null, naturalType: "System.Object");
+            TestConditional("true ? GetUserGeneric<T>() : GetUserGeneric<T>()", targetType: null, naturalType: "D<T>");
+            TestConditional("false ? GetTypeParameter<T>() : GetTypeParameter<T>()", targetType: null, naturalType: "T");
+
+            TestConditional("true ? 1 : 2", targetType: "System.Int32", naturalType: "System.Int32");
+            TestConditional("false ? 'a' : 'b'", targetType: "System.Char", naturalType: "System.Char");
+            TestConditional("true ? 1.5 : GetDouble()", targetType: "System.Double", naturalType: "System.Double");
+            TestConditional("false ? GetObject() : GetObject()", targetType: "System.Object", naturalType: "System.Object");
+            TestConditional("true ? GetUserGeneric<T>() : GetUserGeneric<T>()", targetType: "D<T>", naturalType: "D<T>");
+            TestConditional("false ? GetTypeParameter<T>() : GetTypeParameter<T>()", targetType: "T", naturalType: "T");
         }
 
         /// <summary>
@@ -203,14 +209,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional(conditionalExpression, targetType, naturalType, null, expectedDiagnostics);
         }
 
-        private static void TestConditional(string conditionalExpression, string targetType, string? naturalType, CSharpParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        private static void TestConditional(
+            string conditionalExpression,
+            string targetType,
+            string? naturalType,
+            CSharpParseOptions? parseOptions,
+            params DiagnosticDescription[] expectedDiagnostics)
         {
             string source = $@"
 class C
 {{
     void Test<T, U>(bool b)
     {{
-        {targetType} t = {conditionalExpression};
+        {targetType ?? "var"} t = {conditionalExpression};
         Use(t);
     }}
 
@@ -249,11 +260,11 @@ interface I<in T, out U> {{ }}";
 
             var model = comp.GetSemanticModel(tree);
 
-            TODO("BELOW HERE NEEDS TO BE WRITTEN.");
+            Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
 
             if (targetType != null)
             {
-                Assert.Equal(targetType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
+                Assert.Equal(targetType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString());
 
                 if (!expectedDiagnostics.Any())
                 {
@@ -263,6 +274,5 @@ interface I<in T, out U> {{ }}";
                 }
             }
         }
-        */
     }
 }
