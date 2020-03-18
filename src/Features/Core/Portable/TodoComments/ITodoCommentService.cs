@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, this.Position)), 0);
 
             var location = tree.GetLocation(textSpan);
-            // var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
