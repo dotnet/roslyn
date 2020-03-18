@@ -37,6 +37,26 @@ class Type
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
+        [Fact]
+        public async Task UnresolvedType()
+        {
+            var source = @"
+class Type
+{
+    void Method()
+    {
+        {|CS0411:Method2|}(default);
+    }
+
+    void Method2<T>(T value)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]

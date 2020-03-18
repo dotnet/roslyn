@@ -45,6 +45,11 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
 
             var type = context.Operation.Type;
+            if (type is null)
+            {
+                return;
+            }
+
             if (type.IsValueType)
             {
                 if (!(type is INamedTypeSymbol namedType)
