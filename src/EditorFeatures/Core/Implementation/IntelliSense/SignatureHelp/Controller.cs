@@ -57,10 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
-            IList<ISignatureHelpProvider> providers)
+            IList<ISignatureHelpProvider> providers,
+            IAsyncCompletionBroker completionBroker)
             : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _providers = providers.ToImmutableArray();
+            _completionBroker = completionBroker;
         }
 
         internal static Controller GetInstance(
