@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             if (generateEquals && containingType.TypeKind == TypeKind.Struct)
             {
                 // if we're generating equals for a struct, then also add IEquatable<S> support as
-                // well as operators (as long as the struct does not already have them.
+                // well as operators (as long as the struct does not already have them).
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 implementIEquatable = CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt);
                 generateOperators = !HasOperators(containingType);
