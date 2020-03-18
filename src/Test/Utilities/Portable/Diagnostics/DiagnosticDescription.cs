@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
 
             DiagnosticWithInfo dinfo = null;
-            if (d.Code == 0 || !d.Id.StartsWith("CS"))
+            if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
             {
                 _code = d.Id;
                 _errorCodeType = typeof(string);

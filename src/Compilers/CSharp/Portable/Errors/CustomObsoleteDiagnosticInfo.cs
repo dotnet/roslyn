@@ -5,6 +5,8 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Errors
 {
@@ -79,6 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
                     ? baseDescriptor.HelpLinkUri
                     : string.Format(urlFormat, id);
 
+                var customTags = ArrayBuilder<string>.GetInstance();
+                foreach (var tag in baseDescriptor.CustomTags)
+                {
+                    customTags.Add(tag);
+                }
+                customTags.Add(WellKnownDiagnosticTags.CustomObsolete);
+
                 // TODO: we expect some users to repeatedly use
                 // the same diagnostic IDs and url format values for many symbols.
                 // do we want to cache similar diagnostic descriptors?
@@ -91,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
                     isEnabledByDefault: baseDescriptor.IsEnabledByDefault,
                     description: baseDescriptor.Description,
                     helpLinkUri: helpLinkUri,
-                    customTags: baseDescriptor.CustomTags.AsImmutable());
+                    customTags: customTags.ToImmutableAndFree());
             }
         }
     }
