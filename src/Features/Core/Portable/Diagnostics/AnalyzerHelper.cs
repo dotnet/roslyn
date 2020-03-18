@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var optionSetAsync = GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken);
             if (optionSetAsync.IsCompleted)
-                return optionSetAsync.GetAwaiter().GetResult();
+                return optionSetAsync.Result;
 
             return optionSetAsync.AsTask().GetAwaiter().GetResult();
         }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
             if (optionAsync.IsCompleted)
-                return optionAsync.GetAwaiter().GetResult();
+                return optionAsync.Result;
 
             return optionAsync.AsTask().GetAwaiter().GetResult();
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken);
             if (optionAsync.IsCompleted)
-                return optionAsync.GetAwaiter().GetResult();
+                return optionAsync.Result;
 
             return optionAsync.AsTask().GetAwaiter().GetResult();
         }
