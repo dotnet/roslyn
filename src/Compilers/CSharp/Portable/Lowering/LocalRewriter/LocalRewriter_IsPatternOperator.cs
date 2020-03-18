@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // lower the decision dag.
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
                 resultBuilder.Add(_factory.Block(loweredDag));
+                Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
                 LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
                 LabelSymbol afterIsPatternExpression = _factory.GenerateLabel("afterIsPatternExpression");
                 LabelSymbol trueLabel = node.WhenTrueLabel;
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundTestDecisionDagNode testNode:
                             {
                                 if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
-                                    TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression sideEffect, out BoundExpression testExpression))
+                                    TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression? sideEffect, out BoundExpression? testExpression))
                                 {
                                     _sideEffectBuilder.Add(sideEffect);
                                     AddConjunct(testExpression);
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(_sideEffectBuilder.Count == 0);
-                BoundExpression result = null;
+                BoundExpression? result = null;
                 foreach (BoundExpression conjunct in _conjunctBuilder)
                 {
                     result = (result == null) ? conjunct : _factory.LogicalAnd(result, conjunct);

@@ -1171,7 +1171,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Const {|Rename:Value|} As Integer = 1
                 Console.WriteLine(Value)
@@ -1209,7 +1208,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Console.WriteLine(1)
             Else

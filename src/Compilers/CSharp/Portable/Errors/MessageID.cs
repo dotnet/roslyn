@@ -189,12 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
-        IDS_FeatureTypePattern = MessageBase + 12768,
-        IDS_FeatureParenthesizedPattern = MessageBase + 12769,
-        IDS_FeatureOrPattern = MessageBase + 12770,
-        IDS_FeatureAndPattern = MessageBase + 12771,
-        IDS_FeatureNotPattern = MessageBase + 12772,
-        IDS_FeatureRelationalPattern = MessageBase + 12773,
+        IDS_FeatureMemberNotNull = MessageBase + 12768,
+        IDS_FeatureTypePattern = MessageBase + 12769,
+        IDS_FeatureParenthesizedPattern = MessageBase + 12770,
+        IDS_FeatureOrPattern = MessageBase + 12771,
+        IDS_FeatureAndPattern = MessageBase + 12772,
+        IDS_FeatureNotPattern = MessageBase + 12773,
+        IDS_FeatureRelationalPattern = MessageBase + 12774,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -305,6 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
+                case MessageID.IDS_FeatureMemberNotNull:
                 case MessageID.IDS_FeatureAndPattern:
                 case MessageID.IDS_FeatureNotPattern:
                 case MessageID.IDS_FeatureOrPattern:

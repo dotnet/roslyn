@@ -1758,9 +1758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoOutputDirectory = 8771,
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
 
-        // available 8773-8779
+        // available 8773
 
         #region diagnostics introduced for C# 9.0
+
+        WRN_MemberNotNull = 8774,
+        WRN_MemberNotNullWhen = 8775,
+        WRN_MemberNotNullBadMember = 8776,
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
