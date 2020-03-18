@@ -267,4 +267,7 @@
   <data name="PreferNullLiteralCodeFix" xml:space="preserve">
     <value>Use 'null' instead of 'default'</value>
   </data>
+  <data name="RelaxTestNamingSuppressorJustification" xml:space="preserve">
+    <value>Asynchronous test methods do not require the 'Async' suffix.</value>
+  </data>
 </root>
