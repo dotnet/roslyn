@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         private class SignlessEqualityComparer : IEqualityComparer<int>
         {
             public bool Equals(int x, int y) => Math.Abs(x) == Math.Abs(y);
-            public int GetHashCode(int obj) => obj.GetHashCode();
+            public int GetHashCode(int obj) => throw new NotImplementedException();
         }
 
         [Fact]

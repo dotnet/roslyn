@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         protected override int GetAssemblyRefIndex()
         {
             ImmutableArray<AssemblySymbol> refs = TypeManager.ModuleBeingBuilt.SourceModule.GetReferencedAssemblySymbols();
-            return refs.IndexOf(UnderlyingNamedType.ContainingAssembly, 0, ReferenceEqualityComparer.Instance);
+            return refs.IndexOf(UnderlyingNamedType.ContainingAssembly, ReferenceEqualityComparer.Instance);
         }
 
         protected override bool IsPublic
