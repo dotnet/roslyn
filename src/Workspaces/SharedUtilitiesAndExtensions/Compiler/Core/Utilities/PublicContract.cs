@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(argumentName);
             }
 
-            if (sequence.Contains(default(T)))
+            if (sequence.Contains((T)null!))
             {
                 ThrowArgumentItemNullException(sequence, argumentName);
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         {
             var list = sequence.ToBoxedImmutableArray();
 
-            if (list.Contains(default(T)))
+            if (list.Contains((T)null!))
             {
                 ThrowArgumentItemNullException(list, argumentName);
             }
