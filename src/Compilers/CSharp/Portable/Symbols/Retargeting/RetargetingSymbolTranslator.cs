@@ -186,7 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (type.IsNativeIntegerType)
                 {
-                    return RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options).AsNativeInteger();
+                    var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
+                    return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();
                 }
 
                 // Before we do anything else, check if we need to do special retargeting

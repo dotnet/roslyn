@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.True(typeB.ContainingAssembly.IsMissing);
-            Assert.True(typeB.IsNativeIntegerType);
+            Assert.False(typeB.IsNativeIntegerType);
         }
 
         [Fact]
