@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
             right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
 
-            if ((left.Type is null && left.IsLiteralDefaultOrTypelessNew()) ||
-                (right.Type is null && right.IsLiteralDefaultOrTypelessNew()))
+            if (left.IsLiteralDefaultOrTypelessNew() ||
+                right.IsLiteralDefaultOrTypelessNew())
             {
-                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 

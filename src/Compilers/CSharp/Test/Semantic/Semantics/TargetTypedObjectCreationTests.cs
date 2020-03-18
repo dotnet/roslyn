@@ -3582,18 +3582,18 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,23): error CS0034: Operator '==' is ambiguous on operands of type 'new()' and '(int, long)'
+                // (7,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.Write(new() == (1, 2L) ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() == (1, 2L)").WithArguments("==", "new()", "(int, long)").WithLocation(7, 23),
-                // (8,23): error CS0034: Operator '!=' is ambiguous on operands of type 'new()' and '(int, long)'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() == (1, 2L)").WithArguments("==", "new()").WithLocation(7, 23),
+                // (8,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.Write(new() != (1, 2L) ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() != (1, 2L)").WithArguments("!=", "new()", "(int, long)").WithLocation(8, 23),
-                // (9,23): error CS0034: Operator '==' is ambiguous on operands of type '(int, long)' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() != (1, 2L)").WithArguments("!=", "new()").WithLocation(8, 23),
+                // (9,23): error CS8310: Operator '==' cannot be applied to operand 'new()'
                 //         Console.Write((1, 2L) == new() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) == new()").WithArguments("==", "(int, long)", "new()").WithLocation(9, 23),
-                // (10,23): error CS0034: Operator '!=' is ambiguous on operands of type '(int, long)' and 'new()'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) == new()").WithArguments("==", "new()").WithLocation(9, 23),
+                // (10,23): error CS8310: Operator '!=' cannot be applied to operand 'new()'
                 //         Console.Write((1, 2L) != new() ? 1 : 0);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) != new()").WithArguments("!=", "(int, long)", "new()").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "(1, 2L) != new()").WithArguments("!=", "new()").WithLocation(10, 23)
                 );
         }
 
