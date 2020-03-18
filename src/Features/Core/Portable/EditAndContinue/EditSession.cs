@@ -930,6 +930,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     debugInfoReader.IsPortable);
 
                 success = true;
+                return true;
             }
             catch (Exception e)
             {
@@ -945,7 +946,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return success;
+            return false;
         }
 
         // internal for testing

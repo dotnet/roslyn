@@ -13,6 +13,7 @@
     <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />

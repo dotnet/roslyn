@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol? LookupMemberForPropertyPattern(
             TypeSymbol inputType, IdentifierNameSyntax name, DiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
-            Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
+            Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
             if (inputType.IsErrorType() || hasErrors || symbol is null)
                 memberType = CreateErrorType();
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private Symbol BindPropertyPatternMember(
+        private Symbol? BindPropertyPatternMember(
             TypeSymbol inputType,
             IdentifierNameSyntax memberName,
             ref bool hasErrors,

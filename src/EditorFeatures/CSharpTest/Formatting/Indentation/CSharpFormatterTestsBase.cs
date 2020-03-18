@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
-    public class CSharpFormatterTestsBase : CoreFormatterTestsBase
+    public class CSharpFormatterTestsBase : CSharpFormattingEngineTestBase
     {
         protected const string HtmlMarkup = @"<html>
     <body>
@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     </body>
 </html>";
         protected const int BaseIndentationOfNugget = 8;
-
-        internal override string GetLanguageName()
-            => LanguageNames.CSharp;
 
         protected static async Task<int> GetSmartTokenFormatterIndentationWorkerAsync(
             TestWorkspace workspace,

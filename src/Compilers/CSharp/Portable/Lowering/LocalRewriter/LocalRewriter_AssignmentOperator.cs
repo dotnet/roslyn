@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -63,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // dyn[args] = expr
                         var indexerAccess = (BoundDynamicIndexerAccess)left;
-                        Debug.Assert(indexerAccess.ReceiverOpt != null);
-                        var loweredReceiver = VisitExpression(indexerAccess.ReceiverOpt);
+                        var loweredReceiver = VisitExpression(indexerAccess.Receiver);
                         var loweredArguments = VisitList(indexerAccess.Arguments);
                         return MakeDynamicSetIndex(
                             indexerAccess,
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerAccess = (BoundDynamicIndexerAccess)rewrittenLeft;
                     return MakeDynamicSetIndex(
                         indexerAccess,
-                        indexerAccess.ReceiverOpt,
+                        indexerAccess.Receiver,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentNamesOpt,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(!isRef);
                         BoundPropertyAccess propertyAccess = (BoundPropertyAccess)rewrittenLeft;
-                        BoundExpression rewrittenReceiver = propertyAccess.ReceiverOpt;
+                        BoundExpression? rewrittenReceiver = propertyAccess.ReceiverOpt;
                         PropertySymbol property = propertyAccess.PropertySymbol;
                         Debug.Assert(!property.IsIndexer);
                         return MakePropertyAssignment(
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(!isRef);
                         BoundIndexerAccess indexerAccess = (BoundIndexerAccess)rewrittenLeft;
-                        BoundExpression rewrittenReceiver = indexerAccess.ReceiverOpt;
+                        BoundExpression? rewrittenReceiver = indexerAccess.ReceiverOpt;
                         ImmutableArray<BoundExpression> rewrittenArguments = indexerAccess.Arguments;
                         PropertySymbol indexer = indexerAccess.Indexer;
                         Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             PropertySymbol property,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
@@ -296,10 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)setMethod == null)
             {
-                Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
+                var sourceProperty = (SourcePropertySymbol)property;
+                Debug.Assert(sourceProperty.IsAutoProperty == true,
                     "only autoproperties can be assignable without having setters");
 
-                var backingField = (property as SourcePropertySymbol).BackingField;
+                var backingField = sourceProperty.BackingField;
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);
@@ -325,7 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Save expression value to a temporary before calling the
                 // setter, and restore the temporary after the setter, so the
                 // assignment can be used as an embedded expression.
-                TypeSymbol exprType = rewrittenRight.Type;
+                TypeSymbol? exprType = rewrittenRight.Type;
+                Debug.Assert(exprType is object);
 
                 LocalSymbol rhsTemp = _factory.SynthesizedLocal(exprType);
 
@@ -374,9 +378,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, T newElement)
+        private static ImmutableArray<T> AppendToPossibleNull<T>(ImmutableArray<T> possibleNull, [DisallowNull] T newElement)
         {
-            Debug.Assert(newElement != null);
+            Debug.Assert(newElement is { });
             return possibleNull.NullToEmpty().Add(newElement);
         }
     }
