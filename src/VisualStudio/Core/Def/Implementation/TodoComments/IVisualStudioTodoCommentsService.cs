@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     /// <summary>
     /// In process service responsible for listening to OOP todo comment notifications.
     /// </summary>
-    internal interface IVisualStudioTodoCommentsService : IWorkspaceService
+    internal interface IVisualStudioTodoCommentsService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background

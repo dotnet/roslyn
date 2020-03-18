@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
     /// <summary>
     /// In process service responsible for listening to OOP telemetry notifications.
     /// </summary>
-    internal interface IVisualStudioProjectTelemetryService : IWorkspaceService
+    internal interface IVisualStudioProjectTelemetryService
     {
         /// <summary>
         /// Called by a host to let this service know that it should start background
