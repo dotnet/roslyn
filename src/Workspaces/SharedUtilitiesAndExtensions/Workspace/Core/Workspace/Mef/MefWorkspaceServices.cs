@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 });
             }
 
-            return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return service != null;
         }
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return default;
+            return null;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
         {
             service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return service != null;
         }
 
         private IEnumerable<string> _languages;
