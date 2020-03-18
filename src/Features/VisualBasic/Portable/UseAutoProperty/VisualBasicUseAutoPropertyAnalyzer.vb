@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, compilation As Compilation, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsEligibleHeuristic(field As IFieldSymbol, propertyDeclaration As PropertyBlockSyntax, semanticModel As SemanticModel, compilation As Compilation, cancellationToken As CancellationToken) As Boolean
             If propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
                 ' If this property already has a setter, then we can definitely simplify it to an auto-prop 
                 Return True
@@ -173,9 +173,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
                 If containingNode IsNot Nothing Then
 #Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    Dim semanticModel = compilation.GetSemanticModel(containingNode.SyntaxTree)
+                    Dim refSemanticModel = If(containingNode.SyntaxTree Is semanticModel.SyntaxTree, semanticModel, compilation.GetSemanticModel(containingNode.SyntaxTree))
 #Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-                    If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, semanticModel, cancellationToken) Then
+                    If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, refSemanticModel, cancellationToken) Then
                         Return False
                     End If
                 End If

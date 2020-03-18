@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
             var compilation = semanticModel.Compilation;
 
-            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, compilation, cancellationToken))
+            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, result.SemanticModel, compilation, cancellationToken))
             {
                 return;
             }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected virtual bool IsEligibleHeuristic(
             IFieldSymbol field, TPropertyDeclaration propertyDeclaration,
-            Compilation compilation, CancellationToken cancellationToken)
+            SemanticModel semanticModel, Compilation compilation, CancellationToken cancellationToken)
         {
             return true;
         }
