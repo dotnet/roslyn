@@ -6,9 +6,6 @@
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#else
-using System.Security;
-using Roslyn.Utilities;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -21,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// This also supports various properties for databinding.
     /// </remarks>
     /// <completionlist cref="NotificationOption2"/>
-    internal class NotificationOption2
+    internal partial class NotificationOption2
     {
         public string Name { get; set; }
 
@@ -44,77 +41,5 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public override string ToString() => Name;
-
-#if !CODE_STYLE
-        public static implicit operator NotificationOption2?(NotificationOption? notificationOption)
-        {
-            if (notificationOption is null)
-            {
-                return null;
-            }
-
-            return notificationOption.Severity switch
-            {
-                ReportDiagnostic.Suppress => None,
-                ReportDiagnostic.Hidden => Silent,
-                ReportDiagnostic.Info => Suggestion,
-                ReportDiagnostic.Warn => Warning,
-                ReportDiagnostic.Error => Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
-            };
-        }
-
-        public static implicit operator NotificationOption?(NotificationOption2? notificationOption)
-        {
-            if (notificationOption is null)
-            {
-                return null;
-            }
-
-            return notificationOption.Severity switch
-            {
-                ReportDiagnostic.Suppress => NotificationOption.None,
-                ReportDiagnostic.Hidden => NotificationOption.Silent,
-                ReportDiagnostic.Info => NotificationOption.Suggestion,
-                ReportDiagnostic.Warn => NotificationOption.Warning,
-                ReportDiagnostic.Error => NotificationOption.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
-            };
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is NotificationOption)
-            {
-                return this.Equals((NotificationOption2)obj);
-            }
-            else if (obj is NotificationOption2 notificationOption2)
-            {
-                return this.Equals(notificationOption2);
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(Name.GetHashCode(), Severity.GetHashCode());
-        }
-
-        public bool Equals(NotificationOption2? notificationOption2)
-        {
-            return ReferenceEquals(this, notificationOption2);
-        }
-
-        public static bool operator ==(NotificationOption? notificationOption, NotificationOption2? notificationOption2)
-        {
-            return Equals((NotificationOption2?)notificationOption, notificationOption2);
-        }
-
-        public static bool operator !=(NotificationOption notificationOption, NotificationOption2 notificationOption2)
-        {
-            return !Equals((NotificationOption2?)notificationOption, notificationOption2);
-        }
-#endif
     }
 }

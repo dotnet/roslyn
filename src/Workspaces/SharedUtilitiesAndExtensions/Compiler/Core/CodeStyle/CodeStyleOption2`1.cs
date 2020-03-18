@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
-    internal class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>>
+    internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>>
     {
         public static CodeStyleOption2<T> Default => new CodeStyleOption2<T>(default, NotificationOption2.Silent);
 
@@ -188,27 +188,5 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override int GetHashCode()
             => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
-
-#if !CODE_STYLE
-        public static implicit operator CodeStyleOption<T>(CodeStyleOption2<T> option)
-        {
-            if (option == null)
-            {
-                return null;
-            }
-
-            return new CodeStyleOption<T>(option.Value, option.Notification);
-        }
-
-        public static implicit operator CodeStyleOption2<T>(CodeStyleOption<T> option)
-        {
-            if (option == null)
-            {
-                return null;
-            }
-
-            return new CodeStyleOption2<T>(option.Value, option.Notification);
-        }
-#endif
     }
 }

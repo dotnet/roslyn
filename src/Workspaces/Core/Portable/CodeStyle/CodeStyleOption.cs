@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public CodeStyleOption(T value, NotificationOption notification)
-            : this(new CodeStyleOption2<T>(value, notification ?? throw new ArgumentNullException(nameof(notification))))
+            : this(new CodeStyleOption2<T>(value,
+                        (NotificationOption2)(notification ?? throw new ArgumentNullException(nameof(notification)))))
         {
         }
 
@@ -32,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         object ICodeStyleOption.Value => this.Value;
         NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
-        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, notification);
+        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
 
         public NotificationOption Notification
         {
-            get => _codeStyleOptionImpl.Notification;
-            set => _codeStyleOptionImpl.Notification = value ?? throw new ArgumentNullException(nameof(value));
+            get => (NotificationOption)_codeStyleOptionImpl.Notification;
+            set => _codeStyleOptionImpl.Notification = (NotificationOption2)(value ?? throw new ArgumentNullException(nameof(value)));
         }
 
         public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();

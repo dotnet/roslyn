@@ -7,10 +7,6 @@
 using System;
 using System.Collections.Immutable;
 
-#if !CODE_STYLE
-using Roslyn.Utilities;
-#endif
-
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
@@ -31,34 +27,34 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class PerLanguageOption2<T> : IPerLanguageOption<T>
+    internal partial class PerLanguageOption2<T> : IPerLanguageOption<T>
     {
-        private readonly OptionDefinition _optionDefinition;
+        public OptionDefinition OptionDefinition { get; }
 
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
-        public string Feature => _optionDefinition.Feature;
+        public string Feature => OptionDefinition.Feature;
 
         /// <summary>
         /// Optional group/sub-feature for this option.
         /// </summary>
-        internal OptionGroup Group => _optionDefinition.Group;
+        internal OptionGroup Group => OptionDefinition.Group;
 
         /// <summary>
         /// The name of the option.
         /// </summary>
-        public string Name => _optionDefinition.Name;
+        public string Name => OptionDefinition.Name;
 
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => _optionDefinition.Type;
+        public Type Type => OptionDefinition.Type;
 
         /// <summary>
         /// The default option value.
         /// </summary>
-        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
+        public T DefaultValue => (T)OptionDefinition.DefaultValue!;
 
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
@@ -89,13 +85,13 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            _optionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true);
+            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true);
             this.StorageLocations = storageLocations;
         }
 
         OptionGroup IOptionWithGroup.Group => this.Group;
 
-        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+        OptionDefinition IOption2.OptionDefinition => OptionDefinition;
 
 #if CODE_STYLE
         object? IOption2.DefaultValue => this.DefaultValue;
@@ -109,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Options
         ImmutableArray<OptionStorageLocation> IOption.StorageLocations
             => this.StorageLocations.As<OptionStorageLocation>();
 #endif
-        public override string ToString() => _optionDefinition.ToString();
+        public override string ToString() => OptionDefinition.ToString();
 
-        public override int GetHashCode() => _optionDefinition.GetHashCode();
+        public override int GetHashCode() => OptionDefinition.GetHashCode();
 
         public override bool Equals(object? obj) => Equals(obj as IOption2);
 
@@ -122,16 +118,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return true;
             }
 
-            return _optionDefinition == other?.OptionDefinition;
+            return OptionDefinition == other?.OptionDefinition;
         }
-
-#if !CODE_STYLE
-        public static implicit operator PerLanguageOption<T>(PerLanguageOption2<T> option)
-        {
-            RoslynDebug.Assert(option != null);
-
-            return new PerLanguageOption<T>(option._optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
-        }
-#endif
     }
 }

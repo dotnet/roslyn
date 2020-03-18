@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
+        internal object? GetOption(OptionKey2 optionKey)
+            => GetOption((OptionKey)optionKey);
+
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
         public T GetOption<T>(Option<T> option)
         {
             return (T)GetOption(new OptionKey(option, language: null))!;

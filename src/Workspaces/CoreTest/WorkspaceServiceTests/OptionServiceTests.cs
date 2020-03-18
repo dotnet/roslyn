@@ -178,13 +178,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             // Apply a non-serializable changed option to the option service
             // and verify that serializable options snapshot does not contain this changed option
             TestChangedOptionsCore(
-                new PerLanguageOption<bool>("Test Feature", "Test Name", defaultValue: true),
+                new PerLanguageOption2<bool>("Test Feature", "Test Name", defaultValue: true),
                 optionProvider: new TestOptionService.TestOptionsProvider(),
                 isSerializable: false);
 
             return;
 
-            static void TestChangedOptionsCore(PerLanguageOption<bool> option, IOptionProvider optionProvider, bool isSerializable)
+            static void TestChangedOptionsCore(PerLanguageOption2<bool> option, IOptionProvider optionProvider, bool isSerializable)
             {
                 var optionService = TestOptionService.GetService(optionProvider);
                 var optionSet = optionService.GetOptions();

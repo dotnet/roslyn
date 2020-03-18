@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => SingleOption(option, new CodeStyleOption2<T>(enabled, notification));
 
         private protected (OptionKey2, object) SingleOption<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => SingleOption(option, new CodeStyleOption2<T>(enabled, notification));
+            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
 
         private protected (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => (new OptionKey2(option), codeStyle);
@@ -710,10 +710,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => (new OptionKey2(option), codeStyle);
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => SingleOption(option, new CodeStyleOption2<T>(enabled, notification));
+            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => SingleOption(option, new CodeStyleOption2<T>(enabled, notification));
+            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => SingleOption(option, codeStyle, language: GetLanguage());
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private protected IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        private protected IOptionsCollection Option<T>(Option2<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+        private protected IOptionsCollection Option<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
         private protected IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => OptionsSet((option, value));
 
 #if CODE_STYLE
-        internal static IOptionsCollection OptionsSet(params (OptionKey key, object value)[] options)
+        internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
             => throw new NotSupportedException();
 #else
         internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)

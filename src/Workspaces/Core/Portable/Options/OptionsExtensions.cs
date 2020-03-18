@@ -15,16 +15,14 @@ namespace Microsoft.CodeAnalysis.Options
         {
             RoslynDebug.Assert(option != null);
 
-            return new Option<CodeStyleOption<T>>(option.Feature, option.Group, option.Name,
-                option.DefaultValue, option.StorageLocations.As<OptionStorageLocation>());
+            return new Option<CodeStyleOption<T>>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
 
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
         {
             RoslynDebug.Assert(option != null);
 
-            return new PerLanguageOption<CodeStyleOption<T>>(option.Feature, option.Group, option.Name,
-                option.DefaultValue, option.StorageLocations.As<OptionStorageLocation>());
+            return new PerLanguageOption<CodeStyleOption<T>>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
     }
 }

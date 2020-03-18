@@ -14,7 +14,7 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 namespace Microsoft.CodeAnalysis.Options
 {
     [NonDefaultable]
-    internal readonly struct OptionKey2 : IEquatable<OptionKey2>
+    internal readonly partial struct OptionKey2 : IEquatable<OptionKey2>
     {
         public IOption2 Option { get; }
         public string? Language { get; }
@@ -80,10 +80,5 @@ namespace Microsoft.CodeAnalysis.Options
         {
             return !left.Equals(right);
         }
-
-#if !CODE_STYLE
-        public static implicit operator OptionKey(OptionKey2 optionKey)
-            => new OptionKey(optionKey.Option, optionKey.Language);
-#endif
     }
 }

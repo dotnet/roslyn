@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("when_on_single_line : error", (int)ExpressionBodyPreference.WhenOnSingleLine, ReportDiagnostic.Error)]
         public void TestParseExpressionBodyPreference(string optionString, int parsedValue, ReportDiagnostic severity)
         {
-            var defaultValue = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Error);
+            var defaultValue = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Error);
             var codeStyleOption = CSharpCodeStyleOptions.ParseExpressionBodyPreference(optionString, defaultValue);
 
             Assert.NotSame(defaultValue, codeStyleOption);

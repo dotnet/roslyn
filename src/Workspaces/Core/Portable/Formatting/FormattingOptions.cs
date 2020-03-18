@@ -10,25 +10,25 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     public static partial class FormattingOptions
     {
-        public static PerLanguageOption<bool> UseTabs { get; } = FormattingOptions2.UseTabs;
+        public static PerLanguageOption<bool> UseTabs { get; } = (PerLanguageOption<bool>)FormattingOptions2.UseTabs;
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<int> TabSize { get; } = FormattingOptions2.TabSize;
+        public static PerLanguageOption<int> TabSize { get; } = (PerLanguageOption<int>)FormattingOptions2.TabSize;
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<int> IndentationSize { get; } = FormattingOptions2.IndentationSize;
+        public static PerLanguageOption<int> IndentationSize { get; } = (PerLanguageOption<int>)FormattingOptions2.IndentationSize;
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = FormattingOptions2.SmartIndent;
+        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = (PerLanguageOption<IndentStyle>)FormattingOptions2.SmartIndent;
 
-        public static PerLanguageOption<string> NewLine { get; } = FormattingOptions2.NewLine;
+        public static PerLanguageOption<string> NewLine { get; } = (PerLanguageOption<string>)FormattingOptions2.NewLine;
 
-        internal static Option<bool> InsertFinalNewLine { get; } = FormattingOptions2.InsertFinalNewLine;
+        internal static Option<bool> InsertFinalNewLine { get; } = (Option<bool>)FormattingOptions2.InsertFinalNewLine;
 
-        internal static Option<int> PreferredWrappingColumn { get; } = FormattingOptions2.PreferredWrappingColumn;
+        internal static Option<int> PreferredWrappingColumn { get; } = (Option<int>)FormattingOptions2.PreferredWrappingColumn;
 
-        internal static Option<bool> AllowDisjointSpanMerging { get; } = FormattingOptions2.AllowDisjointSpanMerging;
+        internal static Option<bool> AllowDisjointSpanMerging { get; } = (Option<bool>)FormattingOptions2.AllowDisjointSpanMerging;
 
-        internal static readonly PerLanguageOption<bool> AutoFormattingOnReturn = FormattingOptions2.AutoFormattingOnReturn;
+        internal static readonly PerLanguageOption<bool> AutoFormattingOnReturn = (PerLanguageOption<bool>)FormattingOptions2.AutoFormattingOnReturn;
     }
 }
