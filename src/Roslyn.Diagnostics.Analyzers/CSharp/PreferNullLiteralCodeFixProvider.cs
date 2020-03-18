@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -46,7 +47,18 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             ExpressionSyntax newSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             if (syntax is DefaultExpressionSyntax defaultExpression)
             {
-                var castExpression = SyntaxFactory.CastExpression(defaultExpression.Type, newSyntax.WithTrailingTrivia(defaultExpression.Keyword.TrailingTrivia));
+                var type = defaultExpression.Type;
+                if (!type.IsKind(SyntaxKind.NullableType) && !type.IsKind(SyntaxKind.PointerType))
+                {
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var nullableContext = semanticModel.GetNullableContext(type.SpanStart);
+                    if (nullableContext.AnnotationsEnabled())
+                    {
+                        type = SyntaxFactory.NullableType(type.WithoutTrivia()).WithTriviaFrom(type);
+                    }
+                }
+
+                var castExpression = SyntaxFactory.CastExpression(type, newSyntax.WithTrailingTrivia(defaultExpression.Keyword.TrailingTrivia));
                 castExpression = castExpression
                     .WithOpenParenToken(castExpression.OpenParenToken.WithTriviaFrom(defaultExpression.OpenParenToken))
                     .WithCloseParenToken(castExpression.CloseParenToken.WithLeadingTrivia(defaultExpression.CloseParenToken.LeadingTrivia));
