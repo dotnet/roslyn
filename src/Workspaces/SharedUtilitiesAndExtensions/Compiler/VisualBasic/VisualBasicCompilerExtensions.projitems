@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicCodeStyleOptions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.vb" />
@@ -28,7 +29,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveSyntaxEqualityComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\DirectiveWalker.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxKinds.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsClauseComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsOrganizer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImportsStatementComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpeculationAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TypeSyntaxComparer.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicCompilerExtensionsResources.resx" GenerateSource="true" Link="VisualBasicCompilerExtensionsResources.resx" />
