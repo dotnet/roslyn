@@ -85,7 +85,7 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            if (!baseTypesOnly)
+            if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
             {
                 var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
                 if (candidateBaseType.OriginalDefinition.Equals(candidateBaseType))
