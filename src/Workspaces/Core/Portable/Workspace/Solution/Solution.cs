@@ -571,8 +571,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            // TODO: Throw on duplicates? https://github.com/dotnet/roslyn/issues/12101
-            var newState = _state.WithProjectReferences(projectId, projectReferences.ToBoxedImmutableArrayWithNonNullItems(nameof(projectReferences)));
+            var newState = _state.WithProjectReferences(projectId, projectReferences.ToBoxedImmutableArrayWithDistinctNonNullItems(nameof(projectReferences)));
             if (newState == _state)
             {
                 return this;

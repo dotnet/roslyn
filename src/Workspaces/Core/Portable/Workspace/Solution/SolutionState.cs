@@ -817,19 +817,7 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = oldProject.WithProjectReferences(newReferences);
 
-            ProjectDependencyGraph newDependencyGraph;
-            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
-            {
-                // The project contained multiple references to the project, and not all of them were removed. The
-                // dependency graph doesn't change.
-                // TODO: Should we allow duplicates? https://github.com/dotnet/roslyn/issues/12101
-                newDependencyGraph = _dependencyGraph;
-            }
-            else
-            {
-                newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
-            }
-
+            var newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
             return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 

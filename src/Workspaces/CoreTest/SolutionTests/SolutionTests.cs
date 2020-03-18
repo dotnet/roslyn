@@ -666,16 +666,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp);
             var projectRef = new ProjectReference(projectId2);
 
-            // TODO: Should we allow duplicates? https://github.com/dotnet/roslyn/issues/12101
             SolutionTestHelpers.TestListProperty(solution,
                 (old, value) => old.WithProjectReferences(projectId, value),
                 opt => opt.GetProject(projectId)!.AllProjectReferences,
                 projectRef,
-                allowDuplicates: true);
-
-            var boxedDupProjectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(new ProjectReference(projectId2), new ProjectReference(projectId2));
-            var solution2 = solution.WithProjectReferences(projectId, boxedDupProjectRefs);
-            Assert.Same(boxedDupProjectRefs, solution2.GetProject(projectId)!.AllProjectReferences);
+                allowDuplicates: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, new[] { projectRef }));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), new[] { projectRef }));
@@ -769,22 +764,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectRef2 = new ProjectReference(projectId2);
             var externalProjectRef = new ProjectReference(ProjectId.CreateNewId());
 
-            // multiple duplicate references are allowed:
-            solution = solution.WithProjectReferences(projectId, new[] { projectRef2, externalProjectRef, projectRef2, new ProjectReference(projectId2) });
+            solution = solution.WithProjectReferences(projectId, new[] { projectRef2, externalProjectRef });
 
             // remove reference to a project that's not part of the solution:
             var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
-            AssertEx.Equal(new[] { projectRef2, projectRef2, new ProjectReference(projectId2) }, solution2.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal(new[] { projectRef2 }, solution2.GetProject(projectId)!.AllProjectReferences);
 
-            // remove reference to a project that's part of the solution - removes the first matching refernece:
+            // remove reference to a project that's part of the solution:
             var solution3 = solution.RemoveProjectReference(projectId, projectRef2);
-            AssertEx.Equal(new[] { externalProjectRef, projectRef2, new ProjectReference(projectId2) }, solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal(new[] { externalProjectRef }, solution3.GetProject(projectId)!.AllProjectReferences);
 
-            var solution4 = solution3.RemoveProjectReference(projectId, projectRef2);
-            AssertEx.Equal(new[] { externalProjectRef, new ProjectReference(projectId2) }, solution4.GetProject(projectId)!.AllProjectReferences);
-
-            var solution5 = solution4.RemoveProjectReference(projectId, new ProjectReference(projectId2));
-            AssertEx.Equal(new[] { externalProjectRef }, solution5.GetProject(projectId)!.AllProjectReferences);
+            var solution4 = solution3.RemoveProjectReference(projectId, externalProjectRef);
+            Assert.Empty(solution4.GetProject(projectId)!.AllProjectReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.RemoveProjectReference(null!, projectRef2));
             Assert.Throws<ArgumentNullException>("projectReference", () => solution.RemoveProjectReference(projectId, null!));
