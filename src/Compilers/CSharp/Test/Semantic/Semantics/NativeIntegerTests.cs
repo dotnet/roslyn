@@ -721,6 +721,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
             var refB = comp.ToMetadataReference();
             var f0B = comp.GetMember<FieldSymbol>("B.F0");
+            var t1B = comp.GetMember<FieldSymbol>("B.F1").Type;
+            var t2B = comp.GetMember<FieldSymbol>("B.F2").Type;
 
             var sourceC =
 @"class C : B
@@ -748,6 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var f4 = comp.GetMember<FieldSymbol>("B.F4");
             verifyField(f4, "nuint B.F4");
 
+            Assert.Same(t1B, f1.Type);
+            Assert.Same(t2B, f2.Type);
             Assert.Same(f1.Type, f3.Type);
             Assert.Same(f2.Type, f4.Type);
 
@@ -794,6 +798,7 @@ public class B : A<nint>
 
             var type1 = getConstraintType(comp);
             Assert.True(type1.IsNativeIntegerType);
+            Assert.False(type1.IsErrorType());
 
             var sourceB =
 @"class C : B
@@ -814,6 +819,7 @@ public class B : A<nint>
             var type2 = getConstraintType(comp);
             Assert.True(type2.ContainingAssembly.IsMissing);
             Assert.False(type2.IsNativeIntegerType);
+            Assert.True(type2.IsErrorType());
 
             static TypeSymbol getConstraintType(CSharpCompilation comp) =>
                 comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
@@ -846,6 +852,7 @@ public class B : A<nint>
             var refA = comp.ToMetadataReference();
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.True(typeA.IsNativeIntegerType);
+            Assert.False(typeA.IsErrorType());
 
             var sourceB =
 @"class B : A
@@ -863,6 +870,7 @@ public class B : A<nint>
             var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.True(typeB.ContainingAssembly.IsMissing);
             Assert.False(typeB.IsNativeIntegerType);
+            Assert.True(typeB.IsErrorType());
         }
 
         [Fact]
