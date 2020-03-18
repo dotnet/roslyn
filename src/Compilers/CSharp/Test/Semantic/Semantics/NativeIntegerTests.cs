@@ -773,6 +773,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            var comp = CreateCompilation(new AssemblyIdentity("9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public abstract class A<T>
+{
+    public abstract void F<U>() where U : T;
+}
+public class B : A<nint>
+{
+    public override void F<U>() { }
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var refA = comp.ToMetadataReference();
+
+            var type1 = getConstraintType(comp);
+            Assert.True(type1.IsNativeIntegerType);
+
+            var sourceB =
+@"class C : B
+{
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // class C : B
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Void").WithLocation(1, 7),
+                // (1,11): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                // class C : B
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IntPtr").WithLocation(1, 11),
+                // (1,11): error CS0012: The type 'Object' is defined in an assembly that is not referenced. You must add a reference to assembly '9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // class C : B
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Object", "9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 11));
+
+            var type2 = getConstraintType(comp);
+            Assert.True(type2.ContainingAssembly.IsMissing);
+            Assert.False(type2.IsNativeIntegerType);
+
+            static TypeSymbol getConstraintType(CSharpCompilation comp) =>
+                comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
+        }
+
+        [Fact]
+        public void Retargeting_06()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
     public class IntPtr { }
     public class UIntPtr { }
 }";
