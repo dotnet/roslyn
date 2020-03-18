@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
+    [Export(typeof(IVisualStudioDesignerAttributeService))]
     internal class VisualStudioDesignerAttributeService
         : ForegroundThreadAffinitizedObject, IVisualStudioDesignerAttributeService, IDesignerAttributeListener
     {
@@ -66,10 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         // notifications up and deliver them to VS every second.
         private AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
 
+        [ImportingConstructor]
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
-            IServiceProvider serviceProvider)
+            Shell.SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _workspace = workspace;

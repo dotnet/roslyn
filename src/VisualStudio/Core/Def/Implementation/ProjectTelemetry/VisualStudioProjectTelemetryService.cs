@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,6 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
+    [Export(typeof(IVisualStudioProjectTelemetryService))]
     internal class VisualStudioProjectTelemetryService
         : ForegroundThreadAffinitizedObject, IVisualStudioProjectTelemetryService, IProjectTelemetryListener
     {
@@ -52,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// </summary>
         private AsyncBatchingWorkQueue<ProjectTelemetryData>? _workQueue;
 
+        [ImportingConstructor]
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
 

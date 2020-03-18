@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
+    [Export(typeof(IVisualStudioTodoCommentsService))]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject, IVisualStudioTodoCommentsService, ITodoCommentsListener, ITodoListProvider
     {
@@ -47,14 +49,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
+        [ImportingConstructor]
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
-            EventListenerTracker<ITodoListProvider> eventListenerTracker)
+            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
             : base(threadingContext)
         {
             _workspace = workspace;
-            _eventListenerTracker = eventListenerTracker;
+            _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
         void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)

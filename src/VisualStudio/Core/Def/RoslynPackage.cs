@@ -159,15 +159,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // Load the designer attribute service and tell it to start watching the solution for
             // designable files.
-            var designerAttributeService = _workspace.Services.GetRequiredService<IVisualStudioDesignerAttributeService>();
+            var designerAttributeService = this.ComponentModel.GetService<IVisualStudioDesignerAttributeService>();
             designerAttributeService.Start(this.DisposalToken);
 
             // Load the telemetry service and tell it to start watching the solution for project info.
-            var projectTelemetryService = _workspace.Services.GetRequiredService<IVisualStudioProjectTelemetryService>();
+            var projectTelemetryService = this.ComponentModel.GetService<IVisualStudioProjectTelemetryService>();
             projectTelemetryService.Start(this.DisposalToken);
 
             // Load the todo comments service and tell it to start watching the solution for new comments
-            var todoCommentsService = _workspace.Services.GetRequiredService<IVisualStudioTodoCommentsService>();
+            var todoCommentsService = this.ComponentModel.GetService<IVisualStudioTodoCommentsService>();
             todoCommentsService.Start(this.DisposalToken);
         }
 
