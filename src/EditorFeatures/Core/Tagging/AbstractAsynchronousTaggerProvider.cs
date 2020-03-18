@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 #if DEBUG
 using System.Diagnostics;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        internal IAccurateTagger<T> CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
@@ -187,11 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        internal Task ProduceTagsAsync_ForTestingPurposesOnly(TaggerContext<TTag> context)
-        {
-            return ProduceTagsAsync(context);
-        }
-
         /// <summary>
         /// Produce tags for the given context.
         /// Keep in sync with <see cref="ProduceTagsSynchronously(TaggerContext{TTag})"/>
@@ -248,23 +245,39 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
         }
 
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
         private struct DiffResult
         {
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
 
             public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
-                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)removed)
             {
             }
 
-            public DiffResult(IEnumerable<SnapshotSpan> added, IEnumerable<SnapshotSpan> removed)
+            public DiffResult(IEnumerable<SnapshotSpan>? added, IEnumerable<SnapshotSpan>? removed)
             {
                 Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
                 Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;
             }
 
             public int Count => Added.Count + Removed.Count;
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
+
+            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
+            {
+                _provider = provider;
+            }
+
+            internal Task ProduceTagsAsync(TaggerContext<TTag> context)
+                => _provider.ProduceTagsAsync(context);
         }
     }
 }

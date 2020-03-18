@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsUnsafeCastTypeContext(context) ||
                 IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
-                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
+                context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
         private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)

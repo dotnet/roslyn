@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' cases if elastic trivia is there -- and it's not clear why.
                 ' Specifically removing the elastic trivia formatting rule doesn't
                 ' have any effect.
-                Dim resultNode = VisualBasicSyntaxFactsService.Instance.Unparenthesize(node)
+                Dim resultNode = VisualBasicSyntaxFacts.Instance.Unparenthesize(node)
                 resultNode = SimplificationHelpers.CopyAnnotations(node, resultNode)
 
                 Return resultNode

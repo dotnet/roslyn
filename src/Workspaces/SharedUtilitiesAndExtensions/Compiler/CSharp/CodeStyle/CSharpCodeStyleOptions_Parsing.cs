@@ -7,7 +7,17 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
+
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle
+#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
+#endif
 {
     internal static partial class CSharpCodeStyleOptions
     {

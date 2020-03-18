@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap,
                     DiagnosticAnalyzerInfoCache analyzerInfoCache)
-                : this(project.AnalyzerReferences,
+                    : this(project.AnalyzerReferences,
                        mapPerReferences,
                        analyzerMap,
                        analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(project))
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ProjectAnalyzerStateSets.Default;
                 }
 
-                var newAnalyzersPerReference = _analyzerInfoCache.CreateProjectDiagnosticAnalyzersPerReference(project);
-                if (newAnalyzersPerReference.Count == 0)
+                var analyzersPerReference = _hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+                if (analyzersPerReference.Count == 0)
                 {
                     return ProjectAnalyzerStateSets.Default;
                 }
 
-                var newMap = CreateStateSetMap(_analyzerInfoCache, project.Language, newAnalyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
-                return new ProjectAnalyzerStateSets(project, newAnalyzersPerReference, newMap, _analyzerInfoCache);
+                var newMap = CreateStateSetMap(project.Language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
+                return new ProjectAnalyzerStateSets(project, analyzersPerReference, newMap, _analyzerInfoCache);
             }
 
             /// <summary>
@@ -180,9 +180,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableArray.CreateBuilder<StateSet>();
                 foreach (var reference in references)
                 {
-                    var referenceIdentity = _analyzerInfoCache.GetAnalyzerReferenceIdentity(reference);
                     // check duplication
-                    if (!mapPerReference.TryGetValue(referenceIdentity, out var analyzers))
+                    if (!mapPerReference.TryGetValue(reference.Id, out var analyzers))
                     {
                         continue;
                     }

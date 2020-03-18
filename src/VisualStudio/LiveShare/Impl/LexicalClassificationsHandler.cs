@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,10 +31,18 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, LexicalClassificationsMethodName)]
     internal class CSharpLexicalClassificationsHandler : LexicalClassificationsHandler
     {
+        [ImportingConstructor]
+        public CSharpLexicalClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, LexicalClassificationsMethodName)]
     internal class VisualBasicLexicalClassificationsHandler : LexicalClassificationsHandler
     {
+        [ImportingConstructor]
+        public VisualBasicLexicalClassificationsHandler()
+        {
+        }
     }
 }

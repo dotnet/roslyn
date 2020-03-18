@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         protected static TPropertyDeclaration SetLeadingTrivia<TPropertyDeclaration>(
-            ISyntaxFactsService syntaxFacts, GetAndSetMethods getAndSetMethods, TPropertyDeclaration property) where TPropertyDeclaration : SyntaxNode
+            ISyntaxFacts syntaxFacts, GetAndSetMethods getAndSetMethods, TPropertyDeclaration property) where TPropertyDeclaration : SyntaxNode
         {
             var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration;
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;

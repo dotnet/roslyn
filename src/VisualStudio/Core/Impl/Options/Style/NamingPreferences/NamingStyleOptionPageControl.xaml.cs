@@ -178,14 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
 
-            OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
+            OptionStore.SetOption(NamingStyleOptions.NamingPreferences, _languageName, info);
         }
 
         internal override void OnLoad()
         {
             base.OnLoad();
 
-            var preferences = OptionStore.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            var preferences = OptionStore.GetOption(NamingStyleOptions.NamingPreferences, _languageName);
             if (preferences == null)
             {
                 return;

@@ -770,15 +770,36 @@ public class C
 @"
 struct InsertionPoint
 {
-	int level;
-	
-	InsertionPoint Up()
-	{
-		return new InsertionPoint
+    int level;
+    
+    InsertionPoint Up()
+    {
+        return new InsertionPoint
         {
-			level [||]= level - 1,
-		};
-	}
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
+        [WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestParenthesizedExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= (a + 10);
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a += 10;
+    }
 }");
         }
     }

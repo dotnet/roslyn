@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
+            var declarationSyntax = await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 .ToImmutableArray();
 
             // List of local variables that will be in the order they are declared.
-            var localVariables = ArrayBuilder<ISymbol>.GetInstance();
+            using var _0 = ArrayBuilder<ISymbol>.GetInstance(out var localVariables);
 
             // Map a symbol to an index into the statementsFromDeclarationToEnd array.
-            var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var variableDeclarationIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var lastVariableUsageIndex);
 
             // Loop through the statements from the trigger declaration to the end of the containing body.
             // By starting with the trigger declaration it will add the trigger variable to the list of
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 var currentStatement = statementsFromDeclarationToEnd[statementIndex];
 
                 // Determine which local variables were referenced in this statement.
-                var referencedVariables = PooledHashSet<ISymbol>.GetInstance();
+                using var _ = PooledHashSet<ISymbol>.GetInstance(out var referencedVariables);
                 AddReferencedLocalVariables(referencedVariables, currentStatement, localVariables, semanticModel, syntaxFactsService, cancellationToken);
 
                 // Update the last usage index for each of the referenced variables.
@@ -245,8 +245,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 {
                     lastVariableUsageIndex[referencedVariable] = statementIndex;
                 }
-
-                referencedVariables.Free();
 
                 // Determine if new variables were declared in this statement.
                 var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
@@ -283,10 +281,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 // usage.
                 endOfUsingStatementIndex = Math.Max(endOfUsingStatementIndex, lastVariableUsageIndex[localSymbol]);
             }
-
-            localVariables.Free();
-            variableDeclarationIndex.Free();
-            lastVariableUsageIndex.Free();
 
             return statementsFromDeclarationToEnd[endOfUsingStatementIndex];
         }

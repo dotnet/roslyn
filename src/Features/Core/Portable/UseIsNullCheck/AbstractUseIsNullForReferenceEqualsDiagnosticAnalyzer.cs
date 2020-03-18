@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                                                                                m.Parameters.Length == 2);
                     if (referenceEqualsMethod != null)
                     {
-                        var syntaxKinds = GetSyntaxFactsService().SyntaxKinds;
+                        var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
                         context.RegisterSyntaxNodeAction(
                             c => AnalyzeSyntax(c, referenceEqualsMethod),
                             syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.InvocationExpression));
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             });
 
         protected abstract bool IsLanguageVersionSupported(ParseOptions options);
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
         {
@@ -63,20 +63,14 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
-            if (option == null || !option.Value)
+            var option = context.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            if (!option.Value)
             {
                 return;
             }
 
             var invocation = context.Node;
-            var syntaxFacts = GetSyntaxFactsService();
+            var syntaxFacts = GetSyntaxFacts();
 
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocation);
             var nameNode = syntaxFacts.IsIdentifierName(expression)
@@ -153,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private static ITypeParameterSymbol? GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        private static ITypeParameterSymbol? GetGenericParameterSymbol(ISyntaxFacts syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
         {
             var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
@@ -166,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             return null;
         }
 
-        private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
+        private static bool MatchesPattern(ISyntaxFacts syntaxFacts, SyntaxNode node1, SyntaxNode node2)
             => syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) &&
                !syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node2));
     }

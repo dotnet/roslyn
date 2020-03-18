@@ -21,18 +21,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(string language, ProjectAnalyzerStateSets projectStateSets)
             {
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _analyzerInfoCache);
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _hostAnalyzers);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                // Local functions.
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostDiagnosticAnalyzers hostAnalyzers)
                 {
-                    var analyzersPerReference = analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
+                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
-                    return new HostAnalyzerStateSets(analyzerInfoCache, language, analyzerMap);
+                    return new HostAnalyzerStateSets(analyzerMap);
                 }
             }
 
@@ -42,28 +41,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private const int BuiltInCompilerPriority = -2;
                 private const int RegularDiagnosticAnalyzerPriority = -1;
 
-                private readonly DiagnosticAnalyzer? _compilerAnalyzer;
-
                 // ordered by priority
                 public readonly ImmutableArray<StateSet> OrderedStateSets;
 
                 public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
 
-                private HostAnalyzerStateSets(
-                    ImmutableDictionary<DiagnosticAnalyzer, StateSet> stateSetMap,
-                    DiagnosticAnalyzer? compilerAnalyzer,
-                    ImmutableArray<StateSet> orderedStateSets)
+                private HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> stateSetMap, ImmutableArray<StateSet> orderedStateSets)
                 {
                     StateSetMap = stateSetMap;
-                    _compilerAnalyzer = compilerAnalyzer;
                     OrderedStateSets = orderedStateSets;
                 }
 
-                public HostAnalyzerStateSets(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
+                public HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                 {
                     StateSetMap = analyzerMap;
-
-                    _compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                     // order statesets
                     // order will be in this order
@@ -80,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     var stateSetMap = StateSetMap.Where(kvp => !excludedAnalyzers.Contains(kvp.Key)).ToImmutableDictionary();
                     var orderedStateSets = OrderedStateSets.WhereAsArray(stateSet => !excludedAnalyzers.Contains(stateSet.Analyzer));
-                    return new HostAnalyzerStateSets(stateSetMap, _compilerAnalyzer, orderedStateSets);
+                    return new HostAnalyzerStateSets(stateSetMap, orderedStateSets);
                 }
 
                 private int PriorityComparison(StateSet state1, StateSet state2)
@@ -91,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private int GetPriority(StateSet state)
                 {
                     // compiler gets highest priority
-                    if (state.Analyzer == _compilerAnalyzer)
+                    if (state.Analyzer.IsCompilerAnalyzer())
                     {
                         return BuiltInCompilerPriority;
                     }

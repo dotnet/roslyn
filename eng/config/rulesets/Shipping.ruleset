@@ -109,7 +109,6 @@
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
     <Rule Id="RS0033" Action="None" /> <!-- Importing constructor should be [Obsolete] -->
-    <Rule Id="RS0034" Action="None" /> <!-- 'type_name' is MEF-exported and should have a single importing constructor of the correct form -->
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />
@@ -164,7 +163,6 @@
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
-    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers">
     <Rule Id="HAA0101" Action="None" />

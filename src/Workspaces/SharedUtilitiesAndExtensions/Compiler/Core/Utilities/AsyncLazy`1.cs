@@ -415,7 +415,7 @@ namespace Roslyn.Utilities
                     // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
                     // the continuation if asynchronousComputeFunction completes synchronously
                     task.ContinueWith(
-                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
+                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s!).Token),
                         computationToStart.CancellationTokenSource,
                         cancellationToken,
                         TaskContinuationOptions.ExecuteSynchronously,
@@ -480,6 +480,7 @@ namespace Roslyn.Utilities
             }
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
         {
             if (_cachedResult != null)
@@ -501,9 +502,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void OnAsynchronousRequestCancelled(object state)
+        private void OnAsynchronousRequestCancelled(object? state)
         {
-            var request = (Request)state;
+            var request = (Request)state!;
             CancellationTokenSource? cancellationTokenSource = null;
 
             using (TakeLock(CancellationToken.None))
@@ -560,7 +561,7 @@ namespace Roslyn.Utilities
             {
             }
 
-            public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
+            public void RegisterForCancellation(Action<object?> callback, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
                 _cancellationTokenRegistration = cancellationToken.Register(callback, this);
@@ -576,7 +577,7 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    this.TrySetException(task.Exception);
+                    this.TrySetException(task.Exception!);
                 }
                 else
                 {

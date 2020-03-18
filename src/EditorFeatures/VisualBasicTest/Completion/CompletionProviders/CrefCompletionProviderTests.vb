@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New CrefCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(CrefCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -418,10 +418,14 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text})
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, ExportProvider)
                 Dim called = False
 
-                Dim completionProvider = New CrefCompletionProvider(
+                Dim hostDocument = workspace.DocumentWithCursor
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim service = GetCompletionService(document.Project)
+                Dim provider = Assert.IsType(Of CrefCompletionProvider)(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).Single())
+                provider.GetTestAccessor().SetSpeculativeNodeCallback(
                     Sub(node As SyntaxNode)
                         ' asserts that we aren't be asked speculate on nodes inside documentation trivia.
                         ' This verifies that the provider Is asking for a speculative SemanticModel
@@ -432,11 +436,6 @@ End Class]]></a>.Value.NormalizeLineEndings()
                         Assert.Null(trivia)
                     End Sub)
 
-                Dim hostDocument = workspace.DocumentWithCursor
-                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim service = CreateCompletionService(
-                    workspace,
-                    ImmutableArray.Create(Of CompletionProvider)(completionProvider))
                 Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke)
 
                 Assert.True(called)

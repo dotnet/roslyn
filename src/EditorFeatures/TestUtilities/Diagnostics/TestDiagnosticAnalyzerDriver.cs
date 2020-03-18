@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var snapshotService = workspace.Services.GetService<CodeAnalysis.Execution.IRemotableDataService>();
             var assetBuilder = new CodeAnalysis.Execution.CustomAssetBuilder(workspace);
 
-            foreach (var (_, reference) in _diagnosticAnalyzerService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap())
+            foreach (var (_, reference) in _diagnosticAnalyzerService.HostAnalyzers.GetHostAnalyzerReferencesMap())
             {
                 if (!(reference is AnalyzerFileReference))
                 {
