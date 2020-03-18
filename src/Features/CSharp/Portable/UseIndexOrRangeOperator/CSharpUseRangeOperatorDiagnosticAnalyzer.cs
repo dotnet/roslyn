@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
                 invocationSyntax.ArgumentList is null)
             {
-                return default;
+                return null;
             }
 
             CodeStyleOption<bool> option = null;
@@ -97,19 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 var parseOptions = (CSharpParseOptions)syntaxTree.Options;
                 if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
                 {
-                    return default;
+                    return null;
                 }
 
-                var optionSet = analyzerOptionsOpt.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-                if (optionSet is null)
-                {
-                    return default;
-                }
-
-                option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
+                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
                 if (!option.Value)
                 {
-                    return default;
+                    return null;
                 }
             }
 
@@ -117,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (invocation.Instance is null ||
                 invocation.Arguments.Length != 2)
             {
-                return default;
+                return null;
             }
 
             // See if the call is to something slice-like.
@@ -129,14 +126,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
                 !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
-                return default;
+                return null;
             }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
 
-            if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
+            if (CSharpSyntaxFacts.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 return new Result(
                     ResultKind.Computed, option,
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     startOperation, subtraction.RightOperand);
             }
 
-            return default;
+            return null;
         }
 
         private Diagnostic CreateDiagnostic(Result result)

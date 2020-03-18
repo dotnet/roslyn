@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
             // so we need to consider them.
-            return type.AssemblyQualifiedName;
+            return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
         }
 
         public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -195,11 +197,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             return new SpellCheckCodeAction(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
-                c => Update(document, nameToken, newName, c),
+                c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);
         }
 
-        private async Task<Document> Update(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
+        private async Task<Document> UpdateAsync(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));

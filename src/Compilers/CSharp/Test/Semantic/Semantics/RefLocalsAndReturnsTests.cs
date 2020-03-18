@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Xunit;
@@ -309,6 +311,44 @@ class C
                 // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
                 //     ref int M5(ref int rrw) => ref (rrw = ref _ro);
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
+        }
+
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    static void M(){
+        ref int M1(in int i) => ref i;
+        ref int M2(in int i) { return ref i; }
+        ref readonly int M3(in int i) => ref i;
+        ref readonly int M4(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M1(in int i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 37),
+                // (6,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M2(in int i) { return ref i; }
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(6, 43)
+            );
+        }
+
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReadonlyReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    ref int M(){
+        throw new System.Exception();
+        ref readonly int M1(in int i) => ref i;
+        ref readonly int M2(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

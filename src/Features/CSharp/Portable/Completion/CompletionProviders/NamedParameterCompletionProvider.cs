@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,9 +20,13 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Composition;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
+    [Shared]
     internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
@@ -29,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // any character that appears in DisplayText gets treated as a filter char.
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+        [ImportingConstructor]
+        public NamedParameterCompletionProvider()
+        {
+        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {

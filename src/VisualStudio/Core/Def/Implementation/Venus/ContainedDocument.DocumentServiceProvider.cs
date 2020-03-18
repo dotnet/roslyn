@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     var builder = ArrayBuilder<MappedSpanResult>.GetInstance();
                     foreach (var span in spans)
                     {
-                        var result = default(MappedSpanResult?);
+                        var result = (MappedSpanResult?)null;
                         foreach (var primarySpan in primarySnapshot.MapFromSourceSnapshot(span.ToSnapshotSpan(roslynSnapshot)))
                         {
                             // this is from http://index/?query=MapSecondaryToPrimarySpan&rightProject=Microsoft.VisualStudio.Editor.Implementation&file=VsTextBufferCoordinatorAdapter.cs&line=177
@@ -157,13 +159,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return null;
                     }
 
-                    var classifiedSpansOnContent = await GetClassifiedSpansOnContent(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpansOnContent = await GetClassifiedSpansOnContentAsync(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
 
                     // the default implementation has no idea how to classify the primary snapshot
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);
                 }
 
-                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContent(
+                private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContentAsync(
                     Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, CancellationToken cancellationToken)
                 {
                     var primarySnapshot = (IProjectionSnapshot)contentSpanOnPrimarySnapshot.Snapshot;
@@ -280,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return (line.Snapshot.AsText().GetSubText(contentSpan.Span.ToTextSpan()), GetSpanOnContent(primarySpan.Span.ToTextSpan(), contentSpan.Span.ToTextSpan()));
                     }
 
-                    return (default, default);
+                    return (null, default);
                 }
 
                 private static SnapshotSpan? GetContentSpanFromPrimarySpan(ExcerptMode mode, SnapshotSpan primarySpan)
@@ -304,7 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return new SnapshotSpan(line.Snapshot, Span.FromBounds(startLine.Extent.Start.Position, endLine.Extent.End.Position));
                     }
 
-                    return default;
+                    return null;
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)

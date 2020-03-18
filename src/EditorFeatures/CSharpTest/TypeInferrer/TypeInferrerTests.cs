@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -3078,6 +3080,30 @@ class Program
 }";
 
             await TestAsync(text, "global::System.Object", mode);
+        }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple1(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"(int, (string, bool)) x = ([|Goo()|], ("""", true));", "global::System.Int32", mode);
+        }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple2(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"(int, (string, bool)) x = (1, ("""", [|Goo()|]));", "global::System.Boolean", mode);
+        }
+
+        [WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestValueInNestedTuple3()
+        {
+            await TestInMethodAsync(
+@"(int, string) x = (1, [||]);", "global::System.String", TestMode.Position);
         }
     }
 }

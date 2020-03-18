@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,11 +41,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);
 
-        public void RemoveDocument(DocumentId documentId)
-            => _implementation.RemoveDocument(documentId);
+        public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            _implementation.RemoveDocument(documentId);
+            return Task.CompletedTask;
+        }
 
-        public void RemoveProject(ProjectId projectId)
-            => _implementation.RemoveProject(projectId);
+        public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            _implementation.RemoveProject(projectId);
+            return Task.CompletedTask;
+        }
 
         // Unit testing incremental analyzer only supports full solution analysis scope.
         // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.

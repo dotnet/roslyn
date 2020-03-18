@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -235,13 +237,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Value.Priority);
                             return content != null;
                         case StandardTableKeyNames.Text:
-                            content = data.Message;
+                            content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
+                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

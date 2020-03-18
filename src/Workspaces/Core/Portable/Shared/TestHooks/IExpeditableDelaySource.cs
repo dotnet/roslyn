@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// <para>The <paramref name="delay"/> argument's <see cref="TimeSpan.TotalMilliseconds"/> property is greater than <see cref="int.MaxValue"/>.</para>
         /// </exception>
         /// <exception cref="OperationCanceledException">The delay has been canceled.</exception>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Named after 'Task.Delay'")]
         Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -823,8 +825,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            if (options.Cascade &&
+                symbolAndProjectId.Symbol is TSymbol typedSymbol &&
+                CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
                     symbolAndProjectId.WithSymbol(typedSymbol),

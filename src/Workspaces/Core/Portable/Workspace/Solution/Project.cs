@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -328,7 +331,9 @@ namespace Microsoft.CodeAnalysis
         /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
         /// <returns>
-        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if the project language of this project doesn't support producing compilations.
+        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if <see
+        /// cref="SupportsCompilation"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
         /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
         {
@@ -597,7 +602,26 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
         {
+            // NOTE: the method isn't checking if documentId belongs to the project. This probably should be done, but may be a compat change.
+            // https://github.com/dotnet/roslyn/issues/41211 tracks this investigation.
             return this.Solution.RemoveDocument(documentId).GetProject(this.Id)!;
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified documents.
+        /// </summary>
+        public Project RemoveDocuments(ImmutableArray<DocumentId> documentIds)
+        {
+            foreach (var documentId in documentIds)
+            {
+                // Handling of null entries is handled by Solution.RemoveDocuments.
+                if (documentId?.ProjectId != this.Id)
+                {
+                    throw new ArgumentException(string.Format(WorkspacesResources._0_is_in_a_different_project, documentId));
+                }
+            }
+
+            return this.Solution.RemoveDocuments(documentIds).GetRequiredProject(this.Id);
         }
 
         /// <summary>

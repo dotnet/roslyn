@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // for testing
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal EditAndContinueDiagnosticUpdateSource()
         {
         }
@@ -63,8 +67,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var nonDocumentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var nonDocumentDiagnosticData);
             var workspace = solution.Workspace;
             var options = solution.Options;
             var project = (projectId != null) ? solution.GetProject(projectId) : null;
@@ -115,9 +119,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     documentId: null,
                     diagnostics: nonDocumentDiagnosticData.ToImmutable()));
             }
-
-            documentDiagnosticData.Free();
-            nonDocumentDiagnosticData.Free();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -61,9 +63,10 @@ namespace Microsoft.CodeAnalysis
                    DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
+        [Obsolete("Use TextDocument.HasTextChanged")]
         internal bool HasTextChanged(Document otherDocument)
         {
-            return DocumentState.HasTextChanged(otherDocument.DocumentState);
+            return HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
         }
 
         /// <summary>
@@ -158,7 +161,10 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned syntax tree can be null if the <see cref="SupportsSyntaxTree"/> returns false.</returns>
+        /// The returned syntax tree can be <see langword="null"/> if the <see
+        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>. This function will return
+        /// the same value if called multiple times.
+        /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
@@ -218,7 +224,9 @@ namespace Microsoft.CodeAnalysis
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned <see cref="SyntaxNode"/> will be null if <see cref="SupportsSyntaxTree"/> returns false.
+        /// The returned <see cref="SyntaxNode"/> will be <see langword="null"/> if <see
+        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>.  This function will return
+        /// the same value if called multiple times.
         /// </returns>
         public async Task<SyntaxNode?> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
         {
@@ -262,7 +270,9 @@ namespace Microsoft.CodeAnalysis
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned <see cref="SemanticModel"/> may be null if <see cref="SupportsSemanticModel"/> returns false.
+        /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
+        /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
         /// </returns>
         public async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
@@ -278,7 +288,7 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
                 var result = compilation.GetSemanticModel(syntaxTree);
@@ -412,6 +422,7 @@ namespace Microsoft.CodeAnalysis
                         var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
                         var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
+                        RoslynDebug.Assert(oldTree is object);
                         return tree.GetChanges(oldTree);
                     }
 

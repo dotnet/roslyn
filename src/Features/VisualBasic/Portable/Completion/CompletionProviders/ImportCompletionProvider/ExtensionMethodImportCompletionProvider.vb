@@ -1,15 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(ExtensionMethodImportCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(TypeImportCompletionProvider))>
+    <ExtensionOrder(Before:=NameOf(LastBuiltInCompletionProvider))>
+    <[Shared]>
     Friend NotInheritable Class ExtensionMethodImportCompletionProvider
         Inherits AbstractExtensionMethodImportCompletionProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property GenericSuffix As String
             Get

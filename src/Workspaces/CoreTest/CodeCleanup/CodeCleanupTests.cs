@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void EntireRangeWithTransformation_RemoveClass()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void EntireRangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_RemoveMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -280,7 +282,7 @@ End Module";
         [Fact]
         public void RangeWithTransformation_OutsideOfRange()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -324,7 +326,7 @@ End Module";
 
         private void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
         {
-            var result = default(IEnumerable<TextSpan>);
+            var result = (IEnumerable<TextSpan>)null;
             var spanCodeCleanup = new SimpleCodeCleanupProvider("TestCodeCleanup", (d, s, c) =>
             {
                 result = s;

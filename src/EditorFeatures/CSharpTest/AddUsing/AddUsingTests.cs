@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
+
+        protected IDictionary<OptionKey, object> SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
         protected async Task TestAsync(
             string initialMarkup,
@@ -57,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+                initialMarkup, expectedMarkup, index,
+                parameters: new TestParameters(options: options, fixProviderData: outOfProcess, priority: priority));
         }
     }
 
@@ -68,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             var outOfProcess = (bool)parameters.fixProviderData;
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
@@ -5478,6 +5482,49 @@ namespace N
     }
 }
 ");
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task KeepUsingsGrouped1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Goo|]
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}",
+@"
+using System;
+
+using Microsoft;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Goo
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}", options: SeparateGroups);
         }
     }
 }

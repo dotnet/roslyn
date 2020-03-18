@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -208,7 +210,7 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestBeforeInWhitespace1()
+        public async Task TestNotBeforePrecedingComment()
         {
             var testText = @"
 class C
@@ -216,6 +218,43 @@ class C
     void M()
     {
         [||]//Test comment
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnSameLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+[||]    {|result:C LocalFunction(C c)
+        {
+            return null;
+        }|}
+    }
+}";
+            await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_OnPreviousLine()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
         {|result:C LocalFunction(C c)
         {
             return null;
@@ -223,6 +262,26 @@ class C
     }
 }";
             await TestAsync<LocalFunctionStatementSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        [||]
+
+        C LocalFunction(C c)
+        {
+            return null;
+        }
+    }
+}";
+            await TestMissingAsync<LocalFunctionStatementSyntax>(testText);
         }
 
         [Fact]

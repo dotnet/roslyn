@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -57,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private ImmutableArray<SuppressionDescriptor> _lazySuppressionDescriptors = default(ImmutableArray<SuppressionDescriptor>);
 
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/26778",
+                AllowCaptures = false)]
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
                 {
@@ -67,15 +73,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = Task.Run(() =>
-                    {
-                        var sessionScope = new HostSessionStartAnalysisScope();
-                        analyzerExecutor.ExecuteInitializeMethod(_analyzer, sessionScope);
-                        return sessionScope;
-                    }, analyzerExecutor.CancellationToken);
-
+                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor);
                     _lazySessionScopeTask = task;
                     return task;
+
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor)
+                    {
+                        return Task.Run(() =>
+                        {
+                            var sessionScope = new HostSessionStartAnalysisScope();
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope);
+                            return sessionScope;
+                        }, executor.CancellationToken);
+                    }
                 }
             }
 
@@ -277,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
-                    argument: default(object));
+                    argument: (object)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -328,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 descriptors = descriptorsLocal;
                             }
                         },
-                        argument: default(object));
+                        argument: (object)null);
                 }
 
                 return descriptors;

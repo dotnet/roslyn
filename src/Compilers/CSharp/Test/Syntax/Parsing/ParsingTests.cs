@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -105,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal void UsingDeclaration(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseMemberDeclaration(text, offset, options, consumeFullText);
+            Debug.Assert(node is object);
             if (consumeFullText)
             {
                 // we validate the text roundtrips

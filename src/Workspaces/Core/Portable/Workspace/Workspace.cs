@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,14 +8,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        private readonly IWorkspaceOptionService? _workspaceOptionService;
+        private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -52,6 +57,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        /// <summary>
+        /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
+        /// </summary>
+        internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
+
         private Action<string>? _testMessageLogger;
 
         /// <summary>
@@ -66,14 +78,21 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _workspaceOptionService = _services.GetService<IOptionService>() as IWorkspaceOptionService;
+            _optionService = _services.GetRequiredService<IOptionService>();
+            _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
             _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
             // initialize with empty solution
-            _latestSolution = CreateSolution(SolutionId.CreateNewId());
+            var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
+                serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
+                changedOptionKeys: ImmutableHashSet<OptionKey>.Empty);
+            _latestSolution = CreateSolution(info, emptyOptions);
+
+            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
 
         internal void LogTestMessage(string message)
@@ -118,8 +137,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            return new Solution(this, solutionInfo.Attributes);
+            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
+            return CreateSolution(solutionInfo, options);
         }
+
+        /// <summary>
+        /// Create a new empty solution instance associated with this workspace, and with the given options.
+        /// </summary>
+        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options)
+            => new Solution(this, solutionInfo.Attributes, options);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -181,24 +207,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets or sets the set of all global options.
+        /// Gets or sets the set of all global options and <see cref="Solution.Options"/>.
+        /// Setter also force updates the <see cref="CurrentSolution"/> to have the updated <see cref="Solution.Options"/>.
         /// </summary>
         public OptionSet Options
         {
             get
             {
-                return _services.GetRequiredService<IOptionService>().GetOptions();
+                return this.CurrentSolution.Options;
             }
 
+            [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                _services.GetRequiredService<IOptionService>().SetOptions(value);
+                SetOptions(value);
             }
+        }
+
+        /// <summary>
+        /// Sets global options and <see cref="Options"/> to have the new options.
+        /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
+        /// </summary>
+        internal void SetOptions(OptionSet options)
+            => _optionService.SetOptions(options);
+
+        internal void UpdateCurrentSolutionOnOptionsChanged()
+        {
+            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
         /// <summary>
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
         {
             return _taskQueue.ScheduleTask(action, taskName);
@@ -207,6 +249,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
         {
             return _taskQueue.ScheduleTask(func, taskName);
@@ -301,7 +344,8 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            _workspaceOptionService?.OnWorkspaceDisposed(this);
+            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
+            _optionService.UnregisterWorkspace(this);
         }
 
         #region Host API
@@ -1054,11 +1098,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (meta is PortableExecutableReference pemeta)
                     {
-
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
                         // the metadata reference is shadow copied.
-                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
-                            (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                        if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
+                            (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
                         {
                             var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
 
@@ -1172,6 +1215,11 @@ namespace Microsoft.CodeAnalysis
                     this.ApplyProjectRemoved(proj.Id);
                 }
 
+                if (this.CurrentSolution.Options != newSolution.Options)
+                {
+                    SetOptions(newSolution.Options);
+                }
+
                 return true;
             }
         }
@@ -1231,19 +1279,20 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
+            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, IgnoreUnchangeableDocumentsWhenApplyingChanges).ToImmutableArray();
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
 
-            foreach (var changedDocumentId in changedDocumentIds)
+            // Checking for unchangeable documents will only be done if we were asked not to ignore them.
+            foreach (var documentId in changedDocumentIds)
             {
-                var changedDocument = projectChanges.OldProject.GetDocumentState(changedDocumentId) ?? projectChanges.NewProject.GetDocumentState(changedDocumentId)!;
-                if (!changedDocument.CanApplyChange())
+                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
+                if (!document.CanApplyChange())
                 {
-                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, changedDocument.FilePath ?? changedDocument.Name));
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
                 }
             }
 
@@ -1453,8 +1502,8 @@ namespace Microsoft.CodeAnalysis
             var oldDoc = projectChanges.OldProject.GetDocument(documentId)!;
             var newDoc = projectChanges.NewProject.GetDocument(documentId)!;
 
-            // update text if changed
-            if (newDoc.HasTextChanged(oldDoc))
+            // update text if it's changed (unless it's unchangeable and we were asked to exclude them)
+            if (newDoc.HasTextChanged(oldDoc, IgnoreUnchangeableDocumentsWhenApplyingChanges))
             {
                 // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
                 // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.

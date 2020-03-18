@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -696,6 +698,20 @@ End Class
         Public Async Function ConditionalInvocation(mode As TestMode) As Task
             Dim text = "Dim args As String() : args?([|goo|])"
             Await TestInMethodAsync(text, "System.Int32", mode)
+        End Function
+
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple1(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = ([|Goo()|], ("""", true));", "global::System.Int32", mode)
+        End Function
+
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple2(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "global::System.Boolean", mode)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>

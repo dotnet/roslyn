@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -16,15 +18,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private const string RoslynLanguageServices = "Roslyn Language Services";
-
         /// <summary>
         /// This is in charge of anything related to <see cref="StateSet"/>
         /// </summary>
         private partial class StateManager
         {
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
             private readonly IPersistentStorageService _persistentStorageService;
+            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache, IPersistentStorageService persistentStorageService)
+            public StateManager(HostDiagnosticAnalyzers hostAnalyzers, IPersistentStorageService persistentStorageService)
             {
-                _analyzerInfoCache = analyzerInfoCache;
+                _hostAnalyzers = hostAnalyzers;
                 _persistentStorageService = persistentStorageService;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
@@ -150,20 +150,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var hostStateSetMap = hostStateSets.ToDictionary(s => s.Analyzer, s => s);
 
                 // create project analyzer reference identity map
-                var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerInfoCache.GetAnalyzerReferenceIdentity(r)).ToSet();
+                var projectAnalyzerReferenceIds = project.AnalyzerReferences.Select(r => r.Id).ToSet();
 
                 // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
 
-                // we always include compiler analyzer in build only state
-                var compilerAnalyzer = _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
-                if (compilerAnalyzer == null)
-                {
-                    // only way to get here is if MEF is corrupted.
-                    FailFast.OnFatalException(new Exception("How can this happen?"));
-                }
-
-                if (hostStateSetMap.TryGetValue(compilerAnalyzer, out var compilerStateSet))
+                // include compiler analyzer in build only state, if available
+                StateSet? compilerStateSet = null;
+                var compilerAnalyzer = _hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
                 }
@@ -172,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(GetOrUpdateProjectAnalyzerMap(project).Values);
 
                 // now add analyzers that exist in both host and project
-                var analyzerMap = _analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
-                foreach (var (identity, analyzers) in analyzerMap)
+                var hostAnalyzersById = _hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
-                    if (!referenceIdentities.Contains(identity))
+                    if (!projectAnalyzerReferenceIds.Contains(identity))
                     {
                         // it is from host analyzer package rather than project analyzer reference
                         // which build doesn't have
@@ -261,15 +256,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
+                string language,
+                IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection,
+                bool includeFileContentLoadAnalyzer)
             {
-                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
-
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
+
+                if (includeFileContentLoadAnalyzer)
+                {
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
+                }
+
                 foreach (var analyzers in analyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
+
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
@@ -279,30 +282,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        var buildToolName = analyzer == compilerAnalyzer ?
-                            PredefinedBuildTools.Live : GetBuildToolName(analyzerInfoCache, language, analyzer);
+                        var buildToolName = analyzer.IsBuiltInAnalyzer() ?
+                            PredefinedBuildTools.Live : analyzer.GetAnalyzerAssemblyName();
 
                         builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
                     }
                 }
 
                 return builder.ToImmutable();
-            }
-
-            private static string GetBuildToolName(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, DiagnosticAnalyzer analyzer)
-            {
-                var packageName = analyzerInfoCache.GetDiagnosticAnalyzerPackageName(language, analyzer);
-                if (packageName == null)
-                {
-                    return analyzer.GetAnalyzerAssemblyName();
-                }
-
-                if (packageName == RoslynLanguageServices)
-                {
-                    return PredefinedBuildTools.Live;
-                }
-
-                return $"{analyzer.GetAnalyzerAssemblyName()} [{packageName}]";
             }
 
             [Conditional("DEBUG")]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1582,6 +1584,30 @@ class C
         Action<int> myLambda = v => { };
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotWhenIteratingDifferentLists()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collection.Generic;
+
+class Item { public string Value; }
+
+class C
+{
+    static void Test()
+    {
+        var first = new { list = new List<Item>() };
+        var second = new { list = new List<Item>() };
+
+        [||]for (var i = 0; i < first.list.Count; i++)
+        {
+            first.list[i].Value = second.list[i].Value;
+        }
+    }
+}");
         }
     }
 }

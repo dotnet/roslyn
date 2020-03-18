@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -18,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new PartialMethodCompletionProvider();
+            return typeof(PartialMethodCompletionProvider);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -482,16 +484,12 @@ partial class Bar
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionBodyMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent))));
 
-            try
-            {
-                workspace.Options = originalOptions.WithChangedOption(
-                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
-
-                var text = @"using System;
+            var text = @"using System;
 partial class Bar
 {
     partial void Foo();
@@ -500,7 +498,7 @@ partial class Bar
 "
 ;
 
-                var expected = @"using System;
+            var expected = @"using System;
 partial class Bar
 {
     partial void Foo();
@@ -509,12 +507,7 @@ partial class Bar
 "
 ;
 
-                await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -13,18 +15,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
         private sealed class RemoteHostWorkspaceEventListener : IEventListener<object>
         {
+            [ImportingConstructor]
+            public RemoteHostWorkspaceEventListener()
+            {
+            }
+
             public void StartListening(Workspace workspace, object serviceOpt)
             {
                 var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
                 service.Enable();
-            }
-
-            public void Stop(Workspace workspace)
-            {
-                // we do this so that we can stop OOP process sooner and stop pushing data to OOP while
-                // VS is shutting down
-                var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
-                service.Disable();
             }
         }
     }

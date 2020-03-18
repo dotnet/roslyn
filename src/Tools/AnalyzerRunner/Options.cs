@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -13,10 +15,13 @@ namespace AnalyzerRunner
         public readonly string AnalyzerPath;
         public readonly string SolutionPath;
         public readonly ImmutableHashSet<string> AnalyzerNames;
+        public readonly ImmutableHashSet<string> RefactoringNodes;
 
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
+        public readonly bool ApplyChanges;
         public readonly bool ShowStats;
+        public readonly bool ShowCompilerDiagnostics;
         public readonly bool UseAll;
         public readonly int Iterations;
         public readonly bool TestDocuments;
@@ -34,9 +39,12 @@ namespace AnalyzerRunner
             string analyzerPath,
             string solutionPath,
             ImmutableHashSet<string> analyzerIds,
+            ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool applyChanges,
             bool showStats,
+            bool showCompilerDiagnostics,
             bool useAll,
             int iterations,
             bool testDocuments,
@@ -51,9 +59,12 @@ namespace AnalyzerRunner
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
             AnalyzerNames = analyzerIds;
+            RefactoringNodes = refactoringNodes;
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            ApplyChanges = applyChanges;
             ShowStats = showStats;
+            ShowCompilerDiagnostics = showCompilerDiagnostics;
             UseAll = useAll;
             Iterations = iterations;
             TestDocuments = testDocuments;
@@ -71,9 +82,12 @@ namespace AnalyzerRunner
             string analyzerPath = null;
             string solutionPath = null;
             var builder = ImmutableHashSet.CreateBuilder<string>();
+            var refactoringBuilder = ImmutableHashSet.CreateBuilder<string>();
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
+            bool applyChanges = false;
             bool showStats = false;
+            bool showCompilerDiagnostics = false;
             bool useAll = false;
             int iterations = 1;
             bool testDocuments = false;
@@ -99,6 +113,9 @@ namespace AnalyzerRunner
                     case "/stats":
                         showStats = true;
                         break;
+                    case "/compilerStats":
+                        showCompilerDiagnostics = true;
+                        break;
                     case "/concurrent":
                         runConcurrent = true;
                         break;
@@ -119,8 +136,14 @@ namespace AnalyzerRunner
                     case "/suppressed":
                         reportSuppressedDiagnostics = true;
                         break;
+                    case "/apply":
+                        applyChanges = true;
+                        break;
                     case "/a":
                         builder.Add(ReadValue());
+                        break;
+                    case "/refactor":
+                        refactoringBuilder.Add(ReadValue());
                         break;
                     case "/log":
                         logFileName = ReadValue();
@@ -170,9 +193,12 @@ namespace AnalyzerRunner
                 analyzerPath: analyzerPath,
                 solutionPath: solutionPath,
                 analyzerIds: builder.ToImmutableHashSet(),
+                refactoringNodes: refactoringBuilder.ToImmutableHashSet(),
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                applyChanges: applyChanges,
                 showStats: showStats,
+                showCompilerDiagnostics: showCompilerDiagnostics,
                 useAll: useAll,
                 iterations: iterations,
                 testDocuments: testDocuments,

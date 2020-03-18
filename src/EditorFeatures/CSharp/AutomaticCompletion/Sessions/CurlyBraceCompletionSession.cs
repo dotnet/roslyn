@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -21,7 +26,6 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 {
@@ -106,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
-            return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.Instance).Concat(Formatter.GetDefaultFormattingRules(document));
+            var indentStyle = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None).GetOption(FormattingOptions.SmartIndent);
+            return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.ForIndentStyle(indentStyle)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<AbstractFormattingRule> rules = null)
@@ -143,10 +148,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var style = document != null ? document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetOption(SmartIndent)
-                                         : SmartIndent.DefaultValue;
+            var style = document != null ? document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetOption(FormattingOptions.SmartIndent)
+                                         : FormattingOptions.SmartIndent.DefaultValue;
 
-            if (style == IndentStyle.Smart)
+            if (style == FormattingOptions.IndentStyle.Smart)
             {
                 // skip whitespace
                 while (startPosition >= 0 && char.IsWhiteSpace(snapshot[startPosition]))
@@ -194,9 +199,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         {
             private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
 
-            public static readonly AbstractFormattingRule Instance = new BraceCompletionFormattingRule();
+            private static readonly ImmutableArray<BraceCompletionFormattingRule> s_instances = ImmutableArray.Create(
+                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.None),
+                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Block),
+                new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Smart));
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            private readonly FormattingOptions.IndentStyle _indentStyle;
+
+            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
+            {
+                _indentStyle = indentStyle;
+            }
+
+            public static AbstractFormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
+            {
+                Debug.Assert(s_instances[(int)indentStyle]._indentStyle == indentStyle);
+                return s_instances[(int)indentStyle];
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Eg Cases -
                 // new MyObject {
@@ -210,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
                 currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
                 {
-                    if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
+                    if (options.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }
@@ -220,13 +241,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     }
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAlignTokensOperationAction nextOperation)
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAlignTokensOperationAction nextOperation)
             {
-                base.AddAlignTokensOperations(list, node, optionSet, in nextOperation);
-                if (optionSet.GetOption(SmartIndent, node.Language) == IndentStyle.Block)
+                base.AddAlignTokensOperations(list, node, options, in nextOperation);
+                if (_indentStyle == FormattingOptions.IndentStyle.Block)
                 {
                     var bracePair = node.GetBracePair();
                     if (bracePair.IsValidBracePair())
@@ -236,9 +257,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
             {
-                base.AddSuppressOperations(list, node, optionSet, in nextOperation);
+                base.AddSuppressOperations(list, node, options, in nextOperation);
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())

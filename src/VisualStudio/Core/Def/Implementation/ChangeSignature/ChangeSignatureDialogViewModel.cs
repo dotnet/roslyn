@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -18,11 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly INotificationService _notificationService;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly ParameterConfiguration _originalParameterConfiguration;
-        private readonly ISymbol _symbol;
 
         private readonly ParameterViewModel _thisParameter;
         private readonly List<ParameterViewModel> _parameterGroup1;
@@ -32,10 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
-        internal ChangeSignatureDialogViewModel(INotificationService notificationService, ParameterConfiguration parameters, ISymbol symbol, IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap)
+        internal ChangeSignatureDialogViewModel(ParameterConfiguration parameters, ISymbol symbol, IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
-            _notificationService = notificationService;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
@@ -50,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _paramsParameter = new ParameterViewModel(this, parameters.ParamsParameter);
             }
 
-            _symbol = symbol;
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
             _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ParameterViewModel(this, p)).ToList();
@@ -507,25 +504,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 get
                 {
                     if (!ParameterSymbol.HasExplicitDefaultValue)
-                    {
                         return string.Empty;
-                    }
-                    switch (ParameterSymbol.Language)
-                    {
-                        case LanguageNames.CSharp:
-                            return NullText("null");
-                        case LanguageNames.VisualBasic:
-                            return NullText("Nothing");
-                    }
-                    return string.Empty;
 
-                    string NullText(string @null)
+                    return ParameterSymbol.Language switch
                     {
-                        return ParameterSymbol.ExplicitDefaultValue == null ? @null :
-                               ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
-                               ParameterSymbol.ExplicitDefaultValue.ToString();
-                    }
+                        LanguageNames.CSharp => NullText("null", "default"),
+                        LanguageNames.VisualBasic => NullText("Nothing", "Nothing"),
+                        _ => string.Empty,
+                    };
 
+                    string NullText(string @null, string @default)
+                    {
+                        var value = ParameterSymbol.ExplicitDefaultValue;
+                        return value == null
+                            ? ParameterSymbol.Type.IsReferenceType ? @null : @default
+                            : value is string ? "\"" + value.ToString() + "\"" : value.ToString();
+                    }
                 }
             }
 

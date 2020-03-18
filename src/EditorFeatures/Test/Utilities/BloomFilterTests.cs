@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }

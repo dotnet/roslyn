@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
@@ -106,7 +108,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var statement = generator.ReturnStatement(
                 expressions.Aggregate(generator.LogicalAndExpression));
 
-            expressions.Free();
             return compilation.CreateEqualsMethod(
                 ImmutableArray.Create(statement));
         }
@@ -144,8 +145,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             SyntaxGenerator factory, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
-            // If we have access to System.HashCode, then just use that.
+            // See if there's an accessible System.HashCode we can call into to do all the work.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+            if (hashCodeType != null && !hashCodeType.IsAccessibleWithin(namedType))
+                hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
                 compilation, namedType, members, justMemberReference: true);

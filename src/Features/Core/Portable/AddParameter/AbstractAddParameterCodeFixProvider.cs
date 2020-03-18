@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -419,6 +421,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             TArgumentSyntax argumentOpt)
         {
+            var compilation = semanticModel.Compilation;
             var methodParameterNames = new HashSet<string>(comparer);
             methodParameterNames.AddRange(method.Parameters.Select(p => p.Name));
 
@@ -475,9 +478,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
+                    if (!TypeInfoMatchesType(
+                            compilation, argumentTypeInfo, parameter.Type,
+                            isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
+                        if (TypeInfoMatchesWithParamsExpansion(
+                                compilation, argumentTypeInfo, parameter,
+                                isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -494,12 +501,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesWithParamsExpansion(
-            TypeInfo argumentTypeInfo, IParameterSymbol parameter,
+            Compilation compilation, TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
+                if (TypeInfoMatchesType(
+                        compilation, argumentTypeInfo, arrayType.ElementType,
+                        isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -509,30 +518,33 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesType(
-            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            Compilation compilation, TypeInfo argumentTypeInfo, ITypeSymbol parameterType,
             bool isNullLiteral, bool isDefaultLiteral)
         {
-            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
-            {
+            if (parameterType.Equals(argumentTypeInfo.Type) || parameterType.Equals(argumentTypeInfo.ConvertedType))
                 return true;
-            }
 
             if (isDefaultLiteral)
-            {
                 return true;
-            }
 
             if (isNullLiteral)
-            {
-                return type.IsReferenceType || type.IsNullable();
-            }
+                return parameterType.IsReferenceType || parameterType.IsNullable();
 
             // Overload resolution couldn't resolve the actual type of the type parameter. We assume
             // that the type parameter can be the argument's type (ignoring any type parameter constraints).
-            if (type.Kind == SymbolKind.TypeParameter)
-            {
+            if (parameterType.Kind == SymbolKind.TypeParameter)
                 return true;
-            }
+
+            // If there's an implicit conversion from the arg type to the param type then 
+            // count this as a match.  This happens commonly with cases like:
+            //
+            //  `Goo(derivedType)`
+            //  `void Goo(BaseType baseType)`.  
+            //
+            // We want this simple case to match.
+            var conversion = compilation.ClassifyCommonConversion(argumentTypeInfo.Type, parameterType);
+            if (conversion.IsImplicit)
+                return true;
 
             return false;
         }

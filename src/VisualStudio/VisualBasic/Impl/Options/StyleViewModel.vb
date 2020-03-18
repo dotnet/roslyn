@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Windows.Data
 Imports Microsoft.CodeAnalysis
@@ -192,6 +194,32 @@ Class Customer
         list.Add(3)
 //]
     End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferSimplifiedConditionalExpressions As String = $"
+
+Class Customer
+    Sub M1()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim x = A() AndAlso B()
+//]
+    End Sub
+
+    Sub M2()
+//[
+        ' {ServicesVSResources.Over_colon}
+        Dim x = If(A() AndAlso B(), True, False)
+//]
+    End Sub
+
+    Function A() As Boolean
+        Return True
+    End Function
+
+    Function B() As Boolean
+        Return True
+    End Function
 End Class"
 
         Private Shared ReadOnly s_preferExplicitTupleName As String = $"
@@ -690,6 +718,7 @@ End Class
             ' expression preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionStore, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferSimplifiedBooleanExpressions, ServicesVSResources.Prefer_simplified_boolean_expressions, s_preferSimplifiedConditionalExpressions, s_preferSimplifiedConditionalExpressions, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, Me, optionStore, expressionPreferencesGroupTitle))

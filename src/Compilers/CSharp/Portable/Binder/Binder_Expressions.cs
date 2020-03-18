@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
-            return _next.IsUnboundTypeAllowed(syntax);
+            return Next.IsUnboundTypeAllowed(syntax);
         }
 
         /// <summary>
@@ -274,15 +276,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
-                    result = new BoundConvertedTupleLiteral(
-                        sourceTuple.Syntax,
-                        sourceTuple,
-                        wasTargetTyped: false,
-                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics, reportDefaultMissingType)),
-                        sourceTuple.ArgumentNamesOpt,
-                        sourceTuple.InferredNamesOpt,
-                        sourceTuple.Type, // same type to keep original element names
-                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    {
+                        var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
+                        foreach (var arg in sourceTuple.Arguments)
+                        {
+                            boundArgs.Add(BindToNaturalType(arg, diagnostics, reportDefaultMissingType));
+                        }
+                        result = new BoundConvertedTupleLiteral(
+                            sourceTuple.Syntax,
+                            sourceTuple,
+                            wasTargetTyped: false,
+                            boundArgs.ToImmutableAndFree(),
+                            sourceTuple.ArgumentNamesOpt,
+                            sourceTuple.InferredNamesOpt,
+                            sourceTuple.Type, // same type to keep original element names
+                            sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                    }
                     break;
                 case BoundDefaultLiteral defaultExpr:
                     {
@@ -299,6 +308,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
+                    break;
+                case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
+                    // This is a context in which the stackalloc could be either a pointer
+                    // or a span.  For backward compatibility we treat it as a pointer.
+                    var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                    result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
                     break;
                 default:
                     result = expression;
@@ -2635,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new OutVariablePendingInference(declarationExpression, localSymbol, null);
                 }
 
-                CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
+                CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
                 return new BoundLocal(declarationExpression, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
             }
@@ -2676,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if a bad special by ref local was found.
         /// </summary>
-        internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static bool CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
@@ -3516,26 +3531,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
-            if (inLegalPosition && !node.IsLocalVariableDeclarationInitializationForPointerStackalloc())
+            if (inLegalPosition && !isStackallocTargetTyped(node))
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
-                if (!spanType.IsErrorType())
-                {
-                    return ConstructNamedType(
-                        type: spanType,
-                        typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
-                            ? ((StackAllocArrayCreationExpressionSyntax)node).Type
-                            : node,
-                        typeArgumentsSyntax: default,
-                        typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
-                        basesBeingResolved: null,
-                        diagnostics: diagnostics);
-                }
+                return ConstructNamedType(
+                    type: spanType,
+                    typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
+                        ? ((StackAllocArrayCreationExpressionSyntax)node).Type
+                        : node,
+                    typeArgumentsSyntax: default,
+                    typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
+                    basesBeingResolved: null,
+                    diagnostics: diagnostics);
             }
 
+            // We treat the stackalloc as target-typed, so we give it a null type for now.
             return null;
+
+            // Is this a context in which a stackalloc expression could be converted to the corresponding pointer
+            // type? The only context that permits it is the initialization of a local variable declaration (when
+            // the declaration appears as a statement or as the first part of a for loop).
+            static bool isStackallocTargetTyped(SyntaxNode node)
+            {
+                Debug.Assert(node != null);
+
+                SyntaxNode equalsValueClause = node.Parent;
+
+                if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+                if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclaration = variableDeclarator.Parent;
+                if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
+                {
+                    return false;
+                }
+
+                return
+                    variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                    variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
+            }
         }
 
         private BoundExpression BindStackAllocWithInitializer(
@@ -3548,6 +3593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
+            Debug.Assert(node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression) || node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
             if (boundInitExprOpt.IsDefault)
             {
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
@@ -7278,7 +7325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryBindIndexOrRangeIndexer(
                     node,
                     expr,
-                    analyzedArguments.Arguments,
+                    analyzedArguments,
                     diagnostics,
                     out var patternIndexerAccess))
                 {
@@ -7368,33 +7415,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDynamicIndexer(
              SyntaxNode syntax,
-             BoundExpression receiverOpt,
+             BoundExpression receiver,
              AnalyzedArguments arguments,
              ImmutableArray<PropertySymbol> applicableProperties,
              DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
-            if (receiverOpt != null)
+            BoundKind receiverKind = receiver.Kind;
+            if (receiverKind == BoundKind.BaseReference)
             {
-                BoundKind receiverKind = receiverOpt.Kind;
-                if (receiverKind == BoundKind.BaseReference)
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
-                    hasErrors = true;
-                }
-                else if (receiverKind == BoundKind.TypeOrValueExpression)
-                {
-                    var typeOrValue = (BoundTypeOrValueExpression)receiverOpt;
+                Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
+                hasErrors = true;
+            }
+            else if (receiverKind == BoundKind.TypeOrValueExpression)
+            {
+                var typeOrValue = (BoundTypeOrValueExpression)receiver;
 
-                    // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
-                    // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
-                    // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
-                    bool inStaticContext;
-                    bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
+                // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
+                // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
+                bool inStaticContext;
+                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
-                    receiverOpt = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
-                }
+                receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
@@ -7404,7 +7448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicIndexerAccess(
                 syntax,
-                receiverOpt,
+                receiver,
                 argArray,
                 arguments.GetNames(),
                 refKindsArray,
@@ -7452,7 +7496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryBindIndexOrRangeIndexer(
                         syntax,
                         receiverOpt,
-                        analyzedArguments.Arguments,
+                        analyzedArguments,
                         diagnostics,
                         out var patternIndexerAccess))
                     {
@@ -7552,7 +7596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
             BoundExpression receiverOpt,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
@@ -7562,12 +7606,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
-            if (arguments.Count != 1)
+            if (arguments.Arguments.Count != 1)
             {
                 return false;
             }
 
-            var argType = arguments[0].Type;
+            var argument = arguments.Arguments[0];
+
+            var argType = argument.Type;
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
@@ -7638,7 +7684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7657,7 +7703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        BindToNaturalType(arguments[0], diagnostics),
+                        BindToNaturalType(argument, diagnostics),
                         substring.ReturnType);
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7698,7 +7744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 method.ReturnType);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7716,6 +7762,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
+            if (arguments.Names.Count > 0)
+            {
+                diagnostics.Add(
+                    argIsRange
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
+            }
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -8113,7 +8167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 (object)containingMethod == null ||
                     !containingMethod.ReturnsVoid &&
-                    !containingMethod.IsTaskReturningAsync(this.Compilation);
+                    !containingMethod.IsAsyncReturningTask(this.Compilation);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)
@@ -8123,7 +8177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       conditional access is not really a binary operator.
             DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
-            access = BadExpression(access.Syntax, access);
+            receiver = BadExpression(receiver.Syntax, receiver);
 
             return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
         }

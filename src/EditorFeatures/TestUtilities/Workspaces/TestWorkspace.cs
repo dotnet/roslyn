@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
+
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
         }
 
-        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true)
+        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
@@ -64,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
+            this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
 
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
@@ -336,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -347,6 +352,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostDocument = this.GetTestAnalyzerConfigDocument(documentId);
             hostProject.RemoveAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentRemoved(documentId);
+        }
+
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        {
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
         }
 
         internal override void SetDocumentContext(DocumentId documentId)

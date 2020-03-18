@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -82,7 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' float
             CheckLiteralToString(0.0F, "0F")
             CheckLiteralToString(0.012345F, "0.012345F")
+#If NET472 Then
             CheckLiteralToString(Single.MaxValue, "3.40282347E+38F")
+#Else
+            CheckLiteralToString(Single.MaxValue, "3.4028235E+38F")
+#End If
+
 
             ' double
             CheckLiteralToString(0.0, "0")

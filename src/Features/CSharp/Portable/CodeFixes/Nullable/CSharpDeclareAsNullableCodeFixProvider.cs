@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             // a method can have multiple `return null;` statements, but we should only fix its return type once
-            var alreadyHandled = PooledHashSet<TypeSyntax>.GetInstance();
+            using var _ = PooledHashSet<TypeSyntax>.GetInstance(out var alreadyHandled);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -71,14 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 MakeDeclarationNullable(editor, node, alreadyHandled);
             }
 
-            alreadyHandled.Free();
             return Task.CompletedTask;
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            return state.CodeActionEquivalenceKey == GetEquivalenceKey(node);
+            return equivalenceKey == GetEquivalenceKey(node);
         }
 
         private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
@@ -149,23 +150,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x { get; set; } = null;
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
             {
-                var propertyDeclaration = (PropertyDeclarationSyntax)node.Parent.Parent;
                 return propertyDeclaration.Type;
             }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
             {
-                var parameter = (ParameterSyntax)node.Parent.Parent;
                 return parameter.Type;
             }
 
             // static string M() => null;
-            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) && node.Parent.IsParentKind(SyntaxKind.MethodDeclaration))
+            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
+                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax arrowMethod))
             {
-                var arrowMethod = (MethodDeclarationSyntax)node.Parent.Parent;
                 return arrowMethod.ReturnType;
             }
 
