@@ -427,6 +427,11 @@
         <target state="translated">간단한 'using' 문 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">정적 로컬 함수 선호</target>

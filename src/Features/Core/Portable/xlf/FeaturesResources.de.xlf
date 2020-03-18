@@ -122,6 +122,11 @@
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>
@@ -195,6 +200,11 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">Objekte verwerfen, bevor Bereich verloren geht</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -302,6 +312,11 @@
         <target state="translated">Alle Schnittstellen implizit implementieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -310,6 +325,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implizit implementieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -482,6 +502,11 @@
         <target state="translated">Grobe Bearbeitung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
         <target state="translated">Interpolation vereinfachen</target>
@@ -510,6 +535,16 @@
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} unterdrücken</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -905,11 +940,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">Globaler Namespace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">Schnittstelle explizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -1644,18 +1674,13 @@ Möchten Sie fortfahren?</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: verwalteten Zustand (verwaltete Objekte) entsorgen.</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: verwalteten Zustand (verwaltete Objekte) entsorgen.</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: große Felder auf Null setzen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Dient zur Erkennung redundanter Aufrufe.</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: große Felder auf Null setzen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -2010,11 +2035,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Inlinevariablendeklaration</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Musterabgleich verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">"{0}" voll qualifizieren</target>
@@ -2290,24 +2310,9 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Nicht erreichbaren Code entfernen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Modifizierer sind nicht angeordnet.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Modifizierer anordnen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">in "{0}" (Projekt "{1}")</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Zugriffsmodifizierer erforderlich</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -2413,16 +2418,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Warnung: Die Sammlung wird bei der Iteration möglicherweise geändert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">Modifizierer "readonly" hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">Schreibschutz für Feld festlegen</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

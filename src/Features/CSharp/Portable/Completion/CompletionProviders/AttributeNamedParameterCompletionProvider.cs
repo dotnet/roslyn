@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(AttributeNamedParameterCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
     [Shared]
-    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider
+    internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

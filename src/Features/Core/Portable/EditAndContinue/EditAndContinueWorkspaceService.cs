@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     yield break;
                 }
 
+                RoslynDebug.Assert(change.NewText is object);
                 if (change.Span.Length == 0 && change.NewText.Length == 0)
                 {
                     continue;

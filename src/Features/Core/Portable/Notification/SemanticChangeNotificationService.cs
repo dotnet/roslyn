@@ -45,19 +45,20 @@ namespace Microsoft.CodeAnalysis.Notification
                 _owner = owner;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // now it runs for all workspace, make sure we get rid of entry from the map
                 // as soon as it is not needed.
                 // this whole thing will go away when workspace disable itself from solution crawler.
                 _map.TryRemove(documentId, out var unused);
+                return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 foreach (var documentId in _map.Keys.Where(id => id.ProjectId == projectId).ToArray())
                 {
-                    RemoveDocument(documentId);
+                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -68,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)

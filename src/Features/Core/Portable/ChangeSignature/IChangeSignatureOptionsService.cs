@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal interface IChangeSignatureOptionsService : IWorkspaceService
     {
-        ChangeSignatureOptionsResult GetChangeSignatureOptions(
-            ISymbol symbol,
-            ParameterConfiguration parameters,
-            INotificationService notificationService);
+        ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters);
     }
 }

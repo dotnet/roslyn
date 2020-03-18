@@ -177,6 +177,12 @@
   <data name="Object_initialization_can_be_simplified" xml:space="preserve">
     <value>Object initialization can be simplified</value>
   </data>
+  <data name="Add_readonly_modifier" xml:space="preserve">
+    <value>Add readonly modifier</value>
+  </data>
+  <data name="Make_field_readonly" xml:space="preserve">
+    <value>Make field readonly</value>
+  </data>
   <data name="Naming_rule_violation_0" xml:space="preserve">
     <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
@@ -189,6 +195,12 @@
   </data>
   <data name="Populate_switch" xml:space="preserve">
     <value>Populate switch</value>
+  </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
   </data>
   <data name="Expression_value_is_never_used" xml:space="preserve">
     <value>Expression value is never used</value>
@@ -219,5 +231,11 @@
   </data>
   <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
     <value>Parameter '{0}' can be removed; its initial value is never used</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Accessibility_modifiers_required" xml:space="preserve">
+    <value>Accessibility modifiers required</value>
   </data>
 </root>

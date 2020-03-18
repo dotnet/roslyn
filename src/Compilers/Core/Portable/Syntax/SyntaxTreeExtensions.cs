@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,12 +19,12 @@ namespace Microsoft.CodeAnalysis
         /// Verify nodes match source.
         /// </summary>
         [Conditional("DEBUG")]
-        internal static void VerifySource(this SyntaxTree tree, IEnumerable<TextChangeRange> changes = null)
+        internal static void VerifySource(this SyntaxTree tree, IEnumerable<TextChangeRange>? changes = null)
         {
             var root = tree.GetRoot();
             var text = tree.GetText();
             var fullSpan = new TextSpan(0, text.Length);
-            SyntaxNode node = null;
+            SyntaxNode? node = null;
 
             // If only a subset of the document has changed,
             // just check that subset to reduce verification cost.

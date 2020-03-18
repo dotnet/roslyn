@@ -662,13 +662,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
             {
                 MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, isOptional: true);
-                if ((object)setResultMethod != null)
+                if (setResultMethod is { })
                 {
                     setResultMethod = (MethodSymbol)setResultMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
 
                 MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, isOptional: true);
-                if ((object)setExceptionMethod != null)
+                if (setExceptionMethod is { })
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }

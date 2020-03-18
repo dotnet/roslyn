@@ -3463,8 +3463,8 @@ public class Test
         {
             int {|Rename:arg|} = x.Resolve();
             return factory(
-     arg
- );
+                        arg
+                    );
         });
 }";
 
@@ -7439,6 +7439,31 @@ class Program
         return new[] { 1, 2, 3 };
     }
 }");
+        }
+
+        [WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepReplacementIndentation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class D
+{
+    void C(int a)
+    {
+        C(
+            [|1 + 2|]);
+    }
+}",
+@"class D
+{
+    void C(int a)
+    {
+        const int {|Rename:A|} = 1 + 2;
+        C(
+            A);
+    }
+}",
+                index: 3);
         }
     }
 }

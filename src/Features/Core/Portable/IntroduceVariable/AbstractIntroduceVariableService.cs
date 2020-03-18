@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default;
+                return null;
             }
         }
 

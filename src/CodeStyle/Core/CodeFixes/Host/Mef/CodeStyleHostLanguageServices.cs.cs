@@ -20,11 +20,16 @@ namespace Microsoft.CodeAnalysis.Host
         {
             private readonly CompositionHost _compositionContext;
 
-            public MefHostExportProvider(string languageName)
+            private MefHostExportProvider(CompositionHost compositionContext)
+            {
+                _compositionContext = compositionContext;
+            }
+
+            public static MefHostExportProvider Create(string languageName)
             {
                 var assemblies = CreateAssemblies(languageName);
                 var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
-                _compositionContext = compositionConfiguration.CreateContainer();
+                return new MefHostExportProvider(compositionConfiguration.CreateContainer());
             }
 
             private static ImmutableArray<Assembly> CreateAssemblies(string languageName)
