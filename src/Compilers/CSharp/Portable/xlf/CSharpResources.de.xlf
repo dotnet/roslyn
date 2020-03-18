@@ -22,7 +22,7 @@
         <target state="translated">Um für eine interpolierte ausführliche Zeichenfolge "@$" anstelle von "$@" zu verwenden, benötigen Sie Sprachversion {0} oder höher.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
         <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />

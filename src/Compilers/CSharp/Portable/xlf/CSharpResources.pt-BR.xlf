@@ -22,14 +22,14 @@
         <target state="translated">Para usar '@$' em vez de '$@' em uma cadeia de caracteres verbatim interpolada, use a versão de linguagem {0} ou superior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
+        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
+        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
         <target state="translated">O operador '{0}' não pode ser aplicado a 'default' e ao operando do tipo '{1}' porque é um parâmetro de tipo que não é conhecido como um tipo de referência</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
-        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
-        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">

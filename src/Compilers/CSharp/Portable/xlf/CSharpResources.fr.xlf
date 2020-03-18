@@ -22,7 +22,7 @@
         <target state="translated">Pour utiliser '@$' à la place de '$@' pour une chaîne verbatim interpolée, utilisez la version de langage '{0}' ou une version ultérieure.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
         <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />

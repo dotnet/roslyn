@@ -22,14 +22,14 @@
         <target state="translated">挿入される逐語的文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
+        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
+        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
         <target state="translated">演算子 '{0}' は、参照型として認識されていない型パラメーターであるため、型 '{1}' の 'default' およびオペランドに適用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
-        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
-        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">

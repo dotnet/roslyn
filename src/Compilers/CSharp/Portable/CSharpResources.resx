@@ -489,7 +489,7 @@
   <data name="ERR_AmbigBinaryOps" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
   </data>
-  <data name="ERR_AmbigBinaryOpsOnDefaultOrNew" xml:space="preserve">
+  <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</value>
   </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">

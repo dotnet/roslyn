@@ -22,7 +22,7 @@
         <target state="translated">Pokud chcete pro interpolovaný doslovný řetězec použít @$ místo $@, použijte verzi jazyka {0} nebo vyšší.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
         <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />

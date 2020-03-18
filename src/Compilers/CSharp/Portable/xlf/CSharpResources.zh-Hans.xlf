@@ -22,7 +22,7 @@
         <target state="translated">若要对内插逐字字符串使用 "@$" 而不是 "$@"，请使用语言版本 {0} 或更高版本。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefaultOrNew">
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
         <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
         <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
         <note />
