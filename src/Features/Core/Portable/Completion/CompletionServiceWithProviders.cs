@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     return true;
                 }
 
-                // Only verify against built in providerpls.  3rd party ones do not necessarily implement the possible trigger characters API.
+                // Only verify against built in providers.  3rd party ones do not necessarily implement the possible trigger characters API.
                 foreach (var provider in triggeredProviders)
                 {
                     if (provider is LSPCompletionProvider lspProvider)
