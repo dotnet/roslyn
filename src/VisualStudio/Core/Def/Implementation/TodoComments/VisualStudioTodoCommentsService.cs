@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<DocumentAndComments> _workQueue = null!;
+        private AsyncBatchingWorkQueue<DocumentAndComments>? _workQueue;
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -114,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// </summary>
         Task ITodoCommentsListener.ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
             return Task.CompletedTask;
         }

@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<ProjectTelemetryData> _workQueue = null!;
+        private AsyncBatchingWorkQueue<ProjectTelemetryData>? _workQueue;
 
         public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
             => _workspace = workspace;
@@ -109,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// </summary>
         public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
             return Task.CompletedTask;
         }

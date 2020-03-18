@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
-        private AsyncBatchingWorkQueue<DesignerAttributeData> _workQueue = null!;
+        private AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
 
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
@@ -131,6 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         Task IDesignerAttributeListener.ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(data);
             return Task.CompletedTask;
         }
