@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using VS.IntelliNav.Contracts;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -160,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 documents: null,
                 options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
+            ICodeIndexProvider
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(
