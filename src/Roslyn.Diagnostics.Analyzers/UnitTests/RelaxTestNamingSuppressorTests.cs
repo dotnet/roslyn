@@ -39,14 +39,14 @@ public async Task [|TestMethod|]() { }
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithxunit,
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestState = { Sources = { code } },
                 SolutionTransforms = { WithoutSuppressedDiagnosticsTransform },
             }.RunAsync();
 
             await new TestWithSuppressor
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithxunit,
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestState = { Sources = { code }, MarkupHandling = MarkupMode.Ignore, },
                 SolutionTransforms = { WithoutSuppressedDiagnosticsTransform },
             }.RunAsync();
@@ -66,14 +66,14 @@ public void TestMethod(int arg) { }
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithxunit,
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestState = { Sources = { code } },
                 SolutionTransforms = { WithoutSuppressedDiagnosticsTransform },
             }.RunAsync();
 
             await new TestWithSuppressor
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithxunit,
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestState = { Sources = { code }, MarkupHandling = MarkupMode.Ignore, },
                 SolutionTransforms = { WithoutSuppressedDiagnosticsTransform },
             }.RunAsync();
@@ -94,7 +94,7 @@ public async Task TestMethodAsync() { }
 
             await new VerifyCS.Test
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithxunit,
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestState = { Sources = { code } },
             }.RunAsync();
         }
