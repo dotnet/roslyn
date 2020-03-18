@@ -57,6 +57,37 @@ class Type
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
+        [Fact]
+        public async Task NullPointer()
+        {
+            var source = @"
+unsafe class Type
+{
+    void Method()
+    {
+        Method2([|default(int*)|]);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+            var fixedSource = @"
+unsafe class Type
+{
+    void Method()
+    {
+        Method2((int*)null);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]
