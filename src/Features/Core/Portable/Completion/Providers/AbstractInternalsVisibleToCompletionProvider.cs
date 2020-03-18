@@ -40,13 +40,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ch = text[insertedCharacterPosition - 1];
                     if (ch == '\"')
                     {
-                        return true;
+                        return ShouldTriggerAfterQuotes(text, insertedCharacterPosition);
                     }
                 }
             }
 
             return false;
         }
+
+        protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
 

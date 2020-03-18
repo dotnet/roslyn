@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddressOf IsCompletionItemCharacter)
         End Function
 
-        Private Function IsWordStartCharacter(ch As Char) As Boolean
+        Public Function IsWordStartCharacter(ch As Char) As Boolean
             Return SyntaxFacts.IsIdentifierStartCharacter(ch)
         End Function
 
