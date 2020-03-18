@@ -206,6 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    // TODO2
+                    return expr;
             }
 
             bool hasResolutionErrors = false;

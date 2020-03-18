@@ -1473,6 +1473,30 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestImplicitObjectCreateExpression() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+public class C
+{
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
+
+    public void M()
+    {
+        C c = new($$)
+    }
+    // TODO2
+}]]></Document>, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("new(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestInvocationExpressionAfterComma() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
