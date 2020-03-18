@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ContentType(ContentTypeNames.VBLspContentTypeName)]
-    [DisableUserExperience(true)]
+    [DisableUserExperience(true)] // The C#_LSP and VB_LSP client should not activate on the host.
     [Export(typeof(ILanguageClient))]
     internal class LiveShareLanguageServerClient : ILanguageClient
     {
