@@ -1702,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => node.GetAttributeLists();
 
-        public bool IsTargetTypedNew(SyntaxNode node)
+        public bool IsImplicitObjectCreation(SyntaxNode node)
         {
 #if CODE_STYLE
             return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;

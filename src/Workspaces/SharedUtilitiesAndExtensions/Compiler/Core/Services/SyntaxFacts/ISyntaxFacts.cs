@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
 
-        bool IsTargetTypedNew(SyntaxNode node);
+        bool IsImplicitObjectCreation(SyntaxNode node);
     }
 
     [Flags]

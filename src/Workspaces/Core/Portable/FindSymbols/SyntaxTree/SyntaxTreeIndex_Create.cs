@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
-                var containsTargetTypedNew = false;
+                var containsImplicitObjectCreation = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
-                            containsTargetTypedNew = containsTargetTypedNew || syntaxFacts.IsTargetTypedNewExpression(node);
+                            containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -266,7 +266,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsDeconstruction,
                             containsAwait,
                             containsTupleExpressionOrTupleType,
-                            containsTargetTypedNew),
+                            containsImplicitObjectCreation),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
