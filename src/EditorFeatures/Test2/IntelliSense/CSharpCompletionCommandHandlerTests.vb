@@ -1485,7 +1485,6 @@ public class C
     {
         C c = new($$)
     }
-    // TODO2
 }]]></Document>, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("A")
