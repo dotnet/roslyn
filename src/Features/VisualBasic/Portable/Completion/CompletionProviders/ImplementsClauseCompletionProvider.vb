@@ -13,10 +13,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(ImplementsClauseCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(VisualBasicSuggestionModeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class ImplementsClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -270,10 +279,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(
+        Protected Overrides Function CreateItem(completionContext As CompletionContext,
                 displayText As String, displayTextSuffix As String, insertionText As String,
                 symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim item = MyBase.CreateItem(displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
+            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
 
             If IsGenericType(symbols(0)) Then
                 Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)

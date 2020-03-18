@@ -3757,16 +3757,17 @@ namespace X
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupported()
+        Public Sub Bug622086_CSRenameToVarNotSupportedNoConflictsWithOtherVar()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt:$$Program|} x = null;
+        {|Conflict:$$Program|} x = null;
+        var y = 23;
     }
 }
 ]]>]
@@ -3774,75 +3775,46 @@ class [|Program|]
                     </Project>
                 </Workspace>, renameTo:="var")
 
-
-                result.AssertLabeledSpansAre("stmt", "var", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupportedButConflictsWithOtherVar()
+        Public Sub Bug622086_CSRenameToDynamicNotSupported()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt:$$Program|} x = null;
-        {|conflict:var|} y = 23;
+        {|Conflict:$$Program|} x = null;
     }
 }
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="var")
+                </Workspace>, renameTo:="dynamic")
 
-
-                result.AssertLabeledSpansAre("stmt", "var", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupportedButDoesntConflictsWithOtherVarOfSameType()
+        Public Sub Bug622086_CSRenameToDynamicNotSupported2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt1:$$Program|} x = null;
-        var y = new {|stmt2:Program|}();
-    }
-}
-]]>]
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="var")
-
-
-                result.AssertLabeledSpansAre("stmt1", "var", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "var", RelatedLocationType.NoConflict)
-            End Using
-        End Sub
-
-        <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToDynamicSupported()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
-class [|Program|]
-{
-    static void Main(string[] args)
-    {
-        {|stmt:$$Program|} x = null;
+        {|Conflict:$$Program|} x = null;
+        dynamic y = 23;
     }
 }
 ]]>]
@@ -3851,33 +3823,7 @@ class [|Program|]
                 </Workspace>, renameTo:="dynamic")
 
 
-                result.AssertLabeledSpansAre("stmt", "dynamic", RelatedLocationType.NoConflict)
-            End Using
-        End Sub
-
-        <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_1()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
-class [|Program|]
-{
-    static void Main(string[] args)
-    {
-        {|stmt:$$Program|} x = null;
-        {|conflict:dynamic|} y = 23;
-    }
-}
-]]>]
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="dynamic")
-
-
-                result.AssertLabeledSpansAre("stmt", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
@@ -3888,12 +3834,12 @@ class [|Program|]
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt1:$$Program|} x = null;
-        {|conflict:dynamic|} y = new {|stmt2:Program|}();
+        {|Conflict:$$Program|} x = null;
+        dynamic y = new {|Conflict:Program|}();
     }
 }
 ]]>]
@@ -3901,10 +3847,7 @@ class [|Program|]
                     </Project>
                 </Workspace>, renameTo:="dynamic")
 
-
-                result.AssertLabeledSpansAre("stmt1", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

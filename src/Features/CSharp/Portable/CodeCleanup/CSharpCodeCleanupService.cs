@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                     new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Add_accessibility_modifiers,
+                new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,

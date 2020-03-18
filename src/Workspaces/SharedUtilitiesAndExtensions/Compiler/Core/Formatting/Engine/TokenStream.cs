@@ -6,16 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // this will reconstruct information that reside in syntax tree from root node
         // if syntax tree is not given
         private readonly TreeData _treeData;
-        private readonly OptionSet _optionSet;
+        private readonly AnalyzerConfigOptions _options;
 
         // hold onto information that are made to original trivia info
         private Changes _changes;
@@ -52,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Func<TokenData, TokenData, TriviaData> _getTriviaData;
         private readonly Func<TokenData, TokenData, TriviaData> _getOriginalTriviaData;
 
-        public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
+        public TokenStream(TreeData treeData, AnalyzerConfigOptions options, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
             {
                 // initialize basic info
                 _factory = factory;
                 _treeData = treeData;
-                _optionSet = optionSet;
+                _options = options;
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
@@ -335,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn: 0);
+                length = text.GetTextColumn(_options.GetOption(FormattingOptions.TabSize), initialColumn: 0);
                 return;
             }
 
@@ -345,8 +340,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), token);
-                length = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_options.GetOption(FormattingOptions.TabSize), token);
+                length = text.ConvertTabToSpace(_options.GetOption(FormattingOptions.TabSize), initialColumn, text.Length);
                 return;
             }
 

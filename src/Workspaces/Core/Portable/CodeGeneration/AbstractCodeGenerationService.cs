@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -182,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamespaceOrTypeSymbol destination,
             Func<SyntaxNode, CodeGenerationOptions, IList<bool>, CancellationToken, SyntaxNode> declarationTransform,
             CodeGenerationOptions options,
-            IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
             options ??= CodeGenerationOptions.Default;
@@ -237,13 +237,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             return options.AutoInsertionLocation
                 ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
-                : AddMembersToEndOfDestination(destination, filteredMembers, availableIndices, options, cancellationToken);
+                : AddMembersToEndOfDestination(destination, filteredMembers, options, cancellationToken);
         }
 
         private TDeclarationSyntax AddMembersToEndOfDestination<TDeclarationSyntax>(
             TDeclarationSyntax destination,
             IEnumerable<ISymbol> members,
-            IList<bool> availableIndices,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
             where TDeclarationSyntax : SyntaxNode
@@ -356,7 +355,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 destination,
                 (t, opts, ai, ct) => AddEvent(t, @event, opts, ai),
                 options,
-                new[] { @event },
                 cancellationToken);
         }
 
@@ -367,7 +365,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 destination,
                 (t, opts, ai, ct) => AddField(t, field, opts, ai),
                 options,
-                new[] { field },
                 cancellationToken);
         }
 
@@ -376,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddProperty(t, property, opts, ai),
-                options, new[] { property },
+                options,
                 cancellationToken);
         }
 
@@ -385,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
-                options, new[] { namedType },
+                options,
                 cancellationToken);
         }
 
@@ -394,7 +391,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
-                options, new[] { namedType }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -402,7 +400,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamespace(t, @namespace, opts, ai, ct),
-                options, new[] { @namespace }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -410,7 +409,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMethod(t, method, opts, ai),
-                options, new[] { method }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -418,7 +418,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMembers(t, members, ai, opts, ct),
-                options, members, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -505,9 +506,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return node;
         }
 
-        protected static IList<SyntaxToken> GetUpdatedDeclarationAccessibilityModifiers(IList<SyntaxToken> newModifierTokens, SyntaxTokenList modifiersList, Func<SyntaxToken, bool> isAccessibilityModifier)
+        protected static SyntaxTokenList GetUpdatedDeclarationAccessibilityModifiers(
+            ArrayBuilder<SyntaxToken> newModifierTokens, SyntaxTokenList modifiersList,
+            Func<SyntaxToken, bool> isAccessibilityModifier)
         {
-            var updatedModifiersList = new List<SyntaxToken>();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var updatedModifiersList);
             var anyAccessModifierSeen = false;
             foreach (var modifier in modifiersList)
             {
@@ -541,14 +544,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (!anyAccessModifierSeen)
             {
-                updatedModifiersList.InsertRange(0, newModifierTokens);
+                for (var i = newModifierTokens.Count - 1; i >= 0; i--)
+                {
+                    updatedModifiersList.Insert(0, newModifierTokens[i]);
+                }
             }
             else
             {
                 updatedModifiersList.AddRange(newModifierTokens);
             }
 
-            return updatedModifiersList;
+            return updatedModifiersList.ToSyntaxTokenList();
         }
     }
 }

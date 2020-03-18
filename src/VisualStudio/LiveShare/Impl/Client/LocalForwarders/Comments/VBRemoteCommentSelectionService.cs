@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ICommentSelectionService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspCommentSelectionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public VBLspCommentSelectionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ICommentSelectionService>();

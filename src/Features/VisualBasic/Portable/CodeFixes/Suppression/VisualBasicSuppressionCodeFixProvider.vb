@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                     Return SyntaxFactory.Trivia(newPragmaWarning)
 
                 Case Else
-                    Contract.Fail()
+                    throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
             End Select
         End Function
     End Class

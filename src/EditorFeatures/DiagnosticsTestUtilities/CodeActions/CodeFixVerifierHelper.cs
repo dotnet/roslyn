@@ -87,18 +87,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, OptionsCollection options)
+        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
         {
             if (options.Count == 0)
             {
-                return (null, options);
+                var result = explicitEditorConfig is object ? SourceText.From(explicitEditorConfig, Encoding.UTF8) : null;
+                return (result, options);
             }
 
             var optionSet = new OptionSetWrapper(options.ToDictionary<KeyValuePair<OptionKey, object?>, OptionKey, object?>(option => option.Key, option => option.Value));
             var remainingOptions = new List<KeyValuePair<OptionKey, object?>>();
 
             var analyzerConfig = new StringBuilder();
-            analyzerConfig.AppendLine("root = true");
+            if (explicitEditorConfig is object)
+            {
+                analyzerConfig.AppendLine(explicitEditorConfig);
+            }
+            else
+            {
+                analyzerConfig.AppendLine("root = true");
+            }
+
             analyzerConfig.AppendLine();
             analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
             foreach (var (key, value) in options)

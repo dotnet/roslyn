@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -11,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node)
         {
             Debug.Assert(_previousSubmissionFields != null);
-            Debug.Assert(!_factory.TopLevelMethod.IsStatic);
+            Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
+            Debug.Assert(_factory.CurrentType is { });
 
             var syntax = node.Syntax;
             var hostObjectReference = _previousSubmissionFields.GetHostObjectField();

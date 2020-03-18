@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.
         /// </summary>
-        public string GetParameterText(string parameterName)
+        public string? GetParameterText(string parameterName)
         {
             _parameterTexts.TryGetValue(parameterName, out var text);
             return text;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Returns the text for a given type parameter, or null if no documentation was given for the type parameter.
         /// </summary>
-        public string GetTypeParameterText(string typeParameterName)
+        public string? GetTypeParameterText(string typeParameterName)
         {
             _typeParameterTexts.TryGetValue(typeParameterName, out var text);
             return text;

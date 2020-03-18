@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Operations;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
                 typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // implicitly typed variables cannot be constants.
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
-                     TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
+                     TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken))
             {
                 return true;
             }
@@ -171,36 +174,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool TryAnalyzeDeclarationExpression(
             DeclarationExpressionSyntax declarationExpression,
             SemanticModel semanticModel,
-            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            // It's not always safe to convert a decl expression like "Method(out int i)" to
-            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
-            // Have to see if using 'var' means not resolving to the same type as before.
-            // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
-            // there are multiple candidates with the original call.  If not, then we don't
-            // have to do anything.
-            if (declarationExpression.Parent is ArgumentSyntax argument &&
-                argument.Parent is ArgumentListSyntax argumentList &&
-                argumentList.Parent is InvocationExpressionSyntax invocationExpression)
-            {
-                // If there was only one member in the group, and it was non-generic itself,
-                // then this change is safe to make without doing any complex analysis.
-                // Multiple methods mean that switching to 'var' might remove information
-                // that affects overload resolution.  And if the method is generic, then
-                // switching to 'var' may mean that inference might not work properly.
-                var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
-                if (memberGroup.Length == 1 &&
-                    memberGroup[0].GetTypeParameters().IsEmpty)
-                {
-                    return true;
-                }
-            }
+            // First try to do the cheap check to see if we could replace this decl-expression with
+            // "var".  If not, we'll fall out below to the much more expensive case where we change
+            // the actual type to "var" and see if semantics stay the same.
+            if (IsSafeToSwitchToVarWithoutNeedingSpeculation(declarationExpression, semanticModel, cancellationToken))
+                return true;
 
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
-            {
                 return false;
-            }
 
             // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
             // speculative analyzers) here.  This is due to
@@ -225,7 +208,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var newDeclarationTypeNode = newTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
             var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
 
-            return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
+            return SymbolEquivalenceComparer.TupleNamesMustMatchInstance.Equals(
+                declarationType, newDeclarationType);
+        }
+
+        private bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // It's not always safe to convert a decl expression like "Method(out int i)" to
+            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
+            // Have to see if using 'var' means not resolving to the same type as before.
+            // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
+            // there are multiple candidates with the original call.  If not, then we don't
+            // have to do anything.
+
+            // If there was only one member in the group, and it was non-generic itself, then this
+            // change is commonly safe to make without having to actually change to `var` and
+            // speculatively determine if the change is ok or not.
+            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
+                !(argument.Parent is ArgumentListSyntax argumentList) ||
+                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            {
+                return false;
+            }
+
+            var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
+            if (memberGroup.Length != 1)
+                return false;
+
+            var method = memberGroup[0] as IMethodSymbol;
+            if (method == null)
+                return false;
+
+            if (!method.GetTypeParameters().IsEmpty)
+                return false;
+
+            // Looks pretty good so far.  However, this change is not allowed if the user is
+            // specifying something like `out (int x, int y) t` and the method signature has
+            // different names for those tuple elements.  Check and make sure the types are the
+            // same before proceeding.
+
+            var invocationOp = semanticModel.GetOperation(invocationExpression) as IInvocationOperation;
+            if (invocationOp == null)
+                return false;
+
+            var argumentOp = invocationOp.Arguments.FirstOrDefault(a => a.Syntax == argument);
+            if (argumentOp == null)
+                return false;
+
+            if (argumentOp.Value?.Type == null)
+                return false;
+
+            if (argumentOp.Parameter?.Type == null)
+                return false;
+
+            return argumentOp.Value.Type.Equals(argumentOp.Parameter.Type);
         }
 
         /// <summary>
@@ -297,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // final check to compare type information on both sides of assignment.
                 var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                return declaredType.Equals(initializerType);
+                return declaredType != null && declaredType.Equals(initializerType);
             }
 
             return false;
@@ -335,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
                         var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpression))
+                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
                         {
                             expression = parenExpression.WalkDownParentheses();
                         }

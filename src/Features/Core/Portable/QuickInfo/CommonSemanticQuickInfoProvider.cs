@@ -140,28 +140,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return default;
             }
 
-            try
-            {
-                // Don't search trivia because we want to ignore inactive regions
-                var linkedToken = root.FindToken(token.SpanStart);
+            // Don't search trivia because we want to ignore inactive regions
+            var linkedToken = root.FindToken(token.SpanStart);
 
-                // The new and old tokens should have the same span?
-                if (token.Span == linkedToken.Span)
-                {
-                    return linkedToken;
-                }
-            }
-            catch (Exception thrownException)
+            // The new and old tokens should have the same span?
+            if (token.Span == linkedToken.Span)
             {
-                // We are seeing linked files with different spans cause FindToken to crash.
-                // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
-                var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-                var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-
-                // This problem itself does not cause any corrupted state, it just changes the set
-                // of symbols included in QuickInfo, so we report and continue running.
-                FatalError.ReportWithoutCrash(linkedFileException);
+                return linkedToken;
             }
 
             return default;
@@ -216,6 +201,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (!documentationContent.IsDefaultOrEmpty)
             {
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
+            }
+
+            var remarksDocumentationContent = GetRemarksDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!remarksDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                if (!documentationContent.IsDefaultOrEmpty)
+                {
+                    builder.AddLineBreak();
+                }
+
+                builder.AddRange(remarksDocumentationContent);
+                AddSection(QuickInfoSectionKinds.RemarksDocumentationComments, builder.ToImmutable());
             }
 
             var returnsDocumentationContent = GetReturnsDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
@@ -321,6 +319,30 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             else if (documentedSymbol is object)
             {
                 var documentation = documentedSymbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetRemarksDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
                     return documentation.ToImmutableArray();

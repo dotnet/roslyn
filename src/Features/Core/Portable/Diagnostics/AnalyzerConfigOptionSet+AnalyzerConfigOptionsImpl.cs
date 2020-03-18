@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _fallbackOptions = fallbackOptions;
             }
 
-            public override bool TryGetValue(string key, out string value)
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
             {
                 if (_options.TryGetValue(key, out value))
                 {

@@ -17,8 +17,8 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New XmlDocCommentCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(XmlDocCommentCompletionProvider)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(

@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;

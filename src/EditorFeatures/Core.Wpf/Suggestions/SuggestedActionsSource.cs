@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
                 TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
             {
-                // First, order refactorings based on the order the providers actually gave for their actions.
-                // This way, a low pri refactoring always shows after a medium pri refactoring, no matter what
-                // we do below.
+                // First, order refactorings based on the order the providers actually gave for
+                // their actions. This way, a low pri refactoring always shows after a medium pri
+                // refactoring, no matter what we do below.
                 refactorings = OrderActionSets(refactorings, selectionOpt);
 
                 // If there's a selection, it's likely the user is trying to perform some operation
@@ -247,21 +247,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (selectionOpt?.Length > 0)
                 {
-                    // There was a selection.  Treat refactorings as more important than 
-                    // fixes.  Note: we still will sort after this.  So any high pri fixes
-                    // will come to the front.  Any low-pri refactorings will go to the end.
+                    // There was a selection.  Treat refactorings as more important than fixes.
+                    // Note: we still will sort after this.  So any high pri fixes will come to the
+                    // front.  Any low-pri refactorings will go to the end.
                     return refactorings.Concat(fixes);
                 }
                 else
                 {
-                    // No selection.  Treat all refactorings as low priority, and place
-                    // after fixes.  Even a low pri fixes will be above what was *originally*
+                    // No selection.  Treat all medium and low pri refactorings as low priority, and
+                    // place after fixes.  Even a low pri fixes will be above what was *originally*
                     // a medium pri refactoring.
-                    refactorings = refactorings.SelectAsArray(r => new SuggestedActionSet(
-                        r.CategoryName, r.Actions, r.Title, SuggestedActionSetPriority.Low, r.ApplicableToSpan));
-                    return fixes.Concat(refactorings);
+                    //
+                    // Note: we do not do this for *high* pri refactorings (like 'rename').  These
+                    // are still very important and need to stay at the top (though still after high
+                    // pri fixes).
+                    var highPriRefactorings = refactorings.WhereAsArray(s => s.Priority == SuggestedActionSetPriority.High);
+                    var nonHighPriRefactorings = refactorings.WhereAsArray(s => s.Priority != SuggestedActionSetPriority.High)
+                                                             .SelectAsArray(s => WithPriority(s, SuggestedActionSetPriority.Low));
+
+                    var highPriFixes = fixes.WhereAsArray(s => s.Priority == SuggestedActionSetPriority.High);
+                    var nonHighPriFixes = fixes.WhereAsArray(s => s.Priority != SuggestedActionSetPriority.High);
+
+                    return highPriFixes.Concat(highPriRefactorings).Concat(nonHighPriFixes).Concat(nonHighPriRefactorings);
                 }
             }
+
+            private SuggestedActionSet WithPriority(SuggestedActionSet set, SuggestedActionSetPriority priority)
+                => new SuggestedActionSet(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
             private ImmutableArray<SuggestedActionSet> OrderActionSets(
                 ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
@@ -842,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // - gets the the same priority as the highest priority action within in.
                 // - gets `applicableToSpan` of the first action:
                 //   - E.g. the `applicableToSpan` closest to current selection might be a more correct 
-                //     choice. All actions creted by one Refactoring have usually the same `applicableSpan`
+                //     choice. All actions created by one Refactoring have usually the same `applicableSpan`
                 //     and therefore the complexity of determining the closest one isn't worth the benefit
                 //     of slightly more correct orderings in certain edge cases.
                 return new SuggestedActionSet(
