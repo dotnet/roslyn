@@ -152,11 +152,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
-                var diagnosticIdsToFilter = ImmutableArray<string>.Empty;
-                if (skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out var ids))
-                {
-                    diagnosticIdsToFilter = ids;
-                }
+                var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
+                    analyzer,
+                    ImmutableArray<string>.Empty);
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
@@ -201,18 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return diagnostics;
             }
 
-            var builder = ArrayBuilder<Diagnostic>.GetInstance(diagnostics.Length);
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnosticIdsToFilter.Contains(diagnostic.Id))
-                {
-                    continue;
-                }
-
-                builder.Add(diagnostic);
-            }
-
-            return builder.ToImmutableAndFree();
+            return diagnostics.RemoveAll(diagnostic => diagnosticIdsToFilter.Contains(diagnostic.Id));
         }
 
         public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
