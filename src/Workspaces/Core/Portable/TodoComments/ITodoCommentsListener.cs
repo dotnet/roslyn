@@ -4,7 +4,7 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     internal interface ITodoCommentsListener
     {
         Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken);
-        Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> data, CancellationToken cancellationToken);
+        Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
     }
 }

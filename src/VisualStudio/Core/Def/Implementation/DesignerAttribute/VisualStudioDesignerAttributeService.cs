@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
+        public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(data);

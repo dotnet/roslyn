@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
+        public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
