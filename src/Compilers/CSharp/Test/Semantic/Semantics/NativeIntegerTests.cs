@@ -713,8 +713,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 @"public class B
 {
     public static A F0 = new A();
-    public static nint F1 = -1;
-    public static nuint F2 = 1;
+    public static nint F1 = int.MinValue;
+    public static nuint F2 = int.MaxValue;
+    public static nint F3 = -1;
+    public static nuint F4 = 1;
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
             var refB = comp.ToMetadataReference();
@@ -741,6 +743,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             verifyField(f1, "nint B.F1");
             var f2 = comp.GetMember<FieldSymbol>("B.F2");
             verifyField(f2, "nuint B.F2");
+            var f3 = comp.GetMember<FieldSymbol>("B.F3");
+            verifyField(f3, "nint B.F3");
+            var f4 = comp.GetMember<FieldSymbol>("B.F4");
+            verifyField(f4, "nuint B.F4");
+
+            Assert.Same(f1.Type, f3.Type);
+            Assert.Same(f2.Type, f4.Type);
 
             static void verifyField(FieldSymbol field, string expectedSymbol)
             {
@@ -750,6 +759,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.True(type.IsNativeIntegerType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
             }
+        }
+
+        [Fact]
+        public void Retargeting_05()
+        {
+            var sourceA =
+@"public class A : nint
+{
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics(
+                // (1,18): error CS0509: 'A': cannot derive from sealed type 'nint'
+                // public class A : nint
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "nint").WithArguments("A", "nint").WithLocation(1, 18));
+
+            var refA = comp.ToMetadataReference();
+            var corLibA = comp.Assembly.CorLibrary;
+            var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
+            Assert.Equal(corLibA, typeA.ContainingAssembly);
+
+            var sourceB =
+@"class B : A
+{
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyDiagnostics();
+
+            var corLibB = comp.Assembly.CorLibrary;
+            Assert.NotEqual(corLibA, corLibB);
+            var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
+            Assert.Equal(corLibB, typeB.ContainingAssembly);
         }
 
         [Fact]
@@ -2296,14 +2336,14 @@ False
             var sourceB =
 @"class B : A
 {
-    static void F()
+    static void M1()
     {
         long x = F1;
         ulong y = F2;
         long? z = F3;
         ulong? w = F4;
     }
-    static void F(int x, uint y, int? z, uint? w)
+    static void M2(int x, uint y, int? z, uint? w)
     {
         F1 = x;
         F2 = y;
@@ -2316,6 +2356,79 @@ False
 
             comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("B.M1",
+@"{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldsfld     ""nint A.F1""
+  IL_0005:  pop
+  IL_0006:  ldsfld     ""nuint A.F2""
+  IL_000b:  pop
+  IL_000c:  ldsfld     ""nint? A.F3""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool nint?.HasValue.get""
+  IL_0019:  brfalse.s  IL_0023
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  pop
+  IL_0023:  ldsfld     ""nuint? A.F4""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""bool nuint?.HasValue.get""
+  IL_0030:  brfalse.s  IL_003a
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0039:  pop
+  IL_003a:  ret
+}");
+            verifier.VerifyIL("B.M2",
+@"{
+  // Code size       95 (0x5f)
+  .maxstack  1
+  .locals init (int? V_0,
+                nint? V_1,
+                uint? V_2,
+                nuint? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  stsfld     ""nint A.F1""
+  IL_0007:  ldarg.1
+  IL_0008:  conv.u
+  IL_0009:  stsfld     ""nuint A.F2""
+  IL_000e:  ldarg.2
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""bool int?.HasValue.get""
+  IL_0017:  brtrue.s   IL_0024
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  initobj    ""nint?""
+  IL_0021:  ldloc.1
+  IL_0022:  br.s       IL_0031
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int int?.GetValueOrDefault()""
+  IL_002b:  conv.i
+  IL_002c:  newobj     ""nint?..ctor(nint)""
+  IL_0031:  stsfld     ""nint? A.F3""
+  IL_0036:  ldarg.3
+  IL_0037:  stloc.2
+  IL_0038:  ldloca.s   V_2
+  IL_003a:  call       ""bool uint?.HasValue.get""
+  IL_003f:  brtrue.s   IL_004c
+  IL_0041:  ldloca.s   V_3
+  IL_0043:  initobj    ""nuint?""
+  IL_0049:  ldloc.3
+  IL_004a:  br.s       IL_0059
+  IL_004c:  ldloca.s   V_2
+  IL_004e:  call       ""uint uint?.GetValueOrDefault()""
+  IL_0053:  conv.u
+  IL_0054:  newobj     ""nuint?..ctor(nuint)""
+  IL_0059:  stsfld     ""nuint? A.F4""
+  IL_005e:  ret
+}");
         }
 
         [Theory]
@@ -2351,6 +2464,67 @@ False
 
             comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("B.Main",
+@"{
+  // Code size      143 (0x8f)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nuint? V_1,
+                System.IntPtr V_2,
+                System.UIntPtr V_3)
+  IL_0000:  ldsfld     ""nint A.F1""
+  IL_0005:  pop
+  IL_0006:  ldsfld     ""nuint A.F2""
+  IL_000b:  pop
+  IL_000c:  ldsfld     ""nint? A.F3""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool nint?.HasValue.get""
+  IL_0019:  brfalse.s  IL_0023
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  pop
+  IL_0023:  ldsfld     ""nuint? A.F4""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""bool nuint?.HasValue.get""
+  IL_0030:  brfalse.s  IL_003a
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0039:  pop
+  IL_003a:  ldsfld     ""nint A.F1""
+  IL_003f:  pop
+  IL_0040:  ldsfld     ""nint A.F1""
+  IL_0045:  pop
+  IL_0046:  ldsfld     ""nuint A.F2""
+  IL_004b:  ldsfld     ""nuint A.F2""
+  IL_0050:  div.un
+  IL_0051:  pop
+  IL_0052:  ldsfld     ""nint? A.F3""
+  IL_0057:  stloc.0
+  IL_0058:  ldsfld     ""nint A.F1""
+  IL_005d:  stloc.2
+  IL_005e:  ldloca.s   V_0
+  IL_0060:  call       ""bool nint?.HasValue.get""
+  IL_0065:  brfalse.s  IL_006f
+  IL_0067:  ldloca.s   V_0
+  IL_0069:  call       ""nint nint?.GetValueOrDefault()""
+  IL_006e:  pop
+  IL_006f:  ldsfld     ""nuint? A.F4""
+  IL_0074:  stloc.1
+  IL_0075:  ldsfld     ""nuint A.F2""
+  IL_007a:  stloc.3
+  IL_007b:  ldloca.s   V_1
+  IL_007d:  call       ""bool nuint?.HasValue.get""
+  IL_0082:  brfalse.s  IL_008e
+  IL_0084:  ldloca.s   V_1
+  IL_0086:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_008b:  ldloc.3
+  IL_008c:  div.un
+  IL_008d:  pop
+  IL_008e:  ret
+}");
         }
 
         private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
