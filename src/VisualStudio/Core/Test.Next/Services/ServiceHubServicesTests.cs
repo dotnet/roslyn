@@ -163,7 +163,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var data = await callback.Data;
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
-            Assert.Equal(1, data.Item2.Count);
+            Assert.Equal(1, data.Item2.Length);
 
             var commentInfo = data.Item2[0];
             Assert.Equal(new TodoCommentData
@@ -186,14 +186,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TodoCommentsListener : ITodoCommentsListener
         {
-            private readonly TaskCompletionSource<(DocumentId, List<TodoCommentData>)> _dataSource
-                = new TaskCompletionSource<(DocumentId, List<TodoCommentData>)>();
-            public Task<(DocumentId, List<TodoCommentData>)> Data => _dataSource.Task;
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
+                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
             public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> data, CancellationToken cancellationToken)
+            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
                 return Task.CompletedTask;
@@ -247,7 +247,7 @@ class Test { }");
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
-            Assert.Equal(1, infos.Count);
+            Assert.Equal(1, infos.Length);
 
             var info = infos[0];
             Assert.Equal("Form", info.Category);
@@ -260,13 +260,14 @@ class Test { }");
 
         private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<IList<DesignerAttributeData>> _infosSource = new TaskCompletionSource<IList<DesignerAttributeData>>();
-            public Task<IList<DesignerAttributeData>> Infos => _infosSource.Task;
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
+                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
             public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> infos, CancellationToken cancellationToken)
+            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
                 return Task.CompletedTask;
