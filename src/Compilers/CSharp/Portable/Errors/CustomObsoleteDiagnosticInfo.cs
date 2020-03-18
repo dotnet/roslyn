@@ -4,13 +4,11 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Errors
 {
-    internal class CustomObsoleteDiagnosticInfo : DiagnosticInfo
+    internal sealed class CustomObsoleteDiagnosticInfo : DiagnosticInfo
     {
         internal ObsoleteAttributeData Data { get; }
 
@@ -77,9 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
                 }
 
                 var id = MessageIdentifier;
-                var helpLinkUri = urlFormat is null
-                    ? baseDescriptor.HelpLinkUri
-                    : string.Format(urlFormat, id);
+                var helpLinkUri = baseDescriptor.HelpLinkUri;
+
+                if (urlFormat is object)
+                {
+                    try
+                    {
+                        helpLinkUri = string.Format(urlFormat, id);
+                    }
+                    catch
+                    {
+                        // TODO: should we report a meta-diagnostic of some kind when the string.Format fails?
+                        // also, should we do some validation of the 'UrlFormat' values provided in source to prevent people from shipping
+                        // obsoleted symbols with malformed 'UrlFormat' values?
+                    }
+                }
 
                 var customTags = ArrayBuilder<string>.GetInstance();
                 foreach (var tag in baseDescriptor.CustomTags)
