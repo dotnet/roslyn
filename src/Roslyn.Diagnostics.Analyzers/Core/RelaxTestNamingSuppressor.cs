@@ -6,7 +6,6 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Diagnostics.Analyzers.Extensions;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
@@ -14,7 +13,11 @@ namespace Roslyn.Diagnostics.Analyzers
     public sealed class RelaxTestNamingSuppressor : DiagnosticSuppressor
     {
         private const string Id = RoslynDiagnosticIds.RelaxTestNamingSuppressionRuleId;
+
+        // VSTHRD200: Use Async suffix for async methods
+        // https://github.com/microsoft/vs-threading/blob/master/doc/analyzers/VSTHRD200.md
         private const string SuppressedDiagnosticId = "VSTHRD200";
+
         private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.RelaxTestNamingSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
         internal static readonly SuppressionDescriptor Rule =
@@ -45,7 +48,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var semanticModel = context.GetSemanticModel(tree);
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(node, context.CancellationToken);
                 if (declaredSymbol is IMethodSymbol method
-                    && method.IsTestMethod(knownTestAttributes, factAttribute))
+                    && method.IsXUnitTestMethod(knownTestAttributes, factAttribute))
                 {
                     context.ReportSuppression(Suppression.Create(Rule, diagnostic));
                 }
