@@ -776,8 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class IntPtr { }
     public class UIntPtr { }
 }";
-            var assemblyName = GetUniqueName();
-            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var comp = CreateCompilation(new AssemblyIdentity("c804cc09-8f73-44a1-9cfe-9567bed1def6", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
             var ref1 = comp.EmitToImageReference();
 
             var sourceA =
@@ -787,37 +786,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
 
             var refA = comp.ToMetadataReference();
-            var corLibA = comp.Assembly.CorLibrary;
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
-            Assert.Equal(corLibA, typeA.ContainingAssembly);
-
-            var source2 =
-@"namespace System
-{
-    public class Object { }
-    public class String { }
-    public abstract class ValueType { }
-    public struct Void { }
-    public struct Boolean { }
-    public struct Int32 { }
-}";
-            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
-            var ref2 = comp.EmitToImageReference();
+            Assert.True(typeA.IsNativeIntegerType);
 
             var sourceB =
 @"class B : A
 {
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (1,11): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
                 // class B : A
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IntPtr").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(1, 7),
+                // (1,11): error CS0012: The type 'IntPtr' is defined in an assembly that is not referenced. You must add a reference to assembly 'c804cc09-8f73-44a1-9cfe-9567bed1def6, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // class B : A
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.IntPtr", "c804cc09-8f73-44a1-9cfe-9567bed1def6, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 11));
 
-            var corLibB = comp.Assembly.CorLibrary;
-            Assert.NotEqual(corLibA, corLibB);
             var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
-            Assert.Equal(corLibB, typeB.ContainingAssembly);
+            Assert.True(typeB.ContainingAssembly.IsMissing);
+            Assert.True(typeB.IsNativeIntegerType);
         }
 
         [Fact]

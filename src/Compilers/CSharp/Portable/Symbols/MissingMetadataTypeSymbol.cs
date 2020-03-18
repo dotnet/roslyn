@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private TopLevel AsNativeInteger(bool asNativeInt)
             {
-                Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+                Debug.Assert(SpecialType == SpecialType.System_IntPtr || SpecialType == SpecialType.System_UIntPtr || SpecialType == SpecialType.None);
 
                 var other = asNativeInt == _isNativeInt ?
                     this :
