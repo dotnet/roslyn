@@ -72,5 +72,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
+        public const string AddExplicitCast = nameof(AddExplicitCast);
     }
 }

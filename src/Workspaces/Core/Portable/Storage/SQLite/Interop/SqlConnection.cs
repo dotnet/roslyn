@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     /// These statements are cached for the lifetime of the connection and are only finalized
     /// (i.e. destroyed) when the connection is closed.
     /// </summary>
-    internal partial class SqlConnection
+    internal class SqlConnection
     {
         /// <summary>
         /// The raw handle to the underlying DB.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
         /// </summary>
-        private readonly Dictionary<string, SqlStatement> _queryToStatement = new Dictionary<string, SqlStatement>();
+        private readonly Dictionary<string, SqlStatement> _queryToStatement;
 
         /// <summary>
         /// Whether or not we're in a transaction.  We currently don't supported nested transactions.
@@ -69,13 +69,17 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
             raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
 
-            return new SqlConnection(faultInjector, handle);
+            var queryToStatement = new Dictionary<string, SqlStatement>();
+            return new SqlConnection(handle, faultInjector, queryToStatement);
         }
 
-        private SqlConnection(IPersistentStorageFaultInjector faultInjector, sqlite3 handle)
+        private SqlConnection(sqlite3 handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
-            _faultInjector = faultInjector;
+            // This constructor avoids allocations since failure (e.g. OutOfMemoryException) would leave the object
+            // partially-constructed, and the finalizer would run later triggering a crash.
             _handle = handle;
+            _faultInjector = faultInjector;
+            _queryToStatement = queryToStatement;
         }
 
         ~SqlConnection()

@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return null;
 
             var unimplementedMembers = classType.GetAllUnimplementedMembers(
-                SpecializedCollections.SingletonEnumerable(abstractClassType), cancellationToken);
+                SpecializedCollections.SingletonEnumerable(abstractClassType),
+                includeMembersRequiringExplicitImplementation: false,
+                cancellationToken);
+
             if (unimplementedMembers.IsEmpty)
                 return null;
 

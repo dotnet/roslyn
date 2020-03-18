@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
+                    return (parameters, returnType, (VariableInfo?)null, unsafeAddressTakenUsed);
                 }
                 else
                 {

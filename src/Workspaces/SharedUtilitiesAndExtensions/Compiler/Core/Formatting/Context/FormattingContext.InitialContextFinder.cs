@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
                 var node = startToken.GetCommonRoot(endToken).GetParentWithBiggerSpan();
-                var previous = default(SyntaxNode);
+                var previous = (SyntaxNode)null;
 
                 // starting from the common node, move up to the parent
                 var operations = new List<IndentBlockOperation>();

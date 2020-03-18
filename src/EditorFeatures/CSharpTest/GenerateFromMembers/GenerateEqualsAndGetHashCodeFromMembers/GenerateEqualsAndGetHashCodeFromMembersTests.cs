@@ -2420,6 +2420,117 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPublicSystemHashCodeOtherProject()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+using System;
+
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(j);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestInternalSystemHashCode()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {

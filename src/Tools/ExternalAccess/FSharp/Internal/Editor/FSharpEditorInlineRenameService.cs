@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             }
         }
     }
+
     internal class FSharpInlineRenameReplacementInfo : IInlineRenameReplacementInfo
     {
         private readonly IFSharpInlineRenameReplacementInfo _info;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                 new InlineRenameReplacement(FSharpInlineRenameReplacementKindHelpers.ConvertTo(x.Kind), x.OriginalSpan, x.NewSpan));
         }
     }
+
     internal class FSharpInlineRenameLocationSet : IInlineRenameLocationSet
     {
         private readonly IFSharpInlineRenameLocationSet _set;

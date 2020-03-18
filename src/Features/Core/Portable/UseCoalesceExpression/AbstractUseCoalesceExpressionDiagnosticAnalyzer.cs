@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

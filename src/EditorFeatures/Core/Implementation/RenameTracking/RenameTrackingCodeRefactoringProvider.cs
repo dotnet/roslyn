@@ -21,15 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         Name = nameof(RenameTrackingCodeRefactoringProvider)), Shared]
     internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public const string DiagnosticId = "RenameTracking";
-        public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
-            DiagnosticId, title: "", messageFormat: "", category: "",
-            defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Microsoft.Append(WellKnownDiagnosticTags.NotConfigurable));
-
-        public const string RenameFromPropertyKey = "RenameFrom";
-        public const string RenameToPropertyKey = "RenameTo";
-
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
@@ -42,37 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             _refactorNotifyServices = refactorNotifyServices;
         }
 
-        // Internal for testing purposes
-        internal async Task<Diagnostic?> TryGetDiagnosticAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return RenameTrackingTaggerProvider.TryGetDiagnostic(
-                syntaxTree, DiagnosticDescriptor, cancellationToken);
-        }
-
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
 
-            // Ensure rename can still be invoked in this document. We reanalyze the document for
-            // diagnostics when rename tracking is manually dismissed, but the existence of our
-            // diagnostic may still be cached, so we have to double check before actually providing
-            // any fixes.
-            if (!RenameTrackingTaggerProvider.CanInvokeRename(document))
-                return;
+            var action = RenameTrackingTaggerProvider.TryGetCodeAction(
+                document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
 
-            var diagnostic = await TryGetDiagnosticAsync(document, cancellationToken).ConfigureAwait(false);
-            if (diagnostic == null)
-                return;
+            if (action != null)
+                context.RegisterRefactoring(action);
 
-            // user needs to be on the same line as the diagnostic location.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!text.AreOnSameLine(span.Start, diagnostic.Location.SourceSpan.Start))
-                return;
-
-            var action = RenameTrackingTaggerProvider.CreateCodeAction(
-                document, diagnostic, _refactorNotifyServices, _undoHistoryRegistry);
-            context.RegisterRefactoring(action);
+            return Task.CompletedTask;
         }
     }
 }

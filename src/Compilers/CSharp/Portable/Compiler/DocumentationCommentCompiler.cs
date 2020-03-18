@@ -79,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+#nullable enable
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
+#nullable restore
         {
             StreamWriter writer = null;
             if (xmlDocStream != null && xmlDocStream.CanWrite)

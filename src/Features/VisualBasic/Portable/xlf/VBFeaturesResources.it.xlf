@@ -1507,31 +1507,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Genera la conversione che supporta un maggior numero di dati in '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Non modificare questo codice. Inserire sopra il codice di pulizia in Dispose(disposing As Boolean).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: liberare risorse non gestite (oggetti non gestiti) ed eseguire sotto l'override di Finalize().</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: eseguire l'override di Finalize() solo se Dispose(disposing As Boolean) include il codice per liberare risorse non gestite.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Questo codice viene aggiunto da Visual Basic per implementare in modo corretto il criterio Disposable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: rimuovere il commento dalla riga seguente se è stato eseguito l'override di Finalize().</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">blocco Try</target>
@@ -1810,11 +1785,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Rendi asincrona la funzione sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Aggiungi 'Me.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
