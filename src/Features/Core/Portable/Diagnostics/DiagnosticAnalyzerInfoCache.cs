@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -44,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Information about host analyzers that can be skipped for the given project ID.
+        /// Information about host analyzers that can be skipped for the given project analyzers.
         /// </summary>
-        private readonly ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo> _skippedAnalyzersInfo;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ISkippedAnalyzersInfo> _skippedAnalyzersInfo;
 
         internal DiagnosticAnalyzerInfoCache()
         {
             _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
-            _skippedAnalyzersInfo = new ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo>();
+            _skippedAnalyzersInfo = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ISkippedAnalyzersInfo>();
         }
 
         /// <summary>
@@ -121,19 +122,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public ISkippedAnalyzersInfo GetOrCreateSkippedAnalyzersInfo(Project project)
+        public ISkippedAnalyzersInfo GetOrCreateSkippedAnalyzersInfo(Project project, HostDiagnosticAnalyzers hostAnalyzers)
         {
-            if (_skippedAnalyzersInfo.TryGetValue(project.Id, out var skippedAnalyzersInfo))
+            if (_skippedAnalyzersInfo.TryGetValue(project.AnalyzerReferences, out var skippedAnalyzersInfo))
             {
                 return skippedAnalyzersInfo;
             }
 
-            var createValueCallback = new ConditionalWeakTable<ProjectId, ISkippedAnalyzersInfo>.CreateValueCallback(
-                _ => SkippedHostAnalyzersInfo.Create(project, this));
-            return _skippedAnalyzersInfo.GetValue(project.Id, createValueCallback);
+            var createValueCallback = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ISkippedAnalyzersInfo>.CreateValueCallback(
+                _ => SkippedHostAnalyzersInfo.Create(project, hostAnalyzers, this));
+            return _skippedAnalyzersInfo.GetValue(project.AnalyzerReferences, createValueCallback);
         }
 
-        public void ClearProjectCache(ProjectId projectId)
-            => _skippedAnalyzersInfo.Remove(projectId);
+        public ISkippedAnalyzersInfo GetOrCreateSkippedAnalyzersInfo(Project project, IEnumerable<AnalyzerReference> hostAnalyzers)
+        {
+            if (_skippedAnalyzersInfo.TryGetValue(project.AnalyzerReferences, out var skippedAnalyzersInfo))
+            {
+                return skippedAnalyzersInfo;
+            }
+
+            var createValueCallback = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ISkippedAnalyzersInfo>.CreateValueCallback(
+                _ => SkippedHostAnalyzersInfo.Create(project, hostAnalyzers, this));
+            return _skippedAnalyzersInfo.GetValue(project.AnalyzerReferences, createValueCallback);
+        }
     }
 }

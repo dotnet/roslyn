@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 _projectAnalyzerStateMap.TryRemove(projectId, out _);
-                _analyzerInfoCache.ClearProjectCache(projectId);
                 return removed;
             }
 

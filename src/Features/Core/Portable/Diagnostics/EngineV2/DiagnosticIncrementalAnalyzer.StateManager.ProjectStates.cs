@@ -49,11 +49,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Project project,
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap,
-                    DiagnosticAnalyzerInfoCache analyzerInfoCache)
+                    DiagnosticAnalyzerInfoCache analyzerInfoCache,
+                    HostDiagnosticAnalyzers hostAnalyzers)
                     : this(project.AnalyzerReferences,
                        mapPerReferences,
                        analyzerMap,
-                       analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(project))
+                       analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(project, hostAnalyzers))
                 {
                     Contract.ThrowIfNull(project);
                     Contract.ThrowIfNull(mapPerReferences);
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var newMap = CreateStateSetMap(project.Language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: false);
-                return new ProjectAnalyzerStateSets(project, analyzersPerReference, newMap, _analyzerInfoCache);
+                return new ProjectAnalyzerStateSets(project, analyzersPerReference, newMap, _analyzerInfoCache, _hostAnalyzers);
             }
 
             /// <summary>
@@ -118,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             private ProjectAnalyzerStateSets UpdateProjectStateSets(Project project)
             {
-                _analyzerInfoCache.ClearProjectCache(project.Id);
                 var projectStateSets = CreateProjectStateSets(project);
 
                 RaiseProjectAnalyzerReferenceChangedIfNeeded(project, projectStateSets.MapPerReferences, projectStateSets.StateSetMap);
