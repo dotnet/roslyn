@@ -498,7 +498,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             return await fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeConfigurationFixes: false, cancellationToken: CancellationToken.None);
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         private sealed class NuGetCodeFixProvider : AbstractNuGetOrVsixCodeFixProvider
         {
             public NuGetCodeFixProvider(ImmutableArray<string> fixableDiagnsoticIds)
@@ -507,7 +506,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         private sealed class VsixCodeFixProvider : AbstractNuGetOrVsixCodeFixProvider
         {
             public VsixCodeFixProvider(ImmutableArray<string> fixableDiagnsoticIds)
