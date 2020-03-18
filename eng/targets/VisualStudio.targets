@@ -29,7 +29,7 @@
   
   <!-- CPS doesn't show these items by default, but we want to show them. -->
   <ItemGroup>
-    <None Include="@(VSCTCompile)" />
+    <AvailableItemName Include="VSCTCompile" />
   </ItemGroup>
 
   <Target Name="IncludeVsixLocalOnlyItems">
