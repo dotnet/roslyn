@@ -74,12 +74,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public override void RemoveProject(ProjectId projectId)
+        public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _projectToData.Remove(projectId);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

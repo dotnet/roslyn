@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _storageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
         }
 
+        public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            return _endPoint.InvokeAsync(
+                nameof(IDesignerAttributeListener.OnProjectRemovedAsync),
+                new object[] { projectId },
+                cancellationToken);
+        }
+
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);
 

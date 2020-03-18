@@ -38,9 +38,17 @@ namespace Microsoft.CodeAnalysis.Remote
         public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => e.Option == TodoCommentOptions.TokenList;
 
+        public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return _endPoint.InvokeAsync(
+                nameof(ITodoCommentsListener.OnDocumentRemovedAsync),
+                new object[] { documentId },
+                cancellationToken);
+        }
+
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
         {
-            var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
+            var optionText = document.Project.Solution.Options.GetOption<string>(TodoCommentOptions.TokenList);
 
             lock (_gate)
             {

@@ -54,12 +54,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return Task.CompletedTask;
         }
 
-        public virtual void RemoveDocument(DocumentId documentId)
+        public virtual Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
+            return Task.CompletedTask;
         }
 
-        public virtual void RemoveProject(ProjectId projectId)
+        public virtual Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
         {
+            return Task.CompletedTask;
         }
     }
 }

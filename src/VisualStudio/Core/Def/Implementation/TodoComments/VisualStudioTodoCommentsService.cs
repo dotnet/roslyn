@@ -55,14 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             _workspace = workspace;
             _eventListenerTracker = eventListenerTracker;
-
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
-
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            if (e.Kind == WorkspaceChangeKind.DocumentRemoved)
-                _documentToInfos.TryRemove(e.DocumentId, out _);
         }
 
         void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)
@@ -120,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
+        Task ITodoCommentsListener.ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
             return Task.CompletedTask;
@@ -190,6 +182,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
             return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
+        }
+
+        Task ITodoCommentsListener.OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            _documentToInfos.TryRemove(documentId, out _);
+            return Task.CompletedTask;
         }
     }
 }

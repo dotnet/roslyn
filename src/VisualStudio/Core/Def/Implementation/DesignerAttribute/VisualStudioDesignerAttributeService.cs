@@ -75,14 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
-
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
-
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
-                _cpsProjects.TryRemove(e.ProjectId, out _);
         }
 
         void IVisualStudioDesignerAttributeService.Start(CancellationToken cancellationToken)
@@ -137,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
+        Task IDesignerAttributeListener.ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             _workQueue.AddWork(data);
             return Task.CompletedTask;
@@ -322,6 +314,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 var serviceProvider = new Shell.ServiceProvider(projectServiceProvider);
                 return serviceProvider.GetService(typeof(IProjectItemDesignerTypeUpdateService)) as IProjectItemDesignerTypeUpdateService;
             }
+        }
+
+        Task IDesignerAttributeListener.OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            _cpsProjects.TryRemove(projectId, out _);
+            return Task.CompletedTask;
         }
     }
 }
