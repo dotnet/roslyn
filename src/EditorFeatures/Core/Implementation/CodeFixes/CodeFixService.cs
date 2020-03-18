@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // Ensure that each diagnostic only has a unique registered code action for any given equivalance key.
             // This prevents duplicate registered code actions from NuGet and VSIX code fix providers.
             // See https://github.com/dotnet/roslyn/issues/18818 for details.
-            var uniqueDiagosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string>>();
+            var uniqueDiagosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
             try
             {
                 foreach (var fixer in allFixers.Distinct())
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
             Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
-            Dictionary<Diagnostic, PooledHashSet<string>> uniqueDiagosticToEquivalenceKeysMap,
+            Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
             CancellationToken cancellationToken)
         {
             using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
@@ -392,15 +392,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<Diagnostic> FilterApplicableDiagnostics(
                 ImmutableArray<Diagnostic> applicableDiagnostics,
-                string equivalenceKey,
-                Dictionary<Diagnostic, PooledHashSet<string>> uniqueDiagosticToEquivalenceKeysMap)
+                string? equivalenceKey,
+                Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap)
             {
                 using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var newApplicableDiagnostics);
                 foreach (var diagnostic in applicableDiagnostics)
                 {
                     if (!uniqueDiagosticToEquivalenceKeysMap.TryGetValue(diagnostic, out var equivalenceKeys))
                     {
-                        equivalenceKeys = PooledHashSet<string>.GetInstance();
+                        equivalenceKeys = PooledHashSet<string?>.GetInstance();
                         equivalenceKeys.Add(equivalenceKey);
                         uniqueDiagosticToEquivalenceKeysMap[diagnostic] = equivalenceKeys;
                     }
