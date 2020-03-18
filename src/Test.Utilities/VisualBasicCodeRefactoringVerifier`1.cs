@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Testing;
@@ -21,14 +20,14 @@ namespace Test.Utilities
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>
         public static async Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {
-            var val = new Test
+            var test = new Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
             };
 
-            val.ExpectedDiagnostics.AddRange(expected);
-            await val.RunAsync(CancellationToken.None);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
     }
 }
