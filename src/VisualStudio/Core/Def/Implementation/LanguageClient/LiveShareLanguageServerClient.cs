@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -24,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ContentType(ContentTypeNames.VBLspContentTypeName)]
+    [DisableUserExperience(true)]
     [Export(typeof(ILanguageClient))]
     internal class LiveShareLanguageServerClient : ILanguageClient
     {
