@@ -195,11 +195,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
-        public void RemoveDocument(DocumentId documentId)
+        public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             _state.Remove(documentId);
-
             RaiseTaskListUpdated(_workspace, null, documentId, ImmutableArray<TodoItem>.Empty);
+
+            return Task.CompletedTask;
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -247,8 +248,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return Task.CompletedTask;
         }
 
-        public void RemoveProject(ProjectId projectId)
+        public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
+            return Task.CompletedTask;
         }
         #endregion
     }

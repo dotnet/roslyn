@@ -99,24 +99,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return true;
         }
 
-        public void RemoveDocument(DocumentId documentId)
+        public async Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             foreach (var (_, analyzer) in Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
-                    analyzer.Value.RemoveDocument(documentId);
+                    await analyzer.Value.RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        public void RemoveProject(ProjectId projectId)
+        public async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             foreach (var (_, analyzer) in Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
-                    analyzer.Value.RemoveProject(projectId);
+                    await analyzer.Value.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

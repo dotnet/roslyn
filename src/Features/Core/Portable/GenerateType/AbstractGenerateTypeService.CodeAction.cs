@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
+                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
                 var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                 var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                IEnumerable<CodeActionOperation> operations = null;
+                var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
                 if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {
