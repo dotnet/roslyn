@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         Task OnDefinitionFoundAsync(DefinitionItem definition);
         Task OnReferenceFoundAsync(SourceReferenceItem reference);
+        Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference);
 
         Task ReportProgressAsync(int current, int maximum);
     }

@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             // the context object that the FAR service will push results into.
             var context = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
-            await AbstractFindUsagesService.FindSymbolReferencesAsync(_threadingContext, context, symbol, project, cancellationToken).ConfigureAwait(false);
+            await AbstractFindUsagesService.FindSymbolReferencesAsync(
+                _threadingContext, codeIndexProvider: null,
+                context, symbol, project, cancellationToken).ConfigureAwait(false);
 
             // Note: we don't need to put this in a finally.  The only time we might not hit
             // this is if cancellation or another error gets thrown.  In the former case,

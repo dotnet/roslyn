@@ -117,6 +117,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     addToEntriesWhenNotGroupingByDefinition: true);
             }
 
+            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+            {
+                // Normal references go into both sets of entries.
+                return OnEntryFoundAsync(
+                    reference.Definition,
+                    bucket => TryCreateExternalItemEntryAsync(reference),
+                    addToEntriesWhenGroupingByDefinition: true,
+                    addToEntriesWhenNotGroupingByDefinition: true);
+            }
+
+            private Task<Entry> TryCreateExternalItemEntryAsync(ExternalReferenceItem reference)
+            {
+                throw new NotImplementedException();
+            }
+
             protected async Task OnEntryFoundAsync(
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,

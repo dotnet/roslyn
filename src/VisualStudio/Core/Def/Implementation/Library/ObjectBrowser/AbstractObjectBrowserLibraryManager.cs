@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrows
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using VS.IntelliNav.Contracts;
 using IServiceProvider = System.IServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
         private readonly IThreadingContext _threadingContext;
+        private readonly ICodeIndexProvider _codeIndexProvider;
 
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
@@ -64,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
             _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
             _threadingContext = componentModel.DefaultExportProvider.GetExportedValue<IThreadingContext>();
+            _codeIndexProvider = componentModel.DefaultExportProvider.GetExportedValue<ICodeIndexProvider>();
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -542,7 +545,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 // thread.
                 await Task.Run(async () =>
                 {
-                    await FindReferencesAsync(_threadingContext, symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
+                    await FindReferencesAsync(_threadingContext, _codeIndexProvider, symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken).ConfigureAwait(false);
 
                 // Note: we don't need to put this in a finally.  The only time we might not hit
@@ -560,14 +563,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(IThreadingContext threadingContext, SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        private static async Task FindReferencesAsync(
+            IThreadingContext threadingContext, ICodeIndexProvider codeIndexProvider,
+            SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
             {
                 await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                    threadingContext,
+                    threadingContext, codeIndexProvider,
                     context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
         }

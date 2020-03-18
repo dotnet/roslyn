@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMonikers;
 using Roslyn.Utilities;
 using VS.IntelliNav.Contracts;
@@ -153,7 +154,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-            var progressAdapter = new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options);
+
+            // We're doing to kick off two find-references here.  One that roslyn performs, and one
+            // that goes through rich-nav.  In order for things like progress to work, we have each
+            // subsystem call into their context object.  These then get aggregated and passed along
+            // to the real context object.
+            var aggregator = new FindUsagesContextAggregator(context);
+            var roslynFindUsagesContext = aggregator.CreateForwardingContext();
+            var codeIndexFindUsagesContext = aggregator.CreateForwardingContext();
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -162,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, project.Id),
                 project.Solution,
-                progressAdapter,
+                new FindReferencesProgressAdapter(threadingContext, project.Solution, roslynFindUsagesContext, options),
                 documents: null,
                 options,
                 cancellationToken);
@@ -171,41 +179,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var codeIndexReferencesTask = FindCodeIndexReferencesAsync(
                 codeIndexProvider,
                 symbol,
-                project.Solution,
-                progressAdapter,
-                options,
+                codeIndexFindUsagesContext,
                 cancellationToken);
 
             await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
-        }
-
-        private async Task FindCodeIndexReferencesAsync(
-            ICodeIndexProvider? codeIndexProvider,
-            ISymbol symbol, Solution solution,
-            FindReferencesProgressAdapter progressAdapter,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            if (codeIndexProvider == null)
-                return;
-
-            var moniker = SymbolMoniker.TryCreate(symbol);
-            if (moniker == null)
-                return;
-
-            var monikers = SpecializedCollections.SingletonEnumerable(moniker);
-            var currentPage = 0;
-            while (true)
-            {
-                var results = await codeIndexProvider.FindReferencesByMonikerAsync(
-                    monikers, includeDecleration: true, pageIndex: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (results == null || results.Count == 0)
-                    break;
-
-                currentPage++;
-                await ProcessCodeIndexResultsAsync(
-                    codeIndexProvider, results, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(
