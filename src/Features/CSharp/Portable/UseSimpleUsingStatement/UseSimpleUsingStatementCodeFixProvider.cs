@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -131,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
         {
-            return SyntaxFactory.LocalDeclarationStatement(
+            return LocalDeclarationStatement(
                 usingStatement.AwaitKeyword,
                 usingStatement.UsingKeyword,
                 modifiers: default,
                 usingStatement.Declaration,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

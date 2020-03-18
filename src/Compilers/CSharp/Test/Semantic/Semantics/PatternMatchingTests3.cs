@@ -688,7 +688,7 @@ class Source2
         }
 
         [Fact]
-        public void TargetTypedSwitch_Overload()
+        public void TargetTypedSwitch_Overload_01()
         {
             var source = @"
 using System;
@@ -724,6 +724,53 @@ class Source2
 }
 ";
             var expectedOutput = "Source1 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        M(b switch { false => 1, true => 2 });
+    }
+    static void M(Int16 s) => Console.Write(nameof(Int16));
+    static void M(Int64 l) => Console.Write(nameof(Int64));
+}
+";
+            var expectedOutput = "Int16";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload_03()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        M(b switch { false => 1, true => 2 });
+    }
+    static void M(Int16 s) => Console.Write(nameof(Int16));
+}
+";
+            var expectedOutput = "Int16";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );

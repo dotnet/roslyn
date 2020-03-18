@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
-                        _docComments = new Dictionary<string, string>();
+                        var comments = new Dictionary<string, string>();
 
                         var doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
@@ -80,12 +80,15 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using var reader = e.CreateReader();
                                 reader.MoveToContent();
-                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
+                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
+
+                        _docComments = comments;
                     }
                     catch (Exception)
                     {
+                        _docComments = new Dictionary<string, string>();
                     }
                 }
             }

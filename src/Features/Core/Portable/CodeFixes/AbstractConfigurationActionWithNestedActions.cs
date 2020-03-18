@@ -21,5 +21,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Put configurations/suppressions at the end of everything.
         internal override CodeActionPriority Priority => CodeActionPriority.None;
+
+        /// <summary>
+        /// Additional priority associated with all configuration and suppression code actions.
+        /// This allows special code actions such as Bulk configuration to to be at the end of
+        /// all suppression and configuration actions by having a lower additional priority.
+        /// </summary>
+        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Medium;
+
+        internal virtual bool IsBulkConfigurationAction => false;
     }
 }

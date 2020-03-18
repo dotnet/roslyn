@@ -1679,9 +1679,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             diagnostic = compilation.Options.FilterDiagnostic(diagnostic);
 
-            // Apply bulk configuration from analyzer options, if applicable.
+            // Apply bulk configuration from analyzer options for analyzer diagnostics, if applicable.
             var tree = diagnostic?.Location.SourceTree;
-            if (tree == null || analyzerOptions == null)
+            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
             {
                 return diagnostic;
             }

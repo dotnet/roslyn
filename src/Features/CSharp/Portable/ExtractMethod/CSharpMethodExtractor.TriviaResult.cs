@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.BeforeEndOfSpan => body != null
                         ? body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
                         : semicolonToken,
-                    _ => Contract.FailWithReturn<SyntaxToken>("can't happen"),
+                    _ => throw ExceptionUtilities.UnexpectedValue(location)
                 };
             }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.AfterEndOfSpan => FilterTriviaList(list.Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.AfterBeginningOfSpan => FilterTriviaList(AppendTrailingTrivia(tokenPair).Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.BeforeEndOfSpan => FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
-                    _ => Contract.FailWithReturn<IEnumerable<SyntaxTrivia>>("Shouldn't reach here"),
+                    _ => throw ExceptionUtilities.UnexpectedValue(location),
                 };
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     MethodDeclarationSyntax methodDeclaration => (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken),
                     LocalFunctionStatementSyntax localFunctionDeclaration => (localFunctionDeclaration.Body, localFunctionDeclaration.ExpressionBody, localFunctionDeclaration.SemicolonToken),
-                    _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
+                    _ => throw ExceptionUtilities.UnexpectedValue(method)
                 };
             }
 

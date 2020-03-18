@@ -6,11 +6,15 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
+using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     public class CodeStyleOptions
     {
@@ -21,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static PerLanguageOption<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             var option = new PerLanguageOption<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
+
+        private static Option<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+        {
+            var option = new Option<T>(nameof(CodeStyleOptions), group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -120,15 +131,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedBooleanExpressions = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedBooleanExpressions),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_boolean_expressions"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSimplifiedBooleanExpressions")});
+
         internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
-            new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
-                nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
-                defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-                storageLocations:
-                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
-                        "dotnet_style_operator_placement_when_wrapping",
-                        OperatorPlacementUtilities.Parse,
-                        OperatorPlacementUtilities.GetEditorConfigString));
+            CreateOption(CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(OperatorPlacementWhenWrapping),
+            defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+            storageLocations:
+                new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                    "dotnet_style_operator_placement_when_wrapping",
+                    OperatorPlacementUtilities.Parse,
+                    OperatorPlacementUtilities.GetEditorConfigString));
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
@@ -246,6 +263,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
+
+        internal static readonly Option<string> FileHeaderTemplate = CreateCommonOption(
+            CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
+            defaultValue: "",
+            EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]

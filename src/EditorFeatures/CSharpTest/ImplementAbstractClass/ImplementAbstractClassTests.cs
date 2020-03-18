@@ -743,41 +743,6 @@ class [|Program|] : Goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestGenerateIntoNonHiddenPart()
-        {
-            await TestAllOptionsOffAsync(
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class [|Program|] : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program ",
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class Program : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program
-{
-    public override void F()
-    {
-        throw new NotImplementedException();
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
             await TestAllOptionsOffAsync(
@@ -1845,6 +1810,34 @@ class [|Derived|] : Base
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithIncompleteGenericInBaseList()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A<int
+{
+
+}",
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A<int
+{
+    public override void AbstractMethod()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
         }
     }
 }

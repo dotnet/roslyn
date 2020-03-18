@@ -4298,5 +4298,598 @@ class B
         }
 
         #endregion Target Typed Switch
+
+        #region Pattern Combinators
+
+        [Fact]
+        public void IsPatternDisjunct_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static bool M1(object o) => o is int or long;
+    static bool M2(object o) => o is int || o is long;
+    public static void Main()
+    {
+        Console.Write(M1(1));
+        Console.Write(M1(string.Empty));
+        Console.Write(M1(1L));
+        Console.Write(M1(1UL));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       21 (0x15)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0013
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  ldnull
+      IL_000f:  cgt.un
+      IL_0011:  br.s       IL_0014
+      IL_0013:  ldc.i4.1
+      IL_0014:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            code = @"
+    {
+      // Code size       20 (0x14)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0012
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  ldnull
+      IL_000f:  cgt.un
+      IL_0011:  ret
+      IL_0012:  ldc.i4.1
+      IL_0013:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static string M1(object o) => (o is int or long) ? ""True"" : ""False"";
+    static string M2(object o) => (o is int || o is long) ? ""True"" : ""False"";
+    public static void Main()
+    {
+        Console.Write(M1(1));
+        Console.Write(M1(string.Empty));
+        Console.Write(M1(1L));
+        Console.Write(M1(1UL));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       29 (0x1d)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0017
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  brtrue.s   IL_0017
+      IL_0010:  ldstr      ""False""
+      IL_0015:  br.s       IL_001c
+      IL_0017:  ldstr      ""True""
+      IL_001c:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            code = @"
+    {
+      // Code size       28 (0x1c)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""int""
+      IL_0006:  brtrue.s   IL_0016
+      IL_0008:  ldarg.0
+      IL_0009:  isinst     ""long""
+      IL_000e:  brtrue.s   IL_0016
+      IL_0010:  ldstr      ""False""
+      IL_0015:  ret
+      IL_0016:  ldstr      ""True""
+      IL_001b:  ret
+    }
+";
+            compVerifier.VerifyIL("C.M1", code);
+            compVerifier.VerifyIL("C.M2", code);
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static bool M1(object o) => o is >= 'A' and <= 'Z' or >= 'a' and <= 'z';
+    static bool M2(object o) => o is char c && (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z');
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(2));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"TrueFalseTrueFalse";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       45 (0x2d)
+      .maxstack  2
+      .locals init (char V_0,
+                    bool V_1)
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_0029
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0029
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_0025
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0029
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  ble.s      IL_0025
+      IL_0023:  br.s       IL_0029
+      IL_0025:  ldc.i4.1
+      IL_0026:  stloc.1
+      IL_0027:  br.s       IL_002b
+      IL_0029:  ldc.i4.0
+      IL_002a:  stloc.1
+      IL_002b:  ldloc.1
+      IL_002c:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       48 (0x30)
+      .maxstack  2
+      .locals init (char V_0) //c
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_002e
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0019
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_002b
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0028
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  cgt
+      IL_0023:  ldc.i4.0
+      IL_0024:  ceq
+      IL_0026:  br.s       IL_0029
+      IL_0028:  ldc.i4.0
+      IL_0029:  br.s       IL_002c
+      IL_002b:  ldc.i4.1
+      IL_002c:  br.s       IL_002f
+      IL_002e:  ldc.i4.0
+      IL_002f:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       43 (0x2b)
+      .maxstack  2
+      .locals init (char V_0,
+                    bool V_1)
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_0027
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0027
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_0023
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0027
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  bgt.s      IL_0027
+      IL_0023:  ldc.i4.1
+      IL_0024:  stloc.1
+      IL_0025:  br.s       IL_0029
+      IL_0027:  ldc.i4.0
+      IL_0028:  stloc.1
+      IL_0029:  ldloc.1
+      IL_002a:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       45 (0x2d)
+      .maxstack  2
+      .locals init (char V_0) //c
+      IL_0000:  ldarg.0
+      IL_0001:  isinst     ""char""
+      IL_0006:  brfalse.s  IL_002b
+      IL_0008:  ldarg.0
+      IL_0009:  unbox.any  ""char""
+      IL_000e:  stloc.0
+      IL_000f:  ldloc.0
+      IL_0010:  ldc.i4.s   65
+      IL_0012:  blt.s      IL_0019
+      IL_0014:  ldloc.0
+      IL_0015:  ldc.i4.s   90
+      IL_0017:  ble.s      IL_0029
+      IL_0019:  ldloc.0
+      IL_001a:  ldc.i4.s   97
+      IL_001c:  blt.s      IL_0027
+      IL_001e:  ldloc.0
+      IL_001f:  ldc.i4.s   122
+      IL_0021:  cgt
+      IL_0023:  ldc.i4.0
+      IL_0024:  ceq
+      IL_0026:  ret
+      IL_0027:  ldc.i4.0
+      IL_0028:  ret
+      IL_0029:  ldc.i4.1
+      IL_002a:  ret
+      IL_002b:  ldc.i4.0
+      IL_002c:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static int M1(char c) => (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z') ? 1 : 0;
+    static int M2(char c) => (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z') ? 1 : 0;
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(' '));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1010";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       36 (0x24)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_001a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0016
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_001a
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  ble.s      IL_0016
+      IL_0014:  br.s       IL_001a
+      IL_0016:  ldc.i4.1
+      IL_0017:  stloc.0
+      IL_0018:  br.s       IL_001c
+      IL_001a:  ldc.i4.0
+      IL_001b:  stloc.0
+      IL_001c:  ldloc.0
+      IL_001d:  brtrue.s   IL_0022
+      IL_001f:  ldc.i4.0
+      IL_0020:  br.s       IL_0023
+      IL_0022:  ldc.i4.1
+      IL_0023:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       25 (0x19)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0017
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0014
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  ble.s      IL_0017
+      IL_0014:  ldc.i4.0
+      IL_0015:  br.s       IL_0018
+      IL_0017:  ldc.i4.1
+      IL_0018:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       33 (0x21)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_0018
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0014
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0018
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  bgt.s      IL_0018
+      IL_0014:  ldc.i4.1
+      IL_0015:  stloc.0
+      IL_0016:  br.s       IL_001a
+      IL_0018:  ldc.i4.0
+      IL_0019:  stloc.0
+      IL_001a:  ldloc.0
+      IL_001b:  brtrue.s   IL_001f
+      IL_001d:  ldc.i4.0
+      IL_001e:  ret
+      IL_001f:  ldc.i4.1
+      IL_0020:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       24 (0x18)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0016
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0014
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  ble.s      IL_0016
+      IL_0014:  ldc.i4.0
+      IL_0015:  ret
+      IL_0016:  ldc.i4.1
+      IL_0017:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void IsPatternDisjunct_05()
+        {
+            var source = @"
+using System;
+class C
+{
+    static int M1(char c)
+    {
+        if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+            return 1;
+        else
+            return 0;
+    }
+    static int M2(char c)
+    {
+        if (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z')
+            return 1;
+        else
+            return 0;
+    }
+    public static void Main()
+    {
+        Console.Write(M1('A'));
+        Console.Write(M1('0'));
+        Console.Write(M1('q'));
+        Console.Write(M1(' '));
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1010";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       44 (0x2c)
+      .maxstack  2
+      .locals init (bool V_0,
+                    bool V_1,
+                    int V_2)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  ldc.i4.s   65
+      IL_0004:  blt.s      IL_001b
+      IL_0006:  ldarg.0
+      IL_0007:  ldc.i4.s   90
+      IL_0009:  ble.s      IL_0017
+      IL_000b:  ldarg.0
+      IL_000c:  ldc.i4.s   97
+      IL_000e:  blt.s      IL_001b
+      IL_0010:  ldarg.0
+      IL_0011:  ldc.i4.s   122
+      IL_0013:  ble.s      IL_0017
+      IL_0015:  br.s       IL_001b
+      IL_0017:  ldc.i4.1
+      IL_0018:  stloc.0
+      IL_0019:  br.s       IL_001d
+      IL_001b:  ldc.i4.0
+      IL_001c:  stloc.0
+      IL_001d:  ldloc.0
+      IL_001e:  stloc.1
+      IL_001f:  ldloc.1
+      IL_0020:  brfalse.s  IL_0026
+      IL_0022:  ldc.i4.1
+      IL_0023:  stloc.2
+      IL_0024:  br.s       IL_002a
+      IL_0026:  ldc.i4.0
+      IL_0027:  stloc.2
+      IL_0028:  br.s       IL_002a
+      IL_002a:  ldloc.2
+      IL_002b:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       44 (0x2c)
+      .maxstack  2
+      .locals init (bool V_0,
+                    int V_1)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  ldc.i4.s   65
+      IL_0004:  blt.s      IL_000b
+      IL_0006:  ldarg.0
+      IL_0007:  ldc.i4.s   90
+      IL_0009:  ble.s      IL_001d
+      IL_000b:  ldarg.0
+      IL_000c:  ldc.i4.s   97
+      IL_000e:  blt.s      IL_001a
+      IL_0010:  ldarg.0
+      IL_0011:  ldc.i4.s   122
+      IL_0013:  cgt
+      IL_0015:  ldc.i4.0
+      IL_0016:  ceq
+      IL_0018:  br.s       IL_001b
+      IL_001a:  ldc.i4.0
+      IL_001b:  br.s       IL_001e
+      IL_001d:  ldc.i4.1
+      IL_001e:  stloc.0
+      IL_001f:  ldloc.0
+      IL_0020:  brfalse.s  IL_0026
+      IL_0022:  ldc.i4.1
+      IL_0023:  stloc.1
+      IL_0024:  br.s       IL_002a
+      IL_0026:  ldc.i4.0
+      IL_0027:  stloc.1
+      IL_0028:  br.s       IL_002a
+      IL_002a:  ldloc.1
+      IL_002b:  ret
+    }
+");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1", @"
+    {
+      // Code size       33 (0x21)
+      .maxstack  2
+      .locals init (bool V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_0018
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0014
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0018
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  bgt.s      IL_0018
+      IL_0014:  ldc.i4.1
+      IL_0015:  stloc.0
+      IL_0016:  br.s       IL_001a
+      IL_0018:  ldc.i4.0
+      IL_0019:  stloc.0
+      IL_001a:  ldloc.0
+      IL_001b:  brfalse.s  IL_001f
+      IL_001d:  ldc.i4.1
+      IL_001e:  ret
+      IL_001f:  ldc.i4.0
+      IL_0020:  ret
+    }
+");
+            compVerifier.VerifyIL("C.M2", @"
+    {
+      // Code size       24 (0x18)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   65
+      IL_0003:  blt.s      IL_000a
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   90
+      IL_0008:  ble.s      IL_0014
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   97
+      IL_000d:  blt.s      IL_0016
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.i4.s   122
+      IL_0012:  bgt.s      IL_0016
+      IL_0014:  ldc.i4.1
+      IL_0015:  ret
+      IL_0016:  ldc.i4.0
+      IL_0017:  ret
+    }
+");
+        }
+
+        #endregion Pattern Combinators
     }
 }

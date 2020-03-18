@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -15,10 +17,10 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class MetadataImageReference : PortableExecutableReference
     {
-        private readonly string _display;
+        private readonly string? _display;
         private readonly Metadata _metadata;
 
-        internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider documentation, string filePath, string display)
+        internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider? documentation, string? filePath, string? display)
             : base(properties, filePath, documentation ?? DocumentationProvider.Default)
         {
             _display = display;

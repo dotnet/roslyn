@@ -3,13 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -18,24 +13,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static IFormattingResult Format(
             SyntaxTrivia trivia,
             int initialColumn,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             ChainedFormattingRules formattingRules,
             CancellationToken cancellationToken)
         {
             var root = trivia.GetStructure();
-            var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
+            var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, options, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
             return formatter.Format(cancellationToken);
         }
 
         private CSharpStructuredTriviaFormatEngine(
             SyntaxTrivia trivia,
             int initialColumn,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : base(TreeData.Create(trivia, initialColumn),
-                   optionSet,
+                   options,
                    formattingRules,
                    token1,
                    token2)
@@ -44,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
         {
-            return new TriviaDataFactory(this.TreeData, this.OptionSet);
+            return new TriviaDataFactory(this.TreeData, this.Options);
         }
 
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)

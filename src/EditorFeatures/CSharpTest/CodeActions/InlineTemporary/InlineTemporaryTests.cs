@@ -3561,7 +3561,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = t?.Something().First()?.ToArray();
+            var identity = (t?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3627,7 +3627,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+            var identity = ((t?.Something2())()?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3742,9 +3742,12 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
+            // Note: This is an error case.  This test just demonstrates our current behavior.  It
+            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3758,8 +3761,35 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace($""hello"", ""world"");
+        var s2 = string.Replace((string)$""hello"", ""world"");
     }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotCastInterpolatedStringWhenInliningIntoValidCall()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = Replace(s1, ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = Replace($""hello"", ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
 }");
         }
 
@@ -4906,6 +4936,51 @@ class C
             Console.Write(2);
         }
         new Action(LocalFunc)();
+    }
+}");
+        }
+
+        [WorkItem(22540, "https://github.com/dotnet/roslyn/issues/22540")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
     }
 }");
         }

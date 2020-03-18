@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         /// <summary>
+        /// Host analyzer collection.
+        /// </summary>
+        HostDiagnosticAnalyzers HostAnalyzers { get; }
+
+        /// <summary>
         /// Re-analyze given projects and documents
         /// </summary>
         void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);

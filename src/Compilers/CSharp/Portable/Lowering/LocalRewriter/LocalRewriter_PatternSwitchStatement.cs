@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -47,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = base.GetDagNodeLabel(dag);
                 if (dag is BoundLeafDecisionDagNode d)
                 {
-                    SyntaxNode section = d.Syntax.Parent;
+                    SyntaxNode? section = d.Syntax.Parent;
 
                     // It is possible that the leaf represents a compiler-generated default for a switch statement in the EE.
                     // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
                     // in leaves that result from explicit switch case labels in a switch section.
                     if (section?.Kind() == SyntaxKind.SwitchSection)
                     {
-                        if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
+                        if (_sectionLabels.TryGetValue(section, out LabelSymbol? replacementLabel))
                         {
                             return replacementLabel;
                         }

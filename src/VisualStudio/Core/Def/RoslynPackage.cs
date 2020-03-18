@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +18,16 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
@@ -53,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private VisualStudioWorkspace _workspace;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
+        private ColorSchemeApplier _colorSchemeApplier;
         private IDisposable _solutionEventMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -100,6 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
+
+            // Initialize ColorScheme support
+            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier.Initialize();
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -148,6 +155,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
+
+            // Load the designer attribute service and tell it to start watching the solution for
+            // designable files.
+            var designerAttributeService = _workspace.Services.GetRequiredService<IDesignerAttributeService>();
+            designerAttributeService.Start(this.DisposalToken);
+
+            // Load the telemetry service and tell it to start watching the solution for project info.
+            var projectTelemetryService = _workspace.Services.GetRequiredService<IProjectTelemetryService>();
+            projectTelemetryService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

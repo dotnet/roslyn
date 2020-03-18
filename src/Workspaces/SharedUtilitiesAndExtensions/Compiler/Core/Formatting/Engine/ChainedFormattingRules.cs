@@ -8,14 +8,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -24,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static readonly ConcurrentDictionary<(Type type, string name), Type> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type>();
 
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly OptionSet _optionSet;
+        private readonly AnalyzerConfigOptions _options;
 
         private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
         private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
@@ -33,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
 
-        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, OptionSet set)
+        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, AnalyzerConfigOptions options)
         {
             Contract.ThrowIfNull(formattingRules);
-            Contract.ThrowIfNull(set);
+            Contract.ThrowIfNull(options);
 
             _formattingRules = formattingRules.ToImmutableArray();
-            _optionSet = set;
+            _options = options;
 
             _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
             _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAnchorIndentationOperations));
@@ -51,37 +46,37 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, _optionSet, list);
+            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, _options, list);
             action.Invoke();
         }
 
         public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, _optionSet, list);
+            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, _options, list);
             action.Invoke();
         }
 
         public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, _optionSet, list);
+            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, _options, list);
             action.Invoke();
         }
 
         public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, _optionSet, list);
+            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, _options, list);
             action.Invoke();
         }
 
         public AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken, _optionSet);
+            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken, _options);
             return action.Invoke();
         }
 
         public AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _optionSet);
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _options);
             return action.Invoke();
         }
 

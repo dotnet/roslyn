@@ -6,17 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -40,19 +36,19 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected readonly TextSpan SpanToFormat;
 
-        internal readonly OptionSet OptionSet;
+        internal readonly AnalyzerConfigOptions Options;
         internal readonly TreeData TreeData;
 
         public AbstractFormatEngine(
             TreeData treeData,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : this(
                   treeData,
-                  optionSet,
-                  new ChainedFormattingRules(formattingRules, optionSet),
+                  options,
+                  new ChainedFormattingRules(formattingRules, options),
                   token1,
                   token2)
         {
@@ -60,18 +56,18 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal AbstractFormatEngine(
             TreeData treeData,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             ChainedFormattingRules formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
         {
-            Contract.ThrowIfNull(optionSet);
+            Contract.ThrowIfNull(options);
             Contract.ThrowIfNull(treeData);
             Contract.ThrowIfNull(formattingRules);
 
             Contract.ThrowIfTrue(treeData.Root.IsInvalidTokenRange(token1, token2));
 
-            this.OptionSet = optionSet;
+            this.Options = options;
             this.TreeData = treeData;
             _formattingRules = formattingRules;
 
@@ -101,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // setup environment
                 var nodeOperations = CreateNodeOperations(cancellationToken);
 
-                var tokenStream = new TokenStream(this.TreeData, this.OptionSet, this.SpanToFormat, CreateTriviaFactory());
+                var tokenStream = new TokenStream(this.TreeData, this.Options, this.SpanToFormat, CreateTriviaFactory());
                 var tokenOperation = CreateTokenOperation(tokenStream, cancellationToken);
 
                 // initialize context
