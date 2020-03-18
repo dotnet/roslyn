@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
                 var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
 
-                // get skipped analyzers info
                 var skippedAnalyzersInfo = getSkippedAnalyzersInfo?.Invoke(project) ?? SkippedHostAnalyzersInfo.Default;
 
                 // get compiler result builder map
