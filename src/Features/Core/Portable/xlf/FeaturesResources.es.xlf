@@ -2075,11 +2075,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Pascal Case</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Usar expresión coalesce</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">Usar propagación de null</target>
@@ -2193,11 +2188,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">Seleccionar miembros para usar en Equals/GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">Los cambios en los árboles de expresión pueden originar cambios de comportamiento en tiempo de ejecución</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">

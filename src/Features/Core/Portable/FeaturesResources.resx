@@ -1021,9 +1021,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Use_coalesce_expression" xml:space="preserve">
-    <value>Use coalesce expression</value>
-  </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
@@ -1104,9 +1101,6 @@ This version used in: {2}</value>
   </data>
   <data name="Pick_members_to_be_used_in_Equals_GetHashCode" xml:space="preserve">
     <value>Pick members to be used in Equals/GetHashCode</value>
-  </data>
-  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
-    <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
   <data name="Generate_overrides" xml:space="preserve">
     <value>Generate overrides...</value>
