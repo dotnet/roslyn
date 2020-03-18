@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
     {
-        private readonly MethodSymbol _container;
+        private readonly MethodSymbol? _container;
         private readonly TypeWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbolBase(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get { return _container; }
         }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
     {
         private SynthesizedParameterSymbol(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static ParameterSymbol Create(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
 
         public SynthesizedComplexParameterSymbol(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,

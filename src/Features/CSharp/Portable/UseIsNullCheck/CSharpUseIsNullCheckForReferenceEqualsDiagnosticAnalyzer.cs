@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override bool IsLanguageVersionSupported(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
     }
 }

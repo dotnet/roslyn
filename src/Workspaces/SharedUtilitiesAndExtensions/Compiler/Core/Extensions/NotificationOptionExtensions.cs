@@ -4,7 +4,11 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     internal static class NotificationOptionExtensions
     {

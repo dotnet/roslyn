@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         where TSyntaxKind : struct
         where TAnonymousObjectCreationExpressionSyntax : SyntaxNode
     {
-        private readonly ISyntaxKindsService _syntaxKinds;
+        private readonly ISyntaxKinds _syntaxKinds;
 
-        protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(ISyntaxKindsService syntaxKinds)
+        protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(ISyntaxKinds syntaxKinds)
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
                    option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),

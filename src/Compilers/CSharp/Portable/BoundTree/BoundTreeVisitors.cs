@@ -226,8 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+#nullable enable
         [DebuggerStepThrough]
-        private BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        private BoundExpression? VisitExpressionWithStackGuard(BoundExpression node)
         {
             try
             {
@@ -242,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// We should be intentional about behavior of derived classes regarding guarding against stack overflow.
         /// </summary>
-        protected abstract BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node);
+        protected abstract BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node);
+#nullable restore
     }
 }

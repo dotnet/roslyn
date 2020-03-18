@@ -51,14 +51,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return potentialNodes.FirstOrDefault();
         }
 
-        internal static async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
+        internal static Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             this Document document,
             TextSpan span,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            var helpers = document.Project.LanguageServices.GetRequiredService<IRefactoringHelpersService>();
-            var potentialNodes = await helpers.GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken).ConfigureAwait(false);
-            return potentialNodes;
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
+            return helpers.GetRelevantNodesAsync<TSyntaxNode>(document, span, cancellationToken);
         }
     }
 }

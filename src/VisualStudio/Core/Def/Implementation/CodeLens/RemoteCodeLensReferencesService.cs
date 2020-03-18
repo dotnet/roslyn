@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 // map spans to right locations using SpanMapper for documents such as cshtml and etc
-                return await FixUpDescriptors(solution, descriptors, cancellationToken).ConfigureAwait(false);
+                return await FixUpDescriptorsAsync(solution, descriptors, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        public async Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeLens_GetFullyQualifiedName, cancellationToken))
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 {
                     var result = await client.TryRunRemoteAsync<string>(
                         WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedName),
+                        nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedNameAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
                         callbackTarget: null,
@@ -131,11 +131,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     }
                 }
 
-                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptors(
+        private static async Task<IEnumerable<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(
             Solution solution, IEnumerable<ReferenceLocationDescriptor> descriptors, CancellationToken cancellationToken)
         {
             var list = new List<ReferenceLocationDescriptor>();

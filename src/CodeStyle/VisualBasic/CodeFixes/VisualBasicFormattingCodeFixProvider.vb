@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
     Friend Class VisualBasicFormattingCodeFixProvider
         Inherits AbstractFormattingCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property SyntaxFormattingService As ISyntaxFormattingService
             Get
                 Return New VisualBasicSyntaxFormattingService()

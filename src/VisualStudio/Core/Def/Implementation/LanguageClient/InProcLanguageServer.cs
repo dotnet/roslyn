@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
             // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public async Task Initialized()
+        public async Task InitializedAsync()
         {
             // Publish diagnostics for all open documents immediately following initialization.
             var solution = _workspace.CurrentSolution;
@@ -108,6 +108,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return _protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentRenameName)]
+        public Task<WorkspaceEdit> GetTextDocumentRenameAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var renameParams = input.ToObject<RenameParams>();
+            return _protocol.RenameAsync(_workspace.CurrentSolution, renameParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]

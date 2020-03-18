@@ -3463,8 +3463,8 @@ public class Test
         {
             int {|Rename:arg|} = x.Resolve();
             return factory(
-     arg
- );
+                        arg
+                    );
         });
 }";
 
@@ -7327,6 +7327,101 @@ class Bug
         throw new NotImplementedException();
     }
 }", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task DoNotGenerateBetweenElseAndIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+        else if ([|args.Length|] == 0)
+        {
+        }
+    }
+}",
+@"class C
+{
+    static void Main(string[] args)
+    {
+        int {|Rename:length|} = args.Length;
+        if (true)
+        {
+        }
+        else if (length == 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestWhitespaceSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        Foo(1,[| Bar()|]);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}",
+@"public class Class1
+{
+    void M()
+    {
+        object {|Rename:v2|} = Bar();
+        Foo(1, v2);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}");
+        }
+
+        [WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepReplacementIndentation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class D
+{
+    void C(int a)
+    {
+        C(
+            [|1 + 2|]);
+    }
+}",
+@"class D
+{
+    void C(int a)
+    {
+        const int {|Rename:A|} = 1 + 2;
+        C(
+            A);
+    }
+}",
+                index: 3);
         }
     }
 }

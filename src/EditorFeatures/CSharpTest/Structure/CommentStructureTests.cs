@@ -34,10 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             {
                 return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia);
             }
-            else
-            {
-                return Contract.FailWithReturn<ImmutableArray<BlockSpan>>();
-            }
+
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]

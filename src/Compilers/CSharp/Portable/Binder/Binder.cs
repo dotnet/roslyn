@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNodeOrToken node,
             bool hasBaseReceiver,
             Symbol? containingMember,
-            NamedTypeSymbol containingType,
+            NamedTypeSymbol? containingType,
             BinderFlags location)
         {
             if (diagnostics.DiagnosticBag is object)

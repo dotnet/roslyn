@@ -2281,10 +2281,9 @@ End Module
         Assert.Equal(SyntaxKind.WhitespaceTrivia, leading(2).Kind)
 
         Dim trailing = SyntaxFactory.ParseTrailingTrivia(prefix + forEachText, offset:=prefix.Length)
-        Assert.Equal(3, trailing.Count)
+        Assert.Equal(2, trailing.Count)
         Assert.Equal(SyntaxKind.CommentTrivia, trailing(0).Kind)
         Assert.Equal(SyntaxKind.EndOfLineTrivia, trailing(1).Kind)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing(2).Kind)
 
         Dim t = SyntaxFactory.ParseToken(prefix + forEachText, offset:=prefix.Length, startStatement:=True)
         Assert.Equal(SyntaxKind.ForKeyword, t.Kind)
