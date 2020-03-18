@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
     /// <summary>
     /// Serialization typed used to pass information to/from OOP and VS.
     /// </summary>
-    internal struct ProjectTelemetryInfo
+    internal struct ProjectTelemetryData
     {
         public ProjectId ProjectId;
         public string Language;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
         public int DocumentsCount;
         public int AdditionalDocumentsCount;
 
-        public bool Equals(ProjectTelemetryInfo other)
+        public bool Equals(ProjectTelemetryData other)
             => Language.Equals(other.Language) &&
                AnalyzerReferencesCount == other.AnalyzerReferencesCount &&
                ProjectReferencesCount == other.ProjectReferencesCount &&
