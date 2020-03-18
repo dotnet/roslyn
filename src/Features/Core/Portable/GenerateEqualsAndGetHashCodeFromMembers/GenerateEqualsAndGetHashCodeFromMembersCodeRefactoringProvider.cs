@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
+            using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMembersOptions);
 
             var canImplementIEquatable = CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt);
             var hasExistingOperators = HasOperators(containingType);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
                 this, document, textSpan, typeDeclaration, containingType, members,
-                pickMembersOptions.ToImmutableAndFree(), generateEquals, generateGetHashCode);
+                pickMembersOptions.ToImmutable(), generateEquals, generateGetHashCode);
         }
 
         private async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
