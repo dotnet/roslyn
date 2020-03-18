@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -60,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             CancellationToken cancellationToken)
         {
             var actions = ArrayBuilder<CodeAction>.GetInstance();
-            var methodAction = await ExtractMethod(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var methodAction = await ExtractMethodAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(methodAction);
 
-            var localFunctionAction = await ExtractLocalFunction(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(localFunctionAction);
 
             return actions.ToImmutableAndFree();
         }
 
-        private async Task<CodeAction> ExtractMethod(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return null;
         }
 
-        private async Task<CodeAction> ExtractLocalFunction(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -251,11 +256,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
             private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+            private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
             {
                 _hostServices = hostServices;
                 _workspace = workspace;
+
+                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 
             public override HostServices HostServices => _hostServices;
@@ -272,6 +281,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (s_taskSchedulerFactory is TWorkspaceService)
                 {
                     return (TWorkspaceService)s_taskSchedulerFactory;
+                }
+                else if (_optionService is TWorkspaceService workspaceOptionService)
+                {
+                    return workspaceOptionService;
                 }
 
                 return default;

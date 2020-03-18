@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -43,19 +45,20 @@ namespace Microsoft.CodeAnalysis.Notification
                 _owner = owner;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // now it runs for all workspace, make sure we get rid of entry from the map
                 // as soon as it is not needed.
                 // this whole thing will go away when workspace disable itself from solution crawler.
                 _map.TryRemove(documentId, out var unused);
+                return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 foreach (var documentId in _map.Keys.Where(id => id.ProjectId == projectId).ToArray())
                 {
-                    RemoveDocument(documentId);
+                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -66,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)

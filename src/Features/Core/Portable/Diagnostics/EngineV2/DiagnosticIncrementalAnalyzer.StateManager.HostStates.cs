@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -19,36 +21,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(string language)
             {
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostDiagnosticAnalyzers hostAnalyzers)
                 {
-                    var analyzersPerReference = analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values);
+                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
-                    return new HostAnalyzerStateSets(analyzerInfoCache, language, analyzerMap);
+                    return new HostAnalyzerStateSets(analyzerMap);
                 }
 
-                return ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _analyzerInfoCache);
+                return ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _hostAnalyzers);
             }
 
             private sealed class HostAnalyzerStateSets
             {
+                private const int FileContentLoadAnalyzerPriority = -3;
                 private const int BuiltInCompilerPriority = -2;
                 private const int RegularDiagnosticAnalyzerPriority = -1;
-
-                private readonly DiagnosticAnalyzer? _compilerAnalyzer;
 
                 // ordered by priority
                 public readonly ImmutableArray<StateSet> OrderedStateSets;
 
                 public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
 
-                public HostAnalyzerStateSets(DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
+                public HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                 {
                     StateSetMap = analyzerMap;
-
-                    _compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                     // order statesets
                     // order will be in this order
@@ -64,21 +63,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private int GetPriority(StateSet state)
                 {
                     // compiler gets highest priority
-                    if (state.Analyzer == _compilerAnalyzer)
+                    if (state.Analyzer.IsCompilerAnalyzer())
                     {
                         return BuiltInCompilerPriority;
                     }
 
-                    switch (state.Analyzer)
+                    return state.Analyzer switch
                     {
-                        case DocumentDiagnosticAnalyzer analyzer:
-                            return Math.Max(0, analyzer.Priority);
-                        case ProjectDiagnosticAnalyzer analyzer:
-                            return Math.Max(0, analyzer.Priority);
-                        default:
-                            // regular analyzer get next priority after compiler analyzer
-                            return RegularDiagnosticAnalyzerPriority;
-                    }
+                        FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
+                        DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                        ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                        _ => RegularDiagnosticAnalyzerPriority,
+                    };
                 }
             }
         }

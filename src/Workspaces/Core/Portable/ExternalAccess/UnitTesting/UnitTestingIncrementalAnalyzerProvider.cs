@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -8,11 +11,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     internal class UnitTestingIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         private readonly IUnitTestingIncrementalAnalyzerProviderImplementation _incrementalAnalyzerProvider;
+        private IIncrementalAnalyzer _analyzer;
 
         public UnitTestingIncrementalAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation incrementalAnalyzerProvider)
             => _incrementalAnalyzerProvider = incrementalAnalyzerProvider;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
+        {
+            // NOTE: We're currently expecting the analyzer to be singleton, so that
+            //       analyzers returned when calling this method twice would pass a reference equality check.
+            //       One instance should be created by SolutionCrawler, another one by us, when calling the
+            //       UnitTestingSolutionCrawlerServiceAccessor.Reanalyze method.
+            if (_analyzer == null)
+            {
+                _analyzer = new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer());
+            }
+
+            return _analyzer;
+        }
     }
 }

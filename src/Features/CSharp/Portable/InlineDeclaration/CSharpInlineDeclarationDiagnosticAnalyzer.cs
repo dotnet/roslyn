@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -66,13 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration);
+            var option = options.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (argumentExpression.Kind() != SyntaxKind.IdentifierName)
+            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
@@ -109,8 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // variable doesn't change semantics.
                 return;
             }
-
-            var identifierName = (IdentifierNameSyntax)argumentExpression;
 
             // Don't offer to inline variables named "_".  It can cause is to create a discard symbol
             // which would cause a break.

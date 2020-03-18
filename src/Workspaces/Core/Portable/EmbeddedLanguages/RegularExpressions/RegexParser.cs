@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
         {
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
                 var last = builder.Count == 0 ? null : builder.Last();
@@ -269,7 +271,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, sequence);
-            builder.Free();
 
             return new RegexSequenceNode(sequence.ToImmutableAndFree());
         }
@@ -394,14 +395,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return current;
             }
 
-            switch (_currentToken.Kind)
+            return _currentToken.Kind switch
             {
-                case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current);
-                case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current);
-                case RegexKind.QuestionToken: return ParseZeroOrOneQuantifier(current);
-                case RegexKind.OpenBraceToken: return TryParseNumericQuantifier(current, _currentToken);
-                default: return current;
-            }
+                RegexKind.AsteriskToken => ParseZeroOrMoreQuantifier(current),
+                RegexKind.PlusToken => ParseOneOrMoreQuantifier(current),
+                RegexKind.QuestionToken => ParseZeroOrOneQuantifier(current),
+                RegexKind.OpenBraceToken => TryParseNumericQuantifier(current, _currentToken),
+                _ => current,
+            };
         }
 
         private RegexExpressionNode TryParseLazyQuantifier(RegexQuantifierNode quantifier)
@@ -1217,32 +1218,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexBaseCharacterClassNode ParseCharacterClass()
         {
-            // Note: ScanCharClass is one of the strangest function in the .NET regex parser. Code
-            // for it is here:
-            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L498
-            //
-            // It has certain behaviors that were probably not intentional, but which we try to
-            // replicate.  Specifically, it looks like it was *intended* to just read components
-            // like simple characters ('a'), char-class-escape ('\s' and the like), ranges
-            // ('component-component'), and subtractions ('-[charclass]').
-            //
-            // And, it *looks* like it intended that if it ran into a range, it would check that the
-            // components on the left and right of the '-' made sense (i.e. you could have 'a-b' but
-            // not 'b-a').
-            //
-            // *However*, the way it is actually written, it does not have that behavior.  Instead,
-            // what it ends up doing is subtly different.  Specifically, in this switch:
-            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L531
-            //
-            // In this switch, if it encounters a '\-' it immediately 'continues', effectively
-            // ignoring that character on the right side of a character range.  So, if you had
-            // ```[#-\-b]```, then this *should* be treated as the character class containing
-            // the range of character from '#' to '-', unioned with the character 'b'.  However,
-            // .NET will interpret this as the character class containing the range of characters
-            // from '#' to 'b'.  We follow .NET here to keep our errors in sync with them.
-            //
-            // See the comment about this in ParseRightSideOfCharacterClassRange
-
             var openBracketToken = _currentToken;
             Debug.Assert(openBracketToken.Kind == RegexKind.OpenBracketToken);
             var caretToken = CreateMissingToken(RegexKind.CaretToken);
@@ -1262,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1282,7 +1257,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, contents);
-            builder.Free();
 
             if (closeBracketToken.IsMissing)
             {
@@ -1322,7 +1296,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 }
                 else
                 {
-                    var right = ParseRightSideOfCharacterClassRange();
+                    // Note that behavior of parsing here changed in .net.  See issue:
+                    // https://github.com/dotnet/corefx/issues/31786
+                    //
+                    // We follow the latest behavior in .net which parses things correctly.
+                    var right = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
 
                     if (TryGetRangeComponentValue(left, out var leftCh) &&
                         TryGetRangeComponentValue(right, out var rightCh) &&
@@ -1501,34 +1479,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return false;
-        }
-
-        private RegexExpressionNode ParseRightSideOfCharacterClassRange()
-        {
-            // Parsing the right hand side of a - is extremely strange (and most likely buggy) in
-            // the .NET parser. Specifically, the .NET parser will still consider itself on the
-            // right side no matter how many escaped dashes it sees.  So, for example, the following
-            // is legal [a-\-] (even though \- is less than 'a'). Similarly, the following are
-            // *illegal* [b-\-a] and [b-\-\-a].  That's because the range that is checked is
-            // actually "b-a", even though it has all the \- escapes in the middle.
-            //
-            // This is tracked with: https://github.com/dotnet/corefx/issues/31786
-
-            var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
-            if (!IsEscapedMinus(first))
-            {
-                return first;
-            }
-
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
-            builder.Add(first);
-
-            while (IsEscapedMinus(builder.Last()) && _currentToken.Kind != RegexKind.CloseBracketToken)
-            {
-                builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
-            }
-
-            return new RegexSequenceNode(builder.ToImmutableAndFree());
         }
 
         private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)

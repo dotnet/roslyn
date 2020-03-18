@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -271,12 +273,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
                     Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
                     If propertyStatement.Initializer IsNot Nothing Then
-                        Return {propertyStatement.Identifier}.Concat(If(propertyStatement.AsClause?.DescendantTokens(),
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(If(propertyStatement.AsClause?.DescendantTokens(),
                                                                      Array.Empty(Of SyntaxToken))).Concat(propertyStatement.Initializer.DescendantTokens())
                     End If
 
                     If HasAsNewClause(propertyStatement) Then
-                        Return {propertyStatement.Identifier}.Concat(propertyStatement.AsClause.DescendantTokens())
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(propertyStatement.AsClause.DescendantTokens())
                     End If
 
                     Return Nothing

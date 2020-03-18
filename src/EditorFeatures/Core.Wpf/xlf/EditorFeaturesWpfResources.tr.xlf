@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
-        <target state="new">Gathering Suggestions - '{0}'</target>
+        <target state="translated">Öneriler Toplanıyor - '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
         <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="new">Gathering Suggestions - Waiting for the solution to fully load</target>
+        <target state="translated">Öneriler Toplanıyor - Çözümün tam olarak yüklenmesi bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Comment">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">
         <source>Suppress or Configure issues</source>
-        <target state="new">Suppress or Configure issues</target>
+        <target state="translated">Sorunları Gizle veya Yapılandır</target>
         <note />
       </trans-unit>
     </body>

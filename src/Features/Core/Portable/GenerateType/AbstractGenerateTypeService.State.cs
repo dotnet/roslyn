@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -208,42 +210,36 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
+                    SetBaseType(document.SemanticModel.Compilation.ExceptionType());
                 }
                 else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.AttributeType();
+                    SetBaseType(document.SemanticModel.Compilation.AttributeType());
                 }
-                else if (
-                    service.IsArrayElementType(NameOrMemberAccessExpression) ||
-                    service.IsInVariableTypeContext(NameOrMemberAccessExpression) ||
-                    ObjectCreationExpressionOpt != null)
+                else
                 {
                     var expr = ObjectCreationExpressionOpt ?? NameOrMemberAccessExpression;
-                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
-                    var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
-                    SetBaseType(baseType);
+                    if (expr != null)
+                    {
+                        var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
+                        var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
+                        SetBaseType(baseType);
+                    }
                 }
             }
 
             private void SetBaseType(INamedTypeSymbol baseType)
             {
                 if (baseType == null)
-                {
                     return;
-                }
 
                 // A base type need to be non class or interface type.  Also, being 'object' is
                 // redundant as the base type.  
                 if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
-                {
                     return;
-                }
 
                 if (baseType.TypeKind != TypeKind.Class && baseType.TypeKind != TypeKind.Interface)
-                {
                     return;
-                }
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.

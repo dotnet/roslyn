@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -334,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
         }
 
-        private Task OnProcessExited(Process process)
+        private Task OnProcessExitedAsync(Process process)
         {
             ReportProcessExited(process);
             return TryGetOrCreateRemoteServiceAsync();
@@ -421,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return default;
                 }
 
-                return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false);
+                return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -433,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                return await new RemoteAsyncOperation<TResult>(remoteService).AsyncExecute(action).ConfigureAwait(false);
+                return await new RemoteAsyncOperation<TResult>(remoteService).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -490,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Debug.Assert(code != null);
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteAsync(operation, code));
+            return Async<RemoteExecutionResult>((service, operation) => service.Execute(operation, code));
         }
 
         /// <summary>
@@ -509,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw new ArgumentNullException(nameof(path));
             }
 
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path));
+            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
         }
 
         /// <summary>
@@ -523,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Debug.Assert(reference != null);
-            return Async<bool>((service, operation) => service.AddReferenceAsync(operation, reference));
+            return Async<bool>((service, operation) => service.AddReference(operation, reference));
         }
 
         /// <summary>
@@ -535,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult>((service, operation) => service.SetPaths(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
         }
 
         #endregion

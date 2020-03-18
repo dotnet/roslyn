@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
-        public static bool IsVoidReturningAsync(this MethodSymbol method)
+        public static bool IsAsyncReturningVoid(this MethodSymbol method)
         {
             return method.IsAsync && method.ReturnsVoid;
         }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a task.
         /// </summary>
-        public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsNonGenericTaskType(compilation);
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a generic task.
         /// </summary>
-        public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsGenericTaskType(compilation);
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns an IAsyncEnumerable`1.
         /// </summary>
-        public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningIAsyncEnumerable(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsIAsyncEnumerableType(compilation);
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns an IAsyncEnumerator`1.
         /// </summary>
-        public static bool IsIAsyncEnumeratorReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningIAsyncEnumerator(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsIAsyncEnumeratorType(compilation);

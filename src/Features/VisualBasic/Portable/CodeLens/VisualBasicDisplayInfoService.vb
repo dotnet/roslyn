@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports System.Composition
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.CodeLens
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
@@ -113,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' Gets the DisplayName for the given node.
         ''' </summary>
         Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode) As String Implements ICodeLensDisplayInfoService.GetDisplayName
-            If VisualBasicSyntaxFactsService.Instance.IsGlobalAttribute(node) Then
+            If VisualBasicSyntaxFacts.Instance.IsGlobalAttribute(node) Then
                 Return node.ToString()
             End If
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert((object)this.Type != null, $"Unexpected null type in {this.GetType().Name}");
+                Debug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
                 return this.Type;
             }
         }
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return ConstantValue.IsNull ? MessageID.IDS_NULL.Localize() : base.Display; }
+            get { return ConstantValue?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
         }
     }
 
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return (object)this.Type ?? "_"; }
+            get { return (object?)this.Type ?? "_"; }
         }
     }
 
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return (object)this.Type ?? "default"; }
+            get { return (object?)this.Type ?? "default"; }
         }
     }
 

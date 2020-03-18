@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            var getCacheResults = await GetCacheEntries(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
             if (getCacheResults == null)
             {
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (s_cachingTask.IsCompleted)
                     {
-                        s_cachingTask = Task.Run(() => GetCacheEntries(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
+                        s_cachingTask = Task.Run(() => GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
                     }
                 }
 
@@ -72,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
         }
 
-        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntries(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
-            var cacheResult = await GetCacheForProject(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
 
             // We always force create a cache for current project.
             Debug.Assert(cacheResult.HasValue);
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 if (HasGlobalAlias(metadataReference))
                 {
-                    cacheResult = await GetCacheForProject(
+                    cacheResult = await GetCacheForProjectAsync(
                         referencedProject,
                         syntaxContext,
                         forceCacheCreation,
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             return builder.ToImmutable();
 
-            static bool HasGlobalAlias(MetadataReference metadataReference)
+            static bool HasGlobalAlias(MetadataReference? metadataReference)
                 => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
         }
 
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// This method is intended to be used for getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="TryGetCacheForPEReference"/>.
         /// </summary>
-        private async Task<GetCacheResult?> GetCacheForProject(
+        private async Task<GetCacheResult?> GetCacheForProjectAsync(
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     VisitNamespace(memberNamespace, containingNamespace, builder, cancellationToken);
                 }
 
-                var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
+                using var _ = PooledDictionary<string, TypeOverloadInfo>.GetInstance(out var overloads);
                 var types = symbol.GetTypeMembers();
 
                 // Iterate over all top level internal and public types, keep track of "type overloads".
@@ -299,8 +301,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                             overloadInfo.ContainsPublicGenericOverload);
                     }
                 }
-
-                overloads.Free();
             }
         }
 

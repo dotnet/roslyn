@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class VariablePendingInference : BoundExpression
     {
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(type.HasType);
 
             return SetInferredTypeWithAnnotations(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || type.HasType);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferenceFailed)
             {
-                type = TypeWithAnnotations.Create(binderOpt.CreateErrorType("var"));
+                type = TypeWithAnnotations.Create(binderOpt!.CreateErrorType("var"));
             }
 
             switch (this.VariableSymbol.Kind)
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 
-                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+                            Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
                         }
                     }
 
@@ -91,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
         {
             return this.SetInferredTypeWithAnnotations(default, binder, diagnosticsOpt);
         }

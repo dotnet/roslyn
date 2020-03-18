@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamespaceAsTask(symbol);
+                Task worker = CompileNamespaceAsAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -344,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
+        private Task CompileNamespaceAsAsync(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -379,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamedTypeAsTask(symbol);
+                Task worker = CompileNamedTypeAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -390,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
+        private Task CompileNamedTypeAsync(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -1342,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,
@@ -1636,8 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null)
+            if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
                 var constructorSyntax = syntaxNode as ConstructorDeclarationSyntax;
@@ -1654,20 +1655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
 
-                if (sourceMethod.IsExtern)
+                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor())
                 {
-                    if (bodyBinder == null)
-                    {
-                        // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
-                        GenerateExternalMethodWarnings(sourceMethod, diagnostics);
-                    }
-
-                    return null;
-                }
-
-                if (sourceMethod.IsDefaultValueTypeConstructor())
-                {
-                    // No body for default struct constructor.
                     return null;
                 }
 
@@ -1954,18 +1943,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
-        }
-
-        private static void GenerateExternalMethodWarnings(SourceMemberMethodSymbol methodSymbol, DiagnosticBag diagnostics)
-        {
-            if (methodSymbol.GetAttributes().IsEmpty && !methodSymbol.ContainingType.IsComImport)
-            {
-                // external method with no attributes
-                var errorCode = (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) ?
-                    ErrorCode.WRN_ExternCtorNoImplementation :
-                    ErrorCode.WRN_ExternMethodNoImplementation;
-                diagnostics.Add(errorCode, methodSymbol.Locations[0], methodSymbol);
-            }
         }
 
         /// <summary>

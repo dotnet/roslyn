@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -301,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
+            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

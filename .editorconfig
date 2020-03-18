@@ -136,6 +136,10 @@ dotnet_naming_symbols.all_members.applicable_kinds = *
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
+# IDE0073: File header
+dotnet_diagnostic.IDE0073.severity = warning
+file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -205,3 +209,10 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
+
+# warning RS0037: PublicAPI.txt is missing '#nullable enable'
+dotnet_diagnostic.RS0037.severity = none
+
+[src/CodeStyle/**.{cs,vb}]
+# warning RS0005: Do not use generic CodeAction.Create to create CodeAction
+dotnet_diagnostic.RS0005.severity = none

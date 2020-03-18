@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -43,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// in this class that are modified from multiple threads.
             /// </summary>
             private readonly object _gate = new object();
-            private HashSet<string> _fileNamesToCheckForOpenDocuments;
+            private HashSet<string>? _fileNamesToCheckForOpenDocuments;
 
             /// <summary>
             /// Tracks whether we have decided to just scan the entire running document table for files that might already be in the workspace rather than checking
@@ -387,7 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
 
                 // Just pulling off the values from the shared state to the local function.
-                HashSet<string> fileNamesToCheckForOpenDocuments;
+                HashSet<string>? fileNamesToCheckForOpenDocuments;
                 bool justEnumerateTheEntireRunningDocumentTable;
                 lock (_gate)
                 {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -285,13 +287,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block) &&
-                        forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)
+                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
+                        block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
                         // a. There are either just a single 'yield return' or 'yield return' with 'yield break' just after.
                         // b. Those foreach and 'yield break' (if exists) are last statements in the method (do not count local function declaration statements).
-                        var statementsOnBlockWithForEach = ((BlockSyntax)forEachInfo.ForEachStatement.Parent).Statements
+                        var statementsOnBlockWithForEach = block.Statements
                             .Where(statement => statement.Kind() != SyntaxKind.LocalFunctionStatement).ToArray();
                         var lastNonLocalFunctionStatement = statementsOnBlockWithForEach.Last();
                         if (yieldStatementsCount == 1 && lastNonLocalFunctionStatement == forEachInfo.ForEachStatement)

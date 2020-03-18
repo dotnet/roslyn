@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
 
             diagnostics.Add(source.Syntax, useSiteDiagnostics);
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
-            ConversionGroup conversionGroupOpt,
+            ConversionGroup? conversionGroupOpt,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
@@ -51,15 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
-            ConversionGroup conversionGroupOpt,
+            ConversionGroup? conversionGroupOpt,
             bool wasCompilerGenerated,
             TypeSymbol destination,
             DiagnosticBag diagnostics,
             bool hasErrors = false)
         {
-            Debug.Assert(source != null);
-            Debug.Assert((object)destination != null);
-            Debug.Assert(!isCast || conversionGroupOpt != null);
+            RoslynDebug.Assert(source != null);
+            RoslynDebug.Assert((object)destination != null);
+            RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
             if (conversion.IsIdentity)
             {
@@ -71,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // identity tuple and switch conversions result in a converted expression
                 // to indicate that such conversions are no longer applicable.
                 source = BindToNaturalType(source, diagnostics);
+                RoslynDebug.Assert(source.Type is object);
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
                 // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
@@ -115,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
-                TypeSymbol type = source.Type;
+                TypeSymbol? type = source.Type;
                 if (type is null)
                 {
                     Debug.Assert(!conversion.Exists);
@@ -132,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (source.Kind == BoundKind.UnconvertedConditionalOperator)
             {
-                TypeSymbol type = source.Type;
+                TypeSymbol? type = source.Type;
                 if (type is null)
                 {
                     Debug.Assert(!conversion.Exists);
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
             }
 
-            ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+            ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
             if (conversion.Kind == ConversionKind.DefaultLiteral)
             {
                 source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
@@ -194,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
-            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, destination, hasErrors).WithSuppression(source.IsSuppressed);
+            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: true, destination, hasErrors)
+                .WithSuppression(source.IsSuppressed);
         }
 
-#nullable enable
         /// <summary>
         /// Rewrite the expressions in the switch expression arms to add a conversion to the destination type.
         /// </summary>
@@ -225,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
-#nullable restore
 
         private BoundExpression CreateUserDefinedConversion(
             SyntaxNode syntax,
@@ -284,6 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // And thereby skip the unnecessary nullable conversion.
 
+            Debug.Assert(conversion.BestUserDefinedConversionAnalysis is object); // All valid user-defined conversions have this populated
+
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(
                 syntax: source.Syntax,
@@ -296,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.GetParameterType(0);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
                 !TypeSymbol.Equals(conversion.BestUserDefinedConversionAnalysis.FromType, conversionParameterType, TypeCompareKind.ConsiderEverything2))
@@ -391,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
+        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
             // which is a conversion on top of an unbound lambda, replace it with the bound
@@ -416,11 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
-            BoundExpression receiverOpt = group.ReceiverOpt;
-            MethodSymbol method = conversion.Method;
+            BoundExpression? receiverOpt = group.ReceiverOpt;
+            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
             NamedTypeSymbol delegateType = (NamedTypeSymbol)destination;
@@ -432,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             Debug.Assert(conversion.IsStackAlloc);
 
@@ -460,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroup, destination, diagnostics);
         }
 
-        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -495,14 +501,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var tupleSyntax = (TupleExpressionSyntax)sourceTuple.Syntax;
-                    var locationBuilder = ArrayBuilder<Location>.GetInstance();
+                    var locationBuilder = ArrayBuilder<Location?>.GetInstance();
 
                     foreach (var argument in tupleSyntax.Arguments)
                     {
                         locationBuilder.Add(argument.NameColon?.Name.Location);
                     }
 
-                    targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt,
+                    targetType = targetType.WithElementNames(sourceTuple.ArgumentNamesOpt!,
                         locationBuilder.ToImmutableAndFree(),
                         errorPositions: default,
                         ImmutableArray.Create(tupleSyntax.Location));
@@ -583,10 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return group;
             }
 
-            BoundExpression receiverOpt = group.ReceiverOpt;
-            Debug.Assert(receiverOpt != null);
-            Debug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, !conversion.Method.RequiresInstanceReceiver && !conversion.IsExtensionMethod, diagnostics);
+            BoundExpression? receiverOpt = group.ReceiverOpt;
+            RoslynDebug.Assert(receiverOpt != null);
+
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, useType: conversion.Method?.RequiresInstanceReceiver == false && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,
@@ -610,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error, except lack of runtime support errors.
         /// </returns>
-        private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidation(BoundExpression? receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             if (!IsBadBaseAccess(node, receiverOpt, methodSymbol, diagnostics))
             {
@@ -685,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error.
         /// </returns>
-        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression receiverOpt, Symbol memberSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression? receiverOpt, Symbol memberSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             // Perform final validation of the method to be invoked.
 
@@ -745,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (WasImplicitReceiver(receiverOpt))
             {
-                if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
+                if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     SyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
@@ -768,9 +774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var containingType = this.ContainingType;
-            if ((object)containingType != null)
+            if (containingType is object)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType().Type, containingType, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
@@ -790,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool IsMemberAccessedThroughVariableOrValue(BoundExpression receiverOpt)
+        private static bool IsMemberAccessedThroughVariableOrValue(BoundExpression? receiverOpt)
         {
             if (receiverOpt == null)
             {
@@ -800,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !IsMemberAccessedThroughType(receiverOpt);
         }
 
-        internal static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
+        internal static bool IsMemberAccessedThroughType([NotNullWhen(true)] BoundExpression? receiverOpt)
         {
             if (receiverOpt == null)
             {
@@ -818,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Was the receiver expression compiler-generated?
         /// </summary>
-        internal static bool WasImplicitReceiver(BoundExpression receiverOpt)
+        internal static bool WasImplicitReceiver([NotNullWhen(false)] BoundExpression? receiverOpt)
         {
             if (receiverOpt == null) return true;
             if (!receiverOpt.WasCompilerGenerated) return false;
@@ -836,10 +842,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            RoslynDebug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
 
             MethodSymbol delegateMethod = delegateType.DelegateInvokeMethod;
@@ -859,12 +865,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
 
             useSiteDiagnostics = null;
 
@@ -923,13 +929,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool MethodGroupConversionHasErrors(
             SyntaxNode syntax,
             Conversion conversion,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             bool isExtensionMethod,
             NamedTypeSymbol delegateType,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
 
+            Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
             if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||
@@ -946,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
-            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
+            if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
                 Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
@@ -983,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
@@ -1004,15 +1011,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ConstantValue FoldConstantConversion(
+        public ConstantValue? FoldConstantConversion(
             SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(source != null);
-            Debug.Assert((object)destination != null);
+            RoslynDebug.Assert(source != null);
+            RoslynDebug.Assert((object)destination != null);
 
             // The diagnostics bag can be null in cases where we know ahead of time that the
             // conversion will succeed without error or warning. (For example, if we have a valid
@@ -1112,14 +1119,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(sourceValue != null);
+            RoslynDebug.Assert(sourceValue != null);
             Debug.Assert(!sourceValue.IsBad);
 
             SpecialType destinationType;
             if ((object)destination != null && destination.IsEnumType())
             {
                 var underlyingType = ((NamedTypeSymbol)destination).EnumUnderlyingType;
-                Debug.Assert((object)underlyingType != null);
+                RoslynDebug.Assert((object)underlyingType != null);
                 Debug.Assert(underlyingType.SpecialType != SpecialType.None);
                 destinationType = underlyingType.SpecialType;
             }
@@ -1138,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!CheckConstantBounds(destinationType, sourceValue))
                 {
                     // NOTE: Dev10 puts a suffix, "M", on the constant value.
-                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value + "M", destination);
+                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value + "M", destination!);
 
                     return ConstantValue.Bad;
                 }
@@ -1147,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!CheckConstantBounds(destinationType, sourceValue))
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value, destination);
+                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRange, syntax, sourceValue.Value!, destination!);
 
                     return ConstantValue.Bad;
                 }
@@ -1156,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!CheckConstantBounds(destinationType, sourceValue))
                 {
-                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRangeChecked, syntax, sourceValue.Value, destination);
+                    Error(diagnostics, ErrorCode.ERR_ConstOutOfRangeChecked, syntax, sourceValue.Value!, destination!);
 
                     return ConstantValue.Bad;
                 }

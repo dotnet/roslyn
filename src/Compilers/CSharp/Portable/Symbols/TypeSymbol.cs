@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -344,26 +346,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    AddAllInterfaces(interfaces[i], visited, result);
+                    addAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
             result.ReverseContents();
             return result.ToImmutableAndFree();
-        }
 
-        private static void AddAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-        {
-            if (visited.Add(@interface))
+            static void addAllInterfaces(NamedTypeSymbol @interface, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
-                for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                if (visited.Add(@interface))
                 {
-                    var baseInterface = baseInterfaces[i];
-                    AddAllInterfaces(baseInterface, visited, result);
-                }
+                    ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
+                    for (int i = baseInterfaces.Length - 1; i >= 0; i--)
+                    {
+                        var baseInterface = baseInterfaces[i];
+                        addAllInterfaces(baseInterface, visited, result);
+                    }
 
-                result.Add(@interface);
+                    result.Add(@interface);
+                }
             }
         }
 
@@ -619,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges features of the type with annother type where there is an identity conversion between them.
+        /// Merges features of the type with another type where there is an identity conversion between them.
         /// The features to be merged are
         /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
         /// annotations (e.g. in type arguments).
@@ -806,7 +808,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
             bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
-            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
+            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == false
+            bool implementingTypeImplementsInterface = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
@@ -825,7 +828,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (explicitImpl.Count > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    if ((object)currType == implementingType || implementingTypeImplementsInterface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    }
+
                     implementationInInterfacesMightChangeResult = false;
                     return null;
                 }
@@ -847,7 +854,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         seenTypeDeclaringInterface = true;
 
-                        if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null && (object)currType != implementingType)
+                        if ((object)currType == implementingType)
+                        {
+                            implementingTypeImplementsInterface = true;
+                        }
+                        else if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null)
                         {
                             implementingBaseOpt = currType;
                         }
@@ -923,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #if !DEBUG
             // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
-            if (useSiteDiagnostics != null)
+            if (useSiteDiagnostics != null && implementingTypeImplementsInterface)
 #endif
             {
                 diagnostics.Add(GetInterfaceLocation(interfaceMember, implementingType), useSiteDiagnostics);
@@ -931,31 +942,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (defaultImpl is object)
             {
-                ReportDefaultInterfaceImplementationMatchDiagnostics(interfaceMember, implementingType, defaultImpl, diagnostics);
+                if (implementingTypeImplementsInterface)
+                {
+                    ReportDefaultInterfaceImplementationMatchDiagnostics(interfaceMember, implementingType, defaultImpl, diagnostics);
+                }
+
                 return defaultImpl;
             }
 
-            if ((object)implicitImpl != null)
+            if (implementingTypeImplementsInterface)
             {
-                if (!canBeImplementedImplicitly)
+                if ((object)implicitImpl != null)
                 {
-                    if (interfaceMember.Kind == SymbolKind.Method &&
-                        (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                    if (!canBeImplementedImplicitly)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
-                                        implementingType, interfaceMember, implicitImpl);
+                        if (interfaceMember.Kind == SymbolKind.Method &&
+                            (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                            implementingType, interfaceMember, implicitImpl);
+                        }
+                    }
+                    else
+                    {
+                        ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
                     }
                 }
-                else
+                else if ((object)closestMismatch != null)
                 {
-                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                    Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
+                    Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
+                    ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
                 }
-            }
-            else if ((object)closestMismatch != null)
-            {
-                Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
-                ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
             }
 
             return implicitImpl;
@@ -1648,36 +1666,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
-                        (diagnostics, implementedMethod, implementingMethod, arg) =>
+                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                        (diagnostics, implementedMethod, implementingMethod, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
-                    Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, (TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                    ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
+                                diagnostics.Add(blameAttributes ?
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes :
+                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     if (IsStarted)
                     {
-                        ParseDocumentAsync(document);
+                        _ = ParseDocumentAsync(document);
                     }
                 }
             }
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void ParseDocumentAsync(Document document)
+        private Task ParseDocumentAsync(Document document)
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Host
                 cancellationToken);
 
             // Always ensure that we mark this work as done from the workmap.
-            task.SafeContinueWith(
+            return task.SafeContinueWith(
                 _ =>
                 {
                     using (_stateLock.DisposableWrite())

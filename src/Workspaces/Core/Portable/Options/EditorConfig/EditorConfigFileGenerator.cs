@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -43,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Options
                 AppendOptionsToEditorConfig(optionSet, feature, options, language, editorconfig);
             }
 
-            AppendNamingStylePreferencesToEditorConfig(optionSet, language, editorconfig);
+            var namingStylePreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, language);
+            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
 
             return editorconfig.ToString();
         }
@@ -86,11 +91,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static void AppendNamingStylePreferencesToEditorConfig(OptionSet optionSet, string language, StringBuilder editorconfig)
+        public static void AppendNamingStylePreferencesToEditorConfig(NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
         {
             editorconfig.AppendLine($"#### {WorkspacesResources.Naming_styles} ####");
 
-            var namingStylePreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, language);
             var serializedNameMap = AssignNamesToNamingStyleElements(namingStylePreferences);
             var ruleNameMap = AssignNamesToNamingStyleRules(namingStylePreferences, serializedNameMap);
             var referencedElements = new HashSet<Guid>();

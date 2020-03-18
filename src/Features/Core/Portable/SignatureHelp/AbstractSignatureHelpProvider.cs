@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -118,6 +120,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
+        // TODO: remove once Pythia moves to ExternalAccess APIs
         protected SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
@@ -131,6 +134,24 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart> descriptionParts = null)
+        {
+            return CreateItemImpl(orderSymbol, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService,
+                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
+        }
+
+        protected static SignatureHelpItem CreateItemImpl(
+            ISymbol orderSymbol,
+            SemanticModel semanticModel,
+            int position,
+            ISymbolDisplayService symbolDisplayService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            IList<SymbolDisplayPart> prefixParts,
+            IList<SymbolDisplayPart> separatorParts,
+            IList<SymbolDisplayPart> suffixParts,
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
             separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position, symbolDisplayService);
@@ -184,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 descriptionParts.ToTaggedText());
         }
 
-        private SignatureHelpSymbolParameter ReplaceAnonymousTypes(
+        private static SignatureHelpSymbolParameter ReplaceAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             AnonymousTypeDisplayInfo info)
         {
@@ -196,7 +217,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
         }
 
-        private SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
+        private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
@@ -228,8 +249,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return itemsForCurrentDocument;
             }
 
-            var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItems(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
+            var relatedDocumentsAndItems = await GetItemsForRelatedDocumentsAsync(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItemsAsync(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
 
             var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
 
@@ -268,7 +289,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
-        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
+        private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
             foreach (var related in relatedDocuments)
@@ -313,13 +334,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
-        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocumentsAsync(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var supportedPlatforms = new List<Tuple<Document, IEnumerable<SignatureHelpItem>>>();
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var semanticModel = await relatedDocument.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
                 var result = await GetItemsWorkerAsync(relatedDocument, position, triggerInfo, cancellationToken).ConfigureAwait(false);
 
                 supportedPlatforms.Add(Tuple.Create(relatedDocument, result != null ? result.Items : SpecializedCollections.EmptyEnumerable<SignatureHelpItem>()));

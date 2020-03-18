@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -67,6 +70,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsPinned => (Constraints & LocalSlotConstraints.Pinned) != 0;
     }
 
+#nullable enable
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
         TypeNameDecoder<ModuleSymbol, TypeSymbol>
         where ModuleSymbol : class, IModuleSymbolInternal
@@ -74,6 +78,7 @@ namespace Microsoft.CodeAnalysis
         where MethodSymbol : class, Symbol, IMethodSymbolInternal
         where FieldSymbol : class, Symbol, IFieldSymbolInternal
         where Symbol : class, ISymbolInternal
+#nullable restore
     {
         public readonly PEModule Module;
 
@@ -1741,7 +1746,8 @@ tryAgain:
             return false;
         }
 
-        internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
+#nullable enable
+        internal bool GetCustomAttribute(CustomAttributeHandle handle, [NotNullWhen(true)] out TypeSymbol? attributeClass, [NotNullWhen(true)] out MethodSymbol? attributeCtor)
         {
             EntityHandle attributeType;
             EntityHandle ctor;
@@ -1766,6 +1772,7 @@ tryAgain:
             attributeCtor = GetMethodSymbolForMethodDefOrMemberRef(ctor, attributeClass);
             return true;
         }
+#nullable restore
 
         internal bool GetCustomAttributeWellKnownType(CustomAttributeHandle handle, out WellKnownType wellKnownAttribute)
         {

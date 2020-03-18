@@ -1,13 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,9 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new SnippetCompletionProvider(new MockSnippetInfoService());
+            return typeof(SnippetCompletionProvider);
+        }
+
+        protected override ComposableCatalog GetExportCatalog()
+        {
+            return base.GetExportCatalog().WithPart(typeof(MockSnippetInfoService));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -33,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetDescriptions()
         {
-            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription, SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription + Environment.NewLine + string.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, MockSnippetInfoService.SnippetShortcut), SourceCodeKind.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -146,6 +156,9 @@ class C
             await VerifyItemIsAbsentAsync(@"#!$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
         }
 
+        [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Host)]
+        [Shared]
+        [PartNotDiscoverable]
         private class MockSnippetInfoService : ISnippetInfoService
         {
             internal const string SnippetShortcut = nameof(SnippetShortcut);
@@ -157,6 +170,11 @@ class C
             internal const string PreProcessorSnippetDescription = nameof(PreProcessorSnippetDescription);
             internal const string PreProcessorSnippetTitle = "#PreProcessorSnippetTitle";
             internal const string PreProcessorSnippetPath = nameof(PreProcessorSnippetPath);
+
+            [ImportingConstructor]
+            public MockSnippetInfoService()
+            {
+            }
 
             public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
             {

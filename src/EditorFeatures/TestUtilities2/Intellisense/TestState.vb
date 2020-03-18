@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -71,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
-                       extraCompletionProviders As CompletionProvider(),
                        excludedTypes As List(Of Type),
                        extraExportedTypes As List(Of Type),
                        includeFormatCommandHandler As Boolean,
@@ -86,14 +87,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
-
-            Dim lazyExtraCompletionProviders = CreateLazyProviders(extraCompletionProviders, language, roles:=Nothing)
-            If lazyExtraCompletionProviders IsNot Nothing Then
-                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                If completionService IsNot Nothing Then
-                    completionService.SetTestProviders(lazyExtraCompletionProviders.Select(Function(lz) lz.Value).ToList())
-                End If
-            End If
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
@@ -382,6 +375,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(expectedOrder.Count, items.Count)
             For i = 0 To expectedOrder.Count - 1
                 Assert.Equal(expectedOrder(i), items(i).DisplayText)
+            Next
+        End Sub
+
+        Public Sub AssertItemsInOrder(expectedOrder As (String, String)())
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None).Items
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i).Item1, items(i).DisplayText)
+                Assert.Equal(expectedOrder(i).Item2, items(i).Suffix)
             Next
         End Sub
 

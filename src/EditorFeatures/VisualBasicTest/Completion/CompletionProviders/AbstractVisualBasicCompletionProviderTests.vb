@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -19,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents)
+            Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
         End Function
 
-        Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
-            Return New VisualBasicCompletionService(workspace, exclusiveProviders)
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+            Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 
         Private Protected Overrides Function BaseVerifyWorkerAsync(
@@ -32,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionFilter)) As Task
+                matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters)
+                matchingFilters, flags)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
-                matchingFilters As List(Of CompletionFilter)) As Task
+                matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
@@ -56,12 +57,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters)
+                matchingFilters, flags)
 
             Await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters)
+                matchingFilters, flags)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
@@ -112,14 +113,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
-                initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
+                initialMarkup As String, textTypedSoFar As String, expected As Boolean, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, exportProvider:=ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
+                workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind)
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim service = GetCompletionService(workspace)
+                Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 

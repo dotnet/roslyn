@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -50,13 +51,12 @@ namespace IdeBenchmarks
     </Project>
 </Workspace>");
 
-            // Ensure we always use the storage service, no matter what the size of the solution.
-            _workspace.Options = _workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
+            // Explicitly choose the sqlite db to test.
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
             _storageService = new SQLitePersistentStorageService(
-                _workspace.Services.GetService<IOptionService>(),
-                new LocationService(),
-                new SolutionSizeTracker());
+                _workspace.Services.GetService<IOptionService>(), new LocationService());
 
             _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
             if (_storage == NoOpPersistentStorage.Instance)
@@ -90,7 +90,7 @@ namespace IdeBenchmarks
         private static readonly byte[] s_bytes = new byte[1000];
 
         [Benchmark(Baseline = true)]
-        public Task Perf()
+        public Task PerfAsync()
         {
             var tasks = new List<Task>();
 
@@ -118,11 +118,6 @@ namespace IdeBenchmarks
             }
 
             return Task.WhenAll(tasks);
-        }
-
-        private class SolutionSizeTracker : ISolutionSizeTracker
-        {
-            public long GetSolutionSize(Workspace workspace, SolutionId solutionId) => 0;
         }
 
         private class LocationService : IPersistentStorageLocationService

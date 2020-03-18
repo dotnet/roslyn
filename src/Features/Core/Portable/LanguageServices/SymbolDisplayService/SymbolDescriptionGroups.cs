@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -15,6 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         AnonymousTypes = 1 << 4,
         Exceptions = 1 << 5,
         Captures = 1 << 6,
-        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures
+        ReturnsDocumentation = 1 << 7,
+        ValueDocumentation = 1 << 8,
+        RemarksDocumentation = 1 << 9,
+        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures | ReturnsDocumentation | ValueDocumentation | RemarksDocumentation,
     }
 }

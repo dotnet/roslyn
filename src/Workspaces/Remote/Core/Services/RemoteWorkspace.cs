@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -27,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         public RemoteWorkspace()
+            : this(applyStartupOptions: true)
+        {
+        }
+
+        // internal for testing purposes.
+        internal RemoteWorkspace(bool applyStartupOptions)
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
@@ -35,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            if (applyStartupOptions)
+                SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);
@@ -65,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, out Solution solution)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, out Solution solution)
         {
             if (solutionInfo == null)
             {
@@ -89,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 this.ClearSolutionData();
 
                 this.OnSolutionAdded(solutionInfo);
+
+                SetOptions(options);
 
                 solution = this.CurrentSolution;
                 return true;
@@ -121,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+
+                SetOptions(newSolution.Options);
 
                 return this.CurrentSolution;
             }
