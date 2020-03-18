@@ -107,16 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(info);
-            return Task.CompletedTask;
-        }
-
         private async Task NotifyTelemetryServiceAsync(
             ImmutableArray<ProjectTelemetryData> infos, CancellationToken cancellationToken)
         {
@@ -179,6 +169,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 {
                 }
             }
+        }
+
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
+        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_workQueue);
+            _workQueue.AddWork(info);
+            return Task.CompletedTask;
         }
     }
 }

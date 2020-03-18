@@ -112,16 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        Task ITodoCommentsListener.ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
-            return Task.CompletedTask;
-        }
-
         private Task ProcessTodoCommentInfosAsync(
             ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
@@ -188,7 +178,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
         }
 
-        Task ITodoCommentsListener.OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
+        public Task ReportTodoCommentDataAsync(DocumentId documentId, List<TodoCommentData> infos, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_workQueue);
+            _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
+        public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             _documentToInfos.TryRemove(documentId, out _);
             return Task.CompletedTask;

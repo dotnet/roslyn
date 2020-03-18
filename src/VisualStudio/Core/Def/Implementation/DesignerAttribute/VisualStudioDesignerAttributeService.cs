@@ -85,11 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartAsync(CancellationToken cancellationToken)
         {
-            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(1),
-                this.NotifyProjectSystemAsync,
-                cancellationToken);
-
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
@@ -109,6 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
+            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+                TimeSpan.FromSeconds(1),
+                this.NotifyProjectSystemAsync,
+                cancellationToken);
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
@@ -127,16 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        Task IDesignerAttributeListener.ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(data);
-            return Task.CompletedTask;
         }
 
         private async Task NotifyProjectSystemAsync(
@@ -320,7 +310,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        Task IDesignerAttributeListener.OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
+        public Task ReportDesignerAttributeDataAsync(IList<DesignerAttributeData> data, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_workQueue);
+            _workQueue.AddWork(data);
+            return Task.CompletedTask;
+        }
+
+        public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             _cpsProjects.TryRemove(projectId, out _);
             return Task.CompletedTask;
