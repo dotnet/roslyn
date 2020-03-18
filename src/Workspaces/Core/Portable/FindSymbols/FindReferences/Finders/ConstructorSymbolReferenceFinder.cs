@@ -41,11 +41,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
+            var documentsWithImplicitObjectCreations = IsConstructor(symbol)
+                ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
             return documentsWithName.Concat(documentsWithType)
                                     .Concat(documentsWithAttribute)
+                                    .Concat(documentsWithImplicitObjectCreations)
                                     .Distinct()
                                     .ToImmutableArray();
         }
+
+        private bool IsConstructor(IMethodSymbol methodSymbol)
+            => methodSymbol.MethodKind == MethodKind.Constructor;
 
         private static bool IsPotentialReference(
             PredefinedType predefinedType,
@@ -99,8 +107,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
             var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var implicitOjbectCreationMatches = await FindReferencesInImplicitObjectCreationExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
+            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs).Concat(implicitOjbectCreationMatches);
         }
 
         private Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(

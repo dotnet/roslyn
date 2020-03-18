@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.DelegateInvoke ||
                 symbol.MethodKind == MethodKind.DeclareMethod ||
                 symbol.MethodKind == MethodKind.ReducedExtension ||
-                symbol.MethodKind == MethodKind.LocalFunction ||
-                symbol.MethodKind == MethodKind.Constructor;
+                symbol.MethodKind == MethodKind.LocalFunction;
         }
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
@@ -105,11 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithAwaitExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            var implicitObjectCreationExpressionDocuments = IsConstructor(methodSymbol)
-                ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
-
-            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments).Concat(implicitObjectCreationExpressionDocuments);
+            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
         private bool IsForEachMethod(IMethodSymbol methodSymbol)
@@ -124,9 +119,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
-
-        private bool IsConstructor(IMethodSymbol methodSymbol)
-            => methodSymbol.MethodKind == MethodKind.Constructor;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
@@ -157,12 +149,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
                 nameMatches = nameMatches.Concat(getAwaiterMatches);
-            }
-
-            if (IsConstructor(symbol))
-            {
-                var implicitOjbectCreationMatches = await FindReferencesInImplicitObjectCreationExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-                nameMatches = nameMatches.Concat(implicitOjbectCreationMatches);
             }
 
             return nameMatches;
