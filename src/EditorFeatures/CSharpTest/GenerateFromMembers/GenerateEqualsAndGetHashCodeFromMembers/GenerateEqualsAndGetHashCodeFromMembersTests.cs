@@ -498,7 +498,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsStructAleadyImplementsIEquatable()
+        public async Task TestEqualsStructAlreadyImplementsIEquatable()
         {
             await TestInRegularAndScript1Async(
 @"using System;
@@ -539,7 +539,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsStructAleadyHasOperators()
+        public async Task TestEqualsStructAlreadyHasOperators()
         {
             await TestInRegularAndScript1Async(
 @"using System;
@@ -580,7 +580,7 @@ struct ReallyLongName : IEquatable<ReallyLongName>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsStructAleadyImplementsIEquatableAndHasOperators()
+        public async Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
         {
             await TestInRegularAndScript1Async(
 @"using System;
