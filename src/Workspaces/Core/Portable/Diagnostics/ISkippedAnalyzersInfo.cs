@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Analyzers which must be skipped from execution.
         /// </summary>
-        public ImmutableHashSet<DiagnosticAnalyzer> SkippedAnalyzers { get; }
+        ImmutableHashSet<DiagnosticAnalyzer> SkippedAnalyzers { get; }
 
         /// <summary>
         /// Analyzer to diagnostic ID map, such that the diagnostics of those IDs reported by the analyzer should be filtered.
         /// </summary>
-        public ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>> FilteredDiagnosticIdsForAnalyzers { get; }
+        ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>> FilteredDiagnosticIdsForAnalyzers { get; }
     }
 }
