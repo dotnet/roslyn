@@ -41,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
             private readonly HashSet<ProjectId> _reported = new HashSet<ProjectId>();
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 lock (_reported)
                 {
                     _reported.Remove(projectId);
                 }
+
+                return Task.CompletedTask;
             }
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -227,8 +229,9 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
         }
     }
