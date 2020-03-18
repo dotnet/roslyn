@@ -474,7 +474,7 @@ class Test { }");
 
         private static Solution UpdateSolution(Solution solution, string projectName, string documentName, string csAddition, string vbAddition)
         {
-            var (project, document) = GetProjectAndDocument(solution, projectName, documentName);
+            var (_, document) = GetProjectAndDocument(solution, projectName, documentName);
 
             return document.WithText(GetNewText(document, csAddition, vbAddition)).Project.Solution;
         }

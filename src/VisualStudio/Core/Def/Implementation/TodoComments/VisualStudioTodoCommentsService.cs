@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(new DocumentAndComments(documentId, infos.ToImmutableArray()));
+            _workQueue.AddWork(new DocumentAndComments(documentId, infos));
             return Task.CompletedTask;
         }
 
