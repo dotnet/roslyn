@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                                        containingType.Equals(m.Parameters[0].Type) &&
                                        containingType.Equals(m.Parameters[1].Type));
 
-        private bool CanImplementsIEquatable(
+        private bool CanImplementIEquatable(
             SemanticModel semanticModel, INamedTypeSymbol containingType,
             [NotNullWhen(true)] out INamedTypeSymbol constructedType)
         {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
 
-            var canImplementIEquatable = CanImplementsIEquatable(semanticModel, containingType, out var equatableTypeOpt);
+            var canImplementIEquatable = CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt);
             var hasExistingOperators = HasOperators(containingType);
 
             if (canImplementIEquatable)
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 // if we're generating equals for a struct, then also add IEquatable<S> support as
                 // well as operators (as long as the struct does not already have them.
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                implementIEquatable = CanImplementsIEquatable(semanticModel, containingType, out var equatableTypeOpt);
+                implementIEquatable = CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt);
                 generateOperators = !HasOperators(containingType);
             }
 
