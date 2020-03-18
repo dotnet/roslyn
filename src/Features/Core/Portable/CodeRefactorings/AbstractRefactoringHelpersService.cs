@@ -178,17 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                // assume non-trivia token can't span multiple lines
-                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
-                var locationLine = sourceText.Lines.GetLineFromPosition(location);
-
-                // Change location to nearest token only if the token is off by one line or less
-                if (Math.Abs(tokenLine.LineNumber - locationLine.LineNumber) <= 1)
+                if (IsAcceptableLineDistanceAway(sourceText, tokenOnLocation, location))
                 {
-                    // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
-                    // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
-                    // you usually don't want refactorings for what's above you.
-
                     // tokenOnLocation: token in whose trivia location is at
                     if (tokenOnLocation.Span.Start >= location)
                     {
@@ -204,6 +195,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return (tokenToRightOrIn, tokenToLeft, location);
+
+            static bool IsAcceptableLineDistanceAway(
+                SourceText sourceText, SyntaxToken tokenOnLocation, int location)
+            {
+                // assume non-trivia token can't span multiple lines
+                var tokenLine = sourceText.Lines.GetLineFromPosition(tokenOnLocation.Span.Start);
+                var locationLine = sourceText.Lines.GetLineFromPosition(location);
+
+                // Change location to nearest token only if the token is off by one line or less
+                var lineDistance = tokenLine.LineNumber - locationLine.LineNumber;
+                if (lineDistance != 0 && lineDistance != 1)
+                    return false;
+
+                // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
+                // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
+                // you usually don't want refactorings for what's above you.
+
+                if (lineDistance == 1)
+                {
+                    // position is one line above the node of interest.  This is fine if that
+                    // line is blank.  Otherwise, if it isn't (i.e. it contains comments,
+                    // directives, or other trivia), then it's not likely the user is selecting
+                    // this entry.
+                    return locationLine.IsEmptyOrWhitespace();
+                }
+
+                // On hte same line.  This position is acceptable.
+                return true;
+            }
         }
 
         private void AddNodesForTokenToLeft<TSyntaxNode>(ISyntaxFactsService syntaxFacts, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, int location, SyntaxToken tokenToLeft, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -260,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // - On the left edge of the node sans AttributeLists (& as everywhere comments)
                     if (rightNode.Span.Start != location)
                     {
-                        var rightNodeSpanWithoutAttributes = GetSpanWithoutAttributes(rightNode, root, syntaxFacts);
+                        var rightNodeSpanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, rightNode);
                         if (rightNodeSpanWithoutAttributes.Start != location)
                         {
                             break;
@@ -285,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     // if user selected only its attributes.
 
                     // Selection contains only AttributeLists -> don't consider current Node
-                    var spanWithoutAttributes = GetSpanWithoutAttributes(nonHiddenExtractedNode, root, syntaxFacts);
+                    var spanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, nonHiddenExtractedNode);
                     if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
                     {
                         break;
@@ -485,32 +505,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 }
                 ancestor = ancestor.Parent;
             }
-        }
-
-        private static TextSpan GetSpanWithoutAttributes(SyntaxNode node, SyntaxNode root, ISyntaxFactsService syntaxFacts)
-        {
-            // Span without AttributeLists
-            // - No AttributeLists -> original .Span
-            // - Some AttributeLists -> (first non-trivia/comment Token.Span.Begin, original.Span.End)
-            //   - We need to be mindful about comments due to:
-            //      // [Test1]
-            //      //Comment1
-            //      [||]object Property1 { get; set; }
-            //     the comment node being part of the next token's (`object`) leading trivia and not the AttributeList's node.
-            // - In case only attribute is written we need to be careful to not to use next (unrelated) token as beginning current the node.
-            var attributeList = syntaxFacts.GetAttributeLists(node);
-            if (attributeList.Any())
-            {
-                var endOfAttributeLists = attributeList.Last().Span.End;
-                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
-
-                var endOfNode = node.Span.End;
-                var startOfNodeWithoutAttributes = Math.Min(afterAttributesToken.Span.Start, endOfNode);
-
-                return TextSpan.FromBounds(startOfNodeWithoutAttributes, endOfNode);
-            }
-
-            return node.Span;
         }
 
         void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)

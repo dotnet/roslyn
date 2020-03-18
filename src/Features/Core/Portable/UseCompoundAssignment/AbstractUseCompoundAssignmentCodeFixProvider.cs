@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected AbstractUseCompoundAssignmentCodeFixProvider(
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
         {
-            Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
         protected abstract SyntaxToken Token(TSyntaxKind kind);
@@ -73,8 +73,11 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(currentAssignment,
                             out var leftOfAssign, out var equalsToken, out var rightOfAssign);
 
+                        while (syntaxFacts.IsParenthesizedExpression(rightOfAssign))
+                            rightOfAssign = syntaxFacts.Unparenthesize(rightOfAssign);
+
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
-                           out _, out var opToken, out var rightExpr);
+                            out _, out var opToken, out var rightExpr);
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);

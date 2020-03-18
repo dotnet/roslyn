@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         public RemoteWorkspace()
+            : this(applyStartupOptions: true)
+        {
+        }
+
+        // internal for testing purposes.
+        internal RemoteWorkspace(bool applyStartupOptions)
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
@@ -37,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
+            if (applyStartupOptions)
+                SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);

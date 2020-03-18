@@ -2,10 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+using Microsoft.CodeAnalysis.Internal.Options;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -164,8 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ; * or ; * for using directive
             if (previousToken.Kind() == SyntaxKind.SemicolonToken)
             {
-                var line = (previousToken.Parent is UsingDirectiveSyntax) ? 1 : 0;
-                return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.PreserveLines);
+                return AdjustNewLinesAfterSemicolonToken(previousToken, currentToken, options);
             }
 
             // attribute case ] *
@@ -186,6 +195,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             return nextOperation.Invoke();
         }
+
+        private AdjustNewLinesOperation AdjustNewLinesAfterSemicolonToken(
+            SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+        {
+            // between anything that isn't a using directive, we don't touch newlines after a semicolon
+            if (!(previousToken.Parent is UsingDirectiveSyntax previousUsing))
+                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+
+            // if the user is separating using-groups, and we're between two usings, and these
+            // usings *should* be separated, then do so (if the usings were already properly
+            // sorted).
+            var separateGroups = options.TryGetEditorConfigOptionOrDefault(GenerationOptions.SeparateImportDirectiveGroups, out bool def) && def;
+            if (separateGroups &&
+                currentToken.Parent is UsingDirectiveSyntax currentUsing &&
+                UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
+            {
+                var usings = GetUsings(currentUsing.Parent);
+                if (usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance) ||
+                    usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.NormalInstance))
+                {
+                    // Force at least one blank line here.
+                    return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
+                }
+            }
+
+            // For all other cases where we have a using-directive, just make sure it's followed by
+            // a new-line.
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+        }
+
+        private static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode node)
+            => node switch
+            {
+                CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
+                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+            };
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
