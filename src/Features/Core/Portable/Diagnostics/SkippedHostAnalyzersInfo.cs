@@ -98,8 +98,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var idsReportedByProjectAnalyzers = GetIdsReportedByProjectAnalyzers(projectAnalyzers, analyzerInfoCache);
                 var fullySkippedHostAnalyzersBuilder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
                 var partiallySkippedHostAnalyzersBuilder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<string>>();
+                using var _ = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var projectAnalyzersSet);
+                projectAnalyzersSet.AddRange(projectAnalyzers);
+
                 foreach (var hostAnalyzer in hostAnalyzers)
                 {
+                    if (projectAnalyzersSet.Contains(hostAnalyzer))
+                    {
+                        // Duplicate project and host analyzer.
+                        // Do not mark this as a skipped host analyzer as that will also cause the project analyzer to be skipped.
+                        // We already perform the required host analyzer reference de-duping in the executor.
+                        continue;
+                    }
+
                     if (!ShouldIncludeHostAnalyzer(hostAnalyzer, idsReportedByProjectAnalyzers, analyzerInfoCache, out var skippedIdsForAnalyzer))
                     {
                         fullySkippedHostAnalyzersBuilder.Add(hostAnalyzer);
