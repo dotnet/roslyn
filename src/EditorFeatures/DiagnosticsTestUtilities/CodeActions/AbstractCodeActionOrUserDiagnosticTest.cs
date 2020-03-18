@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => (new OptionKey2(option, this.GetLanguage()), value);
 
         private protected (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => SingleOption(option, new CodeStyleOption2<T>(enabled, notification));
+            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
 
         private protected (OptionKey2, object) SingleOption<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
@@ -710,16 +710,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => (new OptionKey2(option), codeStyle);
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
+            => (new OptionKey2(option, this.GetLanguage()), new CodeStyleOption2<T>(enabled, notification));
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
+            => (new OptionKey2(option, this.GetLanguage()), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => SingleOption(option, codeStyle, language: GetLanguage());
+            => (new OptionKey2(option, this.GetLanguage()), codeStyle);
 
         private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
-            => SingleOption(option, codeStyle, language: GetLanguage());
+            => (new OptionKey2(option, this.GetLanguage()), codeStyle);
 
         private protected static (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
             => (new OptionKey2(option, language), codeStyle);
