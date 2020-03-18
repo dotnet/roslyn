@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
@@ -40,13 +40,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ch = text[insertedCharacterPosition - 1];
                     if (ch == '\"')
                     {
-                        return true;
+                        return ShouldTriggerAfterQuotes(text, insertedCharacterPosition);
                     }
                 }
             }
 
             return false;
         }
+
+        protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

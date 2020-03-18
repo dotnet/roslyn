@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
                     return IsInsertionTrigger(text, insertedCharacterPosition, options);
-
                 default:
                     return false;
             }
