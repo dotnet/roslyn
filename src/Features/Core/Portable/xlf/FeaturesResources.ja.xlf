@@ -312,6 +312,11 @@
         <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">暗黙的に実装する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -930,11 +940,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">グローバル名前空間</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">インターフェイスを明示的に実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -2303,16 +2308,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">到達できないコードを削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">修飾子が順序付けされていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">修飾子を順序付けます</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

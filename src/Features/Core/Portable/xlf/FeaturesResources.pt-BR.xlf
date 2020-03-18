@@ -312,6 +312,11 @@
         <target state="translated">Implementar todas as interfaces implicitamente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -320,6 +325,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementar implicitamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -930,11 +940,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">Namespace Global</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">Implementar interface explicitamente</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -2303,16 +2308,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Remover código inacessível</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Os modificadores não são ordenados</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Modificadores de ordem</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

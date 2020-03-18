@@ -246,8 +246,8 @@
   <data name="Global_Namespace" xml:space="preserve">
     <value>Global Namespace</value>
   </data>
-  <data name="Implement_interface_explicitly" xml:space="preserve">
-    <value>Implement interface explicitly</value>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
   </data>
   <data name="Implement_interface_abstractly" xml:space="preserve">
     <value>Implement interface abstractly</value>
@@ -1174,12 +1174,6 @@ This version used in: {2}</value>
   <data name="Remove_unreachable_code" xml:space="preserve">
     <value>Remove unreachable code</value>
   </data>
-  <data name="Modifiers_are_not_ordered" xml:space="preserve">
-    <value>Modifiers are not ordered</value>
-  </data>
-  <data name="Order_modifiers" xml:space="preserve">
-    <value>Order modifiers</value>
-  </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
@@ -1617,5 +1611,8 @@ This version used in: {2}</value>
   </data>
   <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
     <value>Conditional expression can be simplified</value>
+  </data>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
   </data>
 </root>

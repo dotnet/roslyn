@@ -1514,14 +1514,16 @@ End Class";
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 InvalidateDocumentIds.Add(documentId);
+                return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 InvalidateProjectIds.Add(projectId);
+                return Task.CompletedTask;
             }
 
             private void Process(DocumentId documentId, CancellationToken cancellationToken)
@@ -1589,8 +1591,8 @@ End Class";
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
-            public void RemoveDocument(DocumentId documentId) { }
-            public void RemoveProject(ProjectId projectId) { }
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken) => Task.CompletedTask;
             #endregion
         }
 
