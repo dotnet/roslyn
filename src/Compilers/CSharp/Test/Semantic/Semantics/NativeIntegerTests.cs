@@ -764,27 +764,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void Retargeting_05()
         {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class IntPtr { }
+    public class UIntPtr { }
+}";
+            var assemblyName = GetUniqueName();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
             var sourceA =
 @"public class A : nint
 {
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
-            comp.VerifyDiagnostics(
-                // (1,18): error CS0509: 'A': cannot derive from sealed type 'nint'
-                // public class A : nint
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "nint").WithArguments("A", "nint").WithLocation(1, 18));
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
 
             var refA = comp.ToMetadataReference();
             var corLibA = comp.Assembly.CorLibrary;
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.Equal(corLibA, typeA.ContainingAssembly);
 
+            var source2 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
+            var ref2 = comp.EmitToImageReference();
+
             var sourceB =
 @"class B : A
 {
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45);
-            comp.VerifyDiagnostics();
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,11): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                // class B : A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IntPtr").WithLocation(1, 11));
 
             var corLibB = comp.Assembly.CorLibrary;
             Assert.NotEqual(corLibA, corLibB);
