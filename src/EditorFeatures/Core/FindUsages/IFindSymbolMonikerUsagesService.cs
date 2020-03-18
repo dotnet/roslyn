@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal interface IFindSymbolMonikerUsagesService : IWorkspaceService
     {
-        Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(IEnumerable<SymbolMoniker> monikers, int page, CancellationToken cancellationToken);
+        Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, int page, CancellationToken cancellationToken);
         Task<ImmutableArray<DefinitionItem>> FindDefinitionsByMonikerAsync(SymbolMoniker moniker, int page, CancellationToken cancellationToken);
         Task<ImmutableArray<DefinitionItem>> FindImplementationsByMonikerAsync(SymbolMoniker moniker, int page, CancellationToken cancellationToken);
     }
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public virtual Task<ImmutableArray<DefinitionItem>> FindImplementationsByMonikerAsync(SymbolMoniker moniker, int page, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyImmutableArray<DefinitionItem>();
 
-        public virtual Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(IEnumerable<SymbolMoniker> monikers, int page, CancellationToken cancellationToken)
+        public virtual Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, int page, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyImmutableArray<ExternalReferenceItem>();
     }
 
