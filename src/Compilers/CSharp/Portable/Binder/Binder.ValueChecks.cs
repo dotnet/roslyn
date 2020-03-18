@@ -208,8 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
-                    // TODO2
-                    return expr;
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;
