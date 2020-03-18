@@ -1775,6 +1775,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Value");
         }
 
+        public override void VisitRelationalPattern(IRelationalPatternOperation operation)
+        {
+            LogString(nameof(IRelationalPatternOperation));
+            LogString($" ({nameof(BinaryOperatorKind)}.{operation.OperatorKind})");
+            LogPatternPropertiesAndNewLine(operation);
+            Visit(operation.Value, "Value");
+        }
+
+        public override void VisitNegatedPattern(INegatedPatternOperation operation)
+        {
+            LogString(nameof(INegatedPatternOperation));
+            Visit(operation.NegatedPattern, "NegatedPattern");
+            LogPatternPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitBinaryPattern(IBinaryPatternOperation operation)
+        {
+            LogString(nameof(IBinaryPatternOperation));
+            LogString($" ({nameof(BinaryOperatorKind)}.{operation.OperatorKind})");
+            LogPatternPropertiesAndNewLine(operation);
+            Visit(operation.LeftPattern, "LeftPattern");
+            Visit(operation.RightPattern, "RightPattern");
+        }
+
+        public override void VisitTypePattern(ITypePatternOperation operation)
+        {
+            LogString(nameof(ITypePatternOperation));
+            LogPatternProperties(operation);
+            LogSymbol(operation.MatchedType, $", {nameof(operation.MatchedType)}");
+            LogString(")");
+            LogNewLine();
+        }
+
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
         {
             LogString(nameof(IDeclarationPatternOperation));
