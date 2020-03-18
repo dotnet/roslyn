@@ -823,7 +823,7 @@ public class A
         Public Async Function TestConstructor_TargetTypedNew_Local(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true">
         <Document>
 class D
 {
@@ -849,7 +849,7 @@ class C
         Public Async Function TestConstructor_TargetTypedNew_Local_WithArguments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true">
         <Document>
 class D
 {
@@ -875,7 +875,7 @@ class C
         Public Async Function TestConstructor_TargetTypedNew_Field(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true">
         <Document>
 class D
 {

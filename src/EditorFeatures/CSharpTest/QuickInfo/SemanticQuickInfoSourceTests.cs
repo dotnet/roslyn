@@ -2539,7 +2539,7 @@ class D : X$$
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Constructor_ImplicitObjectCreation()
         {
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
+            await TestAsync(
 @"class C
 {
     static void Main()
