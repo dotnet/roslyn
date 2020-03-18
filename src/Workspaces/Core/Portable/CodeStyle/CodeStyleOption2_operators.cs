@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal partial class CodeStyleOption2<T>
     {
-        public static explicit operator CodeStyleOption<T>(CodeStyleOption2<T> option)
+        public static implicit operator CodeStyleOption<T>(CodeStyleOption2<T> option)
         {
             if (option == null)
             {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return new CodeStyleOption<T>(option.Value, (NotificationOption)option.Notification);
         }
 
-        public static explicit operator CodeStyleOption2<T>(CodeStyleOption<T> option)
+        public static implicit operator CodeStyleOption2<T>(CodeStyleOption<T> option)
         {
             if (option == null)
             {
