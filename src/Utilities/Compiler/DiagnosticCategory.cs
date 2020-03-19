@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     internal static class DiagnosticCategory
     {
         public const string Design = nameof(Design);
+        public const string LegacyDesign = nameof(LegacyDesign);
         public const string Globalization = nameof(Globalization);
         public const string Interoperability = nameof(Interoperability);
         public const string Mobility = nameof(Mobility);
