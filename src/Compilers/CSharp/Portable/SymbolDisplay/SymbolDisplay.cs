@@ -292,6 +292,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
         /// <param name="obj">A value to display as string parts.</param>
+        /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
+        /// <remarks>
+        /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
+        /// <see cref="byte"/>, <see cref="short"/>, <see cref="ushort"/>, <see cref="int"/>, <see cref="uint"/>,
+        /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
+        /// and <see langword="null"/>.
+        /// </remarks>
+        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj)
+        {
+            return PrimitiveToDisplayParts(obj, default);
+        }
+
+        /// <summary>
+        /// Returns a textual representation of an object of primitive type as an array of string parts,
+        /// each of which has a kind. Useful for colorizing the display string.
+        /// </summary>
+        /// <param name="obj">A value to display as string parts.</param>
         /// <param name="options">Specifies the display options.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
@@ -300,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object? obj, SymbolDisplayConstantValueOptions options)
+        internal static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj, SymbolDisplayConstantValueOptions options)
         {
             if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
             {

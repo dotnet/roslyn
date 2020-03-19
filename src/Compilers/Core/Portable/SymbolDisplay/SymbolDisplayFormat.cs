@@ -326,54 +326,13 @@ namespace Microsoft.CodeAnalysis
         /// Determines how constant values are displayed.
         /// This includes values of initializers and default parameters.
         /// </summary>
-        public SymbolDisplayConstantValueOptions ConstantValueOptions { get; }
+        internal SymbolDisplayConstantValueOptions ConstantValueOptions { get; }
 
         /// <summary>
         /// Flags that can only be set within the compiler.
         /// </summary>
         internal SymbolDisplayCompilerInternalOptions CompilerInternalOptions { get; }
 
-        /// <summary>
-        /// Constructs a new instance of <see cref="SymbolDisplayFormat"/> accepting a variety of optional parameters.
-        /// </summary>
-        /// <param name="globalNamespaceStyle">
-        /// The settings that determine how the global namespace is displayed.
-        /// </param>
-        /// <param name="typeQualificationStyle">
-        /// The settings that determine how types are qualified (e.g. Nested vs Containing.Nested vs Namespace.Containing.Nested).
-        /// </param>
-        /// <param name="genericsOptions">
-        /// The settings that determine how generics (on types and methods) should be described (i.e. the level of detail).
-        /// </param>
-        /// <param name="memberOptions">
-        /// The settings that determine how fields, properties, events, and methods are displayed.
-        /// </param>
-        /// <param name="delegateStyle">
-        /// The settings that determine how delegates are displayed (e.g. name vs full signature).
-        /// </param>
-        /// <param name="extensionMethodStyle">
-        /// The settings that determine how extension methods are displayed.
-        /// </param>
-        /// <param name="parameterOptions">
-        /// The settings that determine how parameters (of methods, properties/indexers, and delegates) are displayed.
-        /// </param>
-        /// <param name="propertyStyle">
-        /// The settings that determine how properties are displayed. 
-        /// For example, "Prop" vs "Prop { get; set; }" in C# or "Prop" vs. "ReadOnly Prop" in Visual Basic.
-        /// </param>
-        /// <param name="localOptions">
-        /// The settings that determine how local variables are displayed.
-        /// </param>
-        /// <param name="kindOptions">
-        /// The settings that determine which kind keywords should be included when displaying symbols.
-        /// </param>
-        /// <param name="miscellaneousOptions">
-        /// The settings that determine other characteristics of how symbols are displayed.
-        /// </param>
-        /// <param name="constantValueOptions">
-        /// The settings that determine how constant values are displayed.
-        /// This includes values of initializers and default parameters.
-        /// </param>
         public SymbolDisplayFormat(
             SymbolDisplayGlobalNamespaceStyle globalNamespaceStyle = default(SymbolDisplayGlobalNamespaceStyle),
             SymbolDisplayTypeQualificationStyle typeQualificationStyle = default(SymbolDisplayTypeQualificationStyle),
@@ -385,39 +344,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayPropertyStyle propertyStyle = default(SymbolDisplayPropertyStyle),
             SymbolDisplayLocalOptions localOptions = default(SymbolDisplayLocalOptions),
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
-            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions),
-            SymbolDisplayConstantValueOptions constantValueOptions = default)
-            : this(
-                default(SymbolDisplayCompilerInternalOptions),
-                globalNamespaceStyle,
-                typeQualificationStyle,
-                genericsOptions,
-                memberOptions,
-                parameterOptions,
-                delegateStyle,
-                extensionMethodStyle,
-                propertyStyle,
-                localOptions,
-                kindOptions,
-                miscellaneousOptions,
-                constantValueOptions)
-        {
-        }
-
-        // 15.9 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public SymbolDisplayFormat(
-            SymbolDisplayGlobalNamespaceStyle globalNamespaceStyle,
-            SymbolDisplayTypeQualificationStyle typeQualificationStyle,
-            SymbolDisplayGenericsOptions genericsOptions,
-            SymbolDisplayMemberOptions memberOptions,
-            SymbolDisplayDelegateStyle delegateStyle,
-            SymbolDisplayExtensionMethodStyle extensionMethodStyle,
-            SymbolDisplayParameterOptions parameterOptions,
-            SymbolDisplayPropertyStyle propertyStyle,
-            SymbolDisplayLocalOptions localOptions,
-            SymbolDisplayKindOptions kindOptions,
-            SymbolDisplayMiscellaneousOptions miscellaneousOptions)
+            SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
             : this(
                 compilerInternalOptions: default,
                 globalNamespaceStyle,
@@ -815,7 +742,7 @@ namespace Microsoft.CodeAnalysis
         /// An object representing how constant values will be displayed.
         /// </param>
         /// <returns>A duplicate of the <see cref="SymbolDisplayFormat"/>, with replaced <see cref="ConstantValueOptions"/>.</returns>
-        public SymbolDisplayFormat WithConstantValueOptions(SymbolDisplayConstantValueOptions options)
+        internal SymbolDisplayFormat WithConstantValueOptions(SymbolDisplayConstantValueOptions options)
         {
             return new SymbolDisplayFormat(
                 this.CompilerInternalOptions,

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     /// Specifies the formatting for a numeric literal.
     /// </summary>
     /// <seealso cref="SymbolDisplayConstantValueOptions"/>
-    public enum NumericFormat
+    internal enum NumericFormat
     {
         /// <summary>
         /// Format the number in decimal.

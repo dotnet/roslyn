@@ -3655,9 +3655,9 @@ struct S
         }
 
         [Theory]
-        [InlineData(NumericFormat.Decimal, "1")]
-        [InlineData(NumericFormat.Hexadecimal, "0x00000001")]
-        public void TestConstantFieldValue_Integer(NumericFormat numberFormat, string displayValue)
+        [InlineData((int)NumericFormat.Decimal, "1")]
+        [InlineData((int)NumericFormat.Hexadecimal, "0x00000001")]
+        public void TestConstantFieldValue_Integer(int numberFormat, string displayValue)
         {
             var text =
 @"class C {
@@ -3676,9 +3676,9 @@ struct S
                     SymbolDisplayMemberOptions.IncludeModifiers |
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeType |
-                    SymbolDisplayMemberOptions.IncludeConstantValue,
-                constantValueOptions:
-                    new SymbolDisplayConstantValueOptions(numberFormat, NumericFormat.Decimal, noQuotes: false));
+                    SymbolDisplayMemberOptions.IncludeConstantValue)
+                .WithConstantValueOptions(
+                    new SymbolDisplayConstantValueOptions((NumericFormat)numberFormat, NumericFormat.Decimal, noQuotes: false));
 
             TestSymbolDescription(
                 text,
@@ -3722,8 +3722,8 @@ struct S
                     SymbolDisplayMemberOptions.IncludeModifiers |
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeType |
-                    SymbolDisplayMemberOptions.IncludeConstantValue,
-                constantValueOptions:
+                    SymbolDisplayMemberOptions.IncludeConstantValue)
+                .WithConstantValueOptions(
                     new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes));
 
             TestSymbolDescription(
@@ -4422,75 +4422,75 @@ End Class
             var noQuotesDecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: true);
             var noQuotesHexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(null, decimalOptions), "null", SymbolDisplayPartKind.Keyword);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(null, noQuotesHexadecimalOptions), "null", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(null, decimalOptions), "null", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(null, noQuotesHexadecimalOptions), "null", SymbolDisplayPartKind.Keyword);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, decimalOptions), "3", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalCharactersOptions), "3", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalNumbersOptions), "0x00000003", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(OutputKind.NetModule, decimalOptions), "3", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalCharactersOptions), "3", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(OutputKind.NetModule, hexadecimalNumbersOptions), "0x00000003", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts('x', decimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts('x', hexadecimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts('x', noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts('x', noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts('x', decimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts('x', hexadecimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts('x', noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts('x', noQuotesHexadecimalOptions), "x", SymbolDisplayPartKind.StringLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", decimalOptions), "\"abc\"", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", hexadecimalOptions), "\"abc\"", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", noQuotesDecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", noQuotesHexadecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts("abc", decimalOptions), "\"abc\"", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts("abc", hexadecimalOptions), "\"abc\"", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts("abc", noQuotesDecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts("abc", noQuotesHexadecimalOptions), "abc", SymbolDisplayPartKind.StringLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(true, decimalOptions), "true", SymbolDisplayPartKind.Keyword);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(true, noQuotesHexadecimalOptions), "true", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(true, decimalOptions), "true", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(true, noQuotesHexadecimalOptions), "true", SymbolDisplayPartKind.Keyword);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, hexadecimalNumbersOptions), "0x00000001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1, hexadecimalNumbersOptions), "0x00000001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((uint)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((uint)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((uint)1, hexadecimalNumbersOptions), "0x00000001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((uint)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((uint)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((uint)1, hexadecimalNumbersOptions), "0x00000001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((byte)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((byte)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((byte)1, hexadecimalNumbersOptions), "0x01", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((byte)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((byte)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((byte)1, hexadecimalNumbersOptions), "0x01", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((sbyte)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((sbyte)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((sbyte)1, hexadecimalNumbersOptions), "0x01", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((sbyte)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((sbyte)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((sbyte)1, hexadecimalNumbersOptions), "0x01", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((short)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((short)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((short)1, hexadecimalNumbersOptions), "0x0001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((short)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((short)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((short)1, hexadecimalNumbersOptions), "0x0001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ushort)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ushort)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ushort)1, hexadecimalNumbersOptions), "0x0001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ushort)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ushort)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ushort)1, hexadecimalNumbersOptions), "0x0001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((long)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((long)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((long)1, hexadecimalNumbersOptions), "0x0000000000000001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((long)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((long)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((long)1, hexadecimalNumbersOptions), "0x0000000000000001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ulong)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ulong)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ulong)1, hexadecimalNumbersOptions), "0x0000000000000001", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ulong)1, decimalOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ulong)1, hexadecimalCharactersOptions), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((ulong)1, hexadecimalNumbersOptions), "0x0000000000000001", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((float)1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((float)1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((float)1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((float)1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((float)1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((float)1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((decimal)1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((decimal)1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((decimal)1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((decimal)1.5, decimalOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((decimal)1.5, hexadecimalCharactersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts((decimal)1.5, hexadecimalNumbersOptions), "1.5", SymbolDisplayPartKind.NumericLiteral);
 
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(double.PositiveInfinity, decimalOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(double.PositiveInfinity, hexadecimalCharactersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
-            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(double.PositiveInfinity, hexadecimalNumbersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(double.PositiveInfinity, decimalOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(double.PositiveInfinity, hexadecimalCharactersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(double.PositiveInfinity, hexadecimalNumbersOptions), "Infinity", SymbolDisplayPartKind.NumericLiteral);
 
-            Assert.True(SymbolDisplay.FormatPrimitiveToDisplayParts(SymbolDisplayFormat.TestFormat, decimalOptions).IsDefault);
+            Assert.True(SymbolDisplay.PrimitiveToDisplayParts(SymbolDisplayFormat.TestFormat, decimalOptions).IsDefault);
         }
 
         [Fact]
@@ -4505,62 +4505,62 @@ End Class
             var noQuotesHexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\u0008', decimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\u0008', decimalOptions),
                 "'\\b'",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\u0008', hexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\u0008', hexadecimalOptions),
                 "'\\b'",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\u0008', noQuotesDecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\u0008', noQuotesDecimalOptions),
                 "\\b",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\u0008', noQuotesHexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\u0008', noQuotesHexadecimalOptions),
                 "\\b",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\uFFFE', decimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\uFFFE', decimalOptions),
                 "'\\ufffe'",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\uFFFE', hexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\uFFFE', hexadecimalOptions),
                 "'\\ufffe'",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\uFFFE', noQuotesDecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\uFFFE', noQuotesDecimalOptions),
                 "\\ufffe",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts('\uFFFE', noQuotesHexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts('\uFFFE', noQuotesHexadecimalOptions),
                 "\\ufffe",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts("\uFFFEa\0\r\n", decimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts("\uFFFEa\0\r\n", decimalOptions),
                 "\"\\ufffea\\0\\r\\n\"",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts("\uFFFEa\0\r\n", hexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts("\uFFFEa\0\r\n", hexadecimalOptions),
                 "\"\\ufffea\\0\\r\\n\"",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts("\uFFFEa\0\r\n", noQuotesDecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts("\uFFFEa\0\r\n", noQuotesDecimalOptions),
                 "\\ufffea\\0\\r\\n",
                 SymbolDisplayPartKind.StringLiteral);
 
             Verify(
-                SymbolDisplay.FormatPrimitiveToDisplayParts("\uFFFEa\0\r\n", noQuotesHexadecimalOptions),
+                SymbolDisplay.PrimitiveToDisplayParts("\uFFFEa\0\r\n", noQuotesHexadecimalOptions),
                 "\\ufffea\\0\\r\\n",
                 SymbolDisplayPartKind.StringLiteral);
         }

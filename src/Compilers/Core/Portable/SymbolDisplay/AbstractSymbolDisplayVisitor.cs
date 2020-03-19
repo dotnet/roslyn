@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected void AddConstantValue(ITypeSymbol type, object value, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
             Debug.Assert(value is null || value.GetType().IsPrimitive || value is string || value is decimal || value is DateTime);
+            if (value is object && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                // The non-null value will be an instance of the nullable underlying type
+                type = ((INamedTypeSymbol)type).TypeArguments[0];
+            }
 
             if (type.TypeKind == TypeKind.Enum)
             {

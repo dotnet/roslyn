@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             MyBase.New(provider.GetService(Of IAnonymousTypeDisplayService)())
         End Sub
 
-        Public Overrides Function FormatPrimitiveToDisplayParts(value As Object, options As SymbolDisplayConstantValueOptions) As ImmutableArray(Of SymbolDisplayPart)
-            Return Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay.FormatPrimitiveToDisplayParts(value, options)
+        Public Overrides Function PrimitiveToDisplayParts(value As Object) As ImmutableArray(Of SymbolDisplayPart)
+            Return Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay.PrimitiveToDisplayParts(value)
         End Function
 
         Public Overrides Function ToDisplayParts(symbol As ISymbol, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)

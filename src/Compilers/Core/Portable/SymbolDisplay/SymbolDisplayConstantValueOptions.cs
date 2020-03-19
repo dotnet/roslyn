@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// This includes values of initializers and default parameters.
     /// </summary>
     /// <seealso cref="SymbolDisplayFormat.ConstantValueOptions"/>
-    public readonly struct SymbolDisplayConstantValueOptions
+    internal readonly struct SymbolDisplayConstantValueOptions
     {
         /// <summary>
         /// We'd like the default value of this struct to have a <see cref="CharacterValueFormat"/> of

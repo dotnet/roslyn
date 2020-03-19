@@ -131,6 +131,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
         ''' <param name="obj">A value to display as string parts.</param>
+        ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
+        ''' <remarks>
+        ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
+        ''' <see cref="Byte"/>, <see cref="Short"/>, <see cref="UShort"/>, <see cref="Integer"/>, <see cref="UInteger"/>,
+        ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
+        ''' <see cref="Date"/>, and <see langword="Nothing"/>.
+        ''' </remarks>
+        Public Function PrimitiveToDisplayParts(obj As Object) As ImmutableArray(Of SymbolDisplayPart)
+            Return PrimitiveToDisplayParts(obj, Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Returns a textual representation of an object of primitive type as an array of string parts,
+        ''' each of which has a kind. Useful for colorizing the display string.
+        ''' </summary>
+        ''' <param name="obj">A value to display as string parts.</param>
         ''' <param name="options">Specifies the display options.</param>
         ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
@@ -139,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Public Function FormatPrimitiveToDisplayParts(obj As Object, options As SymbolDisplayConstantValueOptions) As ImmutableArray(Of SymbolDisplayPart)
+        Friend Function PrimitiveToDisplayParts(obj As Object, options As SymbolDisplayConstantValueOptions) As ImmutableArray(Of SymbolDisplayPart)
             If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
                 Return Nothing
             End If
