@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
-            : base(optionService, locationService)
+            : base(locationService)
         {
         }
 
