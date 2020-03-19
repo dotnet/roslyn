@@ -4,7 +4,7 @@
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.Editor.SymbolMonikers
+namespace Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat
 {
     internal static class WellKnownSymbolMonikerSchemes
     {
