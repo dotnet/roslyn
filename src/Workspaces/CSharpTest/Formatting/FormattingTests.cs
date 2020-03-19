@@ -4919,6 +4919,28 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInImplicitObjectCreation()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        C a = new ();
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        C a = new();
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatRecursivePattern_Positional()
         {
             var code = @"class C

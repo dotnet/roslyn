@@ -1473,6 +1473,56 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestImplicitObjectCreationExpression() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+public class C
+{
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
+
+    public void M()
+    {
+        C c = new($$
+    }
+}]]></Document>, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("new(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
+        Public Async Function TestImplicitObjectCreationExpression_WithSpace() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+public class C
+{
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
+
+    public void M()
+    {
+        C c = new$$
+    }
+}]]></Document>, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(" ")
+                Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
+                state.SendTypeChars("(")
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("A")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("new C(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestInvocationExpressionAfterComma() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[

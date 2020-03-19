@@ -65,6 +65,76 @@ class C
         }
 
         [Fact]
+        public void TestInLocal_LangVersion8()
+        {
+            var source = @"
+struct S
+{
+}
+
+class C
+{
+    public static void Main()
+    {
+        C v1 = new();
+        S v2 = new();
+        S? v3 = new();
+        C v4 = new(missing);
+        S v5 = new(missing);
+        S? v6 = new(missing);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         C v1 = new();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(10, 16),
+                // (11,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         S v2 = new();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(11, 16),
+                // (12,17): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         S? v3 = new();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(12, 17),
+                // (13,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         C v4 = new(missing);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(13, 16),
+                // (13,20): error CS0103: The name 'missing' does not exist in the current context
+                //         C v4 = new(missing);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(13, 20),
+                // (14,16): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         S v5 = new(missing);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(14, 16),
+                // (14,20): error CS0103: The name 'missing' does not exist in the current context
+                //         S v5 = new(missing);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(14, 20),
+                // (15,17): error CS8652: The feature 'target-typed object creation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         S? v6 = new(missing);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new").WithArguments("target-typed object creation").WithLocation(15, 17),
+                // (15,21): error CS0103: The name 'missing' does not exist in the current context
+                //         S? v6 = new(missing);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(15, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
+
+            assert(0, type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
+            assert(1, type: "S", convertedType: "S", symbol: "S..ctor()", ConversionKind.Identity);
+            assert(2, type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+
+            void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
+            {
+                var @new = nodes[index];
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
+            }
+        }
+
+        [Fact]
         public void TestInExpressionTree()
         {
             var source = @"
@@ -1649,14 +1719,16 @@ struct S
     }
 }
 ";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new(a) { x };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new(a) { x }").WithLocation(6, 9),
                 // (6,13): error CS0103: The name 'a' does not exist in the current context
                 //         new(a) { x };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 13),
+                // (6,18): error CS0103: The name 'x' does not exist in the current context
+                //         new(a) { x };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 18),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new() { x };
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new() { x }").WithArguments("new()").WithLocation(7, 9),

@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundUnconvertedObjectCreationExpression expr:
                     {
-                        if (reportNoTargetType)
+                        if (reportNoTargetType && !expr.HasAnyErrors)
                         {
                             diagnostics.Add(ErrorCode.ERR_TypelessNewNoTargetType, expr.Syntax.GetLocation(), expr.Display);
                         }
