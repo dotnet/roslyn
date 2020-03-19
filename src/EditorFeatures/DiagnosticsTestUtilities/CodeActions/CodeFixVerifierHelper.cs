@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     continue;
                 }
 
-                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, default!));
+                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, null!));
             }
 
             return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
