@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -761,7 +762,7 @@ namespace N
                 GetCSharpResultAt(10, 31, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
         }
 
-        [Fact]
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
         public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides()
         {
             var source = @"
@@ -1317,7 +1318,7 @@ Class D : End Class
                 GetBasicResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
-        [Fact]
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
         public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides()
         {
             var source = @"
