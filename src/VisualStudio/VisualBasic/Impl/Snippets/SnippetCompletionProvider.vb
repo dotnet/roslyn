@@ -23,7 +23,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
         Private ReadOnly _threadingContext As IThreadingContext
@@ -91,6 +91,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet(Of Char).Empty
 
         Public Sub Commit(completionItem As CompletionItem,
                           textView As ITextView,

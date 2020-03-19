@@ -114,15 +114,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property ExtractMethod_AllowMovingDeclaration As Boolean
-            Get
-                Return GetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration, value)
-            End Set
-        End Property
-
         Public Property Outlining As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.Outlining)

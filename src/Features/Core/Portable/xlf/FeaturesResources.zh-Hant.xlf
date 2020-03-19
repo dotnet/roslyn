@@ -247,11 +247,6 @@
         <target state="translated">擷取方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">擷取方法 + 區域變數</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">無法分析下列項目的資料流程: {0}</target>
@@ -2075,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">Pascal 命名法的大小寫</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">使用 coalesce 運算式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">使用 null 傳播</target>
@@ -2193,11 +2183,6 @@ This version used in: {2}</source>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">選取要用於 Equals/GetHashCode 中的成員</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">變更運算式樹狀架構可能會導致執行階段的行為變更</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">

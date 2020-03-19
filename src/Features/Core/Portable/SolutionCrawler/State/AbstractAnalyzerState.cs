@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
                 Count = count;
             }
 
-            public bool HasCachedData => !object.Equals(Data, default);
+            public bool HasCachedData => !object.Equals(Data, null);
         }
     }
 }
