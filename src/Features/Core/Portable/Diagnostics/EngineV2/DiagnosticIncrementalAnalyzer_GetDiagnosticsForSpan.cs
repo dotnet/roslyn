@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _range, cancellationToken);
+                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, analysisSpan, cancellationToken);
+                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, analysisSpan, cancellationToken);
             }
 
             private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)

@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     /// <summary>
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    CodeStyleOptions.PreferCoalesceExpression,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }

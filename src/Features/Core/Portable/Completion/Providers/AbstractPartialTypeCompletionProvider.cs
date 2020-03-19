@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : CommonCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider : LSPCompletionProvider
     {
         protected AbstractPartialTypeCompletionProvider()
         {
