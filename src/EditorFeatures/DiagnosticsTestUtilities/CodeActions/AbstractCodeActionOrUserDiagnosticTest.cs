@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,12 +20,17 @@ using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-{
 #if CODE_STYLE
-    using TestParametersOptions = IOptionsCollection;
+using System.Diagnostics;
+using System.IO;
+using TestParametersOptions = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.IOptionsCollection;
+#else
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using TestParametersOptions = System.Collections.Generic.IDictionary<Microsoft.CodeAnalysis.Options.OptionKey2, object>;
 #endif
 
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+{
     [UseExportProvider]
     public abstract partial class AbstractCodeActionOrUserDiagnosticTest
     {
