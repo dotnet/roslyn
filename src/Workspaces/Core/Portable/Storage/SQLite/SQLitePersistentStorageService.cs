@@ -127,6 +127,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Returns null in the case where an IO exception prevented us from being able to acquire
+        /// the db lock file.
+        /// </summary>
         private static IDisposable? TryGetDatabaseOwnership(string databaseFilePath)
         {
             return IOUtilities.PerformIO<IDisposable?>(() =>
@@ -140,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return File.Open(
                     Path.Combine(directoryName, LockFile),
                     FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            });
+            }, defaultValue: null);
         }
 
         private static void EnsureDirectory(string databaseFilePath)
