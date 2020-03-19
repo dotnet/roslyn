@@ -325,12 +325,22 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     }
                 }
 
-                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-                if (symbolInfo?.ContainingType?.IsValueType == true && !insideObjectCreation)
+                if (IsStructInstanceMethod(node!, semanticModel, cancellationToken))
                 {
                     reportDiagnostic(Diagnostic.Create(DelegateOnStructInstanceRule, location, EmptyMessageArgs));
                 }
             }
+        }
+
+        private static bool IsStructInstanceMethod(SyntaxNode? node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (node.IsKind(SyntaxKind.AnonymousMethodExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.SimpleLambdaExpression))
+            {
+                return false;
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+            return symbolInfo?.Kind == SymbolKind.Method && !symbolInfo.IsStatic && symbolInfo.ContainingType?.IsValueType == true;
         }
     }
 }

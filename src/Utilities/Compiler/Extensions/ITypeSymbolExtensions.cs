@@ -86,7 +86,7 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            if (!baseTypesOnly)
+            if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
             {
                 var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
                 if (candidateBaseType.OriginalDefinition.Equals(candidateBaseType))
@@ -127,15 +127,28 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or System.IAsyncDisposable or is <see cref="IDisposable"/> or System.IAsyncDisposable type itself.
+        /// Indicates if the given <paramref name="type"/> is disposable,
+        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
         /// </summary>
         public static bool IsDisposable(this ITypeSymbol type,
             INamedTypeSymbol? iDisposable,
             INamedTypeSymbol? iAsyncDisposable)
         {
-            return type.IsReferenceType &&
-                (IsInterfaceOrImplementsInterface(type, iDisposable) ||
-                 IsInterfaceOrImplementsInterface(type, iAsyncDisposable));
+            if (type.IsReferenceType)
+            {
+                return IsInterfaceOrImplementsInterface(type, iDisposable)
+                    || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+
+#if CODEANALYSIS_V3_OR_BETTER
+            if (type.IsRefLikeType)
+            {
+                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
+                    .Any(method => method.HasDisposeSignatureByConvention());
+            }
+#endif
+
+            return false;
 
             static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
                 => interfaceType != null &&

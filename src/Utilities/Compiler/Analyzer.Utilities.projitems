@@ -8,6 +8,9 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' >= '3.0'">
+    <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
@@ -47,6 +50,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EnumValuesPrefixTrigger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesWithValueOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />

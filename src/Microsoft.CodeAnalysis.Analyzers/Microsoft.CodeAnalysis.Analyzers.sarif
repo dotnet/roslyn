@@ -334,7 +334,7 @@
           "id": "RS1029",
           "shortDescription": "Do not use reserved diagnostic IDs.",
           "fullDescription": "DiagnosticId for analyzers should not use reserved IDs.",
-          "defaultLevel": "error",
+          "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
             "isEnabledByDefault": true,

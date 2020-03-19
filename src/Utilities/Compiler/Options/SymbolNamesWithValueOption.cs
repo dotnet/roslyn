@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
+        where TValue : notnull
     {
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';

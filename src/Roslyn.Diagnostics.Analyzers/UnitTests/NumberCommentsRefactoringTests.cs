@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using MetaCompilation.Analyzers.UnitTests;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<Roslyn.Diagnostics.Analyzers.NumberCommentslRefactoring>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class NumberCommentsRefactoringTests : CodeRefactoringVerifier
+    public class NumberCommentsRefactoringTests
     {
-        protected override CodeRefactoringProvider GetCodeRefactoringProvider()
-            => new NumberCommentslRefactoring();
-
         [Fact]
         public async Task TestAsync()
         {
@@ -29,7 +25,7 @@ public class C
 class D { } // 1
 "";
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -51,7 +47,7 @@ public class C
 class D { } // 1
 "" /*after*/ ;
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -77,7 +73,7 @@ class D // 1
 } // test
 "";
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -101,7 +97,7 @@ class D // 1
 } // 4
 "";
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -117,7 +113,7 @@ public class C
 {
     string s = @""class D { } // 1"";
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -137,7 +133,7 @@ public class C
 class D { } // 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
 "";
 }";
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -163,7 +159,7 @@ class D // 1
 "";
 }";
 
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -189,7 +185,7 @@ class C // 1
 "";
 }";
 
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -221,7 +217,7 @@ class C // 1
 "";
 }";
 
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
         [Fact]
@@ -239,7 +235,7 @@ public class C
     string s = @""class D { } // 1"";
 }";
 
-            await VerifyRefactoringAsync(source, fixedSource);
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
     }
 }

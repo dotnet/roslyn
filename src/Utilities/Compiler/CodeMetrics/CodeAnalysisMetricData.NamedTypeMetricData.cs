@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<NamedTypeMetricData> ComputeAsync(INamedTypeSymbol namedType, CodeMetricsAnalysisContext context)
             {
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = namedType.DeclaringSyntaxReferences;
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 int singleEffectiveChildMaintainabilityIndex = -1;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
 
                     if (child.Symbol.Kind != SymbolKind.Field ||
                         filteredFieldsForComplexity.Contains((IFieldSymbol)child.Symbol))

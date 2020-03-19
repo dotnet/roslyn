@@ -215,6 +215,7 @@ Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisD
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.SerializationInfoNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.MonitorNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.GenericTaskNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.StringReaderType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.CollectionNamedTypes.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue>
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue>.Add(System.Collections.Generic.KeyValuePair<TKey, TValue> item) -> void

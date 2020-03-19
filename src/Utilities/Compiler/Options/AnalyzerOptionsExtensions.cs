@@ -262,6 +262,7 @@ namespace Analyzer.Utilities
             string? optionDefaultValue = null,
             string? optionForcedValue = null,
             Func<string, SymbolNamesWithValueOption<TValue>.NameParts>? getTypeAndSuffixFunc = null)
+            where TValue : notnull
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: GetDefaultValue());

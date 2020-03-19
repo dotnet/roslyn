@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -33,27 +34,30 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return RoundMetricValue((maintIndex / 171.0) * 100.0);
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, IEnumerable<ITypeSymbol> coupledTypes)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            IEnumerable<ITypeSymbol> coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
-                AddCoupledNamedTypesCore(builder, coupledType);
+                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
             }
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, params ITypeSymbol[] coupledTypes)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            params ITypeSymbol[] coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
-                AddCoupledNamedTypesCore(builder, coupledType);
+                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
             }
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ImmutableArray<IParameterSymbol> parameters)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            ImmutableArray<IParameterSymbol> parameters)
         {
             foreach (var parameter in parameters)
             {
-                AddCoupledNamedTypesCore(builder, parameter.Type);
+                AddCoupledNamedTypesCore(builder, parameter.Type, wellKnownTypeProvider);
             }
         }
 
@@ -116,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+
             foreach (var declaration in declarations)
             {
                 SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, context).ConfigureAwait(false);
@@ -168,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     }
 
                     var typeInfo = model.GetTypeInfo(node, context.CancellationToken);
-                    AddCoupledNamedTypesCore(builder, typeInfo.Type);
+                    AddCoupledNamedTypesCore(builder, typeInfo.Type, wellKnownTypeProvider);
 
                     var operationBlock = model.GetOperation(node, context.CancellationToken);
                     if (operationBlock != null && operationBlock.Parent == null)
@@ -209,18 +215,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                             }
 
-                            AddCoupledNamedTypesCore(builder, operation.Type);
+                            AddCoupledNamedTypesCore(builder, operation.Type, wellKnownTypeProvider);
 
                             // Handle static member accesses specially as there is no operation for static type off which the member is accessed.
                             if (operation is IMemberReferenceOperation memberReference &&
                                 memberReference.Member.IsStatic)
                             {
-                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType);
+                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, wellKnownTypeProvider);
                             }
                             else if (operation is IInvocationOperation invocation &&
                                 (invocation.TargetMethod.IsStatic || invocation.TargetMethod.IsExtensionMethod))
                             {
-                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType);
+                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, wellKnownTypeProvider);
                             }
                         }
                     }
@@ -260,23 +266,28 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt)
+        private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt,
+            WellKnownTypeProvider wellKnownTypeProvider)
         {
             if (typeOpt is INamedTypeSymbol usedType &&
-                !isIgnoreableType(usedType) &&
-                builder.Add(usedType))
+                !isIgnoreableType(usedType, wellKnownTypeProvider))
             {
+                // Save the OriginalDefinition of the type as IEnumerable<int> and IEnumerable<float>
+                // should register only one IEnumerable...
+                builder.Add(usedType.OriginalDefinition);
+
+                // ... but always parse the generic type arguments as IEnumerable<int> and IEnumerable<float>
+                // should register int and float.
                 if (usedType.IsGenericType)
                 {
                     foreach (var type in usedType.TypeArguments)
                     {
-                        AddCoupledNamedTypesCore(builder, type);
+                        AddCoupledNamedTypesCore(builder, type, wellKnownTypeProvider);
                     }
                 }
             }
 
-            // Compat
-            static bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType, WellKnownTypeProvider wellKnownTypeProvider)
             {
                 switch (namedType.SpecialType)
                 {
@@ -301,7 +312,10 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         return true;
 
                     default:
-                        return false;
+                        return namedType.IsAnonymousType ||
+                            namedType.GetAttributes().Any(a =>
+                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
+                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)));
                 }
             }
         }
