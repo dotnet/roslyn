@@ -33,10 +33,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
-        internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
-        {
-            { PersistentStorageOptions.Enabled, true },
-        });
 
         private AbstractPersistentStorageService _storageService;
         private readonly string _persistentFolder;

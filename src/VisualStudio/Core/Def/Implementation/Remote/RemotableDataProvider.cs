@@ -22,22 +22,17 @@ using StreamJsonRpc;
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     /// <summary>
-    /// Communication channel between remote host client and remote host.
-    /// 
-    /// this is framework's back channel to talk to remote host
-    /// 
-    /// for example, this will be used to deliver missing remotable data to remote host.
-    /// 
-    /// all connection will share one remotable data channel
+    /// Called by SnapshotService from the ServiceHub process to morror remotable data (e.g. solution snapshots)
+    /// from Visual Studio process to the ServiceHub process.
     /// </summary>
-    internal sealed class RemotableDataJsonRpc : IDisposable
+    internal sealed class RemotableDataProvider : IDisposable
     {
         private readonly Workspace _workspace;
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
         private readonly RemoteEndPoint _endPoint;
 
-        public RemotableDataJsonRpc(Workspace workspace, TraceSource logger, Stream snapshotServiceStream)
+        public RemotableDataProvider(Workspace workspace, TraceSource logger, Stream snapshotServiceStream)
         {
             _workspace = workspace;
             _remotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();

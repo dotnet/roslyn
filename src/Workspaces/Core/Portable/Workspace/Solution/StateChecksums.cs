@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             // same key should always return same checksum
             if (!s_cache.TryGetValue(value, out var result))
             {
-                checksum = default;
+                checksum = null;
                 return false;
             }
 
