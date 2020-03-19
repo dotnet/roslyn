@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat
 
         public string Identifier { get; }
 
-        //public IPackageInformation? PackageInformation { get; }
-
         public SymbolMoniker(string scheme, string identifier)
         {
             this.Scheme = scheme;
