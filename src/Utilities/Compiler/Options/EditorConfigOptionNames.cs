@@ -143,5 +143,17 @@ namespace Analyzer.Utilities
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format with an optional "T:" prefix.
         /// </summary>
         public const string AdditionalRequiredGenericInterfaces = "additional_required_generic_interfaces";
+
+        /// <summary>
+        /// Names of types or namespaces (separated by '|'), such that the type or type's namespace doesn't count in the inheritance hierarchy tree.
+        /// Configurable rules: CA1501 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1501)
+        /// Allowed name formats:
+        ///   1. Type or namespace name (includes all types with the name, regardless of the containing type or namespace and all types whose namespace contains the name)
+        ///   2. Type or namespace name ending with a wildcard symbol (includes all types whose name starts with the given name, regardless of the containing type or namespace
+        ///      and all types whose namespace contains the name)
+        ///   3. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format with an optional "T:" prefix for types or "N:" prefix for namespaces. (includes all types with the exact type match or the exact containing namespace match)
+        ///   4. Fully qualified type or namespace name with an optional "T:" prefix for type or "N:" prefix for namespace and ending with the wildcard symbol (includes all types whose fully qualified name starts with the given suffix)
+        /// </summary>
+        public const string AdditionalInheritanceExcludedSymbolNames = "additional_inheritance_excluded_symbol_names";
     }
 }
