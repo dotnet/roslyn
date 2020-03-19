@@ -1281,7 +1281,7 @@ namespace Foo
         public static bool ExtentionMethod1(this int x)
             => true;
     }
-}"; 
+}";
             var refDoc2 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
 

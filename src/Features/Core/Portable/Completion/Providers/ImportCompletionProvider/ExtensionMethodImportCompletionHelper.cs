@@ -159,7 +159,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
                 CheckDefaultAccessibility(compilation, internalsVisible, out var ignoreUnspecifiedContainerAccessibility, out var ignoreUnspecifiedMethodAccessibility);
-                var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(compilation.Assembly, filter, namespaceFilter, !internalsVisible, ignoreUnspecifiedContainerAccessibility, ignoreUnspecifiedMethodAccessibility, counter, cancellationToken);
+
+                var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                    compilation.Assembly, filter, namespaceFilter, !internalsVisible,
+                    ignoreUnspecifiedContainerAccessibility, ignoreUnspecifiedMethodAccessibility, counter,
+                    cancellationToken);
 
                 var isSymbolFromCurrentCompilation = project == currentProject;
                 GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation, builder, namespaceNameCache);
@@ -172,7 +176,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
                 {
                     var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
-                    var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(assembly, filter, namespaceFilter, !internalsVisible, ignoreUnspecifiedContainerAccessibility: true, ignoreUnspecifiedMethodAccessibility: true, counter, cancellationToken);
+
+                    var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                        assembly, filter, namespaceFilter,
+                        !internalsVisible, ignoreUnspecifiedContainerAccessibility: true, ignoreUnspecifiedMethodAccessibility: true,
+                        counter, cancellationToken);
+
                     GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation: false, builder, namespaceNameCache);
                 }
             }
@@ -180,6 +189,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return builder.ToImmutable();
         }
 
+        // Determine whether a declaration with default accessibility should be ignored when looking for matching symbol.
+        // The value returned will be used as a quick filter for symbol accessibility based on declared accessibility to
+        // SemanticModel when possible.
         private static void CheckDefaultAccessibility(Compilation compilation, bool internalsVisible, out bool ignoreUnspecifiedContainerAccessibility, out bool ignoreUnspecifiedMethodAccessibility)
         {
             switch (compilation.Language)
@@ -214,6 +226,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             foreach (var methodSymbol in matchingMethodSymbols)
             {
+                // Symbols could be from a different compilation,
+                // because we retrieved them on a per-assembly basis.
+                // Need to find the matching one in current compilation
+                // before any further checks is done.
                 var methodSymbolInCurrentCompilation = isSymbolFromCurrentCompilation
                     ? methodSymbol
                     : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
