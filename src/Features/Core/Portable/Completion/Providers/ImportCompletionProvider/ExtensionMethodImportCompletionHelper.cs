@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var currentProject = document.Project;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var currentCompilation = semanticModel.Compilation;
             var currentAssembly = currentCompilation.Assembly;
 
             using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var builder);
