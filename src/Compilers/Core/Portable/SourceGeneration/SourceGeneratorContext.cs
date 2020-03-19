@@ -57,6 +57,22 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback) => InfoBuilder.EditCallback = callback;
 
+        /// <summary>
+        /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method allows generators to be 'syntax aware'. Before each generation the <paramref name="receiverCreator"/> will be invoked to create
+        /// an instance of <see cref="ISyntaxReceiver"/>. This receiver will have its <see cref="ISyntaxReceiver.OnVisitSyntaxNode(SyntaxNode)"/> 
+        /// invoked for each syntax node in the compilation, allowing the receiver to build up information about the compilation before generation occurs.
+        /// 
+        /// During <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> the generator can obtain the generator instance that was created 
+        /// by accessing the <see cref="SourceGeneratorContext.SyntaxReceiver"/> property. Any information that was collected by the receiver can be
+        /// used to generate the final output.
+        /// 
+        /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning there is no need to manage the lifetime of the 
+        /// receiver or its contents.
+        /// </remarks>
+        /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator) => InfoBuilder.SyntaxReceiverCreator = receiverCreator;
     }
 
