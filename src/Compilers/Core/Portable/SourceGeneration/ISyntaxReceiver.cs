@@ -5,7 +5,6 @@
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     /// <summary>
     /// Receives notifications of each syntax node in the compilation before generation runs
     /// </summary>
@@ -25,6 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning the instance
     /// is free to store state without worrying about lifetime or reuse.
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public interface ISyntaxReceiver
     {
         /// <summary>
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis
         void OnVisitSyntaxNode(SyntaxNode syntaxNode);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     /// <summary>
     /// Allows a generator to provide instances of an <see cref="ISyntaxReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxReceiver"/></returns>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public delegate ISyntaxReceiver SyntaxReceiverCreator();
 }

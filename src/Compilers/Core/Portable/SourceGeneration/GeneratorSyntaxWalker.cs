@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis
 
         public override void Visit(SyntaxNode node)
         {
-            foreach (var receivier in _syntaxReceivers)
+            foreach (var receiver in _syntaxReceivers)
             {
-                receivier.OnVisitSyntaxNode(node);
+                receiver.OnVisitSyntaxNode(node);
             }
             base.Visit(node);
         }
