@@ -1719,14 +1719,16 @@ struct S
     }
 }
 ";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new(a) { x };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new(a) { x }").WithLocation(6, 9),
                 // (6,13): error CS0103: The name 'a' does not exist in the current context
                 //         new(a) { x };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(6, 13),
+                // (6,18): error CS0103: The name 'x' does not exist in the current context
+                //         new(a) { x };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 18),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new() { x };
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new() { x }").WithArguments("new()").WithLocation(7, 9),
