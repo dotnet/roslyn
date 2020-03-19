@@ -2483,7 +2483,7 @@ class OneToOneUnicodeComparer : StringComparer
                 // (7,15): warning CS8597: Thrown value may be null.
                 //         throw null;
                 Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(7, 15),
-                // (10,16): warning CS8767: Top-level nullability of reference types in type of parameter 'obj' of 'int StringComparer.GetHashCode(string obj)' doesn't match implicitly implemented member 'int IEqualityComparer<string?>.GetHashCode(string? obj)' (possibly because of nullability attributes).
+                // (10,16): warning CS8767: Nullability of reference types in type of parameter 'obj' of 'int StringComparer.GetHashCode(string obj)' doesn't match implicitly implemented member 'int IEqualityComparer<string?>.GetHashCode(string? obj)' (possibly because of nullability attributes).
                 //     public int GetHashCode(string obj)
                 Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation, "GetHashCode").WithArguments("obj", "int StringComparer.GetHashCode(string obj)", "int IEqualityComparer<string?>.GetHashCode(string? obj)").WithLocation(10, 16),
                 // (12,15): warning CS8597: Thrown value may be null.
