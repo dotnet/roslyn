@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 EnsureDirectory(databaseFilePath);
 
                 var directoryName = Path.GetDirectoryName(databaseFilePath);
-                if (directoryName == null)
-                    return null;
+                Contract.ThrowIfNull(directoryName);
 
                 return File.Open(
                     Path.Combine(directoryName, LockFile),
