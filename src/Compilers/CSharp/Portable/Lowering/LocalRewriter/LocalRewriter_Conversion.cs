@@ -810,7 +810,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeToUnderlying = typeTo.GetEnumUnderlyingType();
                 }
 
-                // PROTOTYPE: Test conversions to/from native int.
                 var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
@@ -1310,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
+        // https://github.com/dotnet/roslyn/issues/42452: Test with native integers and expression trees.
         private static SpecialMember DecimalConversionMethod(TypeSymbol typeFrom, TypeSymbol typeTo)
         {
             if (typeFrom.SpecialType == SpecialType.System_Decimal)
@@ -1393,7 +1393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                // PROTOTYPE: Test expression lambda cases converting between native ints and decimal.
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
@@ -1457,7 +1456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // TODO: what about nullable?
                     if (fromType.SpecialType == SpecialType.System_Decimal || toType.SpecialType == SpecialType.System_Decimal)
                     {
-                        // PROTOTYPE: Test conversions to/from native int.
                         SpecialMember member = DecimalConversionMethod(fromType, toType);
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))
@@ -1473,7 +1471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // TODO: what about nullable?
                     if (fromType.SpecialType == SpecialType.System_Decimal)
                     {
-                        // PROTOTYPE: Test conversions to/from native int.
                         SpecialMember member = DecimalConversionMethod(fromType, toType.GetEnumUnderlyingType());
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))
@@ -1485,7 +1482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (toType.SpecialType == SpecialType.System_Decimal)
                     {
-                        // PROTOTYPE: Test conversions to/from native int.
                         SpecialMember member = DecimalConversionMethod(fromType.GetEnumUnderlyingType(), toType);
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))

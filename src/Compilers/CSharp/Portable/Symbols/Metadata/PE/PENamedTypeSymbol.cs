@@ -2332,6 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ContainingAssembly.GetNativeIntegerType(this);
             }
 
+            internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 return t2 is NativeIntegerTypeSymbol nativeInteger ?
@@ -2417,6 +2419,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return _lazyTypeParameters;
                 }
             }
+
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
             private void EnsureTypeParametersAreLoaded()
             {

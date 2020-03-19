@@ -1509,21 +1509,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        // PROTOTYPE: Should be abstract.
         /// <summary>
         /// Returns an instance of a symbol that represents an native integer
         /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
         /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
         /// </summary>
-        internal virtual NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal abstract NamedTypeSymbol AsNativeInteger();
 
-        // PROTOTYPE: Should be abstract.
         /// <summary>
         /// If this is a native integer, returns the symbol for the underlying type,
         /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
         /// Otherwise, returns null.
         /// </summary>
-        internal virtual NamedTypeSymbol NativeIntegerUnderlyingType => null;
+        internal abstract NamedTypeSymbol NativeIntegerUnderlyingType { get; }
 
         protected override ISymbol CreateISymbol()
         {

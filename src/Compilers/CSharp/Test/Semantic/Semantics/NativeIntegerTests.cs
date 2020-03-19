@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -457,6 +456,424 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void Retargeting_01()
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1 = int.MinValue;
+    public static nuint F2 = int.MaxValue;
+    public static nint F3 = -1;
+    public static nuint F4 = 1;
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
+            var refA = comp.ToMetadataReference();
+
+            var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
+            var corLibA = comp.Assembly.CorLibrary;
+            Assert.Equal(corLibA, typeA.ContainingAssembly);
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""{0}, {1}, {2}, {3}"", F1, F2, F3, F4);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45);
+            CompileAndVerify(comp, expectedOutput: $"{int.MinValue}, {int.MaxValue}, -1, 1");
+
+            var corLibB = comp.Assembly.CorLibrary;
+            Assert.NotEqual(corLibA, corLibB);
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            verifyField(f1, "nint A.F1", corLibB);
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            verifyField(f2, "nuint A.F2", corLibB);
+            var f3 = comp.GetMember<FieldSymbol>("A.F3");
+            verifyField(f3, "nint A.F3", corLibB);
+            var f4 = comp.GetMember<FieldSymbol>("A.F4");
+            verifyField(f4, "nuint A.F4", corLibB);
+
+            Assert.Same(f1.Type, f3.Type);
+            Assert.Same(f2.Type, f4.Type);
+
+            static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<NativeIntegerTypeSymbol>(type);
+                Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_02()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            var assemblyName = GetUniqueName();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public class A
+{
+    public static nint F1 = -1;
+    public static nuint F2 = 1;
+    public static nint F3 = -2;
+    public static nuint F4 = 2;
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var refA = comp.ToMetadataReference();
+
+            var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
+            var corLibA = comp.Assembly.CorLibrary;
+            Assert.Equal(corLibA, typeA.ContainingAssembly);
+
+            var source2 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
+            var ref2 = comp.EmitToImageReference();
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = F1;
+        _ = F2;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //         _ = F1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F1").WithArguments("System.IntPtr").WithLocation(5, 13),
+                // (6,13): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //         _ = F2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F2").WithArguments("System.UIntPtr").WithLocation(6, 13));
+
+            var corLibB = comp.Assembly.CorLibrary;
+            Assert.NotEqual(corLibA, corLibB);
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            verifyField(f1, "nint A.F1", corLibB);
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            verifyField(f2, "nuint A.F2", corLibB);
+            var f3 = comp.GetMember<FieldSymbol>("A.F3");
+            verifyField(f3, "nint A.F3", corLibB);
+            var f4 = comp.GetMember<FieldSymbol>("A.F4");
+            verifyField(f4, "nuint A.F4", corLibB);
+
+            // MissingMetadataTypeSymbol.TopLevel instances are not reused.
+            Assert.Equal(f1.Type, f3.Type);
+            Assert.NotSame(f1.Type, f3.Type);
+            Assert.Equal(f2.Type, f4.Type);
+            Assert.NotSame(f2.Type, f4.Type);
+
+            static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
+                Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_03()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var assemblyName = GetUniqueName();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public class A
+{
+    public static nint F1 = -1;
+    public static nuint F2 = 1;
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //     public static nint F1 = -1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 19),
+                // (4,19): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //     public static nuint F2 = 1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(4, 19));
+            var refA = comp.ToMetadataReference();
+
+            var typeA = comp.GetMember<FieldSymbol>("A.F1").Type;
+            var corLibA = comp.Assembly.CorLibrary;
+            Assert.Equal(corLibA, typeA.ContainingAssembly);
+
+            var source2 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { source2 }, references: null);
+            var ref2 = comp.EmitToImageReference();
+
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = F1;
+        _ = F2;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //         _ = F1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F1").WithArguments("System.IntPtr").WithLocation(5, 13),
+                // (6,13): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //         _ = F2;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F2").WithArguments("System.UIntPtr").WithLocation(6, 13));
+
+            var corLibB = comp.Assembly.CorLibrary;
+            Assert.NotEqual(corLibA, corLibB);
+
+            var f1 = comp.GetMember<FieldSymbol>("A.F1");
+            verifyField(f1, "nint A.F1", corLibA);
+            var f2 = comp.GetMember<FieldSymbol>("A.F2");
+            verifyField(f2, "nuint A.F2", corLibA);
+
+            static void verifyField(FieldSymbol field, string expectedSymbol, AssemblySymbol expectedAssembly)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
+                Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_04()
+        {
+            var sourceA =
+@"public class A
+{
+}";
+            var assemblyName = GetUniqueName();
+            var references = TargetFrameworkUtil.GetReferences(TargetFramework.Standard).ToArray();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), new[] { sourceA }, references: references);
+            var refA1 = comp.EmitToImageReference();
+
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), new[] { sourceA }, references: references);
+            var refA2 = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B
+{
+    public static A F0 = new A();
+    public static nint F1 = int.MinValue;
+    public static nuint F2 = int.MaxValue;
+    public static nint F3 = -1;
+    public static nuint F4 = 1;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA1 }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            var refB = comp.ToMetadataReference();
+            var f0B = comp.GetMember<FieldSymbol>("B.F0");
+            var t1B = comp.GetMember<FieldSymbol>("B.F1").Type;
+            var t2B = comp.GetMember<FieldSymbol>("B.F2").Type;
+
+            var sourceC =
+@"class C : B
+{
+    static void Main()
+    {
+        _ = F0;
+        _ = F1;
+        _ = F2;
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refA2, refB }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+            comp.VerifyDiagnostics();
+
+            var f0 = comp.GetMember<FieldSymbol>("B.F0");
+            Assert.NotEqual(f0B.Type.ContainingAssembly, f0.Type.ContainingAssembly);
+            Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(f0);
+
+            var f1 = comp.GetMember<FieldSymbol>("B.F1");
+            verifyField(f1, "nint B.F1");
+            var f2 = comp.GetMember<FieldSymbol>("B.F2");
+            verifyField(f2, "nuint B.F2");
+            var f3 = comp.GetMember<FieldSymbol>("B.F3");
+            verifyField(f3, "nint B.F3");
+            var f4 = comp.GetMember<FieldSymbol>("B.F4");
+            verifyField(f4, "nuint B.F4");
+
+            Assert.Same(t1B, f1.Type);
+            Assert.Same(t2B, f2.Type);
+            Assert.Same(f1.Type, f3.Type);
+            Assert.Same(f2.Type, f4.Type);
+
+            static void verifyField(FieldSymbol field, string expectedSymbol)
+            {
+                Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
+                Assert.Equal(expectedSymbol, field.ToTestDisplayString());
+                var type = (NamedTypeSymbol)field.Type;
+                Assert.True(type.IsNativeIntegerType);
+                Assert.IsType<NativeIntegerTypeSymbol>(type);
+            }
+        }
+
+        [Fact]
+        public void Retargeting_05()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            var comp = CreateCompilation(new AssemblyIdentity("9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public abstract class A<T>
+{
+    public abstract void F<U>() where U : T;
+}
+public class B : A<nint>
+{
+    public override void F<U>() { }
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var refA = comp.ToMetadataReference();
+
+            var type1 = getConstraintType(comp);
+            Assert.True(type1.IsNativeIntegerType);
+            Assert.False(type1.IsErrorType());
+
+            var sourceB =
+@"class C : B
+{
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // class C : B
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Void").WithLocation(1, 7),
+                // (1,11): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                // class C : B
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IntPtr").WithLocation(1, 11),
+                // (1,11): error CS0012: The type 'Object' is defined in an assembly that is not referenced. You must add a reference to assembly '9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // class C : B
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Object", "9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 11));
+
+            var type2 = getConstraintType(comp);
+            Assert.True(type2.ContainingAssembly.IsMissing);
+            Assert.False(type2.IsNativeIntegerType);
+            Assert.True(type2.IsErrorType());
+
+            static TypeSymbol getConstraintType(CSharpCompilation comp) =>
+                comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
+        }
+
+        [Fact]
+        public void Retargeting_06()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class IntPtr { }
+    public class UIntPtr { }
+}";
+            var comp = CreateCompilation(new AssemblyIdentity("c804cc09-8f73-44a1-9cfe-9567bed1def6", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
+            var ref1 = comp.EmitToImageReference();
+
+            var sourceA =
+@"public class A : nint
+{
+}";
+            comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+
+            var refA = comp.ToMetadataReference();
+            var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
+            Assert.True(typeA.IsNativeIntegerType);
+            Assert.False(typeA.IsErrorType());
+
+            var sourceB =
+@"class B : A
+{
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // class B : A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(1, 7),
+                // (1,11): error CS0012: The type 'IntPtr' is defined in an assembly that is not referenced. You must add a reference to assembly 'c804cc09-8f73-44a1-9cfe-9567bed1def6, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // class B : A
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.IntPtr", "c804cc09-8f73-44a1-9cfe-9567bed1def6, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 11));
+
+            var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
+            Assert.True(typeB.ContainingAssembly.IsMissing);
+            Assert.False(typeB.IsNativeIntegerType);
+            Assert.True(typeB.IsErrorType());
+        }
+
+        [Fact]
         public void Interfaces()
         {
             var sourceA =
@@ -751,7 +1168,6 @@ namespace System
                 comp.VerifyDiagnostics();
                 verifyCompilation(comp, includesIEquatable);
             }
-
 
             static void verifyCompilation(CSharpCompilation comp, bool includesIEquatable)
             {
@@ -1401,11 +1817,6 @@ public class B2 : A<nuint> { }
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Test:
-        // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol has the comment "dynamic not allowed as an attribute type". Does that apply to "nint"?
-        // - BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol checks IsViableType(result)
-        // - Type unification of I<System.IntPtr> and I<nint>
-
         [Fact]
         public void ClassName()
         {
@@ -1789,6 +2200,7 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
+        [WorkItem(42453, "https://github.com/dotnet/roslyn/issues/42453")]
         [Fact]
         public void ReadOnlyField_VirtualMethods()
         {
@@ -1851,8 +2263,8 @@ False
             //   ldfld      ""int MyInt._i""
             //   call       ""string int.ToString()""
             // The code below is valid but equivalent to code for a struct type that does not override ToString().
-            // PROTOTYPE: Should NativeIntegerTypeSymbol.GetMembers() include members for ToString(),
-            // Equals(), GetHashCode()? That would fix this difference and avoid the PEVerify failure above.
+            // https://github.com/dotnet/roslyn/issues/42453: Should NativeIntegerTypeSymbol.GetMembers() include
+            // ToString(), Equals(), GetHashCode()? That would fix this difference and avoid the PEVerify failure above.
             verifier.VerifyIL("MyInt.ToString",
 @"{
   // Code size       18 (0x12)
@@ -1987,6 +2399,220 @@ False
                     return type.IsNullableType() && isNativeInt(type.GetNullableUnderlyingType(), signed);
                 }
             }
+        }
+
+        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInConversions_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void M1()
+    {
+        long x = F1;
+        ulong y = F2;
+        long? z = F3;
+        ulong? w = F4;
+    }
+    static void M2(int x, uint y, int? z, uint? w)
+    {
+        F1 = x;
+        F2 = y;
+        F3 = z;
+        F4 = w;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("B.M1",
+@"{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldsfld     ""nint A.F1""
+  IL_0005:  pop
+  IL_0006:  ldsfld     ""nuint A.F2""
+  IL_000b:  pop
+  IL_000c:  ldsfld     ""nint? A.F3""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool nint?.HasValue.get""
+  IL_0019:  brfalse.s  IL_0023
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  pop
+  IL_0023:  ldsfld     ""nuint? A.F4""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""bool nuint?.HasValue.get""
+  IL_0030:  brfalse.s  IL_003a
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0039:  pop
+  IL_003a:  ret
+}");
+            verifier.VerifyIL("B.M2",
+@"{
+  // Code size       95 (0x5f)
+  .maxstack  1
+  .locals init (int? V_0,
+                nint? V_1,
+                uint? V_2,
+                nuint? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  stsfld     ""nint A.F1""
+  IL_0007:  ldarg.1
+  IL_0008:  conv.u
+  IL_0009:  stsfld     ""nuint A.F2""
+  IL_000e:  ldarg.2
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""bool int?.HasValue.get""
+  IL_0017:  brtrue.s   IL_0024
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  initobj    ""nint?""
+  IL_0021:  ldloc.1
+  IL_0022:  br.s       IL_0031
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int int?.GetValueOrDefault()""
+  IL_002b:  conv.i
+  IL_002c:  newobj     ""nint?..ctor(nint)""
+  IL_0031:  stsfld     ""nint? A.F3""
+  IL_0036:  ldarg.3
+  IL_0037:  stloc.2
+  IL_0038:  ldloca.s   V_2
+  IL_003a:  call       ""bool uint?.HasValue.get""
+  IL_003f:  brtrue.s   IL_004c
+  IL_0041:  ldloca.s   V_3
+  IL_0043:  initobj    ""nuint?""
+  IL_0049:  ldloc.3
+  IL_004a:  br.s       IL_0059
+  IL_004c:  ldloca.s   V_2
+  IL_004e:  call       ""uint uint?.GetValueOrDefault()""
+  IL_0053:  conv.u
+  IL_0054:  newobj     ""nuint?..ctor(nuint)""
+  IL_0059:  stsfld     ""nuint? A.F4""
+  IL_005e:  ret
+}");
+        }
+
+        [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BuiltInOperators_CSharp8(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public static nint F1;
+    public static nuint F2;
+    public static nint? F3;
+    public static nuint? F4;
+}";
+            var sourceB =
+@"class B : A
+{
+    static void Main()
+    {
+        _ = -F1;
+        _ = +F2;
+        _ = -F3;
+        _ = +F4;
+        _ = F1 * F1;
+        _ = F2 / F2;
+        _ = F3 * F1;
+        _ = F4 / F2;
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("B.Main",
+@"{
+  // Code size      143 (0x8f)
+  .maxstack  2
+  .locals init (nint? V_0,
+                nuint? V_1,
+                System.IntPtr V_2,
+                System.UIntPtr V_3)
+  IL_0000:  ldsfld     ""nint A.F1""
+  IL_0005:  pop
+  IL_0006:  ldsfld     ""nuint A.F2""
+  IL_000b:  pop
+  IL_000c:  ldsfld     ""nint? A.F3""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool nint?.HasValue.get""
+  IL_0019:  brfalse.s  IL_0023
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0022:  pop
+  IL_0023:  ldsfld     ""nuint? A.F4""
+  IL_0028:  stloc.1
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""bool nuint?.HasValue.get""
+  IL_0030:  brfalse.s  IL_003a
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_0039:  pop
+  IL_003a:  ldsfld     ""nint A.F1""
+  IL_003f:  pop
+  IL_0040:  ldsfld     ""nint A.F1""
+  IL_0045:  pop
+  IL_0046:  ldsfld     ""nuint A.F2""
+  IL_004b:  ldsfld     ""nuint A.F2""
+  IL_0050:  div.un
+  IL_0051:  pop
+  IL_0052:  ldsfld     ""nint? A.F3""
+  IL_0057:  stloc.0
+  IL_0058:  ldsfld     ""nint A.F1""
+  IL_005d:  stloc.2
+  IL_005e:  ldloca.s   V_0
+  IL_0060:  call       ""bool nint?.HasValue.get""
+  IL_0065:  brfalse.s  IL_006f
+  IL_0067:  ldloca.s   V_0
+  IL_0069:  call       ""nint nint?.GetValueOrDefault()""
+  IL_006e:  pop
+  IL_006f:  ldsfld     ""nuint? A.F4""
+  IL_0074:  stloc.1
+  IL_0075:  ldsfld     ""nuint A.F2""
+  IL_007a:  stloc.3
+  IL_007b:  ldloca.s   V_1
+  IL_007d:  call       ""bool nuint?.HasValue.get""
+  IL_0082:  brfalse.s  IL_008e
+  IL_0084:  ldloca.s   V_1
+  IL_0086:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_008b:  ldloc.3
+  IL_008c:  div.un
+  IL_008d:  pop
+  IL_008e:  ret
+}");
+        }
+
+        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
+        {
+            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
         }
 
         [Theory]
@@ -3180,7 +3806,8 @@ $@"{{
                     sourceType,
                     destType,
                     expectedImplicitIL,
-                    skipTypeChecks: usesIntPtrOrUIntPtr(sourceType) || usesIntPtrOrUIntPtr(destType), // PROTOTYPE: Not distinguishing IntPtr from nint.
+                    // https://github.com/dotnet/roslyn/issues/42454: TypeInfo.ConvertedType does not include identity conversion between underlying type and native int.
+                    skipTypeChecks: usesIntPtrOrUIntPtr(sourceType) || usesIntPtrOrUIntPtr(destType),
                     useExplicitCast: false,
                     useChecked: false,
                     expectedImplicitIL is null ?
@@ -3217,7 +3844,8 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "nint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nint", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.i.
+// https://github.com/dotnet/roslyn/issues/42457: Investigate whether this conversion (and other
+// conversions to/from void*) can use conv.i or conv.u instead of explicit operators on System.[U]IntPtr.
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -3317,7 +3945,6 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "nint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nint?", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.i.
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -3465,7 +4092,6 @@ $@"{{
 }");
             conversions(sourceType: "nint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint", destType: "void*", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.i.
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -3482,7 +4108,9 @@ $@"{{
             conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
             conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
             conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            // https://github.com/dotnet/roslyn/issues/42457: Investigate why this conversion (and other conversions from nint to ulong and from nuint to long)
+            // use differently signed opcodes for unchecked and checked conversions. (Why conv.i8 but conv.ovf.u8 here for instance?)
+            conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
             conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
             conversions(sourceType: "nint", destType: "decimal",
@@ -3513,7 +4141,7 @@ $@"{{
             conversions(sourceType: "nint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "int"));
             conversions(sourceType: "nint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4", "uint"));
             conversions(sourceType: "nint", destType: "long?", expectedImplicitIL: convToNullableT("conv.i8", "long"), expectedExplicitIL: convToNullableT("conv.i8", "long"));
-            conversions(sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i8", "ulong"), expectedCheckedIL: convToNullableT("conv.ovf.u8", "ulong"));
             conversions(sourceType: "nint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
             conversions(sourceType: "nint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
             conversions(sourceType: "nint", destType: "decimal?",
@@ -3568,7 +4196,6 @@ $@"{{
 }");
             conversions(sourceType: "nint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nint?", destType: "void*", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.i.
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -3586,7 +4213,7 @@ $@"{{
             conversions(sourceType: "nint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4", "nint"));
             conversions(sourceType: "nint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4", "nint"));
             conversions(sourceType: "nint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"));
-            conversions(sourceType: "nint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i8", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u8", "nint"));
             conversions(sourceType: "nint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nint"));
             conversions(sourceType: "nint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nint"));
             conversions(sourceType: "nint?", destType: "decimal", expectedImplicitIL: null,
@@ -3617,7 +4244,7 @@ $@"{{
             conversions(sourceType: "nint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "int"));
             conversions(sourceType: "nint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4", "nint", "uint"));
             conversions(sourceType: "nint?", destType: "long?", expectedImplicitIL: convFromToNullableT("conv.i8", "nint", "long"), expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "long"));
-            conversions(sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong")); // PROTOTYPE: Why conv.i8 but conv.ovf.u8?
+            conversions(sourceType: "nint?", destType: "ulong?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i8", "nint", "ulong"), expectedCheckedIL: convFromToNullableT("conv.ovf.u8", "nint", "ulong"));
             conversions(sourceType: "nint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nint", "float"), null);
             conversions(sourceType: "nint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nint", "double"), null);
             conversions(sourceType: "nint?", destType: "decimal?",
@@ -3675,7 +4302,6 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nuint", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.u.
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -3775,7 +4401,6 @@ $@"{{
 }");
             conversions(sourceType: "string", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "void*", destType: "nuint?", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.u.
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -3923,7 +4548,6 @@ $@"{{
 }");
             conversions(sourceType: "nuint", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint", destType: "void*", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.u.
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -3939,7 +4563,7 @@ $@"{{
             conversions(sourceType: "nuint", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u2"), expectedCheckedIL: conv("conv.ovf.u2.un"));
             conversions(sourceType: "nuint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4.un"));
             conversions(sourceType: "nuint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
-            conversions(sourceType: "nuint", destType: "long", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint", destType: "long", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un"));
             conversions(sourceType: "nuint", destType: "ulong", expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
             conversions(sourceType: "nuint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             conversions(sourceType: "nuint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
@@ -3970,7 +4594,7 @@ $@"{{
             conversions(sourceType: "nuint", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u2", "ushort"), expectedCheckedIL: convToNullableT("conv.ovf.u2.un", "ushort"));
             conversions(sourceType: "nuint", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "int"), expectedCheckedIL: convToNullableT("conv.ovf.i4.un", "int"));
             conversions(sourceType: "nuint", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
-            conversions(sourceType: "nuint", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long"));
             conversions(sourceType: "nuint", destType: "ulong?", expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
             conversions(sourceType: "nuint", destType: "float?", expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
             conversions(sourceType: "nuint", destType: "double?", expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
@@ -4026,7 +4650,6 @@ $@"{{
 }");
             conversions(sourceType: "nuint?", destType: "string", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "nuint?", destType: "void*", expectedImplicitIL: null,
-// PROTOTYPE: Should be conv.u.
 @"{
   // Code size       13 (0xd)
   .maxstack  1
@@ -4043,7 +4666,7 @@ $@"{{
             conversions(sourceType: "nuint?", destType: "ushort", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u2", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u2.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "int", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i4.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
-            conversions(sourceType: "nuint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint?", destType: "long", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
             conversions(sourceType: "nuint?", destType: "float", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
             conversions(sourceType: "nuint?", destType: "double", expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
@@ -4074,7 +4697,7 @@ $@"{{
             conversions(sourceType: "nuint?", destType: "ushort?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u2", "nuint", "ushort"), expectedCheckedIL: convFromToNullableT("conv.ovf.u2.un", "nuint", "ushort"));
             conversions(sourceType: "nuint?", destType: "int?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nuint", "int"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4.un", "nuint", "int"));
             conversions(sourceType: "nuint?", destType: "uint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
-            conversions(sourceType: "nuint?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long")); // PROTOTYPE: Why conv.u8 but conv.ovf.i8.un?
+            conversions(sourceType: "nuint?", destType: "long?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long"));
             conversions(sourceType: "nuint?", destType: "ulong?", expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
             conversions(sourceType: "nuint?", destType: "float?", expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
             conversions(sourceType: "nuint?", destType: "double?", expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
@@ -4177,8 +4800,6 @@ $@"{{
             }
         }
 
-        // PROTOTYPE: Test unary operator- with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
-
         [Fact]
         public void UnaryOperators()
         {
@@ -4215,8 +4836,20 @@ $@"{{
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-            //unaryOp("+", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //unaryOp("+", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("+", "System.IntPtr", "nint System.IntPtr.op_UnaryPlus(System.IntPtr value)", "((System.IntPtr)3)", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            unaryOp("+", "System.UIntPtr", "nuint System.UIntPtr.op_UnaryPlus(System.UIntPtr value)", "((System.UIntPtr)3)", "3",
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
             unaryOp("-", "nint", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
 @"{
   // Code size        3 (0x3)
@@ -4225,8 +4858,15 @@ $@"{{
   IL_0001:  neg
   IL_0002:  ret
 }");
-            unaryOp("-", "nuint", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            //unaryOp("-", "System.IntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("-", "nuint");
+            unaryOp("-", "System.IntPtr", "nint System.IntPtr.op_UnaryNegation(System.IntPtr value)", "((System.IntPtr)3)", "-3",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
             unaryOp("-", "System.UIntPtr");
             unaryOp("!", "nint");
             unaryOp("!", "nuint");
@@ -4248,8 +4888,22 @@ $@"{{
   IL_0001:  not
   IL_0002:  ret
 }");
-            //unaryOp("~", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //unaryOp("~", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            unaryOp("~", "System.IntPtr", "nint System.IntPtr.op_OnesComplement(System.IntPtr value)", "((System.IntPtr)3)", "-4",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
+            unaryOp("~", "System.UIntPtr", "nuint System.UIntPtr.op_OnesComplement(System.UIntPtr value)", "((System.UIntPtr)3)", getComplement(3),
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  not
+  IL_0002:  ret
+}");
 
             unaryOp("+", "nint?", "nint nint.op_UnaryPlus(nint value)", "3", "3",
 @"{
@@ -4291,8 +4945,46 @@ $@"{{
   IL_001c:  newobj     ""nuint?..ctor(nuint)""
   IL_0021:  ret
 }");
-            //unaryOp("+", "System.IntPtr?"); // PROTOTYPE: Not handled.
-            //unaryOp("+", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+            unaryOp("+", "System.IntPtr?", "nint System.IntPtr.op_UnaryPlus(System.IntPtr value)", "((System.IntPtr)3)", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}");
+            unaryOp("+", "System.UIntPtr?", "nuint System.UIntPtr.op_UnaryPlus(System.UIntPtr value)", "((System.UIntPtr)3)", "3",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}");
             unaryOp("-", "nint?", "nint nint.op_UnaryNegation(nint value)", "3", "-3",
 @"{
   // Code size       35 (0x23)
@@ -4314,8 +5006,32 @@ $@"{{
   IL_001d:  newobj     ""nint?..ctor(nint)""
   IL_0022:  ret
 }");
-            unaryOp("-", "nuint?", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            //unaryOp("-", "System.IntPtr?"); // PROTOTYPE: Not handled.
+            // Reporting ERR_AmbigUnaryOp for `-(nuint?)value` is inconsistent with the ERR_BadUnaryOp reported
+            // for `-(nuint)value`, but that difference in behavior is consistent with the pair of errors reported for
+            // `-(ulong?)value` and `-(ulong)value`. See the "Special case" in Binder.UnaryOperatorOverloadResolution()
+            // which handles ulong but not ulong?.
+            unaryOp("-", "nuint?", null, null, null, null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?"));
+            unaryOp("-", "System.IntPtr?", "nint System.IntPtr.op_UnaryNegation(System.IntPtr value)", "((System.IntPtr)3)", "-3",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  neg
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
             unaryOp("-", "System.UIntPtr?");
             unaryOp("!", "nint?");
             unaryOp("!", "nuint?");
@@ -4363,8 +5079,48 @@ $@"{{
   IL_001d:  newobj     ""nuint?..ctor(nuint)""
   IL_0022:  ret
 }");
-            //unaryOp("~", "System.IntPtr?"); // PROTOTYPE: Not handled.
-            //unaryOp("~", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+            unaryOp("~", "System.IntPtr?", "nint System.IntPtr.op_OnesComplement(System.IntPtr value)", "((System.IntPtr)3)", "-4",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nint?..ctor(nint)""
+  IL_0022:  ret
+}");
+            unaryOp("~", "System.UIntPtr?", "nuint System.UIntPtr.op_OnesComplement(System.UIntPtr value)", "((System.UIntPtr)3)", getComplement(3),
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001c:  not
+  IL_001d:  newobj     ""nuint?..ctor(nuint)""
+  IL_0022:  ret
+}");
 
             void unaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
@@ -4490,8 +5246,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            //incrementOps("++", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //incrementOps("++", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            incrementOps("++", "System.IntPtr", "System.IntPtr System.IntPtr.op_Increment(System.IntPtr value)", useChecked: false,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)(-1)), ((System.IntPtr)0), ((System.IntPtr){int.MaxValue - 1}), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "-2147483648" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Increment(System.UIntPtr value)", useChecked: false,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr){int.MaxValue}), ((System.UIntPtr){uint.MaxValue - 1}), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "0" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: false,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
                 expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
@@ -4564,8 +5390,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            //incrementOps("--", "System.IntPtr"); // PROTOTYPE: Not handled.
-            //incrementOps("--", "System.UIntPtr"); // PROTOTYPE: Not handled.
+            incrementOps("--", "System.IntPtr", "System.IntPtr System.IntPtr.op_Decrement(System.IntPtr value)", useChecked: false,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)({int.MinValue + 1})), ((System.IntPtr)0), ((System.IntPtr)1), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? "2147483647" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Decrement(System.UIntPtr value)", useChecked: false,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr)1), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString())}, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
 
             incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: true,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
@@ -4639,6 +5535,78 @@ $@"{{
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
+            incrementOps("++", "System.IntPtr", "System.IntPtr System.IntPtr.op_Increment(System.IntPtr value)", useChecked: true,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)(-1)), ((System.IntPtr)0), ((System.IntPtr){int.MaxValue - 1}), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("++", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Increment(System.UIntPtr value)", useChecked: true,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr){int.MaxValue}), ((System.UIntPtr){uint.MaxValue - 1}), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "System.OverflowException" : "4294967296")}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
             incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: true,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
                 expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
@@ -4704,6 +5672,78 @@ $@"{{
   IL_0014:  br.s       IL_0024
   IL_0016:  ldloca.s   V_0
   IL_0018:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf.un
+  IL_001f:  newobj     ""nuint?..ctor(nuint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.IntPtr", "System.IntPtr System.IntPtr.op_Decrement(System.IntPtr value)", useChecked: true,
+                values: $"((System.IntPtr)({int.MinValue})), ((System.IntPtr)({int.MinValue + 1})), ((System.IntPtr)0), ((System.IntPtr)1), ((System.IntPtr){int.MaxValue})",
+                expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.IntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub.ovf
+  IL_001f:  newobj     ""nint?..ctor(nint)""
+  IL_0024:  starg.s    V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ret
+}");
+            incrementOps("--", "System.UIntPtr", "System.UIntPtr System.UIntPtr.op_Decrement(System.UIntPtr value)", useChecked: true,
+                values: $"((System.UIntPtr)0), ((System.UIntPtr)1), ((System.UIntPtr){uint.MaxValue})",
+                expectedResult: $"System.OverflowException, 0, 4294967294",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub.ovf.un
+  IL_0003:  starg.s    V_0
+  IL_0005:  ldarg.0
+  IL_0006:  ret
+}",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (System.UIntPtr? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""System.UIntPtr?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0024
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
   IL_001d:  ldc.i4.1
   IL_001e:  sub.ovf.un
   IL_001f:  newobj     ""nuint?..ctor(nuint)""
@@ -4993,6 +6033,59 @@ class Program
                     verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
+        }
+
+        [Fact]
+        public void UnaryOperators_UserDefined()
+        {
+            string sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public struct IntPtr
+    {
+        public static IntPtr operator-(IntPtr i) => i;
+    }
+}";
+            string sourceB =
+@"class Program
+{
+    static System.IntPtr F1(System.IntPtr i) => -i;
+    static nint F2(nint i) => -i;
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, emitOptions: EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"), verify: Verification.Skipped);
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_UnaryNegation(System.IntPtr)""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
         }
 
         [Fact]
@@ -5783,9 +6876,22 @@ $@"1
             {
                 if (expectedSymbol == null && diagnostics == null)
                 {
-                    diagnostics = new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
+                    diagnostics = getBadBinaryOpsDiagnostics(op, leftType, rightType);
                 }
                 binaryOperator(op, leftType, rightType, expectedSymbol, diagnostics ?? Array.Empty<DiagnosticDescription>());
+            }
+
+            static DiagnosticDescription[] getBadBinaryOpsDiagnostics(string op, string leftType, string rightType, bool includeBadBinaryOps = true, bool includeVoidError = false)
+            {
+                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+                if (includeBadBinaryOps) builder.Add(Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType));
+                if (includeVoidError) builder.Add(Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y"));
+                return builder.ToArrayAndFree();
+            }
+
+            static DiagnosticDescription[] getAmbiguousBinaryOpsDiagnostics(string op, string leftType, string rightType)
+            {
+                return new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType) };
             }
 
             var arithmeticOperators = new[]
@@ -5825,10 +6931,10 @@ $@"1
 
             foreach ((string symbol, string name) in arithmeticOperators)
             {
+                bool includeBadBinaryOps = (symbol != "-");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string");
-                // PROTOTYPE: Test all:
-                if (symbol == "*") binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, long right)" : null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -5838,13 +6944,13 @@ $@"1
                 binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
                 binaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -5855,18 +6961,17 @@ $@"1
                 binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
                 binaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
-                // PROTOTYPE: Test all:
-                if (symbol == "*") binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -5876,13 +6981,13 @@ $@"1
                 binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
                 binaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
                 binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -5893,97 +6998,95 @@ $@"1
                 binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
                 binaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
-                // PROTOTYPE: Test all:
-                if (symbol == "*") binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
                 binaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
                 binaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
                 binaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
                 binaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
-                // PROTOTYPE: Test all:
-                if (symbol == "*") binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in comparisonOperators)
             {
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string");
-                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
+                binaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
@@ -5993,13 +7096,13 @@ $@"1
                 binaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
                 binaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6010,17 +7113,17 @@ $@"1
                 binaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
                 binaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
-                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
@@ -6030,13 +7133,13 @@ $@"1
                 binaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
                 binaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
                 binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6047,88 +7150,88 @@ $@"1
                 binaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
                 binaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
-                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
+                binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
                 binaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
                 binaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
                 binaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
                 binaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
-                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in additionOperators)
@@ -6145,13 +7248,13 @@ $@"1
                 binaryOps(symbol, "nint", "int", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
                 binaryOps(symbol, "nint", "long", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6162,17 +7265,17 @@ $@"1
                 binaryOps(symbol, "nint", "int?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint?", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint?", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
                 binaryOps(symbol, "nint", "long?", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -6182,13 +7285,13 @@ $@"1
                 binaryOps(symbol, "nint?", "int", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
                 binaryOps(symbol, "nint?", "long", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
                 binaryOps(symbol, "nint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6199,13 +7302,13 @@ $@"1
                 binaryOps(symbol, "nint?", "int?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint?", $"long long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint?", $"nint nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
                 binaryOps(symbol, "nint?", "long?", $"long long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
@@ -6216,78 +7319,78 @@ $@"1
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
                 binaryOps(symbol, "nuint", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
                 binaryOps(symbol, "nuint", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
                 binaryOps(symbol, "nuint", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
                 binaryOps(symbol, "nuint", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
-                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong?", $"ulong ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             foreach ((string symbol, string name) in shiftOperators)
             {
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string");
-                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, int right)", null);
                 binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, int right)", null);
@@ -6324,7 +7427,7 @@ $@"1
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
-                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, int right)", null);
                 binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, int right)", null);
@@ -6361,7 +7464,7 @@ $@"1
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
-                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, int right)", null);
                 binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
@@ -6398,7 +7501,7 @@ $@"1
                 binaryOps(symbol, "nuint", "System.UIntPtr?");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
-                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, int right)", null);
                 binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, int right)", null);
@@ -6439,7 +7542,7 @@ $@"1
             {
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string");
-                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint") });
+                binaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint"));
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "sbyte", $"bool nint.{name}(nint left, nint right)");
@@ -6449,13 +7552,13 @@ $@"1
                 binaryOps(symbol, "nint", "int", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") });
+                binaryOps(symbol, "nint", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"));
                 binaryOps(symbol, "nint", "long", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint") });
+                binaryOps(symbol, "nint", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint"));
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6466,17 +7569,17 @@ $@"1
                 binaryOps(symbol, "nint", "int?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "uint?", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint", "nint?", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") });
+                binaryOps(symbol, "nint", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"));
                 binaryOps(symbol, "nint", "long?", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint") });
+                binaryOps(symbol, "nint", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint"));
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
-                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?"));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "sbyte", $"bool nint.{name}(nint left, nint right)");
@@ -6486,13 +7589,13 @@ $@"1
                 binaryOps(symbol, "nint?", "int", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") });
+                binaryOps(symbol, "nint?", "nuint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"));
                 binaryOps(symbol, "nint?", "long", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong", "nint?") });
+                binaryOps(symbol, "nint?", "ulong", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong", "nint?"));
                 binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -6503,95 +7606,95 @@ $@"1
                 binaryOps(symbol, "nint?", "int?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "uint?", $"bool long.{name}(long left, long right)");
                 binaryOps(symbol, "nint?", "nint?", $"bool nint.{name}(nint left, nint right)");
-                binaryOps(symbol, "nint?", "nuint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") });
+                binaryOps(symbol, "nint?", "nuint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"));
                 binaryOps(symbol, "nint?", "long?", $"bool long.{name}(long left, long right)");
-                binaryOps(symbol, "nint?", "ulong?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "ulong?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "ulong?", "nint?") });
+                binaryOps(symbol, "nint?", "ulong?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "ulong?"), getAmbiguousBinaryOpsDiagnostics(symbol, "ulong?", "nint?"));
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
-                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint") });
+                binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint") });
+                binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint") });
+                binaryOps(symbol, "nuint", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint"));
                 binaryOps(symbol, "nuint", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint") });
+                binaryOps(symbol, "nuint", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint"));
                 binaryOps(symbol, "nuint", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint") });
+                binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint") });
+                binaryOps(symbol, "nuint", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint"));
                 binaryOps(symbol, "nuint", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint") });
+                binaryOps(symbol, "nuint", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint"));
                 binaryOps(symbol, "nuint", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
-                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int", "nuint?") });
+                binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long", "nuint?") });
+                binaryOps(symbol, "nuint?", "long", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long"), getAmbiguousBinaryOpsDiagnostics(symbol, "long", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "int?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "int?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "int?", "nuint?") });
+                binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "nint?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "nint?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "nuint?") });
+                binaryOps(symbol, "nuint?", "nint?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "nint?"), getAmbiguousBinaryOpsDiagnostics(symbol, "nint?", "nuint?"));
                 binaryOps(symbol, "nuint?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "long?", null, null, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "long?") }, new[] { Diagnostic(ErrorCode.ERR_AmbigBinaryOps, $"x {symbol} y").WithArguments(symbol, "long?", "nuint?") });
+                binaryOps(symbol, "nuint?", "long?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "long?"), getAmbiguousBinaryOpsDiagnostics(symbol, "long?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ulong?", $"bool ulong.{name}(ulong left, ulong right)");
                 binaryOps(symbol, "nuint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
             }
 
             foreach ((string symbol, string name) in logicalOperators)
             {
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint", "string");
-                binaryOps(symbol, "nint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint", includeVoidError: true));
                 binaryOps(symbol, "nint", "bool");
                 binaryOps(symbol, "nint", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -6607,7 +7710,7 @@ $@"1
                 binaryOps(symbol, "nint", "float");
                 binaryOps(symbol, "nint", "double");
                 binaryOps(symbol, "nint", "decimal");
-                //binaryOps(symbol, "nint", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6624,11 +7727,11 @@ $@"1
                 binaryOps(symbol, "nint", "float?");
                 binaryOps(symbol, "nint", "double?");
                 binaryOps(symbol, "nint", "decimal?");
-                //binaryOps(symbol, "nint", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
-                binaryOps(symbol, "nint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nint?", includeVoidError: true));
                 binaryOps(symbol, "nint?", "bool");
                 binaryOps(symbol, "nint?", "char", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "sbyte", $"nint nint.{name}(nint left, nint right)");
@@ -6644,7 +7747,7 @@ $@"1
                 binaryOps(symbol, "nint?", "float");
                 binaryOps(symbol, "nint?", "double");
                 binaryOps(symbol, "nint?", "decimal");
-                //binaryOps(symbol, "nint?", "System.IntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -6661,11 +7764,11 @@ $@"1
                 binaryOps(symbol, "nint?", "float?");
                 binaryOps(symbol, "nint?", "double?");
                 binaryOps(symbol, "nint?", "decimal?");
-                //binaryOps(symbol, "nint?", "System.IntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
-                binaryOps(symbol, "nuint", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6682,7 +7785,7 @@ $@"1
                 binaryOps(symbol, "nuint", "double");
                 binaryOps(symbol, "nuint", "decimal");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                //binaryOps(symbol, "nuint", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6699,10 +7802,10 @@ $@"1
                 binaryOps(symbol, "nuint", "double?");
                 binaryOps(symbol, "nuint", "decimal?");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                //binaryOps(symbol, "nuint", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
-                binaryOps(symbol, "nuint?", "void*", null, null, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "nuint?", "void*"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") }, new[] { Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {symbol} y").WithArguments(symbol, "void*", "nuint?"), Diagnostic(ErrorCode.ERR_VoidError, $"x {symbol} y") });
+                binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6719,7 +7822,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double");
                 binaryOps(symbol, "nuint?", "decimal");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -6736,7 +7839,7 @@ $@"1
                 binaryOps(symbol, "nuint?", "double?");
                 binaryOps(symbol, "nuint?", "decimal?");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                //binaryOps(symbol, "nuint?", "System.UIntPtr?"); // PROTOTYPE: Not handled.
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
             }
 
             void binaryOperator(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
@@ -7361,9 +8464,9 @@ class Program
             unaryOperatorCheckedOverflow("nint", "-", intMinValue, IntPtr.Size == 4 ? "-2147483648" : "2147483648");
             unaryOperator("nint", "-", "-2147483647", intMaxValue);
             unaryOperator("nint", "-", intMaxValue, "-2147483647");
-            unaryOperator("nuint", "-", "0", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
-            unaryOperator("nuint", "-", "1", null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
-            unaryOperator("nuint", "-", uintMaxValue, null, getAmbigUnaryOpDiagnostics); // PROTOTYPE: Should report ERR_NoImplicitConvCast
+            unaryOperator("nuint", "-", "0", null, getBadUnaryOpDiagnostics);
+            unaryOperator("nuint", "-", "1", null, getBadUnaryOpDiagnostics);
+            unaryOperator("nuint", "-", uintMaxValue, null, getBadUnaryOpDiagnostics);
 
             unaryOperatorNotConstant("nint", "~", "0", "-1");
             unaryOperatorNotConstant("nint", "~", "-1", "0");
@@ -7454,7 +8557,7 @@ class Program
             binaryOperator("bool", "!=", "nuint", "0", "nuint", uintMaxValue, "True");
             binaryOperator("bool", "!=", "nuint", uintMaxValue, "nuint", uintMaxValue, "False");
 
-            // PROTOTYPE: Some results of `<<` should be dependent on platform. See https://github.com/dotnet/roslyn/pull/42143#discussion_r389955804.
+            // https://github.com/dotnet/roslyn/issues/42460: Results of `<<` should be dependent on platform.
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "1", "0");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
@@ -7495,7 +8598,8 @@ class Program
             binaryOperator("nuint", "^", "nuint", intMaxValue, "nuint", "2147483648", uintMaxValue);
 
             static DiagnosticDescription[] getNoDiagnostics(string opType, string op, string operand) => Array.Empty<DiagnosticDescription>();
-            static DiagnosticDescription[] getAmbigUnaryOpDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_AmbigUnaryOp, operand).WithArguments(op, opType) };
+            static DiagnosticDescription[] getBadUnaryOpDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_BadUnaryOp, operand).WithArguments(op, opType) };
+
             static DiagnosticDescription[] getIntDivByZeroDiagnostics(string opType, string op, string operand) => new[] { Diagnostic(ErrorCode.ERR_IntDivByZero, operand) };
 
             void unaryOperator(string opType, string op, string operand, string expectedResult, Func<string, string, string, DiagnosticDescription[]> getDiagnostics = null)
@@ -7602,8 +8706,8 @@ $@"public class Library
                 CompileAndVerify(comp, expectedOutput: expectedResult);
             }
 
-            // PROTOTYPE: Should the ERR_CheckedOverflow cases be evaluated at runtime rather
-            // than compile time to allow operations to succeed on 64-bit platforms?
+            // https://github.com/dotnet/csharplang/issues/3259: Should ERR_CheckedOverflow cases be evaluated
+            // at runtime rather than compile time to allow operations to succeed on 64-bit platforms?
             void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =

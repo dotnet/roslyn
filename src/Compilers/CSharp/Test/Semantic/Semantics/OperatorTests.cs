@@ -3242,7 +3242,6 @@ ne + ni         //-LiftedEnumAndUnderlyingAddition" + Postfix;
         s1 + o1, //-StringAndObjectConcatenation
         i1 + s1  //-ObjectAndStringConcatenation" + Postfix;
 
-        // PROTOTYPE: Include nint and nuint.
         private const string ArithmeticTemplate = Prefix + @"
 chr OPERATOR chr,                   //-IntKIND
 chr OPERATOR i16,                   //-IntKIND

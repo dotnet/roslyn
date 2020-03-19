@@ -1248,10 +1248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the unary minus operator could be applied to the result. But though float is better than double,
                     // float is neither better nor worse than decimal. However it seems odd to give an ambiguity error
                     // when trying to do something such as applying a unary minus operator to an unsigned long.
+                    // The same issue applies to unary minus applied to nuint.
 
                     if (kind == UnaryOperatorKind.UnaryMinus &&
                         (object)operand.Type != null &&
-                        operand.Type.SpecialType == SpecialType.System_UInt64)
+                        (operand.Type.SpecialType == SpecialType.System_UInt64 || (operand.Type.SpecialType == SpecialType.System_UIntPtr && operand.Type.IsNativeIntegerType)))
                     {
                         resultKind = LookupResultKind.OverloadResolutionFailure;
                     }
