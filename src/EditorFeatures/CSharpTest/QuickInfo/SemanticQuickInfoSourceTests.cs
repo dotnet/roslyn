@@ -2551,6 +2551,23 @@ class D : X$$
                 MainDescription("C.C()"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Constructor_ImplicitObjectCreation_WithParameters()
+        {
+            await TestAsync(
+@"class C
+{
+    C(int i) { }
+    C(string s) { }
+    static void Main()
+    {
+        C c = ne$$w(1);
+    }
+}
+",
+                MainDescription("C.C(int i) (+ 1 overload)"));
+        }
+
         [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIsNamedTypeAccessibleForErrorTypes()
