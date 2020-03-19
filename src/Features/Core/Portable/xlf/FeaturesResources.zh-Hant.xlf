@@ -247,11 +247,6 @@
         <target state="translated">擷取方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">擷取方法 + 區域變數</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">無法分析下列項目的資料流程: {0}</target>

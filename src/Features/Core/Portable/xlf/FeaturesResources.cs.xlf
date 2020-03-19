@@ -247,11 +247,6 @@
         <target state="translated">Extrahovat metodu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">Extrahovat metodu a lokální</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Nepovedlo se analyzovat tok dat pro: {0}</target>
