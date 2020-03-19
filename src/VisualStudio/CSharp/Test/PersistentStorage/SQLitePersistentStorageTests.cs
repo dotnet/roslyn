@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
         internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, faultInjector);
+            => new SQLitePersistentStorageService(locationService, faultInjector);
 
         [Fact]
         public void TestCrashInNewConnection()
