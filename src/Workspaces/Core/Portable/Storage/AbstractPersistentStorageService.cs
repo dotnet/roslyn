@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -33,7 +34,13 @@ namespace Microsoft.CodeAnalysis.Storage
             => _locationService = locationService;
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage);
+
+        /// <summary>
+        /// Can throw.  If it does, the caller (<see cref="CreatePersistentStorage"/>) will attempt
+        /// to delete the database and retry opening one more time.  If that fails again, the <see
+        /// cref="NoOpPersistentStorage"/> instance will be used.
+        /// </summary>
+        protected abstract IChecksummedPersistentStorage? TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
@@ -137,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out var persistentStorage)
-                    ? persistentStorage
-                    : null;
+                return TryOpenDatabase(solution, workingFolderPath, databaseFilePath)
             }
             catch (Exception ex)
             {

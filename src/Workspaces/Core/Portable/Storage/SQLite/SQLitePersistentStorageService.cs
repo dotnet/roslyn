@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             return true;
         }
 
-        public SQLitePersistentStorageService(
-            IOptionService optionService,
-            IPersistentStorageLocationService locationService)
+        public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
             : base(optionService, locationService)
         {
         }
@@ -84,22 +82,20 @@ namespace Microsoft.CodeAnalysis.SQLite
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override bool TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage)
+        protected override IChecksummedPersistentStorage? TryOpenDatabase(
+            Solution solution, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                storage = null;
-                return false;
+                return null;
             }
 
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)
             {
-                storage = null;
-                return false;
+                return null;
             }
 
             SQLitePersistentStorage sqlStorage = null;
@@ -110,6 +106,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 sqlStorage.Initialize(solution);
 
+                return sqlStorage;
             }
             catch (Exception)
             {
@@ -126,9 +123,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
                 throw;
             }
-
-            storage = sqlStorage;
-            return true;
         }
 
         private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
