@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrows
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using VS.IntelliNav.Contracts;
 using IServiceProvider = System.IServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -561,16 +560,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(
-            IThreadingContext threadingContext, SymbolListItem symbolListItem,
-            Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
+        private static async Task FindReferencesAsync(IThreadingContext threadingContext, SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
             {
                 await AbstractFindUsagesService.FindSymbolReferencesAsync(
-                    threadingContext, context, symbol, project, cancellationToken).ConfigureAwait(false);
+                    threadingContext,
+                    context, symbol, project, cancellationToken).ConfigureAwait(false);
             }
         }
     }
