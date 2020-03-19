@@ -113,12 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.Outlining, value); }
         }
 
-        public int ExtractMethod_AllowMovingDeclaration
-        {
-            get { return GetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration); }
-            set { SetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration, value); }
-        }
-
         public int ExtractMethod_DoNotPutOutOrRefOnStruct
         {
             get { return GetBooleanOption(ExtractMethodOptions.DontPutOutOrRefOnStruct); }

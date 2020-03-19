@@ -247,11 +247,6 @@
         <target state="translated">Извлечь метод</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">Извлечение метода + локальные данные</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Не удалось проанализировать поток данных для: {0}</target>
@@ -2075,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">ВсеЧастиСПрописнойБуквы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Используйте выражение объединения</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">Используйте распространение значения NULL</target>
@@ -2193,11 +2183,6 @@ This version used in: {2}</source>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">Выберите члены, которые будут использоваться в Equals/GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">Изменения в деревьях выражений могут привести к изменениям поведения во время выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">

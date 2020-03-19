@@ -1471,8 +1471,8 @@ index: 1);
     static void Main(string[] args)
     {
         int[] a = null;
-        var {|Rename:v|} = a = new[] { 1, 2, 3 };
-        int[] temp = checked(v);
+        var {|Rename:vs|} = a = new[] { 1, 2, 3 };
+        int[] temp = checked(vs);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -5973,8 +5973,8 @@ class C
     byte[] getArray() => null;
     void test()
     {
-        byte[] {|Rename:v|} = getArray();
-        var goo = v[0];
+        byte[] {|Rename:vs|} = getArray();
+        var goo = vs[0];
     }
 }");
         }
@@ -7388,6 +7388,48 @@ class Bug
 
     private object Bar()
     {
+    }
+}");
+        }
+
+        [WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestGenerateNameForForeachExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var num in [|GetNumbers()|])
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IEnumerable<int> {|Rename:nums|} = GetNumbers();
+        foreach (var num in nums)
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
     }
 }");
         }

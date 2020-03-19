@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                                 semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))
                         {
                             coalesceExpression = coalesceExpression.WithAdditionalAnnotations(
-                                WarningAnnotation.Create(FeaturesResources.Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime));
+                                WarningAnnotation.Create(AnalyzersResources.Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime));
                         }
 
                         return coalesceExpression;
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_coalesce_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument)
             {
 
             }
