@@ -21,15 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 
         private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
-        private readonly string NonNullTypes = @"
-#nullable enable
-";
-
         [Fact]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string M()
@@ -44,7 +40,7 @@ class Program
             return null;
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string? M()
@@ -65,7 +61,7 @@ class Program
         public async Task FixReturnType()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string M()
@@ -73,7 +69,7 @@ class Program
         return [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string? M()
@@ -87,7 +83,7 @@ class Program
         public async Task FixReturnType_Async()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static async System.Threading.Tasks.Task<string> M()
@@ -95,7 +91,7 @@ class Program
         return [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static async System.Threading.Tasks.Task<string?> M()
@@ -109,7 +105,7 @@ class Program
         public async Task FixReturnType_AsyncLocalFunction()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -120,7 +116,7 @@ class Program
         }
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -137,7 +133,7 @@ class Program
         public async Task FixReturnType_WithTrivia()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static /*before*/ string /*after*/ M()
@@ -145,7 +141,7 @@ class Program
         return [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static /*before*/ string? /*after*/ M()
@@ -159,12 +155,12 @@ class Program
         public async Task FixReturnType_ArrowBody()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string M() => [|null|];
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string? M() => null;
@@ -176,7 +172,7 @@ class Program
         public async Task FixReturnType_LocalFunction_ArrowBody()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -191,7 +187,7 @@ class Program
         public async Task FixLocalFunctionReturnType()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -202,7 +198,7 @@ class Program
         }
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -219,7 +215,7 @@ class Program
         public async Task NoFixAlreadyNullableReturnType()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static string? M()
@@ -234,12 +230,12 @@ class Program
         public async Task FixField()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string x = [|null|];
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? x = null;
@@ -247,10 +243,58 @@ class Program
         }
 
         [Fact]
+        public async Task FixFieldEqualsNull()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+    string x;
+    void M()
+    {
+        x = [|null|];
+    }
+}",
+@"#nullable enable
+class Program
+{
+    string? x;
+    void M()
+    {
+        x = null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixPropertyEqualsNull()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+class Program
+{
+    string x { get; set; }
+    void M()
+    {
+        x = [|null|];
+    }
+}",
+@"#nullable enable
+class Program
+{
+    string? x { get; set; }
+    void M()
+    {
+        x = null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixLocalDeclaration()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -258,7 +302,7 @@ class Program
         string x = [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -272,7 +316,7 @@ class Program
         public async Task FixLocalDeclaration_FromAssignment()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -281,7 +325,7 @@ class Program
         x = [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -296,7 +340,7 @@ class Program
         public async Task CannotFixMultiLocalDeclaration_FromAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -311,7 +355,7 @@ class Program
         public async Task FixParameter_FromAssignment()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(out string x)
@@ -319,7 +363,7 @@ class Program
         x = [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(out string? x)
@@ -333,7 +377,7 @@ class Program
         public async Task CannotFixParameterOfPartialMethod_FromAssignment()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 partial class Program
 {
     partial void M(out string x);
@@ -349,7 +393,7 @@ partial class Program
         public async Task FixLocalDeclaration_WithVar()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -363,7 +407,7 @@ class Program
         public async Task NoFixMultiDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M()
@@ -378,12 +422,12 @@ class Program
         public async Task FixPropertyDeclaration()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string x { get; set; } = [|null|];
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? x { get; set; } = null;
@@ -394,12 +438,12 @@ class Program
         public async Task FixPropertyDeclaration_WithReturnNull()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string x { get { return [|null|]; } }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? x { get { return null; } }
@@ -410,12 +454,12 @@ class Program
         public async Task FixPropertyDeclaration_ArrowBody()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string x => [|null|];
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? x => null;
@@ -428,12 +472,12 @@ class Program
         public async Task FixOptionalParameter()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(string x = [|null|]) { }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(string? x = null) { }
@@ -444,7 +488,7 @@ class Program
         public async Task FixLocalWithAs()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(object o)
@@ -452,7 +496,7 @@ class Program
         string x = [|o as string|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static void M(object o)
@@ -466,7 +510,7 @@ class Program
         public async Task FixReturnType_Iterator_Enumerable()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static System.Collections.Generic.IEnumerable<string> M()
@@ -474,7 +518,7 @@ class Program
         yield return [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static System.Collections.Generic.IEnumerable<string?> M()
@@ -488,7 +532,7 @@ class Program
         public async Task FixReturnType_Iterator_Enumerator()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static System.Collections.Generic.IEnumerator<string> M()
@@ -496,7 +540,7 @@ class Program
         yield return [|null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     static System.Collections.Generic.IEnumerator<string?> M()
@@ -510,7 +554,7 @@ class Program
         public async Task FixReturnType_IteratorProperty()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     System.Collections.Generic.IEnumerable<string> Property
@@ -521,7 +565,7 @@ class Program
         }
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     System.Collections.Generic.IEnumerable<string?> Property
@@ -538,7 +582,7 @@ class Program
         public async Task FixReturnType_Iterator_LocalFunction()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -549,7 +593,7 @@ class Program
         }
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -567,7 +611,7 @@ class Program
         public async Task FixReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string Test(bool? value)
@@ -575,7 +619,7 @@ class Program
         return [|value?.ToString()|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? Test(bool? value)
@@ -590,9 +634,12 @@ class Program
         public async Task FixAllReturnType_ConditionalOperator_Function()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
+    string field;
+    string Property { get; set; }
+
     string Test(bool? value)
     {
         return {|FixAllInDocument:value?.ToString()|};
@@ -605,12 +652,17 @@ class Program
 
     string Test2(bool? value)
     {
+        field = null;
+        Property = null;
         return null;
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
+    string field;
+    string Property { get; set; }
+
     string? Test(bool? value)
     {
         return value?.ToString();
@@ -623,6 +675,8 @@ class Program
 
     string Test2(bool? value)
     {
+        field = null;
+        Property = null;
         return null;
     }
 }", parameters: s_nullableFeature);
@@ -633,9 +687,12 @@ class Program
         public async Task FixAllReturnType_Invocation()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
+    string field;
+    string Property { get; set; }
+
     void M(string value)
     {
         M({|FixAllInDocument:null|});
@@ -650,12 +707,17 @@ class Program
     }
     string Test2(bool? value)
     {
+        field = null;
+        Property = null;
         return null;
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
+    string? field;
+    string? Property { get; set; }
+
     void M(string? value)
     {
         M(null);
@@ -670,6 +732,8 @@ class Program
     }
     string Test2(bool? value)
     {
+        field = null;
+        Property = null;
         return null;
     }
 }", parameters: s_nullableFeature);
@@ -680,7 +744,7 @@ class Program
         public async Task FixReturnType_TernaryExpression_Function()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string Test(bool value)
@@ -688,7 +752,7 @@ class Program
         return [|value ? ""text"" : null|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? Test(bool value)
@@ -703,7 +767,7 @@ class Program
         public async Task FixReturnType_Default()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string Test()
@@ -711,7 +775,7 @@ class Program
         return [|default|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? Test()
@@ -726,7 +790,7 @@ class Program
         public async Task FixReturnType_DefaultWithNullableType()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string Test()
@@ -734,7 +798,7 @@ class Program
         return [|default(string)|];
     }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     string? Test()
@@ -748,7 +812,7 @@ class Program
         public async Task FixInvocation_NamedArgument()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -757,7 +821,7 @@ class Program
     }
     void M2(string x) { }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -772,7 +836,7 @@ class Program
         public async Task FixInvocation_NamedArgument_OutOfOrder()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -781,7 +845,7 @@ class Program
     }
     void M2(int i, string x) { }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -796,7 +860,7 @@ class Program
         public async Task FixInvocation_NamedArgument_Partial()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 partial class Program
 {
     void M()
@@ -812,7 +876,7 @@ partial class Program
         public async Task FixInvocation_PositionArgument()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -821,7 +885,7 @@ class Program
     }
     void M2(string x) { }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -836,7 +900,7 @@ class Program
         public async Task FixInvocation_PositionArgument_SecondPosition()
         {
             await TestInRegularAndScript1Async(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -845,7 +909,7 @@ class Program
     }
     void M2(int i, string x) { }
 }",
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -860,7 +924,7 @@ class Program
         public async Task FixInvocation_PositionArgument_Params()
         {
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()
@@ -876,7 +940,7 @@ class Program
         {
             // Not supported yet
             await TestMissingInRegularAndScriptAsync(
-NonNullTypes + @"
+@"#nullable enable
 class Program
 {
     void M()

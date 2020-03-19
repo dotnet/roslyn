@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         // We want to distinguish different situations:
-        // 1. null assignments: `return null;`, `x = null;` (high confidence that the null is introduced deliberately and the API should be updated)
-        // 2. invocation with null: `M(null);` (test code might do this even though the API should remain not-nullable, so FixAll should be invoked with care)
+        // 1. local null assignments: `return null;`, `local = null;`, `parameter = null;` (high confidence that the null is introduced deliberately and the API should be updated)
+        // 2. invocation with null: `M(null);`, or assigning null to field or property (test code might do this even though the API should remain not-nullable, so FixAll should be invoked with care)
         // 3. conditional: `return x?.ToString();`
-        private const string AssigningNullLiteralEquivalenceKey = nameof(AssigningNullLiteralEquivalenceKey);
+        private const string AssigningNullLiteralLocallyEquivalenceKey = nameof(AssigningNullLiteralLocallyEquivalenceKey);
+        private const string AssigningNullLiteralRemotelyEquivalenceKey = nameof(AssigningNullLiteralRemotelyEquivalenceKey);
         private const string ConditionalOperatorEquivalenceKey = nameof(ConditionalOperatorEquivalenceKey);
-        private const string InvokingWithNullLiteralEquivalenceKey = nameof(InvokingWithNullLiteralEquivalenceKey);
 
         [ImportingConstructor]
         public CSharpDeclareAsNullableCodeFixProvider()
@@ -58,15 +58,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, diagnostic, c),
-                GetEquivalenceKey(node)),
+                GetEquivalenceKey(node, model)),
                 context.Diagnostics);
         }
 
-        private string GetEquivalenceKey(SyntaxNode node)
+        private string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
         {
-            return node.IsParentKind(SyntaxKind.Argument) ? InvokingWithNullLiteralEquivalenceKey :
+            return IsRemoteApiUsage(node, model) ? AssigningNullLiteralRemotelyEquivalenceKey :
                 node.IsKind(SyntaxKind.ConditionalAccessExpression) ? ConditionalOperatorEquivalenceKey :
-                AssigningNullLiteralEquivalenceKey;
+                AssigningNullLiteralLocallyEquivalenceKey;
+
+            static bool IsRemoteApiUsage(SyntaxNode node, SemanticModel model)
+            {
+                if (node.IsParentKind(SyntaxKind.Argument))
+                {
+                    // M(null) could be used in a test
+                    return true;
+                }
+
+                if (node.Parent is AssignmentExpressionSyntax assignment)
+                {
+                    var symbol = model.GetSymbolInfo(assignment.Left).Symbol;
+                    if (symbol is IFieldSymbol)
+                    {
+                        // x.field could be used in a test
+                        return true;
+                    }
+                    else if (symbol is IPropertySymbol)
+                    {
+                        // x.Property could be used in a test
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         protected override async Task FixAllAsync(
@@ -87,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            return equivalenceKey == GetEquivalenceKey(node);
+            var model = document.GetSemanticModelAsync(cancellationToken).GetAwaiter().GetResult();
+            return equivalenceKey == GetEquivalenceKey(node, model);
         }
 
         private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, SemanticModel model)
@@ -170,11 +197,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                     {
                         return declaration.Type;
                     }
-
                 }
                 else if (symbol is IParameterSymbol parameter)
                 {
                     return ParameterTypeSyntax(parameter);
+                }
+                else if (symbol is IFieldSymbol field)
+                {
+                    var syntax = field.DeclaringSyntaxReferences[0].GetSyntax();
+                    if (syntax is VariableDeclaratorSyntax declarator &&
+                       declarator.Parent is VariableDeclarationSyntax declaration &&
+                       declaration.Variables.Count == 1)
+                    {
+                        return declaration.Type;
+                    }
+                }
+                else if (symbol is IPropertySymbol property)
+                {
+                    var syntax = property.DeclaringSyntaxReferences[0].GetSyntax();
+                    if (syntax is PropertyDeclarationSyntax declaration)
+                    {
+                        return declaration.Type;
+                    }
                 }
 
                 return null;
@@ -190,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                     return null;
                 }
 
-                if (argument?.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
+                if (argument.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
                 {
                     var parameter = method.Parameters.Where(p => p.Name == identifier.Text).FirstOrDefault();
                     return ParameterTypeSyntax(parameter);
