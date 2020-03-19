@@ -98,6 +98,23 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0040": {
+          "id": "RS0040",
+          "shortDescription": "Defaultable types should have defaultable fields",
+          "fullDescription": "Defaultable types should have defaultable fields",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "DefaultableTypeShouldHaveDefaultableFieldsAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

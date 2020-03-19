@@ -270,4 +270,13 @@
   <data name="RelaxTestNamingSuppressorJustification" xml:space="preserve">
     <value>Asynchronous test methods do not require the 'Async' suffix.</value>
   </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsDescription" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsMessage" xml:space="preserve">
+    <value>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields</value>
+  </data>
 </root>
