@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Editor.SymbolMonikers
 {
-    internal class SymbolMoniker
+    internal sealed class SymbolMoniker
     {
         public string Scheme { get; }
 
