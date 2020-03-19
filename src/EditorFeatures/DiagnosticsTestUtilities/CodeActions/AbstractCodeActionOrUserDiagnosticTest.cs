@@ -21,17 +21,11 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
 #if CODE_STYLE
     using TestParametersOptions = IOptionsCollection;
-#else
-    using TestParametersOptions = IDictionary<OptionKey2, object>;
-    using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-    using System.Collections;
 #endif
 
     [UseExportProvider]
@@ -685,55 +679,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
             => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
-        internal (OptionKey2, object) SingleOption<T>(Option2<T> option, T enabled)
-            => (new OptionKey2(option), enabled);
 
-        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<T> option, T value)
-            => (new OptionKey2(option, this.GetLanguage()), value);
-
-        internal (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
-
-        internal (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => (new OptionKey2(option), codeStyle);
-
-        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => (new OptionKey2(option, this.GetLanguage()), new CodeStyleOption2<T>(enabled, notification));
-
-        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => (new OptionKey2(option, this.GetLanguage()), codeStyle);
-
-        internal static (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
-            => (new OptionKey2(option, language), codeStyle);
-
-        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => OptionsSet(SingleOption(option, enabled, notification));
-
-        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => OptionsSet(SingleOption(option, codeStyle));
-
-        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => OptionsSet(SingleOption(option, enabled, notification));
-
-        internal IOptionsCollection Option<T>(Option2<T> option, T value)
-            => OptionsSet(SingleOption(option, value));
-
-        internal IOptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
-            => OptionsSet(SingleOption(option, value));
-
-        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => OptionsSet(SingleOption(option, codeStyle));
-
-        internal IOptionsCollection OptionsSet(OptionKey2 option, object value)
-            => OptionsSet((option, value));
-
-#if CODE_STYLE
-        internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-            => throw new NotSupportedException();
-#else
-        internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-            => new OptionsDictionary(options);
-#endif
 
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
@@ -761,89 +707,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             await TestActionCountAsync(input, outputs.Length, parameters);
         }
-
-#if !CODE_STYLE
-        internal interface IOptionsCollection : IDictionary<OptionKey2, object>
-        {
-        }
-
-        internal sealed class OptionsDictionary : IOptionsCollection
-        {
-            private readonly Dictionary<OptionKey2, object> _map;
-            public OptionsDictionary(params (OptionKey2 key, object value)[] options)
-            {
-                _map = new Dictionary<OptionKey2, object>();
-                foreach (var option in options)
-                {
-                    Add(option.key, option.value);
-                }
-            }
-
-            public object this[OptionKey2 key] { get => _map[key]; set => _map[key] = value; }
-
-            public ICollection<OptionKey2> Keys => _map.Keys;
-
-            public ICollection<object> Values => _map.Values;
-
-            public int Count => _map.Count;
-
-            public bool IsReadOnly => false;
-
-            public void Add(OptionKey2 key, object value)
-            {
-                _map.Add(key, value);
-            }
-
-            public void Add(KeyValuePair<OptionKey2, object> item)
-            {
-                _map.Add(item.Key, item.Value);
-            }
-
-            public void Clear()
-            {
-                _map.Clear();
-            }
-
-            public bool Contains(KeyValuePair<OptionKey2, object> item)
-            {
-                return _map.Contains(item);
-            }
-
-            public bool ContainsKey(OptionKey2 key)
-            {
-                return _map.ContainsKey(key);
-            }
-
-            public void CopyTo(KeyValuePair<OptionKey2, object>[] array, int arrayIndex)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IEnumerator<KeyValuePair<OptionKey2, object>> GetEnumerator()
-            {
-                return _map.GetEnumerator();
-            }
-
-            public bool Remove(OptionKey2 key)
-            {
-                return _map.Remove(key);
-            }
-
-            public bool Remove(KeyValuePair<OptionKey2, object> item)
-            {
-                return _map.Remove(item.Key);
-            }
-
-            public bool TryGetValue(OptionKey2 key, out object value)
-            {
-                return _map.TryGetValue(key, out value);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return _map.GetEnumerator();
-            }
-        }
-#endif
     }
 }
