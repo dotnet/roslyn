@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -701,53 +702,6 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        [InlineData(ReferenceType.Project)]
-        [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestConflictingInternalExtensionMethods_NoIVT_InReference(ReferenceType refType)
-        {
-            var file1 = @"
-using System;
-
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
-
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}
-
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
-
-            var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
-                 markup,
-                 "ExtentionMethod",
-                 glyph: (int)Glyph.ExtensionMethodPublic,
-                 inlineDescription: "Foo");
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInternalExtensionMethods_NoIVT_InSameProject()
         {
@@ -1196,6 +1150,175 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(
                  markup,
                  "ExtMethod",
+                 inlineDescription: "Foo");
+        }
+
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestExtensionMethodInPartialClass()
+        {
+            var file1 = @"
+using System;
+
+namespace Foo
+{
+    public static partial class ExtensionClass
+    {
+        public static bool ExtentionMethod1(this string x)
+            => true;
+    }
+}";
+            var currentFile = @"
+using System;
+
+namespace Foo
+{
+    public static partial class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this string x)
+            => true;
+    }
+}
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(string x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = CreateMarkupForSingleProject(currentFile, file1, LanguageNames.CSharp);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [InlineData(ReferenceType.Project, "public")]
+        [InlineData(ReferenceType.Project, "internal")]
+        [InlineData(ReferenceType.Metadata, "public")]  // We don't support internal extension method from non-source references.
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        public async Task TestExtensionMethodsInConflictingTypes(ReferenceType refType, string accessibility)
+        {
+            var refDoc = $@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    {accessibility} static class ExtensionClass
+    {{
+        public static bool ExtentionMethod1(this int x)
+            => true;
+    }}
+}}";
+            var srcDoc = @"
+using System;
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this int x)
+            => true;
+    }
+}
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
+        {
+            var refDoc1 = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod1(this int x)
+            => true;
+    }
+}"; 
+            var refDoc2 = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this int x)
+            => true;
+    }
+}";
+            var srcDoc = @"
+using System;
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, new[] { refDoc1, refDoc2 });
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
 
