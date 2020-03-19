@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
@@ -157,6 +158,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             return validPotentialConversionTypes.Distinct().ToImmutableArray();
         }
 
+        protected abstract bool ClassifyConversionExists(
+            SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
+
+        protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
+
+        protected abstract TArgumentSyntax GenerateNewArgument(TArgumentSyntax oldArgument, ITypeSymbol conversionType);
+
+        protected abstract TExpressionSyntax GetArgumentExpression(TArgumentSyntax argument);
+        protected abstract bool IsDeclarationExpression(TExpressionSyntax expression);
+
+        protected abstract string? TryGetName(TArgumentSyntax argument);
+
         /// <summary>
         /// Test if all argument types can be converted to corresponding parameter types.
         /// </summary>
@@ -185,10 +198,105 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
         /// False, otherwise.
         /// </returns>
-        protected abstract bool CanArgumentTypesBeConvertedToParameterTypes(
+        protected bool CanArgumentTypesBeConvertedToParameterTypes(
             SemanticModel semanticModel, SyntaxNode root, TArgumentListSyntax argumentList,
             ImmutableArray<IParameterSymbol> parameters, TArgumentSyntax targetArgument,
-            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType);
+            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
+        {
+            targetArgumentConversionType = null;
+
+            // No conversion happens under this case
+            if (parameters.Length == 0)
+                return false;
+
+            var arguments = GetArguments(argumentList);
+            var newArguments = new List<TArgumentSyntax>();
+
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                // Parameter index cannot out of its range, #arguments is larger than #parameter only if the last parameter with keyword params
+                var parameterIndex = Math.Min(i, parameters.Length - 1);
+
+                // If the argument has a name, get the corresponding parameter index
+                if (TryGetName(arguments[i]) is string name
+                    && !FindCorrespondingParameterByName(name, parameters, ref parameterIndex))
+                {
+                    return false;
+                }
+
+                // The argument is either in order with parameters, or have a matched name with parameters.
+                var argumentExpression = GetArgumentExpression(arguments[i]);
+                var parameterType = parameters[parameterIndex].Type;
+
+                if (parameters[parameterIndex].IsParams
+                    && parameterType is IArrayTypeSymbol paramsType
+                    && ClassifyConversionExists(semanticModel, argumentExpression, paramsType.ElementType))
+                {
+                    newArguments.Add(GenerateNewArgument(arguments[i], paramsType.ElementType));
+
+                    if (arguments[i].Equals(targetArgument))
+                        targetArgumentConversionType = paramsType.ElementType;
+                }
+                else if (ClassifyConversionExists(semanticModel, argumentExpression, parameterType))
+                {
+                    newArguments.Add(GenerateNewArgument(arguments[i], parameterType));
+
+                    if (arguments[i].Equals(targetArgument))
+                        targetArgumentConversionType = parameterType;
+                }
+                else if (IsDeclarationExpression(argumentExpression)
+                    && semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type is ITypeSymbol argumentType
+                    && semanticModel.Compilation.ClassifyCommonConversion(argumentType, parameterType).IsIdentity)
+                {
+                    // Direct conversion from a declaration expression to a type is unspecified, thus we classify the
+                    // conversion from the type of declaration expression to the parameter type
+                    // An example for this case:
+                    // void Foo(out int i) { i = 1; }
+                    // Foo([|out var i|]);
+                    // "var i" is a declaration expression
+                    // 
+                    // In addition, since this case is with keyword "out", the type of declaration expression and the
+                    // parameter type must be identical in order to match.
+                    newArguments.Add(arguments[i]);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return targetArgumentConversionType != null
+                && IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
+        }
+
+        protected abstract TArgumentListSyntax GenerateNewArgumentList(
+            TArgumentListSyntax oldArgumentList, List<TArgumentSyntax> newArguments);
+
+        /// <summary>
+        /// Check whether the invocation expression with new arguments is applicatble.
+        /// </summary>
+        /// <param name="oldArgumentList" >old argumentList node</param>
+        /// <param name="newArguments"> new arguments that are cast by corresponding parameter types</param>
+        /// <param name="targetNode"> The node needs to be cast.</param>
+        /// <returns>
+        /// Return true if the invocation expression with new arguments is applicatble.
+        /// Otherwise, return false
+        /// </returns>
+        protected bool IsInvocationExpressionWithNewArgumentsApplicable(
+            SemanticModel semanticModel, SyntaxNode root, TArgumentListSyntax oldArgumentList,
+            List<TArgumentSyntax> newArguments, SyntaxNode targetNode)
+        {
+            var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
+
+            var newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorsOrThis<TArgumentListSyntax>().FirstOrDefault();
+            if (newArgumentListNode.Parent is SyntaxNode newExpression)
+            {
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(newExpression.SpanStart, newExpression,
+                    SpeculativeBindingOption.BindAsExpression);
+                return symbolInfo.Symbol != null;
+            }
+            return false;
+        }
 
         protected ImmutableArray<ITypeSymbol> GetPotentialConversionTypes(
                 SemanticModel semanticModel, SyntaxNode root, ITypeSymbol targetNodeType, TArgumentSyntax targetArgument,
@@ -231,20 +339,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             return false;
         }
-
-        /// <summary>
-        /// Check whether the invocation expression with new arguments is applicatble.
-        /// </summary>
-        /// <param name="oldArgumentList" >old argumentList node</param>
-        /// <param name="newArguments"> new arguments that are cast by corresponding parameter types</param>
-        /// <param name="targetNode"> The node needs to be cast.</param>
-        /// <returns>
-        /// Return true if the invocation expression with new arguments is applicatble.
-        /// Otherwise, return false
-        /// </returns>
-        protected abstract bool IsInvocationExpressionWithNewArgumentsApplicable(
-            SemanticModel semanticModel, SyntaxNode root, TArgumentListSyntax oldArgumentList,
-            List<TArgumentSyntax> newArguments, SyntaxNode targetNode);
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
