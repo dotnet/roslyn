@@ -238,4 +238,10 @@
   <data name="Accessibility_modifiers_required" xml:space="preserve">
     <value>Accessibility modifiers required</value>
   </data>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
+  </data>
+  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
+    <value>Changes to expression trees may result in behavior changes at runtime</value>
+  </data>
 </root>
