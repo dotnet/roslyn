@@ -38,6 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _threadingContext = threadingContext;
         }
 
+        // TODO - When FAR moves to ILanguageClient, we should switch from using ReferenceGroup (now obsolete) to ReferenceItem.
+        // https://github.com/dotnet/roslyn/issues/42581
+        [System.Obsolete]
         public async Task<object[]> HandleAsync(object request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             // The VS LSP client supports streaming using IProgress<T> on various requests.
@@ -76,6 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
         }
 
+        [System.Obsolete]
         private async Task<LSP.ReferenceGroup[]> GetReferenceGroupsAsync(LSP.ReferenceParams request, SimpleFindUsagesContext context, CancellationToken cancellationToken)
         {
             var definitionMap = new Dictionary<DefinitionItem, List<SourceReferenceItem>>();
