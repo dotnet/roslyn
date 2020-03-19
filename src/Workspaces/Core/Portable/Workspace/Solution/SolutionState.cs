@@ -1850,7 +1850,7 @@ namespace Microsoft.CodeAnalysis
                     // PROTOTYPE: obviously we don't want to run full generation everytime
                     //            we should instead periodically run full generation, and TryApplyEdits as needed.
                     //            For now this lets us imagine what the experience feels like in the IDE
-                    driver = driver.RunFullGeneration(comp, out comp);
+                    driver = driver.RunFullGeneration(comp, out comp, out _);
                     _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(project.Id, driver);
                 }
 

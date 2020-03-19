@@ -36,8 +36,9 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray<ISourceGenerator>.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Empty(diagnostics);
             Assert.Single(outputCompilation.SyntaxTrees);
             Assert.Equal(compilation, outputCompilation);
         }
@@ -58,7 +59,7 @@ class C { }
             var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var diagnostics);
 
             Assert.Equal(1, initCount);
             Assert.Equal(1, executeCount);
@@ -101,9 +102,9 @@ class C { }
             var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, sourceOpt: "public class C { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
-            driver = driver.RunFullGeneration(outputCompilation, out outputCompilation);
-            driver.RunFullGeneration(outputCompilation, out outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
+            driver = driver.RunFullGeneration(outputCompilation, out outputCompilation, out _);
+            driver.RunFullGeneration(outputCompilation, out outputCompilation, out _);
 
             Assert.Equal(1, initCount);
             Assert.Equal(3, executeCount);
@@ -129,7 +130,7 @@ class GeneratedClass { }
             SingleFileTestGenerator testGenerator = new SingleFileTestGenerator(generatorSource);
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.NotEqual(compilation, outputCompilation);
@@ -155,9 +156,9 @@ class GeneratedClass { }
             SingleFileTestGenerator testGenerator = new SingleFileTestGenerator(generatorSource);
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation1);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation2);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation3);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation1, out _);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation2, out _);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation3, out _);
 
             Assert.Equal(2, outputCompilation1.SyntaxTrees.Count());
             Assert.Equal(2, outputCompilation2.SyntaxTrees.Count());
@@ -166,6 +167,35 @@ class GeneratedClass { }
             Assert.NotEqual(compilation, outputCompilation1);
             Assert.NotEqual(compilation, outputCompilation2);
             Assert.NotEqual(compilation, outputCompilation3);
+        }
+
+        [Fact]
+        public void User_Source_Can_Depend_On_Generated_Source()
+        {
+            var source = @"
+#pragma warning disable CS0649
+class C 
+{
+    public D d;
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,12): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //     public D d;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(5, 12)
+                );
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new SingleFileTestGenerator("public class D { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
         }
 
         [Fact]
@@ -207,7 +237,7 @@ class C { }
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
 
             // run an initial generation pass
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // now try apply edits (which should succeed, but do nothing)
@@ -232,7 +262,7 @@ class C { }
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
 
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
@@ -263,7 +293,7 @@ class C { }
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
 
             // run initial generation pass
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
@@ -295,7 +325,7 @@ class C { }
                                                                additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
 
             // run initial generation pass
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
@@ -308,7 +338,7 @@ class C { }
             Assert.Equal(3, editedCompilation.SyntaxTrees.Count());
 
             // if we run a full compilation again, we should still get 3 syntax trees
-            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out outputCompilation, out _);
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
 
             // lets add multiple edits   
@@ -341,7 +371,7 @@ class C { }
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
                                                                additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
 
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
             // we should have the a single extra file for the additional texts
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
@@ -351,7 +381,7 @@ class C { }
             Assert.True(succeeded);
             Assert.Equal(2, editedCompilation.SyntaxTrees.Count());
 
-            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
@@ -364,7 +394,7 @@ class C { }
             Assert.Equal(3, editedCompilation.SyntaxTrees.Count());
 
             // if we run a full compilation again, we should still get 3 syntax trees
-            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out outputCompilation, out _);
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
         }
 
@@ -387,7 +417,7 @@ class C { }
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
                                                                additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
 
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // add multiple edits   
@@ -396,7 +426,7 @@ class C { }
                                                                                 new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file4.cs", ""))));
 
             // but just do a full generation (don't try apply)
-            driver.RunFullGeneration(compilation, out outputCompilation);
+            driver.RunFullGeneration(compilation, out outputCompilation, out _);
             Assert.Equal(5, outputCompilation.SyntaxTrees.Count());
         }
 
@@ -419,7 +449,7 @@ class C { }
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
                                                                additionalTexts: ImmutableArray<AdditionalText>.Empty);
 
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // try apply edits
@@ -434,12 +464,123 @@ class C { }
             Assert.False(success);
 
             // full generation
-            driver = driver.RunFullGeneration(compilation, out outputCompilation);
+            driver = driver.RunFullGeneration(compilation, out outputCompilation, out _);
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
 
             // try apply changes should now succeed
             driver.TryApplyEdits(compilation, out _, out success);
             Assert.True(success);
+        }
+
+        [Fact]
+        public void Error_During_Initialization_Is_Reported()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("init error");
+
+            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { });
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                    // warning CS8784: Generator 'CallbackGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.
+                    Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Error_During_Initialization_Generator_Does_Not_Run()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("init error");
+            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { }, sourceOpt: "class D { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
+
+            Assert.Single(outputCompilation.SyntaxTrees);
+        }
+
+        [Fact]
+        public void Error_During_Generation_Is_Reported()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("generate error");
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Error_During_Generation_With_Dependant_Source()
+        {
+            var source = @"
+#pragma warning disable CS0649
+class C 
+{
+    public D d;
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics(
+                    // (5,12): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public D d;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(5, 12)
+                    );
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("generate error");
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception, sourceOpt: "public class D { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics(
+                // (5,12): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //     public D d;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(5, 12)
+                );
+            generatorDiagnostics.Verify(
+                // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
+                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
         }
     }
 

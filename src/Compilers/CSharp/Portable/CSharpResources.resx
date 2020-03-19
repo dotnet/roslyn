@@ -6016,4 +6016,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
+  <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+  </data>
 </root>

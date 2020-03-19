@@ -444,6 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                     return 1;
                 default:
                     return 0;
