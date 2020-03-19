@@ -4,18 +4,19 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ProjectTelemetry
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
     /// Callback the host (VS) passes to the OOP service to allow it to send batch notifications
-    /// about telemetry.
+    /// about todo comments.
     /// </summary>
-    internal interface IProjectTelemetryServiceCallback
+    internal interface ITodoCommentsListener
     {
-        Task RegisterProjectTelemetryInfoAsync(ProjectTelemetryInfo infos, CancellationToken cancellationToken);
+        Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken);
+        Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken);
     }
 }

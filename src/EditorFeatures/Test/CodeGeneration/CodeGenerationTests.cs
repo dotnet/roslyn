@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> baseArguments = default,
             ImmutableArray<SyntaxNode> thisArguments = default,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var parameterSymbols = GetParameterSymbols(parameters, context);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             string statements = null,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             if (statements != null)
             {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Type returnType = null,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             string statements = null,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             if (statements != null)
             {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Type returnType = null,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             string statements = null,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, initial, ignoreResult: true);
             var parameterSymbols = GetParameterSymbols(parameters, context);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Accessibility accessibility = Accessibility.Public,
             Editing.DeclarationModifiers modifiers = default,
             string statements = null,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             if (statements != null)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string initial,
             string expected,
             string statements,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             if (statements != null)
             {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string initial,
             string expected,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var parameterSymbols = GetParameterSymbols(parameters, context);
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Type returnType = null,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var parameterSymbols = GetParameterSymbols(parameters, context);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             type ??= typeof(Action);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             bool isIndexer = false,
-            CodeGenerationOptions codeGenerationOptions = default,
+            CodeGenerationOptions codeGenerationOptions = null,
             IDictionary<OptionKey2, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<INamedTypeSymbol> interfaces = default,
             SpecialType specialType = SpecialType.None,
             ImmutableArray<Func<SemanticModel, ISymbol>> members = default,
-            CodeGenerationOptions codeGenerationOptions = default)
+            CodeGenerationOptions codeGenerationOptions = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var memberSymbols = GetSymbols(members, context);
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string initial,
             string expected,
             bool onlyGenerateMembers = false,
-            CodeGenerationOptions codeGenerationOptions = default,
+            CodeGenerationOptions codeGenerationOptions = null,
             string forceLanguage = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected, forceLanguage);

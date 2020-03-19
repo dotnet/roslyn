@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var throwOperation = (IThrowOperation)context.Operation;
             var throwStatementSyntax = throwOperation.Syntax;
 
-            var compilation = context.Compilation;
-            var semanticModel = compilation.GetSemanticModel(throwStatementSyntax.SyntaxTree);
+            var semanticModel = context.Operation.SemanticModel;
 
             var ifOperation = GetContainingIfOperation(
                 semanticModel, throwOperation, cancellationToken);

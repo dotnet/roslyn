@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void Free()
             {
-                _contextTree = default!;
-                _span = default;
-                _compilation = default!;
-                _analyzer = default!;
+                _contextTree = null!;
+                _span = null;
+                _compilation = null!;
+                _analyzer = null!;
                 _isSyntaxDiagnostic = default;
-                _addNonCategorizedDiagnosticOpt = default!;
-                _addCategorizedLocalDiagnosticOpt = default!;
-                _addCategorizedNonLocalDiagnosticOpt = default!;
-                _shouldSuppressGeneratedCodeDiagnostic = default!;
+                _addNonCategorizedDiagnosticOpt = null!;
+                _addCategorizedLocalDiagnosticOpt = null!;
+                _addCategorizedNonLocalDiagnosticOpt = null!;
+                _shouldSuppressGeneratedCodeDiagnostic = null!;
                 _cancellationToken = default;
                 s_objectPool.Free(this);
             }

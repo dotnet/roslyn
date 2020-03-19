@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return statement != null;
             }
 
-            statement = default;
+            statement = null;
             return false;
         }
 

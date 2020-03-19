@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
 
             var idisposableType = disposeMethod.ContainingType;
-            var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
+            var unimplementedMembers = explicitly
+                ? state.MembersWithoutExplicitImplementation
+                : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
             if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
                 return false;
 
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, throughMember)
+                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
             {
             }
 

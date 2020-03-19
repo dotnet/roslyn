@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
                 var state = this.ReadState();
                 return state.DeclarationOnlyCompilation == null
-                    ? default(bool?)
+                    ? (bool?)null
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
             }
 
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
                 var state = this.ReadState();
                 return state.DeclarationOnlyCompilation == null
-                    ? default(bool?)
+                    ? (bool?)null
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 

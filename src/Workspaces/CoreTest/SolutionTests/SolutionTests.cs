@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create(default(DocumentId)!)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(default(DocumentId)!)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution();
             Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(default));
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
-            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(default(DocumentId)!)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create((DocumentId)null!)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

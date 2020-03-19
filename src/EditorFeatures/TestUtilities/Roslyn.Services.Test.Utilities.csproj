@@ -64,8 +64,8 @@
     <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcConnection.cs">
       <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\RemotableDataJsonRpcEx.cs">
-      <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
+    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\RemotableDataProvider.cs">
+      <Link>Remote\RemotableDataProvider.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
