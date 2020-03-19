@@ -69,30 +69,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 await progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
-
-        /// <summary>
-        /// Returns <c>false</c> when it's time to stop searching.
-        /// </summary>
-        private static async Task<bool> FindSymbolMonikerReferencesAsync(
-            IFindSymbolMonikerUsagesService monikerUsagesService,
-            ImmutableArray<SymbolMoniker> monikers,
-            IFindUsagesContext context,
-            IStreamingProgressTracker progress,
-            DefinitionItem definitionItem,
-            int currentPage,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                await progress.AddItemsAsync(1).ConfigureAwait(false);
-
-                // Had a page of results.  Try to get another page after we've displayed this set.
-                return true;
-            }
-            finally
-            {
-                await progress.ItemCompletedAsync().ConfigureAwait(false);
-            }
-        }
     }
 }
