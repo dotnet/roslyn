@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             //PROTOTYPE: should be possible to parallelize this
-            foreach (var (generator, generatorState) in stateBuilder.ToImmutableDictionary())
+            foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
             {
                 try
                 {
@@ -236,7 +236,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return compilation.RemoveSyntaxTrees(trees.ToImmutableAndFree());
+            var comp = compilation.RemoveSyntaxTrees(trees);
+            trees.Free();
+            return comp;
         }
 
         private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources)
@@ -251,15 +253,16 @@ namespace Microsoft.CodeAnalysis
 
         private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
         {
-            var finalCompilation = compilation;
+            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
             foreach (var (generator, generatorState) in state.GeneratorStates)
             {
-                finalCompilation = finalCompilation.AddSyntaxTrees(generatorState.Sources.Values.ToImmutableArray());
+                trees.AddRange(generatorState.Sources.Values);
             }
+            outputCompilation = compilation.AddSyntaxTrees(trees);
+            trees.Free();
 
-            outputCompilation = finalCompilation;
             state = state.With(compilation: compilation,
-                               finalCompilation: finalCompilation,
+                               finalCompilation: outputCompilation,
                                edits: ImmutableArray<PendingEdit>.Empty,
                                editsFailed: false);
             return FromState(state);

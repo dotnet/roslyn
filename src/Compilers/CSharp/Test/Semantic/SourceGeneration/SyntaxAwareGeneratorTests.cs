@@ -38,7 +38,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -64,9 +64,45 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out _);
 
             Assert.Null(receiver);
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Can_Be_Registered_Only_Once()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: Initialize,
+                onExecute: (e) => { }
+                );
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out _);
+
+            void Initialize(InitializationContext initContext)
+            {
+                initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+                try
+                {
+                    initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+                    Assert.True(false, "Failed to throw");
+                }
+                catch
+                {
+                }
+            }
         }
 
         [Fact]
