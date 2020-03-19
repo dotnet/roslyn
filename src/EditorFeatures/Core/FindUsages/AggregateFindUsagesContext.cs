@@ -22,14 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// </summary>
         private readonly IFindUsagesContext _context;
 
-        /// <summary>
-        /// Underlying context objects that we'll receive messages from and forward to <see cref="_context"/>
-        /// </summary>
-        private readonly List<ForwardingFindUsagesContext> _underlyingContexts = new List<ForwardingFindUsagesContext>();
-
         private readonly object _gate = new object();
         private readonly Dictionary<ForwardingFindUsagesContext, (int current, int maxium)> _underlyingContextToProgress =
             new Dictionary<ForwardingFindUsagesContext, (int current, int maxium)>();
+        private Task _reportProgressTask = Task.CompletedTask;
 
         public FindUsagesContextAggregator(IFindUsagesContext context)
         {
@@ -38,19 +34,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         public IFindUsagesContext CreateForwardingContext()
         {
-            var result = new ForwardingFindUsagesContext(this);
+            var context = new ForwardingFindUsagesContext(this);
             lock (_gate)
             {
-                _underlyingContexts.Add(result);
+                _underlyingContextToProgress.Add(context, default);
             }
-            return result;
+            return context;
         }
 
         private Task ReportProgressAsync(ForwardingFindUsagesContext context, int current, int maximum)
         {
-            int combinedCurrent = 0, combinedMaximum = 0;
             lock (_gate)
             {
+                int combinedCurrent = 0, combinedMaximum = 0;
                 _underlyingContextToProgress[context] = (current, maximum);
 
                 foreach (var (_, (singleCurrent, singleMaximum)) in _underlyingContextToProgress)
@@ -58,9 +54,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     combinedCurrent += singleCurrent;
                     combinedMaximum += singleMaximum;
                 }
-            }
 
-            return _context.ReportProgressAsync(combinedCurrent, combinedMaximum);
+                // Serialize progress reports to the real context.  That way if we have our
+                // underlying contexts reporting to us in parallel, the real context only sees
+                // everything increasing in a consistent fashion.
+                _reportProgressTask = _reportProgressTask.SafeContinueWithFromAsync(
+                    t => _context.ReportProgressAsync(combinedCurrent, combinedMaximum),
+                    _context.CancellationToken,
+                    TaskContinuationOptions.RunContinuationsAsynchronously,
+                    TaskScheduler.Default);
+
+                return _reportProgressTask;
+            }
         }
 
         #region Simple forwarding calls
