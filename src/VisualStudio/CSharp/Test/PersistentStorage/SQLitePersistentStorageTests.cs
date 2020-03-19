@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite;
 using Microsoft.CodeAnalysis.Storage;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             => new SQLitePersistentStorageService(locationService, faultInjector);
 
         [Fact]
-        public void TestCrashInNewConnection()
+        public async Task TestCrashInNewConnection()
         {
             var solution = CreateOrOpenSolution(nullPaths: true);
 
@@ -34,11 +36,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 },
                 onFatalError: e => throw e);
 
+            // Because instantiating the connection will fail, we will not get back
+            // a working persistent storage.
             using (var storage = GetStorage(solution, faultInjector))
+            using (var memStream = new MemoryStream())
+            using (var streamWriter = new StreamWriter(memStream))
             {
-                // Because instantiating the connection will fail, we will not get back
-                // a working persistent storage.
-                Assert.IsType<NoOpPersistentStorage>(storage);
+                streamWriter.WriteLine("contents");
+                streamWriter.Flush();
+
+                memStream.Position = 0;
+                await storage.WriteStreamAsync("temp", memStream);
+                var readStream = await storage.ReadStreamAsync("temp");
+
+                // Because we don't have a real storage service, we should get back
+                // null even when trying to read something we just wrote.
+                Assert.Null(readStream);
             }
 
             Assert.True(hitInjector);
