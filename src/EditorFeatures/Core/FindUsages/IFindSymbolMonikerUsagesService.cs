@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.SymbolMonikers;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -46,34 +46,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public DefaultFindSymbolMonikerUsagesService()
         {
         }
-    }
-
-    internal class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
-    {
-        public static readonly IAsyncEnumerable<T> Instance = new EmptyAsyncEnumerable<T>();
-
-        private EmptyAsyncEnumerable()
-        {
-        }
-
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
-            => EmptyAsyncEnumerator<T>.Instance;
-    }
-
-    internal class EmptyAsyncEnumerator<T> : IAsyncEnumerator<T>
-    {
-        public static readonly IAsyncEnumerator<T> Instance = new EmptyAsyncEnumerator<T>();
-
-        private EmptyAsyncEnumerator()
-        {
-        }
-
-        public T Current => default;
-
-        public ValueTask DisposeAsync()
-            => new ValueTask();
-
-        public ValueTask<bool> MoveNextAsync()
-            => new ValueTask<bool>(false);
     }
 }
