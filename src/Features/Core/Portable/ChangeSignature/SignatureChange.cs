@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalParameterList = originalConfiguration.ToListOfParameters();
             var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-            for (var i = 0; i < originalParameterList.Count; i++)
+            for (var i = 0; i < originalParameterList.Length; i++)
             {
                 int? index = null;
                 var parameter = originalParameterList[i];
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public int? GetUpdatedIndex(int parameterIndex)
         {
-            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Count)
+            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
             {
                 return null;
             }

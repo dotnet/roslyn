@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(
-                symbol.GetParameters().Select(p => new ExistingParameter(p)),
+                symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
             for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
             {
-                if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Count)
+                if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Length)
                 {
                     break;
                 }
@@ -567,14 +567,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         private static SignatureChange CreateCompensatingSignatureChange(ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
-            if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Count)
+            if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Length)
             {
                 var originalConfigurationParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
                 var updatedConfigurationParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
                 var realParameters = declarationSymbol.GetParameters();
 
-                var bonusParameters = realParameters.Skip(originalConfigurationParameters.Count);
+                var bonusParameters = realParameters.Skip(originalConfigurationParameters.Length);
 
                 originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
                 updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             int numAddedParameters = 0;
 
             var newParameters = ImmutableArray.CreateBuilder<T>();
-            for (var index = 0; index < reorderedParameters.Count; index++)
+            for (var index = 0; index < reorderedParameters.Length; index++)
             {
                 var newParam = reorderedParameters[index];
                 if (newParam is ExistingParameter existingParameter)
@@ -701,17 +701,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             int numSeparatorsToSkip;
-            if (originalParameters.Count == 0)
+            if (originalParameters.Length == 0)
             {
                 // () 
                 // Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1;
+                numSeparatorsToSkip = originalParameters.Length - reorderedParameters.Length + 1;
             }
             else
             {
                 // (a,b,c)
                 // Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
+                numSeparatorsToSkip = originalParameters.Length - reorderedParameters.Length;
             }
 
             return (newParameters.ToImmutable(), GetSeparators(list, numSeparatorsToSkip));
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             bool seenOmitted = false;
             bool paramsHandled = false;
 
-            for (int i = 0; i < updatedParameters.Count; i++)
+            for (int i = 0; i < updatedParameters.Length; i++)
             {
                 // Skip this parameter in list of arguments for extension method calls but not for reduced ones.
                 if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter
