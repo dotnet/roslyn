@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ExternalReferenceItem(
             DefinitionItem definition,
-            string documentName,
+            string projectName,
             object text,
             string displayPath)
         {
             Definition = definition;
-            DocumentName = documentName;
+            ProjectName = projectName;
             Text = text;
             DisplayPath = displayPath;
         }
