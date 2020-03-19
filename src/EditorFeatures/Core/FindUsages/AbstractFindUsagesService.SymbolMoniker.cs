@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var results = await monikerUsagesService.FindReferencesByMonikerAsync(
                     definitionItem, monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (results.IsDefaultOrEmpty)
+                {
+                    // No results, indicate that we're totally done searching for moniker items.
                     return false;
+                }
 
                 if (currentPage == 0)
                 {
@@ -96,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 foreach (var referenceItem in results)
                     await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
 
+                // Had a page of results.  Try to get another page after we've displayed this set.
                 return true;
             }
             finally
