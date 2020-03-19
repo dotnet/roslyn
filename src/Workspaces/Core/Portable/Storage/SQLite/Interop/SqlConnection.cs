@@ -50,12 +50,6 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        /// <summary>
-        /// Whether or not our constructor made it all the way to the end, and thus
-        /// 
-        /// </summary>
-        private readonly bool _constructedCompletely;
-
         public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
@@ -99,12 +93,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             _handle = handle;
             _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
-            _constructedCompletely = true;
         }
 
         ~SqlConnection()
         {
-            if (!Environment.HasShutdownStarted && _constructedCompletely)
+            if (!Environment.HasShutdownStarted)
             {
                 var ex = new InvalidOperationException("SqlConnection was not properly closed");
                 _faultInjector?.OnFatalError(ex);
