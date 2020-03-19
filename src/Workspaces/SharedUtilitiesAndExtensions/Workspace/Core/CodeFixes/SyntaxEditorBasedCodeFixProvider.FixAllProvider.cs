@@ -81,13 +81,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private async Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
             {
+                var model = await document.GetSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
                 // that want to update a document.
                 // Also ensure that we do not pass in duplicates by invoking Distinct.
                 // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
                 var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, fixAllContext.Document, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
+                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, fixAllContext.Document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
                 // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.
