@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -47,7 +49,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         {
             var diagnostic = context.Diagnostics.First();
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null)
+            {
+                return;
+            }
+
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (model == null)
+            {
+                return;
+            }
+
             var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node);
@@ -103,10 +115,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             using var _ = PooledHashSet<TypeSyntax>.GetInstance(out var alreadyHandled);
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in diagnostics)
+            if (model != null)
             {
-                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                MakeDeclarationNullable(editor, model, node, alreadyHandled);
+                foreach (var diagnostic in diagnostics)
+                {
+                    var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                    MakeDeclarationNullable(editor, model, node, alreadyHandled);
+                }
             }
         }
 
@@ -126,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        private static TypeSyntax TryGetDeclarationTypeToFix(SemanticModel model, SyntaxNode node)
+        private static TypeSyntax? TryGetDeclarationTypeToFix(SemanticModel model, SyntaxNode node)
         {
             if (!IsExpressionSupported(node))
             {
@@ -173,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             // string x = null;
             if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
             {
-                var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
+                var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent!;
                 if (variableDeclaration.Variables.Count != 1)
                 {
                     // string x = null, y = null;
@@ -199,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 }
                 else if (symbol is IParameterSymbol parameter)
                 {
-                    return ParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter);
                 }
                 else if (symbol is IFieldSymbol field)
                 {
@@ -224,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // Method(null)
-            if (node.Parent is ArgumentSyntax argument && argument.Parent.Parent is InvocationExpressionSyntax invocation)
+            if (node.Parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
                 var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
                 if (!(symbol is IMethodSymbol method) || method.PartialImplementationPart is object)
@@ -236,35 +251,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 if (argument.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
                 {
                     var parameter = method.Parameters.Where(p => p.Name == identifier.Text).FirstOrDefault();
-                    return ParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter);
                 }
 
                 var index = invocation.ArgumentList.Arguments.IndexOf(argument);
                 if (index >= 0 && index < method.Parameters.Length)
                 {
                     var parameter = method.Parameters[index];
-                    return ParameterTypeSyntax(parameter);
+                    return TryGetParameterTypeSyntax(parameter);
                 }
 
                 return null;
             }
 
             // string x { get; set; } = null;
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
+            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
             {
                 return propertyDeclaration.Type;
             }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax optionalParameter))
+            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
             {
                 var parameterSymbol = model.GetDeclaredSymbol(optionalParameter);
-                return ParameterTypeSyntax(parameterSymbol);
+                return TryGetParameterTypeSyntax(parameterSymbol);
             }
 
             // static string M() => null;
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
-                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax arrowMethod))
+                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? arrowMethod))
             {
                 return arrowMethod.ReturnType;
             }
@@ -272,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return null;
 
             // local functions
-            static TypeSyntax TryGetReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
+            static TypeSyntax? TryGetReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
             {
                 if (modifiers.Any(SyntaxKind.AsyncKeyword) || onYield)
                 {
@@ -286,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return returnType;
             }
 
-            static TypeSyntax TryGetSingleTypeArgument(TypeSyntax type)
+            static TypeSyntax? TryGetSingleTypeArgument(TypeSyntax type)
             {
                 switch (type)
                 {
@@ -304,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            static TypeSyntax ParameterTypeSyntax(IParameterSymbol parameterSymbol)
+            static TypeSyntax? TryGetParameterTypeSyntax(IParameterSymbol? parameterSymbol)
             {
                 if (parameterSymbol is object &&
                     parameterSymbol.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
