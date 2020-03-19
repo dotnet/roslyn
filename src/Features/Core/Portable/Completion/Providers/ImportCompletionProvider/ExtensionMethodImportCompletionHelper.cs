@@ -357,6 +357,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var projectId in relevantProjectIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var project = solution.GetProject(projectId);
                 if (project == null || !project.SupportsCompilation)
                 {
@@ -379,6 +381,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Search through all direct PE references.
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
