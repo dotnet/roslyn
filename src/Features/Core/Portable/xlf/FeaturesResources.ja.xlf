@@ -247,11 +247,6 @@
         <target state="translated">メソッドを抽出する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">メソッドとローカルの抽出</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">データ フローを分析できませんでした: {0}</target>
@@ -2075,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">パスカル ケース</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">coalesce 式を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">null 値の反映を使用します</target>
@@ -2193,11 +2183,6 @@ This version used in: {2}</source>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">Equals/GetHashCode で使用するメンバーを選択する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">式ツリーを変更すると、実行時の動作が変わる可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">

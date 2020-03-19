@@ -247,11 +247,6 @@
         <target state="translated">提取方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">提取方法和本地函数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">未能分析 {0} 的数据流</target>
@@ -2075,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">帕斯卡拼写法</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">使用 COALESCE 表达式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">使用 null 传播</target>
@@ -2193,11 +2183,6 @@ This version used in: {2}</source>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">选择成员用于 Equals/GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">对表达式树的更改可能导致运行时的行为改变</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">
