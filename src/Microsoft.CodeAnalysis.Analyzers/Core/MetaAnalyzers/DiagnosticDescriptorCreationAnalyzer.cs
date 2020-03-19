@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDoNotUseReservedDiagnosticIdTitle,
             s_localizableDoNotUseReservedDiagnosticIdMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
-            DiagnosticSeverity.Error,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDoNotUseReservedDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -207,32 +207,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    if (!(((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is IObjectCreationOperation objectCreation))
+                    var fieldInitializer = (IFieldInitializerOperation)operationAnalysisContext.Operation;
+                    if (!TryGetDescriptorCreateMethodAndArguments(fieldInitializer, diagnosticDescriptorType, out var creationMethod, out var creationArguments))
                     {
                         return;
                     }
 
-                    var ctor = objectCreation.Constructor;
-                    if (ctor == null ||
-                        !diagnosticDescriptorType.Equals(ctor.ContainingType) ||
-                        !diagnosticDescriptorType.InstanceConstructors.Any(c => c.Equals(ctor)))
-                    {
-                        return;
-                    }
-
-                    AnalyzeTitle(operationAnalysisContext, objectCreation);
-                    AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
-                    AnalyzeCustomTags(operationAnalysisContext, objectCreation);
+                    AnalyzeTitle(creationMethod, fieldInitializer, operationAnalysisContext.ReportDiagnostic);
+                    AnalyzeHelpLinkUri(operationAnalysisContext, creationArguments);
+                    AnalyzeCustomTags(operationAnalysisContext, creationArguments);
 
                     string? categoryOpt = null;
                     if (!checkCategoryAndAllowedIds ||
-                        !TryAnalyzeCategory(operationAnalysisContext, objectCreation,
+                        !TryAnalyzeCategory(operationAnalysisContext, creationArguments,
                             additionalTextOpt!, categoryAndAllowedIdsMap!, out categoryOpt, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
                     }
 
-                    AnalyzeRuleId(operationAnalysisContext, objectCreation, additionalTextOpt,
+                    AnalyzeRuleId(operationAnalysisContext, creationArguments, additionalTextOpt,
                         categoryOpt, allowedIdsInfoList, idToAnalyzerMap);
 
                 }, OperationKind.FieldInitializer);
@@ -276,28 +269,57 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             });
         }
 
-        private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
+        private static bool TryGetDescriptorCreateMethodAndArguments(
+            IFieldInitializerOperation fieldInitializer,
+            INamedTypeSymbol diagnosticDescriptorType,
+            out IMethodSymbol creationMethod,
+            out ImmutableArray<IArgumentOperation> creationArguments)
         {
-            IParameterSymbol title = objectCreation.Constructor.Parameters.FirstOrDefault(p => p.Name == "title");
+            (creationMethod, creationArguments) = fieldInitializer.Value switch
+            {
+                IObjectCreationOperation objectCreation when IsDescriptorConstructor(objectCreation.Constructor)
+                    => (objectCreation.Constructor, objectCreation.Arguments),
+                IInvocationOperation invocation when IsCreateHelper(invocation.TargetMethod)
+                    => (invocation.TargetMethod, invocation.Arguments),
+                _ => default
+            };
+
+            return creationMethod != null;
+
+            bool IsDescriptorConstructor(IMethodSymbol method)
+                => method.ContainingType.Equals(diagnosticDescriptorType);
+
+            // Heuristic to identify helper methods to create DiagnosticDescriptor:
+            //  "A method invocation that returns 'DiagnosticDescriptor' and has a first string parameter named 'id'"
+            bool IsCreateHelper(IMethodSymbol method)
+                => method.ReturnType.Equals(diagnosticDescriptorType) &&
+                    !method.Parameters.IsEmpty &&
+                    method.Parameters[0].Name == DiagnosticIdParameterName &&
+                    method.Parameters[0].Type.SpecialType == SpecialType.System_String;
+        }
+
+        private static void AnalyzeTitle(IMethodSymbol descriptorCreationMethod, IFieldInitializerOperation creation, Action<Diagnostic> reportDiagnostic)
+        {
+            IParameterSymbol title = descriptorCreationMethod.Parameters.FirstOrDefault(p => p.Name == "title");
             if (title != null &&
                 title.Type != null &&
                 title.Type.SpecialType == SpecialType.System_String)
             {
-                Diagnostic diagnostic = Diagnostic.Create(UseLocalizableStringsInDescriptorRule, objectCreation.Syntax.GetLocation(), WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
-                operationAnalysisContext.ReportDiagnostic(diagnostic);
+                Diagnostic diagnostic = creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
+                reportDiagnostic(diagnostic);
             }
         }
 
-        private static void AnalyzeHelpLinkUri(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
+        private static void AnalyzeHelpLinkUri(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
         {
             // Find the matching argument for helpLinkUri
-            foreach (var argument in objectCreation.Arguments)
+            foreach (var argument in creationArguments)
             {
                 if (argument.Parameter.Name.Equals(HelpLinkUriParameterName, System.StringComparison.OrdinalIgnoreCase))
                 {
                     if (argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null)
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(ProvideHelpUriInDescriptorRule, argument.Syntax.GetLocation());
+                        Diagnostic diagnostic = argument.CreateDiagnostic(ProvideHelpUriInDescriptorRule);
                         operationAnalysisContext.ReportDiagnostic(diagnostic);
                     }
 
@@ -306,10 +328,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        private static void AnalyzeCustomTags(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
+        private static void AnalyzeCustomTags(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
         {
             // Find the matching argument for customTags
-            foreach (var argument in objectCreation.Arguments)
+            foreach (var argument in creationArguments)
             {
                 if (argument.Parameter.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -319,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         arrayCreation.DimensionSizes[0].ConstantValue.Value is int size &&
                         size == 0)
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(ProvideCustomTagsInDescriptorRule, argument.Syntax.GetLocation());
+                        Diagnostic diagnostic = argument.CreateDiagnostic(ProvideCustomTagsInDescriptorRule);
                         operationAnalysisContext.ReportDiagnostic(diagnostic);
                     }
 
@@ -330,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool TryAnalyzeCategory(
             OperationAnalysisContext operationAnalysisContext,
-            IObjectCreationOperation objectCreation,
+            ImmutableArray<IArgumentOperation> creationArguments,
             AdditionalText additionalText,
             ImmutableDictionary<string, ImmutableArray<(string? prefix, int start, int end)>> categoryAndAllowedIdsInfoMap,
             [NotNullWhen(returnValue: true)] out string? category,
@@ -338,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             category = null;
             allowedIdsInfoList = default;
-            foreach (var argument in objectCreation.Arguments)
+            foreach (var argument in creationArguments)
             {
                 if (argument.Parameter.Name.Equals(CategoryParameterName, StringComparison.Ordinal))
                 {
@@ -377,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeRuleId(
             OperationAnalysisContext operationAnalysisContext,
-            IObjectCreationOperation objectCreation,
+            ImmutableArray<IArgumentOperation> creationArguments,
             AdditionalText? additionalTextOpt,
             string? categoryOpt,
             ImmutableArray<(string? prefix, int start, int end)> allowedIdsInfoListOpt,
@@ -385,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             var analyzer = ((IFieldSymbol)operationAnalysisContext.ContainingSymbol).ContainingType.OriginalDefinition;
             string? ruleId = null;
-            foreach (var argument in objectCreation.Arguments)
+            foreach (var argument in creationArguments)
             {
                 if (argument.Parameter.Name.Equals(DiagnosticIdParameterName, StringComparison.OrdinalIgnoreCase))
                 {

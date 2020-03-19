@@ -92,6 +92,26 @@
         <target state="translated">Importující konstruktor by měl být [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferNullLiteralCodeFix">
+        <source>Use 'null' instead of 'default'</source>
+        <target state="new">Use 'null' instead of 'default'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralDescription">
+        <source>Use 'null' instead of 'default' for reference types.</source>
+        <target state="new">Use 'null' instead of 'default' for reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralMessage">
+        <source>Use 'null' instead of 'default' for reference types</source>
+        <target state="new">Use 'null' instead of 'default' for reference types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralTitle">
+        <source>Prefer null literal</source>
+        <target state="new">Prefer null literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply PartNotDiscoverableAttribute</source>
         <target state="translated">Použijte PartNotDiscoverableAttribute.</target>

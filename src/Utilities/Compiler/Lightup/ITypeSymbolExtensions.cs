@@ -8,9 +8,9 @@ namespace Analyzer.Utilities.Lightup
     internal static class ITypeSymbolExtensions
     {
         private static readonly Func<ITypeSymbol, NullableAnnotation> s_nullableAnnotation
-            = LightupHelpers.CreateSymbolPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation));
+            = LightupHelpers.CreateSymbolPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation), fallbackResult: Lightup.NullableAnnotation.None);
         private static readonly Func<ITypeSymbol, NullableAnnotation, ITypeSymbol> s_withNullableAnnotation
-            = LightupHelpers.CreateSymbolWithPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation));
+            = LightupHelpers.CreateSymbolWithPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation), fallbackResult: Lightup.NullableAnnotation.None);
 
         public static NullableAnnotation NullableAnnotation(this ITypeSymbol typeSymbol)
             => s_nullableAnnotation(typeSymbol);

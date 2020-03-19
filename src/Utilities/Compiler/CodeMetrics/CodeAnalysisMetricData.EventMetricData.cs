@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -29,18 +30,20 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal async static Task<EventMetricData> ComputeAsync(IEventSymbol @event, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
             {
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
                 long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, @event, semanticModelProvider, cancellationToken).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
                     await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, @event, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, @event.Type);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, @event.Type);
 
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), semanticModelProvider, cancellationToken).ConfigureAwait(false);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {
-                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, child.CoupledNamedTypes);
+                    MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, child.CoupledNamedTypes);
                     maintainabilityIndexTotal += child.MaintainabilityIndex;
                     cyclomaticComplexity += child.CyclomaticComplexity;
                     computationalComplexityMetrics = computationalComplexityMetrics.Union(child.ComputationalComplexityMetrics);

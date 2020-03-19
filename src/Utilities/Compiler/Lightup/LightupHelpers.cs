@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,56 +11,19 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class LightupHelpers
     {
-        internal static Func<TSyntax, TProperty> CreateSyntaxPropertyAccessor<TSyntax, TProperty>(Type type, string propertyName)
+        internal static Func<TSyntax, TProperty> CreateSyntaxPropertyAccessor<TSyntax, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
             where TSyntax : SyntaxNode
-            => CreatePropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName);
+            => CreatePropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName, fallbackResult);
 
-        internal static Func<TSymbol, TProperty> CreateSymbolPropertyAccessor<TSymbol, TProperty>(Type type, string propertyName)
+        internal static Func<TSymbol, TProperty> CreateSymbolPropertyAccessor<TSymbol, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
             where TSymbol : ISymbol
-            => CreatePropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName);
+            => CreatePropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName, fallbackResult);
 
-        private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
+        private static Func<T, TProperty> CreatePropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName, TProperty fallbackResult)
         {
-            static TProperty FallbackAccessor(T instance)
+            if (!TryGetProperty<T, TProperty>(type, propertyName, out var property))
             {
-                if (instance == null)
-                {
-                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
-                    // behavior needs to match behavior of the underlying property.
-                    throw new NullReferenceException();
-                }
-
-                return default!;
-            }
-
-            if (type == null)
-            {
-                return FallbackAccessor;
-            }
-
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
-
-            var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
-            if (property == null)
-            {
-                return FallbackAccessor;
-            }
-
-            if (!typeof(TProperty).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
-            {
-                if (property.PropertyType.GetTypeInfo().IsEnum
-                    && typeof(TProperty).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TProperty)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(property.PropertyType).GetTypeInfo()))
-                {
-                    // Allow this
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                return instance => FallbackAccessor(instance, fallbackResult);
             }
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
@@ -76,70 +40,41 @@ namespace Analyzer.Utilities.Lightup
 
             Expression<Func<T, TProperty>> expression = Expression.Lambda<Func<T, TProperty>>(result, parameter);
             return expression.Compile();
-        }
 
-        internal static Func<TSyntax, TProperty, TSyntax> CreateSyntaxWithPropertyAccessor<TSyntax, TProperty>(Type type, string propertyName)
-            where TSyntax : SyntaxNode
-            => CreateWithPropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName);
-
-        internal static Func<TSymbol, TProperty, TSymbol> CreateSymbolWithPropertyAccessor<TSymbol, TProperty>(Type type, string propertyName)
-            where TSymbol : ISymbol
-            => CreateWithPropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName);
-
-        private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type type, string parameterName, string propertyName)
-        {
-            static T FallbackAccessor(T instance, TProperty newValue)
+            // Local function
+            static TProperty FallbackAccessor(T instance, TProperty fallbackResult)
             {
-                if (instance == null)
+                if (instance is null)
                 {
                     // Unlike an extension method which would throw ArgumentNullException here, the light-up
                     // behavior needs to match behavior of the underlying property.
                     throw new NullReferenceException();
                 }
 
-                if (Equals(newValue, default(TProperty)))
-                {
-                    return instance;
-                }
-
-                throw new NotSupportedException();
+                return fallbackResult;
             }
+        }
 
-            if (type == null)
-            {
-                return FallbackAccessor;
-            }
+        internal static Func<TSyntax, TProperty, TSyntax> CreateSyntaxWithPropertyAccessor<TSyntax, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
+            where TSyntax : SyntaxNode
+            => CreateWithPropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName, fallbackResult);
 
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
+        internal static Func<TSymbol, TProperty, TSymbol> CreateSymbolWithPropertyAccessor<TSymbol, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
+            where TSymbol : ISymbol
+            => CreateWithPropertyAccessor<TSymbol, TProperty>(type, "symbol", propertyName, fallbackResult);
 
-            var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
-            if (property == null)
+        private static Func<T, TProperty, T> CreateWithPropertyAccessor<T, TProperty>(Type? type, string parameterName, string propertyName, TProperty fallbackResult)
+        {
+            if (!TryGetProperty<T, TProperty>(type, propertyName, out var property))
             {
-                return FallbackAccessor;
-            }
-
-            if (!typeof(TProperty).GetTypeInfo().IsAssignableFrom(property.PropertyType.GetTypeInfo()))
-            {
-                if (property.PropertyType.GetTypeInfo().IsEnum
-                    && typeof(TProperty).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TProperty)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(property.PropertyType).GetTypeInfo()))
-                {
-                    // Allow this
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                return (instance, value) => FallbackAccessor(instance, value, fallbackResult);
             }
 
             var methodInfo = type.GetTypeInfo().GetDeclaredMethods("With" + propertyName)
                 .SingleOrDefault(m => !m.IsStatic && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.Equals(property.PropertyType));
             if (methodInfo is null)
             {
-                return FallbackAccessor;
+                return (instance, value) => FallbackAccessor(instance, value, fallbackResult);
             }
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
@@ -159,50 +94,31 @@ namespace Analyzer.Utilities.Lightup
                     parameter,
                     valueParameter);
             return expression.Compile();
-        }
 
-        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type type, string parameterName, Type argumentType, string argumentName, string methodName)
-        {
-            static TValue FallbackAccessor(T instance, TArg argument)
+            // Local function
+            static T FallbackAccessor(T instance, TProperty newValue, TProperty fallbackResult)
             {
-                if (instance == null)
+                if (instance is null)
                 {
                     // Unlike an extension method which would throw ArgumentNullException here, the light-up
                     // behavior needs to match behavior of the underlying property.
                     throw new NullReferenceException();
                 }
 
-                return default!;
-            }
-
-            if (type == null)
-            {
-                return FallbackAccessor;
-            }
-
-            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-            {
-                throw new InvalidOperationException();
-            }
-
-            var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
-            if (method == null)
-            {
-                return FallbackAccessor;
-            }
-
-            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
-            {
-                if (method.ReturnType.GetTypeInfo().IsEnum
-                    && typeof(TValue).GetTypeInfo().IsEnum
-                    && Enum.GetUnderlyingType(typeof(TValue)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(method.ReturnType).GetTypeInfo()))
+                if (Equals(newValue, fallbackResult))
                 {
-                    // Allow this
+                    return instance;
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+
+                throw new NotSupportedException();
+            }
+        }
+
+        internal static Func<T, TArg, TValue> CreateAccessorWithArgument<T, TArg, TValue>(Type? type, string parameterName, Type argumentType, string argumentName, string methodName, TValue fallbackResult)
+        {
+            if (!TryGetMethod<T, TValue>(type, methodName, out var method))
+            {
+                return (instance, _) => FallbackAccessor(instance, fallbackResult);
             }
 
             var parameter = Expression.Parameter(typeof(T), parameterName);
@@ -224,6 +140,84 @@ namespace Analyzer.Utilities.Lightup
 
             Expression<Func<T, TArg, TValue>> expression = Expression.Lambda<Func<T, TArg, TValue>>(result, parameter, argument);
             return expression.Compile();
+
+            // Local function
+            static TValue FallbackAccessor(T instance, TValue fallbackResult)
+            {
+                if (instance is null)
+                {
+                    // Unlike an extension method which would throw ArgumentNullException here, the light-up
+                    // behavior needs to match behavior of the underlying property.
+                    throw new NullReferenceException();
+                }
+
+                return fallbackResult;
+            }
+        }
+
+        private static void VerifyTypeArgument<T>(Type type)
+        {
+            if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        private static void VerifyResultTypeCompatibility<TValue>(Type resultType)
+        {
+            if (!typeof(TValue).GetTypeInfo().IsAssignableFrom(resultType.GetTypeInfo()))
+            {
+                if (resultType.GetTypeInfo().IsEnum
+                    && typeof(TValue).GetTypeInfo().IsEnum
+                    && Enum.GetUnderlyingType(typeof(TValue)).GetTypeInfo().IsAssignableFrom(Enum.GetUnderlyingType(resultType).GetTypeInfo()))
+                {
+                    // Allow this
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
+        private static bool TryGetProperty<T, TProperty>(Type? type, string propertyName, [NotNullWhen(true)] out PropertyInfo? propertyInfo)
+        {
+            if (type is null)
+            {
+                propertyInfo = null;
+                return false;
+            }
+
+            VerifyTypeArgument<T>(type);
+
+            propertyInfo = type.GetTypeInfo().GetDeclaredProperty(propertyName);
+            if (propertyInfo is null)
+            {
+                return false;
+            }
+
+            VerifyResultTypeCompatibility<TProperty>(propertyInfo.PropertyType);
+            return true;
+        }
+
+        private static bool TryGetMethod<T, TReturn>(Type? type, string methodName, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        {
+            if (type is null)
+            {
+                methodInfo = null;
+                return false;
+            }
+
+            VerifyTypeArgument<T>(type);
+
+            methodInfo = type.GetTypeInfo().GetDeclaredMethod(methodName);
+            if (methodInfo is null)
+            {
+                return false;
+            }
+
+            VerifyResultTypeCompatibility<TReturn>(methodInfo.ReturnType);
+            return true;
         }
     }
 }

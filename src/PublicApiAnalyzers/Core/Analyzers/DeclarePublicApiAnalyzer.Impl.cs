@@ -339,6 +339,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 void reportDeclareNewApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, string publicApiName)
                 {
+                    // TODO: workaround for https://github.com/dotnet/wpf/issues/2690
+                    if (publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper" ||
+                        publicApiName == "XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void")
+                    {
+                        return;
+                    }
+
                     // Unshipped public API with no entry in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).

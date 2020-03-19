@@ -12,4 +12,4 @@ RS0023 | Parts exported with MEFv2 must be marked as Shared | RoslynDiagnosticsR
 RS0032 | Test exports should not be discoverable | RoslynDiagnosticsReliability | False | Warning | True | Test exports should not be discoverable |
 RS0033 | Importing constructor should be [Obsolete] | RoslynDiagnosticsReliability | True | Warning | True | Importing constructor should be [Obsolete] |
 RS0034 | Exported parts should have [ImportingConstructor] | RoslynDiagnosticsReliability | True | Warning | True | Exported parts should have [ImportingConstructor] |
-RS0038 | Defaultable types should have defaultable fields | RoslynDiagnosticsReliability | True | Warning | False | Defaultable types should have defaultable fields |
+RS0040 | Defaultable types should have defaultable fields | RoslynDiagnosticsReliability | True | Warning | False | Defaultable types should have defaultable fields |
