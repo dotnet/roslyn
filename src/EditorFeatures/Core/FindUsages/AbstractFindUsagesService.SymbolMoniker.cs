@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var progress = new StreamingProgressTracker(context.ReportProgressAsync);
             try
             {
+                // Let the find-refs window know we have outstanding work
                 await progress.AddItemsAsync(1).ConfigureAwait(false);
 
                 // TODO: loc this
@@ -48,18 +49,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     originationParts: DefinitionItem.GetOriginationParts(definition));
 
                 var monikers = ImmutableArray.Create(moniker);
-                var currentPage = 0;
-                while (true)
+
+                var first = true;
+                await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(definitionItem, monikers, progress, cancellationToken))
                 {
-                    var keepGoing = await FindSymbolMonikerReferencesAsync(
-                        monikerUsagesService, monikers, context,
-                        progress, definitionItem, currentPage, cancellationToken).ConfigureAwait(false);
-                    if (!keepGoing)
-                        break;
+                    if (first)
+                    {
+                        // found some results.  Add the definition item to the context.
+                        first = false;
+                        await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                    }
+
+                    await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
                 }
             }
             finally
             {
+                // Mark that our async work is done.
                 await progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
@@ -79,25 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             try
             {
                 await progress.AddItemsAsync(1).ConfigureAwait(false);
-
-                var results = await monikerUsagesService.FindReferencesByMonikerAsync(
-                    definitionItem, monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (results.IsDefaultOrEmpty)
-                {
-                    // No results, indicate that we're totally done searching for moniker items.
-                    return false;
-                }
-
-                if (currentPage == 0)
-                {
-                    // found some results.  Add the definition item to the context.
-                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
-                }
-
-                currentPage++;
-
-                foreach (var referenceItem in results)
-                    await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
 
                 // Had a page of results.  Try to get another page after we've displayed this set.
                 return true;

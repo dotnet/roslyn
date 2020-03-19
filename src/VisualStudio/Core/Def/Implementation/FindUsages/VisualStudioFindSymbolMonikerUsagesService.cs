@@ -8,8 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.SymbolMonikers;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using VS.IntelliNav.Contracts;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
@@ -34,22 +34,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             _codeIndexProvider = codeIndexProvider;
         }
 
-        public override async Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(
+        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
             DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers,
-            int page, CancellationToken cancellationToken)
+            IStreamingProgressTracker progress, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_codeIndexProvider == null)
-                return await base.FindReferencesByMonikerAsync(definition, monikers, page, cancellationToken).ConfigureAwait(false);
+                yield break;
 
-            var results = await _codeIndexProvider.FindReferencesByMonikerAsync(
-                ConvertMonikers(monikers), includeDecleration: false, pageIndex: page, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var convertedMonikers = ConvertMonikers(monikers);
+            var currentPage = 0;
+            while (true)
+            {
+                var referenceItems = await FindReferencesByMonikerAsync(
+                    _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
+                // If we got no items, we're done.
+                if (referenceItems.Length == 0)
+                    break;
 
-            foreach (var result in results)
-                referenceItems.Add(ConvertResult(definition, result));
+                foreach (var item in referenceItems)
+                    yield return item;
 
-            return referenceItems.ToImmutable();
+                // Otherwise, we got some items.  Return them to our caller and attempt to retrieve
+                // another page.
+                currentPage++;
+            }
+        }
+
+        private async Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(
+            ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
+            IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Let the find-refs window know we have outstanding work
+                await progress.AddItemsAsync(1).ConfigureAwait(false);
+
+                var results = await codeIndexProvider.FindReferencesByMonikerAsync(
+                    monikers, includeDecleration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
+
+                foreach (var result in results)
+                    referenceItems.Add(ConvertResult(definition, result));
+
+                return referenceItems.ToImmutable();
+            }
+            finally
+            {
+                // Mark that our async work is done.
+                await progress.ItemCompletedAsync().ConfigureAwait(false);
+            }
         }
 
         private ExternalReferenceItem ConvertResult(DefinitionItem definition, string result)
