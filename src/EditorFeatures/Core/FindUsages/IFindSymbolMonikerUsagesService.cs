@@ -14,6 +14,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    /// <summary>
+    /// Allows searching for symbols by <see cref="SymbolMoniker"/>.  These calls will be passed
+    /// onto Rich-Nav (if available) and their results will be converted back to the forms that
+    /// Roslyn can present.
+    /// </summary>
     internal interface IFindSymbolMonikerUsagesService : IWorkspaceService
     {
         Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, int page, CancellationToken cancellationToken);
