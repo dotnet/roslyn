@@ -42,5 +42,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string AnnotatePublicApiRuleId = "RS0036";
         public const string ShouldAnnotateApiFilesRuleId = "RS0037";
         public const string PreferNullLiteralRuleId = "RS0038";
+        public const string RelaxTestNamingSuppressionRuleId = "RS0039";
     }
 }
