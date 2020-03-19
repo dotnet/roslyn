@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal abstract class Parameter
     {
-        public abstract bool HasExplicitDefaultValue { get; }
+        public abstract bool HasDefaultValue { get; }
         public abstract string Name { get; }
     }
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             Symbol = param;
         }
 
-        public override bool HasExplicitDefaultValue => Symbol.HasExplicitDefaultValue;
+        public override bool HasDefaultValue => Symbol.HasExplicitDefaultValue;
         public override string Name => Symbol.Name;
     }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         public override string Name { get; }
-        public override bool HasExplicitDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);
+        public override bool HasDefaultValue => !string.IsNullOrWhiteSpace(DefaultValue);
 
         public ITypeSymbol Type { get; }
         public string TypeName { get; }

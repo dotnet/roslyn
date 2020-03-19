@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var seenDefaultValues = false;
             foreach (var param in parametersList)
             {
-                if (param.HasExplicitDefaultValue)
+                if (param.HasDefaultValue)
                 {
                     seenDefaultValues = true;
                 }

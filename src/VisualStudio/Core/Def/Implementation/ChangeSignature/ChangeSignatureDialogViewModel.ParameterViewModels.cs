@@ -92,8 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _addedParameter = addedParameter;
             }
 
+            /// <summary>
+            /// The type syntax itself, excluding any markers for types that don't bind.
+            /// </summary>
             public string TypeWithoutErrorIndicator => _addedParameter.TypeName;
 
+            /// <summary>
+            /// Display text for the type in the UI, including a marker if it doesn't bind.
+            /// </summary>
             public override string Type
             {
                 get

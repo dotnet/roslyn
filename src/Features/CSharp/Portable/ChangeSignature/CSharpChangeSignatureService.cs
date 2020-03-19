@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
         {
-            var equalsValueClause = addedParameter.HasExplicitDefaultValue
+            var equalsValueClause = addedParameter.HasDefaultValue
                 ? SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(addedParameter.DefaultValue))
                 : default;
 
