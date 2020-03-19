@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// <summary>
     /// Information about a symbol's reference that can be used for display and navigation in an
     /// editor.  These generally reference items outside of the Roslyn <see cref="Solution"/> model
-    /// provided by external sources (for example: RichNav).
+    /// provided by external sources such as online indices.
     /// </summary>
     internal abstract class ExternalReferenceItem
     {
