@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(node, model);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node);
             if (declarationTypeToFix == null)
             {
                 return;
@@ -106,20 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                MakeDeclarationNullable(editor, node, alreadyHandled, model);
+                MakeDeclarationNullable(editor, model, node, alreadyHandled);
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var model = document.GetSemanticModelAsync(cancellationToken).GetAwaiter().GetResult();
             return equivalenceKey == GetEquivalenceKey(node, model);
         }
 
-        private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, SemanticModel model)
+        private static void MakeDeclarationNullable(SyntaxEditor editor, SemanticModel model, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(node, model);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node);
             if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
             {
                 var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node, SemanticModel model)
+        private static TypeSyntax TryGetDeclarationTypeToFix(SemanticModel model, SyntaxNode node)
         {
             if (!IsExpressionSupported(node))
             {
