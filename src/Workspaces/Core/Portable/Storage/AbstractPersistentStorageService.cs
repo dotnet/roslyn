@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Storage
         /// This lock guards all mutable fields in this type.
         /// </summary>
         private readonly object _lock = new object();
-        private ReferenceCountedDisposable<IChecksummedPersistentStorage> _currentPersistentStorage;
-        private SolutionId _currentPersistentStorageSolutionId;
+        private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
+        private SolutionId? _currentPersistentStorageSolutionId;
 
         protected AbstractPersistentStorageService(IPersistentStorageLocationService locationService)
             => _locationService = locationService;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 {
                     // We do, great. Increment our ref count for our caller.  They'll decrement it
                     // when done with it.
-                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
+                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
                 }
 
                 var workingFolder = _locationService.TryGetStorageLocation(solution);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return TryOpenDatabase(solution, workingFolderPath, databaseFilePath)
+                return TryOpenDatabase(solution, workingFolderPath, databaseFilePath);
             }
             catch (Exception ex)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private void Shutdown()
         {
-            ReferenceCountedDisposable<IChecksummedPersistentStorage> storage = null;
+            ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage = null;
 
             lock (_lock)
             {
@@ -211,7 +211,9 @@ namespace Microsoft.CodeAnalysis.Storage
 
             public static IChecksummedPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
-                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference());
+                // This should only be called from a caller that has a non-null storage that it
+                // already has a reference on.  So .TryAddReference cannot fail.
+                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw new InvalidOperationException());
             }
 
             public void Dispose()

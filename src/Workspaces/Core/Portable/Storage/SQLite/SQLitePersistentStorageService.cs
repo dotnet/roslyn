@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
-        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr LoadLibrary(string dllToLoad);
@@ -41,6 +42,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var myFolder = Path.GetDirectoryName(
                     typeof(SQLitePersistentStorage).Assembly.Location);
+                if (myFolder == null)
+                    return false;
 
                 var is64 = IntPtr.Size == 8;
                 var subfolder = is64 ? "x64" : "x86";
@@ -68,10 +71,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         public SQLitePersistentStorageService(
-            IOptionService optionService,
             IPersistentStorageLocationService locationService,
             IPersistentStorageFaultInjector faultInjector)
-            : this(optionService, locationService)
+            : this(locationService)
         {
             _faultInjectorOpt = faultInjector;
         }
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            SQLitePersistentStorage sqlStorage = null;
+            SQLitePersistentStorage? sqlStorage = null;
             try
             {
                 sqlStorage = new SQLitePersistentStorage(
@@ -125,15 +127,19 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
+        private static IDisposable? TryGetDatabaseOwnership(string databaseFilePath)
         {
-            return IOUtilities.PerformIO<IDisposable>(() =>
+            return IOUtilities.PerformIO<IDisposable?>(() =>
             {
                 // make sure directory exist first.
                 EnsureDirectory(databaseFilePath);
 
+                var directoryName = Path.GetDirectoryName(databaseFilePath);
+                if (directoryName == null)
+                    return null;
+
                 return File.Open(
-                    Path.Combine(Path.GetDirectoryName(databaseFilePath), LockFile),
+                    Path.Combine(directoryName, LockFile),
                     FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             });
         }
