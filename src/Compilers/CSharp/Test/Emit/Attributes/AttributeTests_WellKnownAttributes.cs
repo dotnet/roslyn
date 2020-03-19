@@ -8415,9 +8415,7 @@ class C2 : C1
 }";
             var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
             verify(comp1.ToMetadataReference());
-
-            // FIXME
-            //verify(comp1.EmitToImageReference());
+            verify(comp1.EmitToImageReference());
 
             void verify(MetadataReference reference)
             {
@@ -8435,6 +8433,144 @@ class C2 : C1
                     // (15,9): warning TEST1: 'C1.M1()' is obsolete: 'don't use'
                     //         M1(); // 4
                     Diagnostic("TEST1", "M1()").WithArguments("C1.M1()", "don't use").WithLocation(15, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_02()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"")]
+    public void M1() { }
+
+    [Obsolete(""don't use"", DiagnosticId = ""TEST2"")]
+    public void M2() { }
+
+    [Obsolete(""don't use"", error: false, DiagnosticId = ""TEST3"")]
+    public void M3() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M4()
+    {
+        M1(); // 1
+        M2(); // 2
+        M3(); // 3
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9),
+                    // (7,9): warning TEST2: 'C1.M2()' is obsolete: 'don't use'
+                    //         M2(); // 2
+                    Diagnostic("TEST2", "M2()").WithArguments("C1.M2()", "don't use").WithLocation(7, 9),
+                    // (8,9): warning TEST3: 'C1.M3()' is obsolete: 'don't use'
+                    //         M3(); // 3
+                    Diagnostic("TEST3", "M3()").WithArguments("C1.M3()", "don't use").WithLocation(8, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_03()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"", UrlFormat = ""https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/{0}"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+
+                var diag = diags.Single();
+                Assert.Equal("https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri);
+
+                diags.Verify(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact(Skip = "TODO: make behavior consistent between source and metadata"), WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_01()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute
+    {
+        public bool Flag { get; set; }
+        public string DiagnosticId { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(Flag = false, DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                // TODO: we could try to skip over properties of types that we don't recognize, but it only applies for bad user-defined Obsolete attributes.
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
             }
         }
 
