@@ -18,27 +18,26 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public virtual IWorkspaceTaskScheduler CreateBackgroundTaskScheduler()
+        protected virtual TaskScheduler GetCurrentContextScheduler()
+            => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
+
+        public WorkspaceTaskQueue CreateBackgroundTaskScheduler()
         {
-            return new WorkspaceTaskScheduler(this, TaskScheduler.Default);
+            return new WorkspaceTaskQueue(this, TaskScheduler.Default);
         }
 
-        public virtual IWorkspaceTaskScheduler CreateEventingTaskQueue()
+        public WorkspaceTaskQueue CreateEventingTaskQueue()
         {
-            var taskScheduler = (SynchronizationContext.Current != null)
-                ? TaskScheduler.FromCurrentSynchronizationContext()
-                : TaskScheduler.Default;
-
-            return new WorkspaceTaskQueue(this, taskScheduler);
+            return new WorkspaceTaskQueue(this, GetCurrentContextScheduler());
         }
 
-        protected virtual object BeginAsyncOperation(string taskName)
+        internal virtual object BeginAsyncOperation(string taskName)
         {
             // do nothing ... overridden by services layer
             return null;
         }
 
-        protected virtual void CompleteAsyncOperation(object asyncToken, Task task)
+        internal virtual void CompleteAsyncOperation(object asyncToken, Task task)
         {
             // do nothing ... overridden by services layer
         }

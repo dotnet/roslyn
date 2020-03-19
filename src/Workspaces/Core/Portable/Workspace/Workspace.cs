@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler _taskQueue;
+        private readonly WorkspaceTaskQueue _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;

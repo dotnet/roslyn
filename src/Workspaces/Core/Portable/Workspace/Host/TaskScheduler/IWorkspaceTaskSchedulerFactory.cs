@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Creates a workspace task scheduler that schedules tasks to run in parallel on the background.
         /// </summary>
-        IWorkspaceTaskScheduler CreateBackgroundTaskScheduler();
+        WorkspaceTaskQueue CreateBackgroundTaskScheduler();
 
         /// <summary>
         /// Creates a workspace task scheduler that schedules task to run in sequence to be used for raising
         /// workspace events.
         /// </summary>
-        IWorkspaceTaskScheduler CreateEventingTaskQueue();
+        WorkspaceTaskQueue CreateEventingTaskQueue();
     }
 }

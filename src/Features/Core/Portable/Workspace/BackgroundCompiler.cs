@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
-        private readonly IWorkspaceTaskScheduler _compilationScheduler;
+        private readonly WorkspaceTaskQueue _taskQueue;
 
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            _taskQueue = taskSchedulerFactory.CreateBackgroundTaskScheduler();
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Host
             ISet<ProjectId> allProjects)
         {
             var cancellationToken = _cancellationSource.Token;
-            return _compilationScheduler.ScheduleTask(
+            return _taskQueue.ScheduleTask(
                 () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 "BackgroundCompiler.BuildCompilationsAsync",
                 cancellationToken);

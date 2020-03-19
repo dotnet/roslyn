@@ -30,10 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _threadingContext = threadingContext;
         }
 
-        public override IWorkspaceTaskScheduler CreateEventingTaskQueue()
-        {
-            return new WorkspaceTaskQueue(this, new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory));
-        }
+        protected override TaskScheduler GetCurrentContextScheduler()
+            => new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory);
 
         private class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {

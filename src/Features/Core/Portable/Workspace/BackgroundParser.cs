@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Host
     /// but certain host such as VS, we have this (BackgroundParser) which preemptively 
     /// trying to realize such trees for open/active files expecting users will use them soonish.
     /// </summary>
-    internal class BackgroundParser
+    internal sealed class BackgroundParser
     {
         private readonly Workspace _workspace;
-        private readonly IWorkspaceTaskScheduler _taskScheduler;
+        private readonly WorkspaceTaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
         private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            _taskQueue = taskSchedulerFactory.CreateBackgroundTaskScheduler();
 
             _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Host
             // By not cancelling, we can reuse the useful results of previous tasks when performing later steps in the chain.
             //
             // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
-            var task = _taskScheduler.ScheduleTask(
+            var task = _taskQueue.ScheduleTask(
                 () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);

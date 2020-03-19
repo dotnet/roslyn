@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
-        protected override object BeginAsyncOperation(string taskName)
+        internal override object BeginAsyncOperation(string taskName)
         {
             return _listener.BeginAsyncOperation(taskName);
         }
 
-        protected override void CompleteAsyncOperation(object asyncToken, Task task)
+        internal override void CompleteAsyncOperation(object asyncToken, Task task)
         {
             task.CompletesAsyncOperation((IAsyncToken)asyncToken);
         }
