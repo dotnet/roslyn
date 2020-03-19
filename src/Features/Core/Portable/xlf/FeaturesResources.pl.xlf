@@ -247,11 +247,6 @@
         <target state="translated">Wyodrębnij metodę</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">Wyodrębnij metodę + element lokalny</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Nie można przeanalizować przepływu danych dla: {0}</target>
@@ -2075,11 +2070,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">PascalCase</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Użyj wyrażenia łączącego</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">Użyj propagacji wartości null</target>
@@ -2193,11 +2183,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">Wybierz składowe, które zostaną użyte w elementach Equals/GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">Wprowadzenie zmian w drzewach wyrażeń może spowodować zmiany zachowania w czasie wykonywania</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">

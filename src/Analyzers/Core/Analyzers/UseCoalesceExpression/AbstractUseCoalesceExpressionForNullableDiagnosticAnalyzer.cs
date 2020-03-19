@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     internal abstract class AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer<
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
                    CodeStyleOptions.PreferCoalesceExpression,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

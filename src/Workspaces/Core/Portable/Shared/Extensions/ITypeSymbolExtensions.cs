@@ -244,7 +244,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Solution solution,
             CancellationToken cancellationToken)
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly (https://github.com/dotnet/roslyn-analyzers/issues/3384)
             return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken))
+#pragma warning restore CA2012 // Use ValueTasks correctly
                 ?? new ValueTask<ITypeSymbol?>((ITypeSymbol?)null);
         }
 

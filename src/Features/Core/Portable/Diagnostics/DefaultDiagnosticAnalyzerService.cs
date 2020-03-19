@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                        document, kind, compilationWithAnalyzers, getSkippedAnalyzersInfo: null, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();

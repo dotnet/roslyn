@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     declarationKind, options, preference,
                     out var expression, out semicolonToken))
             {
-                arrowExpression = default;
+                arrowExpression = null;
                 semicolonToken = default;
                 return false;
             }
