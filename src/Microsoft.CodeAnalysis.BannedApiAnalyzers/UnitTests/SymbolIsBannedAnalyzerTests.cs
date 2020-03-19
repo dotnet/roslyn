@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
     public class SymbolIsBannedAnalyzerTests
     {
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
             => VerifyCS.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
+                .WithArguments(bannedMemberName, message);
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
             => VerifyVB.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
+                .WithArguments(bannedMemberName, message);
 
         private static async Task VerifyBasicAnalyzerAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
@@ -762,6 +762,147 @@ namespace N
         }
 
         [Fact]
+        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            Method1();
+            if (Property1 == 42 && Event1 != null) {}
+
+            Method2();
+            if (Property2 == 42 && Event2 != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            base.Method1();
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            Method1();
+            if (Property1 == 42 && Event1 != null) {}
+
+            Method2();
+            if (Property2 == 42 && Event2 != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyCSharpAnalyzerAsync(
+                source,
+                bannedText,
+                GetCSharpResultAt(25, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method2()", ""),
+                GetCSharpResultAt(33, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method1()", ""),
+                GetCSharpResultAt(34, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Property1", ""),
+                GetCSharpResultAt(34, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Event1", ""),
+                GetCSharpResultAt(36, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method2()", ""),
+                GetCSharpResultAt(37, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Property2", ""),
+                GetCSharpResultAt(37, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Event2", ""),
+                GetCSharpResultAt(45, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method1()", ""),
+                GetCSharpResultAt(53, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method2()", ""),
+                GetCSharpResultAt(61, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method1()", ""),
+                GetCSharpResultAt(62, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Property1", ""),
+                GetCSharpResultAt(62, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Event1", ""),
+                GetCSharpResultAt(64, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Method2()", ""),
+                GetCSharpResultAt(65, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Property2", ""),
+                GetCSharpResultAt(65, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C1.Event2", ""));
+
+            bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyCSharpAnalyzerAsync(
+                source,
+                bannedText,
+                GetCSharpResultAt(33, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method1()", ""),
+                GetCSharpResultAt(34, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Property1", ""),
+                GetCSharpResultAt(34, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Event1", ""),
+                GetCSharpResultAt(36, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method2()", ""),
+                GetCSharpResultAt(37, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Property2", ""),
+                GetCSharpResultAt(37, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Event2", ""),
+                GetCSharpResultAt(45, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method1()", ""),
+                GetCSharpResultAt(53, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method2()", ""),
+                GetCSharpResultAt(61, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method1()", ""),
+                GetCSharpResultAt(62, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Property1", ""),
+                GetCSharpResultAt(62, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Event1", ""),
+                GetCSharpResultAt(64, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Method2()", ""),
+                GetCSharpResultAt(65, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Property2", ""),
+                GetCSharpResultAt(65, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C2.Event2", ""));
+
+            bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyCSharpAnalyzerAsync(
+                source,
+                bannedText,
+                GetCSharpResultAt(61, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Method1()", ""),
+                GetCSharpResultAt(62, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Property1", ""),
+                GetCSharpResultAt(62, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Event1", ""),
+                GetCSharpResultAt(64, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Method2()", ""),
+                GetCSharpResultAt(65, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Property2", ""),
+                GetCSharpResultAt(65, 36, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C3.Event2", ""));
+        }
+
+        [Fact]
         public async Task VisualBasic_BannedType_Constructor()
         {
             var source = @"
@@ -1174,6 +1315,139 @@ Class D : End Class
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            Method1()
+
+            If Property1 = 42 Then
+            End If
+
+            Method2()
+
+            If Property2 = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            MyBase.Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            Method1()
+
+            If Property1 = 42 Then
+            End If
+
+            Method2()
+
+            If Property2 = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyBasicAnalyzerAsync(
+                source,
+                bannedText,
+                GetBasicResultAt(24, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Sub Method2()", ""),
+                GetBasicResultAt(30, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public MustOverride Sub Method1()", ""),
+                GetBasicResultAt(32, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public MustOverride Property Property1 As Integer", ""),
+                GetBasicResultAt(35, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Sub Method2()", ""),
+                GetBasicResultAt(37, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Property Property2 As Integer", ""),
+                GetBasicResultAt(46, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public MustOverride Sub Method1()", ""),
+                GetBasicResultAt(52, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Sub Method2()", ""),
+                GetBasicResultAt(58, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public MustOverride Sub Method1()", ""),
+                GetBasicResultAt(60, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public MustOverride Property Property1 As Integer", ""),
+                GetBasicResultAt(63, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Sub Method2()", ""),
+                GetBasicResultAt(65, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overridable Property Property2 As Integer", ""));
+
+            bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyBasicAnalyzerAsync(
+                source,
+                bannedText,
+                GetBasicResultAt(30, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method1()", ""),
+                GetBasicResultAt(32, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property1 As Integer", ""),
+                GetBasicResultAt(35, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method2()", ""),
+                GetBasicResultAt(37, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property2 As Integer", ""),
+                GetBasicResultAt(46, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method1()", ""),
+                GetBasicResultAt(52, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method2()", ""),
+                GetBasicResultAt(58, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method1()", ""),
+                GetBasicResultAt(60, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property1 As Integer", ""),
+                GetBasicResultAt(63, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method2()", ""),
+                GetBasicResultAt(65, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property2 As Integer", ""));
+
+            bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyBasicAnalyzerAsync(
+                source,
+                bannedText,
+                GetBasicResultAt(58, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method1()", ""),
+                GetBasicResultAt(60, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property1 As Integer", ""),
+                GetBasicResultAt(63, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Sub Method2()", ""),
+                GetBasicResultAt(65, 16, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Overrides Property Property2 As Integer", ""));
         }
 
         #endregion
