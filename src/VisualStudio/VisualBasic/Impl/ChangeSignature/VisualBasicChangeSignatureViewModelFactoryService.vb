@@ -29,8 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
         End Sub
 
         Protected Overrides Function CreateSpansMethod(textSnapshot As ITextSnapshot, insertPosition As Integer) As ITrackingSpan()
-            ' + 4 to support inserted ', [~'
-            Return CreateTrackingSpansHelper(textSnapshot, contextPoint:=insertPosition + 4, spaceBetweenTypeAndName:=5)
+            Return CreateTrackingSpansHelper(textSnapshot, contextPoint:=insertPosition + ", [~".Length, spaceBetweenTypeAndName:=5)
         End Function
 
         ' We insert '[]' so that we're always able to generate the type even if the name field is empty. 
@@ -41,11 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ContentTypeName As String
-            Get
-                Return ContentTypeNames.VisualBasicContentType
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property ContentTypeName As String = ContentTypeNames.VisualBasicContentType
 
         Public Overrides Function GeneratePreviewDisplayParts(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel) As SymbolDisplayPart()
             Dim parts = New List(Of SymbolDisplayPart)

@@ -282,9 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
                 Dim updatedLeadingTrivia = UpdateParamNodesInLeadingTrivia(document, vbnode, declarationSymbol, updatedSignature)
-                If updatedLeadingTrivia IsNot Nothing Then
-                    vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
-                End If
+                vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse vbnode.IsKind(SyntaxKind.FunctionStatement) Then
@@ -438,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
-            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
+            Dim newArguments As ImmutableArray(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
                 declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
                 Function(callSiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callSiteValue))),
                 isReducedExtensionMethod)
@@ -447,11 +445,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             If arguments.Count = 0 Then
                 ' () 
                 ' Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = arguments.Count - newArguments.Count + 1
+                numSeparatorsToSkip = arguments.Count - newArguments.Length + 1
             Else
                 ' (a,b,c)
                 ' Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = arguments.Count - newArguments.Count
+                numSeparatorsToSkip = arguments.Count - newArguments.Length
             End If
 
             Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
@@ -483,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
 
-        Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxTrivia)
+        Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxTrivia)
             If Not node.HasLeadingTrivia Then
                 Return Nothing
             End If

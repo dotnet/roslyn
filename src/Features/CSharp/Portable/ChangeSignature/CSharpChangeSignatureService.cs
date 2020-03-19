@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
-                var isReducedExtensionMethod = symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension;
+                var isReducedExtensionMethod = symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
 
                 var isParamsArrayExpanded = false;
                 // TODO can't use symbol this way
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
                 updatedSignature,
                 callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callSiteValue))));
-            var numSeparatorsToSkip = arguments.Count - newArguments.Count;
+            var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
             // copy whitespace trivia from original position
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
@@ -531,15 +531,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
                 newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
 
-            var numSeparatorsToSkip = arguments.Count - newArguments.Count;
+            var numSeparatorsToSkip = arguments.Count - newArguments.Length;
             return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
-        private List<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
+        private ImmutableArray<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
             where T : SyntaxNode
             where U : SyntaxNode
         {
-            var result = new List<T>();
+            var result = ImmutableArray.CreateBuilder<T>();
             var index = 0;
             foreach (var newArgument in newArguments)
             {
@@ -555,14 +555,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 index++;
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
-        private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private ImmutableArray<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             if (!node.HasLeadingTrivia)
             {
-                return null;
+                return default;
             }
 
             var paramNodes = node
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature);
             if (permutedParamNodes == null)
             {
-                return null;
+                return default;
             }
 
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);

@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return nodeToUpdate != null;
         }
 
-        protected List<IUnifiedArgumentSyntax> PermuteArguments(
+        protected ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
             ISymbol declarationSymbol,
             List<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             argumentsToPermute.Sort((a1, a2) => { return parameterToIndexMap[argumentToParameterMap[a1]].CompareTo(parameterToIndexMap[argumentToParameterMap[a2]]); });
 
             // 4. Add names to arguments where necessary.
-            var newArguments = new List<IUnifiedArgumentSyntax>();
+            var newArguments = ImmutableArray.CreateBuilder<IUnifiedArgumentSyntax>();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
             IUnifiedArgumentSyntax paramsArrayArgument = null;
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return newArguments;
+            return newArguments.ToImmutable();
         }
 
         private static SignatureChange CreateCompensatingSignatureChange(ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return parameters.Count - 1;
         }
 
-        protected (IEnumerable<T> parameters, IEnumerable<SyntaxToken> separators) UpdateDeclarationBase<T>(
+        protected (ImmutableArray<T> parameters, ImmutableArray<SyntaxToken> separators) UpdateDeclarationBase<T>(
             SeparatedSyntaxList<T> list,
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             int numAddedParameters = 0;
 
-            var newParameters = new List<T>();
+            var newParameters = ImmutableArray.CreateBuilder<T>();
             for (var index = 0; index < reorderedParameters.Count; index++)
             {
                 var newParam = reorderedParameters[index];
@@ -714,12 +714,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
             }
 
-            return (newParameters, GetSeparators(list, numSeparatorsToSkip));
+            return (newParameters.ToImmutable(), GetSeparators(list, numSeparatorsToSkip));
         }
 
-        protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
+        protected ImmutableArray<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
         {
-            var separators = new List<SyntaxToken>();
+            var separators = ImmutableArray.CreateBuilder<SyntaxToken>();
 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     : Generator.CommaTokenWithElasticSpace());
             }
 
-            return separators;
+            return separators.ToImmutable();
         }
 
         protected abstract SyntaxGenerator Generator { get; }
@@ -848,9 +848,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         internal abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
         internal abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
 
-        protected List<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
         {
-            var updatedLeadingTrivia = new List<SyntaxTrivia>();
+            var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
             SyntaxTrivia lastWhiteSpaceTrivia = default;
 
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 updatedLeadingTrivia.Add(newTrivia);
             }
 
-            return updatedLeadingTrivia;
+            return updatedLeadingTrivia.ToImmutable();
         }
     }
 }
