@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Storage
                 // Do we already have storage for this?
                 if (solution.Id == _currentPersistentStorageSolutionId)
                 {
-                    // We do, great up our ref count for our caller.  They'll decrement it when done
-                    // with it.
+                    // We do, great. Increment our ref count for our caller.  They'll decrement it
+                    // when done with it.
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
                 }
 
