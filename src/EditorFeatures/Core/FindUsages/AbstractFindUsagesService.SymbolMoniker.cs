@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var monikers = ImmutableArray.Create(moniker);
 
                 var first = true;
-                await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(definitionItem, monikers, progress, cancellationToken))
+                await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(
+                    definitionItem, monikers, progress, cancellationToken))
                 {
                     if (first)
                     {
