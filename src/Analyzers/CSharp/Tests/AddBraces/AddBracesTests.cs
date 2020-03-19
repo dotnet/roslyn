@@ -659,7 +659,7 @@ class Program
         /// <summary>
         /// Verifies that the use of braces in a construct nested within the true portion of an <c>if</c> statement does
         /// not trigger the multiline behavior the <c>else</c> clause of a containing stetemnet for
-        /// <see cref="PreferBracesPreference.WhenMultiline"/>. The <c>else</c> clause would only need braces if the true
+        /// "PreferBracesPreference.WhenMultiline". The <c>else</c> clause would only need braces if the true
         /// portion also used braces (which would be required if the true portion was considered multiline.
         /// </summary>
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -668,8 +668,6 @@ class Program
         [InlineData((int)PreferBracesPreference.Always, true)]
         public async Task FireForIfNestedInElseWithoutBracesWithMultilineContext5(int bracesPreference, bool expectDiagnostic)
         {
-            var x = PreferBracesPreference.WhenMultiline;
-
             await TestAsync(
             @"
 class Program
