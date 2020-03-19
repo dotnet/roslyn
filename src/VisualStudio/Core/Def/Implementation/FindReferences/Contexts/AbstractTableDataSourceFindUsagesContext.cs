@@ -255,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #endregion
 
-            #region IFindUsagesContext implementation.
+            #region FindUsagesContext overrides.
 
             public sealed override Task SetSearchTitleAsync(string title)
             {
@@ -264,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return Task.CompletedTask;
             }
 
-            public async sealed override Task OnCompletedAsync()
+            public sealed override async Task OnCompletedAsync()
             {
                 await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
 
