@@ -2190,8 +2190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression expr)
         {
-            SetResultType(expr, 
-                expr.WithMethod?.ReturnTypeWithAnnotations.ToTypeWithState() 
+            SetResultType(expr,
+                expr.WithMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
                     ?? TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
             return null;
         }

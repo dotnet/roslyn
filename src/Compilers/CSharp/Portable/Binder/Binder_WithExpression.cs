@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // look for a single remaining one
                 foreach (var member in members)
                 {
-                    if (member is MethodSymbol { IsOverride: false} method)
+                    if (member is MethodSymbol { IsOverride: false } method)
                     {
                         if (withMethod is null)
                         {
@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         withMethod.ReturnType);
                 }
 
-
                 // Build WithMethod member list
                 var matchingMembers = ArrayBuilder<Symbol?>.GetInstance(withMethod.ParameterCount); 
                 foreach (var p in withMethod.Parameters)
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             p.Name);
                         member = null;
                     }
-                    else 
+                    else
                     {
                         member = lookupResult.SingleSymbolOrDefault;
                         Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
