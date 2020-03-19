@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
             catch
             {
+                // ignore any exceptions (e.g. OOM)
             }
 
             FailFast.OnFatalException(exception);
