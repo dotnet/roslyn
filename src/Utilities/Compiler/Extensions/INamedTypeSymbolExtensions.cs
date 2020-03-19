@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -258,6 +259,14 @@ namespace Analyzer.Utilities.Extensions
             // Any instance member other than a default constructor disqualifies a class
             // from being considered a static holder class.
             return !member.IsStatic && !member.IsDefaultConstructor();
+        }
+
+        public static bool IsXUnitTestAttribute(this INamedTypeSymbol attributeClass, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            if (knownTestAttributes.TryGetValue(attributeClass, out var isTest))
+                return isTest;
+
+            return knownTestAttributes.GetOrAdd(attributeClass, attributeClass.DerivesFrom(xunitFactAttribute));
         }
     }
 }

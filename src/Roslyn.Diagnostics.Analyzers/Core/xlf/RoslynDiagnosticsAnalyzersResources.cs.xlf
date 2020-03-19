@@ -112,6 +112,11 @@
         <target state="new">Prefer null literal</target>
         <note />
       </trans-unit>
+      <trans-unit id="RelaxTestNamingSuppressorJustification">
+        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
+        <target state="new">Asynchronous test methods do not require the 'Async' suffix.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply PartNotDiscoverableAttribute</source>
         <target state="translated">Použijte PartNotDiscoverableAttribute.</target>

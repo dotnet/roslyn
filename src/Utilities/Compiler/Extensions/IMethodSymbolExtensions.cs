@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Concurrent;
 
 #if HAS_IOPERATION
-using System.Collections.Concurrent;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -646,6 +646,17 @@ namespace Analyzer.Utilities.Extensions
                 method.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
                 method.Parameters.Length == 1 &&
                 !method.Parameters[0].Type.IsValueType;
+        }
+
+        public static bool IsXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            foreach (var attribute in method.GetAttributes())
+            {
+                if (attribute.AttributeClass.IsXUnitTestAttribute(knownTestAttributes, xunitFactAttribute))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

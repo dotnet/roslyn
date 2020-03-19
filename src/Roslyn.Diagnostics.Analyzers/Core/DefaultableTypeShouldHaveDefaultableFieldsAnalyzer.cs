@@ -7,6 +7,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using NullableAnnotation = Analyzer.Utilities.Lightup.NullableAnnotation;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
