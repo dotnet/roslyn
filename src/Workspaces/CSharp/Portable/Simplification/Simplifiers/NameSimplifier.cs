@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan)
         {
             issueSpan = default;
-            replacementNode = default;
+            replacementNode = null;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))

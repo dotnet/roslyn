@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// <summary>
     /// Serialization typed used to pass information to/from OOP and VS.
     /// </summary>
-    internal struct DesignerInfo
+    internal struct DesignerAttributeData
     {
         /// <summary>
         /// The category specified in a <c>[DesignerCategory("...")]</c> attribute.
