@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     new TaggedText(TextTags.Text, " - (external)"));
 
                 var definitionItem = DefinitionItem.CreateNonNavigableItem(
-                    GlyphTags.GetTags(definition.GetGlyph()),
+                    tags: GlyphTags.GetTags(definition.GetGlyph()),
                     displayParts,
-                    originationParts: ImmutableArray.Create(new TaggedText(TextTags.Text, "external")));
+                    originationParts: DefinitionItem.GetOriginationParts(definition));
 
-                var monikers = SpecializedCollections.SingletonEnumerable(moniker);
+                var monikers = ImmutableArray.Create(moniker);
                 var currentPage = 0;
                 while (true)
                 {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// </summary>
         private static async Task<bool> FindSymbolMonikerReferencesAsync(
             IFindSymbolMonikerUsagesService monikerUsagesService,
-            IEnumerable<SymbolMoniker> monikers,
+            ImmutableArray<SymbolMoniker> monikers,
             IFindUsagesContext context,
             IStreamingProgressTracker progress,
             DefinitionItem definitionItem,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 await progress.AddItemsAsync(1).ConfigureAwait(false);
 
                 var results = await monikerUsagesService.FindReferencesByMonikerAsync(
-                    monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    definitionItem, monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (results == null || results.Length == 0)
                     return false;
 
