@@ -3152,6 +3152,82 @@ class C
         }
 
         [Fact]
+        public void OutputType_01()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        // 1. If P is a type pattern, the narrowed type is the type of the type pattern's type.
+        object o = 1;
+        { if (o is int and var i) M(i); } // System.Int32
+
+        // 2. If P is a declaration pattern, the narrowed type is the type of the declaration pattern's type.
+        o = 1L;
+        { if (o is long q and var i) M(i); } // System.Int64
+
+        // 3. If P is a recursive pattern that gives an explicit type, the narrowed type is that type.
+        o = 1UL;
+        { if (o is ulong {} and var i) M(i); } // System.UInt64
+
+        // 4. If P is a constant pattern where the constant is not the null constant and where the expression has no constant expression conversion to the input type, the narrowed type is the type of the constant.
+        o = (byte)1;
+        { if (o is (byte)1 and var i) M(i); } // System.Byte
+
+        // 5. If P is a relational pattern where the constant expression has no constant expression conversion to the input type, the narrowed type is the type of the constant.
+        o = (uint)1;
+        { if (o is <= 10U and var i) M(i); } // System.UInt32
+
+        // 6. If P is an or pattern, the narrowed type is the common type of the narrowed type of the left pattern and the narrowed type of the right pattern if such a common type exists.
+// This test blocked until https://github.com/dotnet/roslyn/pull/42109 is integrated.
+        o = 1;
+        { if (o is (1 or 2) and var i) M(i); } // System.Int32
+
+        // 7. If P is an and pattern, the narrowed type is the narrowed type of the right pattern. Moreover, the narrowed type of the left pattern is the input type of the right pattern.
+        o = ""SomeString"";
+        { if (o is (var x and string y) and var i) M(i); } // System.String
+
+        // 8. Otherwise the narrowed type of P is P's input type.
+        o = new Q();
+        // PROTOTYPE(ngafter): we need a rule that explains this.
+        { if (o is (3, 4) and var i) M(i); } // System.Runtime.CompilerServices.ITuple
+
+        o = null;
+        { if (o is null and var i) M(i); } // System.Object
+        { if (o is (var x and null) and var i) M(i); } // System.Object
+        { long x = 42; if (x is 42 and var i) M(i); } // expect System.Int64
+    }
+    static void M<T>(T t)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    class Q: System.Runtime.CompilerServices.ITuple
+    {
+        public int Length => 2;
+        public object this[int index] => index + 3;
+    }
+}";
+            var expectedOutput =
+@"System.Int32
+System.Int64
+System.UInt64
+System.Byte
+System.UInt32
+System.Int32
+System.String
+System.Runtime.CompilerServices.ITuple
+System.Object
+System.Object
+System.Int64
+";
+            var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -3289,7 +3365,7 @@ class Program
                         Assert.Equal("(>= A and <= Z) or (>= a and <= z)", pattern.ToString());
                         Assert.Equal(SyntaxKind.OrPattern, pattern.Kind());
                         Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 18:
                         Assert.Equal("(>= A and <= Z)", pattern.ToString());
@@ -3314,7 +3390,7 @@ class Program
                         Assert.Equal("<= Z", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char Z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 22:
@@ -3340,7 +3416,7 @@ class Program
                         Assert.Equal("<= z", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 26:
@@ -3372,7 +3448,7 @@ class Program
                         Assert.Equal("< c9", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char c9", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                 }
@@ -3522,7 +3598,7 @@ class Program
                         Assert.Equal("(>= A and <= Z) or (>= a and <= z)", pattern.ToString());
                         Assert.Equal(SyntaxKind.OrPattern, pattern.Kind());
                         Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 18:
                         Assert.Equal("(>= A and <= Z)", pattern.ToString());
@@ -3547,7 +3623,7 @@ class Program
                         Assert.Equal("<= Z", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char Z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 22:
@@ -3573,7 +3649,7 @@ class Program
                         Assert.Equal("<= z", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                     case 26:
@@ -3605,7 +3681,7 @@ class Program
                         Assert.Equal("< c9", pattern.ToString());
                         Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
                         Assert.Equal("System.Char c9", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
-                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
                         Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
                         break;
                 }

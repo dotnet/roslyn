@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CasePatternSwitchLabel:
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
-                        var pattern = sectionBinder.BindPattern(
+                        _ = sectionBinder.BindPattern(
                             matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
