@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     lock (fixes)
                     {
                         // Filter out applicable diagnostics which already have a registered code action with same equivalence key.
-                        applicableDiagnostics = FilterApplicableDiagnostics(applicableDiagnostics, action.EquivalenceKey, uniqueDiagosticToEquivalenceKeysMap);
+                        applicableDiagnostics = FilterApplicableDiagnostics(applicableDiagnostics, action.EquivalenceKey!, uniqueDiagosticToEquivalenceKeysMap);
 
                         if (!applicableDiagnostics.IsEmpty)
                         {
