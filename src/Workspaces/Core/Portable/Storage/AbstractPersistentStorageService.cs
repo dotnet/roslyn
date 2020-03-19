@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Storage
             {
                 // This should only be called from a caller that has a non-null storage that it
                 // already has a reference on.  So .TryAddReference cannot fail.
-                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw new InvalidOperationException());
+                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
             }
 
             public void Dispose()
