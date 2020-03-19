@@ -2565,7 +2565,7 @@ class D : X$$
     }
 }
 ",
-                MainDescription("C.C(int i) (+ 1 overload)"));
+                MainDescription($"C.C(int i) (+ 1 {FeaturesResources.overload})"));
         }
 
         [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
