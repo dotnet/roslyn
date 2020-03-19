@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             IFindUsagesContext context,
             CancellationToken cancellationToken)
         {
-            if (monikerUsagesService == null)
-                return;
-
             var moniker = SymbolMoniker.TryCreate(definition);
             if (moniker == null)
                 return;
