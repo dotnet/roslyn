@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal abstract partial class AbstractPersistentStorageService : IChecksummedPersistentStorageService
     {
-        private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
 
         /// <summary>
@@ -30,13 +29,8 @@ namespace Microsoft.CodeAnalysis.Storage
         private ReferenceCountedDisposable<IChecksummedPersistentStorage> _currentPersistentStorage;
         private SolutionId _currentPersistentStorageSolutionId;
 
-        protected AbstractPersistentStorageService(
-            IOptionService optionService,
-            IPersistentStorageLocationService locationService)
-        {
-            _optionService = optionService;
-            _locationService = locationService;
-        }
+        protected AbstractPersistentStorageService(IPersistentStorageLocationService locationService)
+            => _locationService = locationService;
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
         protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage);
@@ -68,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Storage
                 // Do we already have storage for this?
                 if (solution.Id == _currentPersistentStorageSolutionId)
                 {
-                    // We do, great
+                    // We do, great up our ref count for our caller.  They'll decrement it when done
+                    // with it.
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
                 }
 
@@ -83,21 +78,27 @@ namespace Microsoft.CodeAnalysis.Storage
                 {
                     var storageToDispose = _currentPersistentStorage;
 
+                    // Kick off a task to actually go dispose the previous cached storage instance.
+                    // This will remove the single ref count we ourselves added when we cached the
+                    // instance.  Then once all other existing clients who are holding onto this
+                    // instance let go, it will finally get truly disposed.
                     Task.Run(() => storageToDispose.Dispose());
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                _currentPersistentStorage = TryCreatePersistentStorage(solution, workingFolder);
+                var storage = CreatePersistentStorage(solution, workingFolder);
+                Contract.ThrowIfNull(storage);
 
-                if (_currentPersistentStorage == null)
-                {
-                    return NoOpPersistentStorage.Instance;
-                }
-
+                // Create and cache a new storage instance associated with this particular solution.
+                // It will initially have a ref-count of 1 due to our reference to it.
+                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(storage);
                 _currentPersistentStorageSolutionId = solution.Id;
 
+                // Now increment the reference count and return to our caller.  The current ref
+                // count for this instance will be 2.  Until all the callers *and* us decrement
+                // the refcounts, this instance will not be actually disposed.
                 return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
             }
         }
@@ -118,39 +119,27 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private ReferenceCountedDisposable<IChecksummedPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)
+        private IChecksummedPersistentStorage CreatePersistentStorage(Solution solution, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
-                TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
-            {
-                return new ReferenceCountedDisposable<IChecksummedPersistentStorage>(persistentStorage);
-            }
-
-            // okay, can't recover, then use no op persistent service 
-            // so that things works old way (cache everything in memory)
-            return null;
+            return TryCreatePersistentStorage(solution, workingFolderPath) ??
+                   TryCreatePersistentStorage(solution, workingFolderPath) ??
+                   NoOpPersistentStorage.Instance;
         }
 
-        private bool TryCreatePersistentStorage(
+        private IChecksummedPersistentStorage? TryCreatePersistentStorage(
             Solution solution,
-            string workingFolderPath,
-            out IChecksummedPersistentStorage persistentStorage)
+            string workingFolderPath)
         {
-            persistentStorage = null;
-
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out persistentStorage))
-                {
-                    return false;
-                }
-
-                return true;
+                return TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out var persistentStorage)
+                    ? persistentStorage
+                    : null;
             }
             catch (Exception ex)
             {
@@ -164,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
                 }
 
-                return false;
+                return null;
             }
         }
 
