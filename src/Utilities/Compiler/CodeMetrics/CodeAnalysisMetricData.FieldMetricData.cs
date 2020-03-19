@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             internal static async Task<FieldMetricData> ComputeAsync(IFieldSymbol field, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = field.DeclaringSyntaxReferences;

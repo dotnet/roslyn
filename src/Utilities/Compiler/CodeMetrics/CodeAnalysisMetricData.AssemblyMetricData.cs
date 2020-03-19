@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 int depthOfInheritance = 0;
                 int grandChildCount = 0;
 
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetChildSymbols(assembly), context).ConfigureAwait(false);
                 foreach (CodeAnalysisMetricData child in children)

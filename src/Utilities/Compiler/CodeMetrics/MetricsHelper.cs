@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
-            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
             foreach (var declaration in declarations)
             {

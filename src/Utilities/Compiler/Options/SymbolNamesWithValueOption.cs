@@ -26,6 +26,7 @@ namespace Analyzer.Utilities
 #pragma warning disable CA1051 // Do not declare visible instance fields
         internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
         internal /* for testing purposes */ readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+
         /// <summary>
         /// Dictionary holding per symbol kind the wildcard entry with its suffix.
         /// The implementation only supports the following SymbolKind: Namespace, Type, Event, Field, Method, Property and ErrorType (as a way to hold the non-fully qualified types).
@@ -240,7 +241,9 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
+#pragma warning disable CS8601 // Possible null reference assignment.
             value = default;
+#pragma warning restore CS8601 // Possible null reference assignment.
 #pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
             return false;
         }
