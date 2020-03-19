@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 var results = await monikerUsagesService.FindReferencesByMonikerAsync(
                     definitionItem, monikers, page: currentPage, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (results == null || results.Length == 0)
+                if (results.IsDefaultOrEmpty)
                     return false;
 
                 if (currentPage == 0)
