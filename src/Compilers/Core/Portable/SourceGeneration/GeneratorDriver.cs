@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 stateBuilder.Add(generator, generatorState);
 
-                // create the syntax reciever if requested
+                // create the syntax receiver if requested
                 if (generatorState.Info.SyntaxReceiverCreator is object)
                 {
                     var rx = generatorState.Info.SyntaxReceiverCreator();

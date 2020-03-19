@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    internal class GeneratorSyntaxWalker : SyntaxWalker
+    internal sealed class GeneratorSyntaxWalker : SyntaxWalker
     {
         private readonly ImmutableArray<ISyntaxReceiver> _syntaxReceivers;
 
@@ -21,9 +18,9 @@ namespace Microsoft.CodeAnalysis
 
         public override void Visit(SyntaxNode node)
         {
-            foreach (var recevier in _syntaxReceivers)
+            foreach (var receivier in _syntaxReceivers)
             {
-                recevier.OnVisitSyntaxNode(node);
+                receivier.OnVisitSyntaxNode(node);
             }
             base.Visit(node);
         }
