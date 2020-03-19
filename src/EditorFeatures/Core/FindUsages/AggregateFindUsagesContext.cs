@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// Helper class that allows us to provide a unified Find-Usages progress over multiple
     /// subroutines computing different types of usages.
     /// </summary>
-    internal class FindUsagesContextAggregator
+    internal sealed class FindUsagesContextAggregator
     {
         /// <summary>
         /// Real context object we'll forward messages to.
