@@ -26,19 +26,19 @@ namespace Microsoft.CodeAnalysis
         }
 #else
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.Option<T> option)
-            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.PerLanguageOption<T> option)
-            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 #endif
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option2<T> option)
-            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option)
-            => analyzerConfigOptions.GetOptionWithAssertOnFailure<T>(option);
+            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
-        private static T GetOptionWithAssertOnFailure<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option)
+        private static T GetOptionWithAssertOnFailure<T>(AnalyzerConfigOptions analyzerConfigOptions, TOption option)
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {

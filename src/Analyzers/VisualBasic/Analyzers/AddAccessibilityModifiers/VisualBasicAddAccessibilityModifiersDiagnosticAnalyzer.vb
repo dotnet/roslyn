@@ -100,19 +100,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then
                 ' default is Friend
-                Return accessibility = accessibility.Friend
+                Return accessibility = Accessibility.Friend
             End If
 
             ' default for const and field in a class is private
             If member.IsParentKind(SyntaxKind.ClassBlock) OrElse
                member.IsParentKind(SyntaxKind.ModuleBlock) Then
                 If member.IsKind(SyntaxKind.FieldDeclaration) Then
-                    Return accessibility = accessibility.Private
+                    Return accessibility = Accessibility.Private
                 End If
             End If
 
             ' Everything else has a default of public
-            Return accessibility = accessibility.Public
+            Return accessibility = Accessibility.Public
         End Function
     End Class
 End Namespace

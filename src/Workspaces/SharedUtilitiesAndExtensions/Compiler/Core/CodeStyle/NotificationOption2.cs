@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// This also supports various properties for databinding.
     /// </remarks>
     /// <completionlist cref="NotificationOption2"/>
-    internal partial class NotificationOption2
+    internal sealed partial class NotificationOption2
     {
         /// <summary>
         /// Name for the notification option.

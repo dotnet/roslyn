@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {

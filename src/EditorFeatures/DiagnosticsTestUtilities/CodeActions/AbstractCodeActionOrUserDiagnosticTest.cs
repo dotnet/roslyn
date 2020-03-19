@@ -688,82 +688,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal (OptionKey2, object) SingleOption<T>(Option2<T> option, T enabled)
             => (new OptionKey2(option), enabled);
 
-        internal (OptionKey2, object) SingleOption<T>(Option<T> option, T enabled)
-            => (new OptionKey2(option), enabled);
-
         internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<T> option, T value)
             => (new OptionKey2(option, this.GetLanguage()), value);
 
-        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption<T> option, T value)
-            => (new OptionKey2(option, this.GetLanguage()), value);
-
-        private protected (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
 
-        private protected (OptionKey2, object) SingleOption<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
-
-        private protected (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => (new OptionKey2(option), codeStyle);
 
-        private protected (OptionKey2, object) SingleOption<T>(Option<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
-            => (new OptionKey2(option), codeStyle);
-
-        private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => (new OptionKey2(option, this.GetLanguage()), new CodeStyleOption2<T>(enabled, notification));
 
-        private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => (new OptionKey2(option, this.GetLanguage()), new CodeStyleOption2<T>(enabled, (NotificationOption2)notification));
-
-        private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => (new OptionKey2(option, this.GetLanguage()), codeStyle);
 
-        private protected (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
-            => (new OptionKey2(option, this.GetLanguage()), codeStyle);
-
-        private protected static (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
+        internal static (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
             => (new OptionKey2(option, language), codeStyle);
 
-        private protected static (OptionKey2, object) SingleOption<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle, string language)
-            => (new OptionKey2(option, language), codeStyle);
-
-        private protected IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        private protected IOptionsCollection Option<T>(Option<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
+        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+            => OptionsSet(SingleOption(option, codeStyle));
+
+        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        private protected IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => OptionsSet(SingleOption(option, codeStyle));
-
-        private protected IOptionsCollection Option<T>(Option<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
-            => OptionsSet(SingleOption(option, codeStyle));
-
-        private protected IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-            => OptionsSet(SingleOption(option, enabled, notification));
-
-        private protected IOptionsCollection Option<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
-            => OptionsSet(SingleOption(option, enabled, notification));
-
-        private protected IOptionsCollection Option<T>(Option2<T> option, T value)
+        internal IOptionsCollection Option<T>(Option2<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        private protected IOptionsCollection Option<T>(Option<T> option, T value)
+        internal IOptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        private protected IOptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
-            => OptionsSet(SingleOption(option, value));
-
-        private protected IOptionsCollection Option<T>(PerLanguageOption<T> option, T value)
-            => OptionsSet(SingleOption(option, value));
-
-        private protected IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        private protected IOptionsCollection Option<T>(PerLanguageOption<CodeStyleOption<T>> option, CodeStyleOption<T> codeStyle)
-            => OptionsSet(SingleOption(option, codeStyle));
-
-        private protected IOptionsCollection OptionsSet(OptionKey2 option, object value)
+        internal IOptionsCollection OptionsSet(OptionKey2 option, object value)
             => OptionsSet((option, value));
 
 #if CODE_STYLE

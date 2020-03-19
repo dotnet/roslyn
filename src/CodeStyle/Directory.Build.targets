@@ -1,7 +1,7 @@
 <Project>
   <Import Project="..\..\Directory.Build.targets"/>
 
-  <ItemGroup Condition="'$(IsShipping)' == 'true'">
+  <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\BannedSymbols.txt" />
   </ItemGroup>
 </Project>

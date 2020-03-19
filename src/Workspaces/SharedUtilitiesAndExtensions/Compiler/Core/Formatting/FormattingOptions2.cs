@@ -15,7 +15,7 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal static partial class FormattingOptions2
+    internal static class FormattingOptions2
     {
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 

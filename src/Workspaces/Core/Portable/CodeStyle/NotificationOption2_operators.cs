@@ -4,11 +4,12 @@
 
 #nullable enable
 
+using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal partial class NotificationOption2
+    internal sealed partial class NotificationOption2 : IEquatable<NotificationOption2?>
     {
         public static explicit operator NotificationOption2?(NotificationOption? notificationOption)
         {
@@ -48,12 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override bool Equals(object? obj)
         {
-            if (obj is NotificationOption2 notificationOption2)
-            {
-                return this.Equals(notificationOption2);
-            }
-
-            return false;
+            return ReferenceEquals(this, obj);
         }
 
         public bool Equals(NotificationOption2? notificationOption2)

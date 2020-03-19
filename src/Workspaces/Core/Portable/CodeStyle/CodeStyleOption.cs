@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public CodeStyleOption(T value, NotificationOption notification)
-            : this(new CodeStyleOption2<T>(value,
-                        (NotificationOption2)(notification ?? throw new ArgumentNullException(nameof(notification)))))
+            : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
         {
         }
 

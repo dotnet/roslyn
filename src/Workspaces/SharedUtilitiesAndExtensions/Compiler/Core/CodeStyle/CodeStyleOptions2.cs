@@ -12,7 +12,7 @@ using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal class CodeStyleOptions2
+    internal static class CodeStyleOptions2
     {
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
         {
-            var option = new PerLanguageOption2<T>("CodeStyleOption", group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
