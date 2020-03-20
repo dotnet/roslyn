@@ -326,16 +326,34 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 RoslynDebug.Assert(entryBySymbol != null);
 
-                symbol = symbol.OriginalDefinition;
-
-                if (entryBySymbol.TryGetValue(symbol, out var entry))
+                foreach (var currentSymbol in GetSymbolAndOverridenSymbols(symbol))
                 {
-                    reportDiagnostic(
-                        Diagnostic.Create(
-                            SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                            syntaxNode.GetLocation(),
-                            symbol.ToDisplayString(SymbolDisplayFormat),
-                            string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                    if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
+                    {
+                        reportDiagnostic(
+                            Diagnostic.Create(
+                                SymbolIsBannedAnalyzer.SymbolIsBannedRule,
+                                syntaxNode.GetLocation(),
+                                currentSymbol.ToDisplayString(SymbolDisplayFormat),
+                                string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
+                        return;
+                    }
+                }
+
+                static IEnumerable<ISymbol> GetSymbolAndOverridenSymbols(ISymbol symbol)
+                {
+                    ISymbol? currentSymbol = symbol.OriginalDefinition;
+
+                    while (currentSymbol != null)
+                    {
+                        yield return currentSymbol;
+
+                        // It's possible to have `IsOverride` true and yet have `GetOverriddeMember` returning null when the code is invalid
+                        // (e.g. base symbol is not marked as `virtual` or `abstract` and current symbol has the `overrides` modifier).
+                        currentSymbol = currentSymbol.IsOverride
+                            ? currentSymbol.GetOverriddenMember()?.OriginalDefinition
+                            : null;
+                    }
                 }
             }
 

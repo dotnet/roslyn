@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -18,15 +19,15 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
     public class SymbolIsBannedAnalyzerTests
     {
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
             => VerifyCS.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
+                .WithArguments(bannedMemberName, message);
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
             => VerifyVB.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
+                .WithArguments(bannedMemberName, message);
 
         private static async Task VerifyBasicAnalyzerAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
@@ -761,6 +762,281 @@ namespace N
                 GetCSharpResultAt(10, 31, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
         }
 
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            {|RS0030:base.Method1()|};
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            {|RS0030:base.Method1()|};
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            Method1();
+            if (Property1 == 42 && Event1 != null) {}
+
+            Method2();
+            if (Property2 == 42 && Event2 != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            base.Method1();
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task CSharp_InvalidOverrideDefinition()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public class C1
+    {
+        public void Method1() {}
+    }
+
+    public class C2 : C1
+    {
+        public override void {|CS0506:Method1|}() {}
+
+        void M1()
+        {
+            Method1();
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C1.Method1";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
         [Fact]
         public async Task VisualBasic_BannedType_Constructor()
         {
@@ -1174,6 +1450,258 @@ Class D : End Class
 
             await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            {|RS0030:MyBase.Method1()|}
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            {|RS0030:MyBase.Method1()|}
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            Method1()
+
+            If Property1 = 42 Then
+            End If
+
+            Method2()
+
+            If Property2 = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            MyBase.Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
         }
 
         #endregion
