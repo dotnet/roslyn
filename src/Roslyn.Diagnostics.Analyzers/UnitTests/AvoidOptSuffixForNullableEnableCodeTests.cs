@@ -12,7 +12,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class AvoidOptSuffixForNullableEnableCodeTests
     {
         [Fact]
-        public async Task RS0037_CSharp8_NullableEnabledCode_Diagnostic()
+        public async Task RS0042_CSharp8_NullableEnabledCode_Diagnostic()
         {
             await new VerifyCS.Test
             {
@@ -33,7 +33,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0037_CSharp8_NonNullableEnabledCode_NoDiagnostic()
+        public async Task RS0042_CSharp8_NonNullableEnabledCode_NoDiagnostic()
         {
             await new VerifyCS.Test
             {
@@ -52,7 +52,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0037_PriorToCSharp8_NoDiagnostic()
+        public async Task RS0042_PriorToCSharp8_NoDiagnostic()
         {
             await new VerifyCS.Test
             {
