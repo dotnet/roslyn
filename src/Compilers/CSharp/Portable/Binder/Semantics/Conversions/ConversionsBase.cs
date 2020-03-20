@@ -1866,15 +1866,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var s0 = source.StrippedType();
             var t0 = target.StrippedType();
 
-            if (s0.SpecialType != SpecialType.System_UIntPtr &&
-                s0.SpecialType != SpecialType.System_IntPtr &&
-                t0.SpecialType != SpecialType.System_UIntPtr &&
-                t0.SpecialType != SpecialType.System_IntPtr)
+            if (getRawSpecialType(s0) != SpecialType.System_UIntPtr &&
+                getRawSpecialType(s0) != SpecialType.System_IntPtr &&
+                getRawSpecialType(t0) != SpecialType.System_UIntPtr &&
+                getRawSpecialType(t0) != SpecialType.System_IntPtr)
             {
                 return false;
             }
 
-            TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
+            TypeSymbol otherType = (getRawSpecialType(s0) == SpecialType.System_UIntPtr || getRawSpecialType(s0) == SpecialType.System_IntPtr) ? t0 : s0;
 
             if (otherType.TypeKind == TypeKind.Pointer)
             {
@@ -1886,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (otherType.SpecialType)
+            switch (getRawSpecialType(otherType))
             {
                 case SpecialType.System_SByte:
                 case SpecialType.System_Byte:
@@ -1901,9 +1901,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Decimal:
                     return true;
+                case SpecialType.None when otherType.IsNativeIntegerType:
+                    // PROTOTYPE: Should allow converting between signed and unsigned.
+                    return t0.SpecialType == s0.SpecialType;
             }
 
             return false;
+
+            static SpecialType getRawSpecialType(TypeSymbol type) => type.IsNativeIntegerType ? SpecialType.None : type.SpecialType;
         }
 
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)

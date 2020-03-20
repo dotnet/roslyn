@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis
         IgnoreNullableModifiersForReferenceTypes = 8,
         ObliviousNullableModifierMatchesAny = 16,
 
+        IgnoreNativeIntegerImplementation = 32, // ignore differences between native integers and underlying types
+
         AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,

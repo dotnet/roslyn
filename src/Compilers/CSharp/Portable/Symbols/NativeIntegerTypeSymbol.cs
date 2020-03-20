@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
-            Debug.Assert(this.Equals(underlyingType));
-            Debug.Assert(underlyingType.Equals(this));
+            Debug.Assert(this.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegerImplementation));
+            Debug.Assert(underlyingType.Equals(this, TypeCompareKind.IgnoreNativeIntegerImplementation));
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _underlyingType.BaseTypeNoUseSiteDiagnostics;
 
-        public override SpecialType SpecialType => _underlyingType.SpecialType;
+        public override SpecialType SpecialType => _underlyingType.SpecialType; // PROTOTYPE: This doesn't seem right. A dynamic type does not have SpecialType == Object.
 
         public override IEnumerable<string> MemberNames => Array.Empty<string>();
 
@@ -93,7 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null) => _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        {
+            Debug.Assert(SpecialType == SpecialType.System_IntPtr || SpecialType == SpecialType.System_UIntPtr);
+            if ((comparison & TypeCompareKind.IgnoreNativeIntegerImplementation) != 0)
+            {
+                return t2.SpecialType == SpecialType;
+            }
+            return base.Equals(t2, comparison, isValueTypeOverrideOpt);
+        }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();
 

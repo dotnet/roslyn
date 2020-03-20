@@ -261,9 +261,25 @@ using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(3, 21),
                 // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(A<nint, nuint> a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27),
+                // (6,14): error CS1503: Argument 1: cannot convert from 'A<nint, nuint>' to 'A<System.IntPtr, System.UIntPtr>'
+                //         B.F2(a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "A<nint, nuint>", "A<System.IntPtr, System.UIntPtr>").WithLocation(6, 14),
+                // (7,14): error CS1503: Argument 1: cannot convert from 'A<nint, nuint>' to 'A<System.IntPtr, System.UIntPtr>'
+                //         B.F3(a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "A<nint, nuint>", "A<System.IntPtr, System.UIntPtr>").WithLocation(7, 14));
 
-            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            var source2 =
+@"class Program
+{
+    static void F(A<nint, nuint> a)
+    {
+        B.F1(a);
+        B.F2((A<System.IntPtr, System.UIntPtr>)(object)a);
+        B.F3((A<System.IntPtr, System.UIntPtr>)(object)a);
+    }
+}";
+            comp = CreateCompilation(source2, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var type = comp.GetTypeByMetadataName("B");
@@ -823,6 +839,27 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nui
 }";
             comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmitAttribute_PartialMethods()
+        {
+            var source =
+@"public partial class Program
+{
+    static partial void F1(System.IntPtr x);
+    static partial void F2(System.UIntPtr x) { }
+    static partial void F1(nint x) { }
+    static partial void F2(nuint x);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Should not emit any attributes.
+            var expected =
+@"Program
+    void F2(System.UIntPtr x)
+        [NativeInteger] System.UIntPtr x
+";
+            AssertNativeIntegerAttributes(comp, expected);
         }
 
         // Shouldn't depend on [NullablePublicOnly].

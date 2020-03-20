@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValue, rewrittenType);
 
             var toType = node.Type;
-            Debug.Assert(result.Type.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Debug.Assert(result.Type.Equals(toType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegerImplementation));
 
             return result;
         }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenType: rewrittenType);
 
                 case ConversionKind.IntPtr:
-                    return RewriteIntPtrConversion(oldNodeOpt, syntax, rewrittenOperand, conversion, @checked,
+                    return RewriteIntPtrConversion(syntax, rewrittenOperand, conversion, @checked,
                         explicitCastInCode, constantValueOpt, rewrittenType);
 
                 case ConversionKind.ImplicitNullable:
@@ -760,7 +760,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We can do a simple optimization here if we know that the source is never null:
 
-
                 BoundExpression value = NullableAlwaysHasValue(rewrittenOperand);
                 if (value == null)
                 {
@@ -1136,7 +1135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteIntPtrConversion(
-            BoundConversion oldNode,
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
@@ -1151,50 +1149,96 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol source = rewrittenOperand.Type;
             TypeSymbol target = rewrittenType;
 
-            SpecialMember member = GetIntPtrConversionMethod(source: rewrittenOperand.Type, target: rewrittenType);
-            MethodSymbol method;
+            SpecialMember member = GetIntPtrConversionMethod(source, target);
 
-            if (!TryGetSpecialTypeMethod(syntax, member, out method))
+            if (member == SpecialMember.Count) // identity conversion
             {
-                return BadExpression(syntax, rewrittenType, rewrittenOperand);
+                if (source.IsNullableType())
+                {
+                    if (target.IsNullableType())
+                    {
+                        Debug.Assert(!_inExpressionLambda); // PROTOTYPE: Handle expression lambda.
+                        return new BoundConversion(
+                            syntax,
+                            rewrittenOperand,
+                            Conversion.Identity,
+                            isBaseConversion: false,
+                            @checked: @checked,
+                            explicitCastInCode: explicitCastInCode,
+                            conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
+                            constantValueOpt: constantValueOpt,
+                            type: rewrittenType);
+                    }
+                    rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
+                }
+
+                if (_inExpressionLambda)
+                {
+                    return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
+                }
+
+                rewrittenOperand = new BoundConversion(
+                    syntax,
+                    rewrittenOperand,
+                    Conversion.Identity,
+                    isBaseConversion: false,
+                    @checked: @checked,
+                    explicitCastInCode: explicitCastInCode,
+                    conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
+                    constantValueOpt: constantValueOpt,
+                    type: rewrittenType.StrippedType());
+
+                return rewrittenType.IsNullableType() ?
+                    MakeConversionNode(rewrittenOperand, rewrittenType, @checked) :
+                    rewrittenOperand;
             }
-
-            Debug.Assert(!method.ReturnsVoid);
-            Debug.Assert(method.ParameterCount == 1);
-
-            conversion = conversion.SetConversionMethod(method);
-
-            if (source.IsNullableType() && target.IsNullableType())
+            else
             {
-                Debug.Assert(target.IsNullableType());
-                return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
+                MethodSymbol method;
+                if (!TryGetSpecialTypeMethod(syntax, member, out method))
+                {
+                    return BadExpression(syntax, rewrittenType, rewrittenOperand);
+                }
+
+                Debug.Assert(!method.ReturnsVoid);
+                Debug.Assert(method.ParameterCount == 1);
+
+                conversion = conversion.SetConversionMethod(method);
+
+                if (source.IsNullableType())
+                {
+                    if (target.IsNullableType())
+                    {
+                        return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
+                    }
+                    rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
+                }
+
+                rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
+
+                if (_inExpressionLambda)
+                {
+                    return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
+                }
+
+                var returnType = method.ReturnType;
+                Debug.Assert((object)returnType != null);
+
+                var rewrittenCall = MakeCall(
+                        syntax: syntax,
+                        rewrittenReceiver: null,
+                        method: method,
+                        rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
+                        type: returnType);
+
+                return MakeConversionNode(rewrittenCall, rewrittenType, @checked);
             }
-            else if (source.IsNullableType())
-            {
-                rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
-            }
-
-            rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
-
-            var returnType = method.ReturnType;
-            Debug.Assert((object)returnType != null);
-
-            if (_inExpressionLambda)
-            {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
-            }
-
-            var rewrittenCall = MakeCall(
-                    syntax: syntax,
-                    rewrittenReceiver: null,
-                    method: method,
-                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
-                    type: returnType);
-
-            return MakeConversionNode(rewrittenCall, rewrittenType, @checked);
         }
 
-        public static SpecialMember GetIntPtrConversionMethod(TypeSymbol source, TypeSymbol target)
+        /// <summary>
+        /// Returns conversion method or SpecialMember.Count if the conversion is an identity conversion.
+        /// </summary>
+        private static SpecialMember GetIntPtrConversionMethod(TypeSymbol source, TypeSymbol target)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
@@ -1228,6 +1272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_Double:
                     case SpecialType.System_Decimal:
                         return SpecialMember.System_IntPtr__op_Explicit_FromInt64;
+                    case SpecialType.System_IntPtr:
+                        return SpecialMember.Count;
                 }
             }
             else if (t0Type == SpecialType.System_UIntPtr)
@@ -1253,6 +1299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_Double:
                     case SpecialType.System_Decimal:
                         return SpecialMember.System_UIntPtr__op_Explicit_FromUInt64;
+                    case SpecialType.System_UIntPtr:
+                        return SpecialMember.Count;
                 }
             }
             else if (s0Type == SpecialType.System_IntPtr)
@@ -1443,6 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntPtr:
                     {
                         SpecialMember member = GetIntPtrConversionMethod(fromType, toType);
+                        Debug.Assert(member != SpecialMember.Count); // PROTOTYPE: Test this case with conversions between nint and IntPtr.
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))
                         {

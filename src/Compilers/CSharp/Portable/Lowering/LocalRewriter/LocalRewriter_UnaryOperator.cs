@@ -923,6 +923,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol type = _compilation.GetSpecialType(specialType);
+            switch (kind)
+            {
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
+                    type = type.AsNativeInteger();
+                    break;
+            }
+
             if (node.OperatorKind.IsLifted())
             {
                 type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
