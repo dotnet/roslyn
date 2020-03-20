@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
         IDS_FeatureFunctionPointers = MessageBase + 12769,
+        IDS_AddressOfMethodGroup = MessageBase + 12770,
     }
 
     // Message IDs may refer to strings that need to be localized.

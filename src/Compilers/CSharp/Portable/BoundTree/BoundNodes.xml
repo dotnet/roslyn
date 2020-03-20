@@ -318,13 +318,19 @@
     <Field Name="IsManaged" Type="bool"/>  
   </Node>
   <!-- Represents an AddressOf operator that has not yet been assigned to a
-       target-type. It has no natural type, and should not survive initial binding. -->
+       target-type. It has no natural type, and should not survive initial binding
+       except in error cases that are observable via the SemanticModel. -->
+  <!-- PROTOTYPE(func-ptr): Test these nodes in SemanticModel/IOperation as appropriate -->
   <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression">
     <Field Name="Operand" Type="BoundMethodGroup"/>
+    <!-- Type is null. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
   </Node>
   <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
   <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
     <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->

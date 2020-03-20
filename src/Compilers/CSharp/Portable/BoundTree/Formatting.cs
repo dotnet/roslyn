@@ -170,6 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUnconvertedAddressOfOperator
     {
-        public override object Display => $"&{Operand.Display}";
+        public override object Display => FormattableStringFactory.Create("&{0}", Operand.Display);
     }
 }

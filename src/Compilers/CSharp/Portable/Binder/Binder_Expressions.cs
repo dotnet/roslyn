@@ -7853,11 +7853,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType);
+                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -7870,12 +7873,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind, returnType: returnType);
+                returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);

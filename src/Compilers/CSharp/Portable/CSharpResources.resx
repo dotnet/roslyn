@@ -6013,6 +6013,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureFunctionPointers" xml:space="preserve">
     <value>function pointers</value>
   </data>
+  <data name="IDS_AddressOfMethodGroup" xml:space="preserve">
+    <value>&amp;method group</value>
+  </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
     <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
   </data>
@@ -6062,7 +6065,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Ref mismatch between '{0}' and function pointer '{1}'</value>
   </data>
   <data name="ERR_FuncPtrMethMustBeStatic" xml:space="preserve">
-    <value>Cannot bind function pointer to '{0}' because it is not a static method</value>
+    <value>Cannot create a function pointer for '{0}' because it is not a static method</value>
   </data>
-
+  <data name="ERR_AddressOfMethodGroupInExpressionTree" xml:space="preserve">
+    <value>'&amp;' on method groups cannot be used in expression trees</value>
+  </data>
+  <data name="ERR_WrongFuncPtrCallingConvention" xml:space="preserve">
+    <value>Calling convention of '{0}' is not compatible with '{1}'.</value>
+  </data>
 </root>

@@ -363,14 +363,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
+                case BoundKind.UnconvertedAddressOfOperator:
+                    var unconvertedAddressOf = (BoundUnconvertedAddressOfOperator)expr;
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, unconvertedAddressOf.Operand.Name, MessageID.IDS_AddressOfMethodGroup.Localize());
+                    return false;
+
                 case BoundKind.MethodGroup when valueKind == BindValueKind.AddressOf:
-                    // If the addressof operator is used not as an rvalue, that will get flagged at a later point.
+                    // If the addressof operator is used not as an rvalue, that will get flagged when CheckValue
+                    // is called on the parent BoundUnconvertedAddressOf node.
                     return true;
 
                 case BoundKind.MethodGroup:
                     // method groups can only be used as RValues except when taking the address of one
                     var methodGroup = (BoundMethodGroup)expr;
-                    Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
 
                 case BoundKind.RangeVariable:
@@ -1639,13 +1645,8 @@ moreArguments:
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
+        private static ErrorCode GetMethodGroupOrFunctionPointerLvalueError(BindValueKind valueKind)
         {
-            if (valueKind == BindValueKind.AddressOf)
-            {
-                return ErrorCode.ERR_InvalidAddrOp;
-            }
-
             if (RequiresReferenceToLocation(valueKind))
             {
                 return ErrorCode.ERR_RefReadonlyLocalCause;

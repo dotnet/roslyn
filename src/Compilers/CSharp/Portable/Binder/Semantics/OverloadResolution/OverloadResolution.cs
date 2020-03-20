@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -291,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isFunctionPointerResolution)
             {
                 RemoveCallingConventionMismatches(results, callingConvention);
+                RemoveStaticInstanceMismatches(results, requireStatic: true);
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
@@ -369,11 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We are in a context where only instance (or only static) methods are permitted. We reject the others.
             bool keepStatic = isImplicitReceiver && isStaticContext || Binder.IsMemberAccessedThroughType(receiverOpt);
 
+            RemoveStaticInstanceMismatches(results, keepStatic);
+        }
+
+        private static void RemoveStaticInstanceMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, bool requireStatic) where TMember : Symbol
+        {
             for (int f = 0; f < results.Count; ++f)
             {
                 var result = results[f];
                 TMember member = result.Member;
-                if (result.Result.IsValid && member.RequiresInstanceReceiver() == keepStatic)
+                if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -419,11 +426,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = results[i];
                 var member = (MethodSymbol)(Symbol)result.Member;
-                if (result.Result.IsValid && member.CallingConvention != expectedConvention)
+                if (result.Result.IsValid)
                 {
-                    results[i] = new MemberResolutionResult<TMember>(
-                        result.Member, result.LeastOverriddenMember,
-                        MemberAnalysisResult.WrongCallingConvention());
+                    if (!member.CallingConvention.IsCallingConvention(expectedConvention))
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(
+                            result.Member, result.LeastOverriddenMember,
+                            MemberAnalysisResult.WrongCallingConvention());
+                    }
+                    else if (member.CallingConvention.HasUnknownCallingConventionAttributeBits())
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(
+                            result.Member, result.LeastOverriddenMember,
+                            MemberAnalysisResult.UnsupportedMetadata());
+                    }
                 }
             }
         }
@@ -2672,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conv.IsMethodGroup)
             {
                 DiagnosticBag ignore = DiagnosticBag.GetInstance();
-                bool result = !_binder.MethodGroupIsCompatibleWithDelegateOrFunctionPointer(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
+                bool result = !_binder.MethodIsCompatibleWithDelegateOrFunctionPointer(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
                 ignore.Free();
                 return result;
             }

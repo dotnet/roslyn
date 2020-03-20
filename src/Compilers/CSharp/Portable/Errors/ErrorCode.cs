@@ -1776,6 +1776,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalOnLocalFunction = 8783,
 
+        ERR_AddressOfMethodGroupInExpressionTree = 8785,
+        ERR_WrongFuncPtrCallingConvention = 8786,
+
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,

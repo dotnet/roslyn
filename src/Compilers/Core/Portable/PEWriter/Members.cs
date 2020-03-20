@@ -95,6 +95,22 @@ namespace Microsoft.Cci
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+            => ((original & (CallingConvention)SignatureMask)) == compare;
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureMask)) switch
+            {
+                CallingConvention.Generic => false,
+                CallingConvention.HasThis => false,
+                CallingConvention.ExplicitThis => false,
+                0 => false,
+                _ => true
+            };
     }
 
     /// <summary>

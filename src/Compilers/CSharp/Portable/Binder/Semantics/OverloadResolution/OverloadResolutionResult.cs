@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode queryClause = null,
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
-            TypeSymbol delegateType = null) where T : Symbol
+            TypeSymbol delegateOrFunctionPointerType = null) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // type(or alternatively expression) then the first such method is the best bad method.
             // To retain existing behavior, we use the location of the invoked expression for the error.
 
-            if (HadStaticInstanceMismatch(diagnostics, symbols, invokedExpression?.GetLocation() ?? location, binder, receiver, nodeOpt))
+            if (HadStaticInstanceMismatch(diagnostics, symbols, invokedExpression?.GetLocation() ?? location, binder, receiver, nodeOpt, delegateOrFunctionPointerType))
             {
                 return;
             }
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // first such method is the best bad method
 
             if (isMethodGroupConversion && returnRefKind != null &&
-                HadReturnMismatch(location, diagnostics, returnRefKind.GetValueOrDefault(), delegateType))
+                HadReturnMismatch(location, diagnostics, returnRefKind.GetValueOrDefault(), delegateOrFunctionPointerType))
             {
                 return;
             }
@@ -376,13 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
-            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[6]; // from highest to lowest priority
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[7]; // from highest to lowest priority
             const int duplicateNamedArgumentPriority = 0;
             const int requiredParameterMissingPriority = 1;
             const int nameUsedForPositionalPriority = 2;
             const int noCorrespondingNamedParameterPriority = 3;
             const int noCorrespondingParameterPriority = 4;
             const int badNonTrailingNamedArgumentPriority = 5;
+            const int wrongCallingConventionPriority = 6;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -441,6 +442,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+                    case MemberResolutionKind.WrongCallingConvention:
+                        {
+                            if (supportedInPriorityOrder[wrongCallingConventionPriority].IsNull)
+                            {
+                                supportedInPriorityOrder[wrongCallingConventionPriority] = result;
+                            }
+                        }
+                        break;
                     default:
                         // Based on the asserts above, we know that only the kinds above
                         // are possible at this point.  This should only throw if a new
@@ -464,10 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
                 if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
-                    && !isMethodGroupConversion
-                    // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
-                    // count instead of name errors.
-                    && !(firstSupported.Member is FunctionPointerMethodSymbol _))
+                    && !isMethodGroupConversion)
                 {
                     switch (firstSupported.Result.Kind)
                     {
@@ -505,6 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportDuplicateNamedArgument(firstSupported, diagnostics, arguments);
                             return;
                     }
+                }
+                else if (firstSupported.Result.Kind == MemberResolutionKind.WrongCallingConvention)
+                {
+                    ReportWrongCallingConvention(location, diagnostics, symbols, firstSupported, ((FunctionPointerTypeSymbol)delegateOrFunctionPointerType).Signature);
+                    return;
                 }
             }
             else if (firstUnsupported.IsNotNull)
@@ -549,6 +560,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol.ReportUseSiteDiagnostic(diagInfo, diagnostics, location);
         }
 
+        private static void ReportWrongCallingConvention(Location location, DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstSupported, MethodSymbol target)
+        {
+            Debug.Assert(firstSupported.Result.Kind == MemberResolutionKind.WrongCallingConvention);
+            diagnostics.Add(new DiagnosticInfoWithSymbols(
+                ErrorCode.ERR_WrongFuncPtrCallingConvention,
+                new object[] { firstSupported.Member, target.CallingConvention },
+                symbols), location);
+        }
+
         private bool UseSiteError()
         {
             var bad = GetFirstMemberKind(MemberResolutionKind.UseSiteError);
@@ -590,7 +610,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             Binder binder,
             BoundExpression receiverOpt,
-            SyntaxNode nodeOpt)
+            SyntaxNode nodeOpt,
+            TypeSymbol delegateOrFunctionPointerType)
         {
             var staticInstanceMismatch = GetFirstMemberKind(MemberResolutionKind.StaticInstanceMismatch);
             if (staticInstanceMismatch.IsNull)
@@ -614,6 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_BadAwaitArg, location, receiverOpt.Type);
             }
+            else if (delegateOrFunctionPointerType is FunctionPointerTypeSymbol)
+            {
+                diagnostics.Add(ErrorCode.ERR_FuncPtrMethMustBeStatic, location, symbol);
+            }
             else
             {
                 ErrorCode errorCode =
@@ -634,13 +659,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HadReturnMismatch(Location location, DiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateType)
+        private bool HadReturnMismatch(Location location, DiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateOrFunctionPointerType)
         {
             var mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
             if (!mismatch.IsNull)
             {
-                diagnostics.Add(delegateType.IsFunctionPointer() ? ErrorCode.ERR_FuncPtrRefMismatch : ErrorCode.ERR_DelegateRefMismatch,
-                    location, mismatch.Member, delegateType);
+                diagnostics.Add(delegateOrFunctionPointerType.IsFunctionPointer() ? ErrorCode.ERR_FuncPtrRefMismatch : ErrorCode.ERR_DelegateRefMismatch,
+                    location, mismatch.Member, delegateOrFunctionPointerType);
                 return true;
             }
 
@@ -1146,7 +1171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
                         Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
                 {
-                    // a diagnostic has been reported by ReportDelegateMethodGroupDiagnostics
+                    // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
+                }
+                else if (argument.Kind == BoundKind.UnconvertedAddressOfOperator &&
+                        Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, ((BoundUnconvertedAddressOfOperator)argument).Operand, parameterType, diagnostics))
+                {
+                    // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
                 }
                 else
                 {

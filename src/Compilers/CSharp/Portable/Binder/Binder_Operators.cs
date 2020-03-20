@@ -2145,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundMethodGroup methodGroup:
-                    return new BoundUnconvertedAddressOfOperator(node, methodGroup, type: null, hasErrors);
+                    return new BoundUnconvertedAddressOfOperator(node, methodGroup, hasErrors);
             }
 
             TypeSymbol operandType = operand.Type;

@@ -2732,10 +2732,10 @@ unsafe class C
         }
 
         [Theory]
-        [InlineData("cdecl")]
-        [InlineData("stdcall")]
-        [InlineData("thiscall")]
-        public void AddressOf_CallingConventionMustMatch(string callingConvention)
+        [InlineData("cdecl", "CDecl")]
+        [InlineData("stdcall", "Standard")]
+        [InlineData("thiscall", "ThisCall")]
+        public void AddressOf_CallingConventionMustMatch(string callingConventionKeyword, string callingConvention)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C
@@ -2743,14 +2743,14 @@ unsafe class C
     static void M1() {{}}
     static void M()
     {{
-        delegate* {callingConvention}<void> ptr = &M1;
+        delegate* {callingConventionKeyword}<void> ptr = &M1;
     }}
 }}");
 
             comp.VerifyDiagnostics(
-                // (7,37): error CS8757: No overload for 'M1' matches function pointer 'delegate*<void>'
-                //         delegate* {callingConvention}<void> ptr = &M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<void>").WithLocation(7, 32 + callingConvention.Length));
+                // (7,41): error CS8786: Calling convention of 'C.M1()' is not compatible with '{callingConvention}'.
+                //         delegate* {callingConventionKeyword}<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "M1").WithArguments("C.M1()", callingConvention).WithLocation(7, 33 + callingConventionKeyword.Length));
         }
 
         [Fact]
@@ -2862,21 +2862,25 @@ unsafe class C
         delegate*<void> ptr = &M;
         &M = ptr;
         M2(&M);
+        M2(ref &M);
         ref delegate*<void> ptr2 = ref &M;
     }
     static void M2(ref delegate*<void> ptr) {}
 }");
 
             comp.VerifyDiagnostics(
-                // (8,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // (8,9): error CS1656: Cannot assign to 'M' because it is a '&method group'
                 //         &M = ptr;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "&M").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "&M").WithArguments("M", "&method group").WithLocation(8, 9),
                 // (9,12): error CS1503: Argument 1: cannot convert from '&method group' to 'ref delegate*<void>'
                 //         M2(&M);
                 Diagnostic(ErrorCode.ERR_BadArgType, "&M").WithArguments("1", "&method group", "ref delegate*<void>").WithLocation(9, 12),
-                // (10,40): error CS1510: A ref or out value must be an assignable variable
+                // (10,16): error CS1657: Cannot use 'M' as a ref or out value because it is a '&method group'
+                //         M2(ref &M);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "&M").WithArguments("M", "&method group").WithLocation(10, 16),
+                // (11,40): error CS1657: Cannot use 'M' as a ref or out value because it is a '&method group'
                 //         ref delegate*<void> ptr2 = ref &M;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "&M").WithLocation(10, 40)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "&M").WithArguments("M", "&method group").WithLocation(11, 40)
             );
         }
 
@@ -2922,6 +2926,268 @@ unsafe class C
                 // (6,21): error CS0428: Cannot convert method group 'M' to non-delegate type 'void*'. Did you intend to invoke the method?
                 //         void* ptr = &M;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "&M").WithArguments("M", "void*").WithLocation(6, 21)
+            );
+        }
+
+        [Fact]
+        public void AddressOf_DisallowedInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+unsafe class C
+{
+    static string M1(delegate*<string> ptr) => ptr();
+    static string M2() => string.Empty;
+
+    static void M()
+    {
+        Expression<Func<string>> a = () => M1(&M2);
+        Expression<Func<string>> b = () => (&M2)();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (11,48): error CS8785: '&' on method groups cannot be used in expression trees
+                //         Expression<Func<string>> a = () => M1(&M2);
+                Diagnostic(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, "M2").WithLocation(11, 48),
+                // (12,44): error CS0149: Method name expected
+                //         Expression<Func<string>> b = () => (&M2)();
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "(&M2)").WithLocation(12, 44)
+            );
+        }
+
+        [Fact]
+        public void AmbiguousApplicableMethodsAreFilteredForStatic()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+interface I1{}
+interface I2
+{
+    string Prop { get; }
+}
+
+public unsafe class C : I1, I2 {
+    void M(I1 i) {}
+    static void M(I2 i) => Console.Write(i.Prop);
+    public static void Main() {
+        delegate*<C, void> a = &M;
+        a(new C());
+    }
+    public string Prop { get => ""I2""; }
+}", expectedOutput: "I2");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (delegate*<C,void> V_0)
+  IL_0000:  ldftn      ""void C.M(I2)""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""C..ctor()""
+  IL_000c:  ldloc.0
+  IL_000d:  calli      0x4
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnconstrainedGenericNotAllowed()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M1<T>(int i) {}
+    static T M2<T>() => throw null;
+
+    static void M()
+    {
+        delegate*<int, void> ptr1 = &C.M1;
+        delegate*<string> ptr2 = &C.M2;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,38): error CS0411: The type arguments for method 'C.M1<T>(int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         delegate*<int, void> ptr1 = &C.M1;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "C.M1").WithArguments("C.M1<T>(int)").WithLocation(9, 38),
+                // (10,35): error CS0411: The type arguments for method 'C.M2<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         delegate*<string> ptr2 = &C.M2;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "C.M2").WithArguments("C.M2<T>()").WithLocation(10, 35)
+            );
+        }
+
+        [Fact]
+        public void ConstrainedGenericAllowed()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M1<T>(T t) => Console.Write(t);
+    static void Main()
+    {
+        delegate*<int, void> ptr = &C.M1<int>;
+        ptr(1);
+        ptr = &C.M1;
+        ptr(2);
+    }
+}", expectedOutput: "12");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (delegate*<int,void> V_0)
+  IL_0000:  ldftn      ""void C.M1<int>(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  calli      0x3
+  IL_000e:  ldftn      ""void C.M1<int>(int)""
+  IL_0014:  stloc.0
+  IL_0015:  ldc.i4.2
+  IL_0016:  ldloc.0
+  IL_0017:  calli      0x3
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ReducedExtensionMethod()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe static class CHelper
+{
+    public static void M1(this C c) {}
+}
+unsafe class C
+{
+    static void M(C c)
+    {
+        delegate*<C, void> ptr = &c.M1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,34): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
+                //         delegate*<C, void> ptr = &c.M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 34)
+            );
+        }
+
+        [Fact]
+        public void UnreducedExtensionMethod()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+#pragma warning suppress CS0414 // Field never used
+using System;
+unsafe static class CHelper
+{
+    public static void M1(this C c) => Console.Write(c.i);
+}
+unsafe class C
+{
+    public int i;
+    static void Main()
+    {
+        delegate*<C, void> ptr = &CHelper.M1;
+        var c = new C();
+        c.i = 1;
+        ptr(c);
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (C V_0, //c
+                delegate*<C,void> V_1)
+  IL_0000:  ldftn      ""void CHelper.M1(C)""
+  IL_0006:  newobj     ""C..ctor()""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  stfld      ""int C.i""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.0
+  IL_0015:  ldloc.1
+  IL_0016:  calli      0x5
+  IL_001b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void BadScenariosDontCrash()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M1() {}
+    static void M2()
+    {
+        &delegate*<void> ptr = &M1;
+    }
+    static void M3(C c)
+    {
+        // Wrong accessiblity, can't reference reduced extension method
+        delegate*<C, void> ptr = c.H1;
+    }
+}
+static class CHelper
+{
+    // Wrong accessiblity
+    public static void H1(this C c) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,18): error CS1514: { expected
+                //         &delegate*<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(7, 18),
+                // (7,19): error CS1525: Invalid expression term '<'
+                //         &delegate*<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(7, 19),
+                // (7,20): error CS1525: Invalid expression term 'void'
+                //         &delegate*<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(7, 20),
+                // (7,26): error CS0103: The name 'ptr' does not exist in the current context
+                //         &delegate*<void> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ptr").WithArguments("ptr").WithLocation(7, 26),
+                // (12,36): error CS8757: No overload for 'H1' matches function pointer 'delegate*<C,void>'
+                //         delegate*<C, void> ptr = c.H1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "H1").WithArguments("H1", "delegate*<C,void>").WithLocation(12, 36)
+            );
+        }
+
+        [Fact]
+        public void MultipleApplicableMethods()
+        {
+            // This is analgous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
+            // are applicable even though D(delegate*<int, void>) is not compatible.
+            var comp = CreateCompilationWithFunctionPointers(@"
+public unsafe class Program1
+{
+    static void Y(long x) { }
+
+    static void D(delegate*<int, void> o) { }
+    static void D(delegate*<long, void> o) { }
+
+    void T()
+    {
+        D(&Y);
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program1.D(delegate*<int,void>)' and 'Program1.D(delegate*<long,void>)'
+                //         D(&Y);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "D").WithArguments("Program1.D(delegate*<int,void>)", "Program1.D(delegate*<long,void>)").WithLocation(11, 9)
             );
         }
 

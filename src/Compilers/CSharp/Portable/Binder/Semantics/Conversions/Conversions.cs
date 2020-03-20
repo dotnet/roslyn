@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            var methodSymbol = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
+            var (methodSymbol, isFunctionPointer) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(destination);
             if ((object)methodSymbol == null)
             {
                 return Conversion.NoConversion;
             }
 
-            var resolution = ResolveDelegateMethodGroup(_binder, source, methodSymbol, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, ((NamedTypeSymbol)destination).DelegateInvokeMethod.ParameterCount);
@@ -87,14 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Resolve method group based on the optional delegate invoke method.
         /// If the invoke method is null, ignore arguments in resolution.
         /// </summary>
-        private static MethodGroupResolution ResolveDelegateMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static MethodGroupResolution ResolveDelegateOrFunctionPointerMethodGroup(Binder binder, BoundMethodGroup source, MethodSymbol delegateInvokeMethodOpt, bool isFunctionPointer, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
-                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType);
+                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
+                    isFunctionPointerResolution: isFunctionPointer, callingConvention: delegateInvokeMethodOpt.CallingConvention);
                 analyzedArguments.Free();
                 return resolution;
             }
@@ -108,33 +109,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the Invoke method symbol if the type is a delegate
         /// type and the Invoke method is available, otherwise null.
         /// </summary>
-        private static MethodSymbol GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
+        private static (MethodSymbol, bool isFunctionPointer) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(TypeSymbol type)
         {
             if (type is FunctionPointerTypeSymbol { Signature: { } signature })
             {
-                return signature;
+                return (signature, true);
             }
 
             var delegateType = type.GetDelegateType();
             if ((object)delegateType == null)
             {
-                return null;
+                return (null, false);
             }
 
             MethodSymbol methodSymbol = delegateType.DelegateInvokeMethod;
             if ((object)methodSymbol == null || methodSymbol.HasUseSiteError)
             {
-                return null;
+                return (null, false);
             }
 
-            return methodSymbol;
+            return (methodSymbol, false);
         }
 
         public static bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
-            var invokeMethodOpt = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
+            var (invokeMethodOpt, isFunctionPointer) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(targetType);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = ResolveDelegateMethodGroup(binder, expr, invokeMethodOpt, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, ref useSiteDiagnostics);
             diagnostics.Add(expr.Syntax, useSiteDiagnostics);
 
             bool hasErrors = resolution.HasAnyErrors;
@@ -177,11 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
                         }
-                        else if (targetType.IsFunctionPointer() && !method.IsStatic)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_FuncPtrMethMustBeStatic, expr.Syntax.Location, method);
-                            hasErrors = true;
-                        }
                         else if (method.ContainingType.IsNullableType() && !method.IsOverride)
                         {
                             // CS1728: Cannot bind delegate to '{0}' because it is a member of 'System.Nullable<T>'
@@ -204,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiver: resolution.MethodGroup.Receiver, invokedExpression: expr.Syntax, arguments: resolution.AnalyzedArguments,
                             memberGroup: resolution.MethodGroup.Methods.ToImmutable(),
                             typeContainingConstructor: null, delegateTypeBeingInvoked: null,
-                            isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateType: targetType);
+                            isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateOrFunctionPointerType: targetType);
 
                         if (!overloadDiagnostics.IsEmptyWithoutResolution)
                         {
