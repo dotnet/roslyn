@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
             }
 
-            return default;
+            return null;
         }
 
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
