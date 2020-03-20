@@ -4,6 +4,10 @@
 
 #nullable enable
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Errors
@@ -62,56 +66,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
             }
         }
 
+        private DiagnosticDescriptor? _descriptor;
         public override DiagnosticDescriptor Descriptor
         {
             get
             {
-                var baseDescriptor = base.Descriptor;
-                var diagnosticId = Data.DiagnosticId;
-                var urlFormat = Data.UrlFormat;
-                if (diagnosticId is null && urlFormat is null)
+                if (_descriptor == null)
                 {
-                    return baseDescriptor;
+                    Interlocked.CompareExchange(ref _descriptor, CreateDescriptor(), null);
                 }
 
-                var id = MessageIdentifier;
-                var helpLinkUri = baseDescriptor.HelpLinkUri;
-
-                if (urlFormat is object)
-                {
-                    try
-                    {
-                        helpLinkUri = string.Format(urlFormat, id);
-                    }
-                    catch
-                    {
-                        // TODO: should we report a meta-diagnostic of some kind when the string.Format fails?
-                        // also, should we do some validation of the 'UrlFormat' values provided in source to prevent people from shipping
-                        // obsoleted symbols with malformed 'UrlFormat' values?
-                    }
-                }
-
-                var customTags = ArrayBuilder<string>.GetInstance();
-                foreach (var tag in baseDescriptor.CustomTags)
-                {
-                    customTags.Add(tag);
-                }
-                customTags.Add(WellKnownDiagnosticTags.CustomObsolete);
-
-                // TODO: we expect some users to repeatedly use
-                // the same diagnostic IDs and url format values for many symbols.
-                // do we want to cache similar diagnostic descriptors?
-                return new DiagnosticDescriptor(
-                    id: id,
-                    title: baseDescriptor.Title,
-                    messageFormat: baseDescriptor.MessageFormat,
-                    category: baseDescriptor.Category,
-                    defaultSeverity: baseDescriptor.DefaultSeverity,
-                    isEnabledByDefault: baseDescriptor.IsEnabledByDefault,
-                    description: baseDescriptor.Description,
-                    helpLinkUri: helpLinkUri,
-                    customTags: customTags.ToImmutableAndFree());
+                return _descriptor;
             }
+        }
+
+        private DiagnosticDescriptor CreateDescriptor()
+        {
+            var baseDescriptor = base.Descriptor;
+            var diagnosticId = Data.DiagnosticId;
+            var urlFormat = Data.UrlFormat;
+            if (diagnosticId is null && urlFormat is null)
+            {
+                return baseDescriptor;
+            }
+
+            var id = MessageIdentifier;
+            var helpLinkUri = baseDescriptor.HelpLinkUri;
+
+            if (urlFormat is object)
+            {
+                try
+                {
+                    helpLinkUri = string.Format(urlFormat, id);
+                }
+                catch
+                {
+                    // TODO: should we report a meta-diagnostic of some kind when the string.Format fails?
+                    // also, should we do some validation of the 'UrlFormat' values provided in source to prevent people from shipping
+                    // obsoleted symbols with malformed 'UrlFormat' values?
+                }
+            }
+
+            ImmutableArray<string> customTags;
+            if (diagnosticId is null)
+            {
+                customTags = baseDescriptor.CustomTags.ToImmutableArray();
+            }
+            else
+            {
+                var capacity = 1;
+                if (baseDescriptor.CustomTags is ICollection<string> { Count: int count })
+                {
+                    capacity += count;
+                }
+                var tagsBuilder = ArrayBuilder<string>.GetInstance(capacity);
+                tagsBuilder.AddRange(baseDescriptor.CustomTags);
+                tagsBuilder.Add(WellKnownDiagnosticTags.CustomObsolete);
+                customTags = tagsBuilder.ToImmutableAndFree();
+            }
+
+            // TODO: we expect some users to repeatedly use
+            // the same diagnostic IDs and url format values for many symbols.
+            // do we want to cache similar diagnostic descriptors?
+            return new DiagnosticDescriptor(
+                id: id,
+                title: baseDescriptor.Title,
+                messageFormat: baseDescriptor.MessageFormat,
+                category: baseDescriptor.Category,
+                defaultSeverity: baseDescriptor.DefaultSeverity,
+                isEnabledByDefault: baseDescriptor.IsEnabledByDefault,
+                description: baseDescriptor.Description,
+                helpLinkUri: helpLinkUri,
+                customTags: customTags);
         }
     }
 }

@@ -8298,6 +8298,46 @@ class C
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadAttribute_01()
+        {
+            var source = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public string DiagnosticId;
+        public string DiagnosticId { get; set; } // 1
+    }
+}
+
+class C
+{
+    [Obsolete(DiagnosticId = ""TEST1"")] // 2
+    void M1() { }
+
+    void M2()
+    {
+        M1();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var diags = comp.GetDiagnostics();
+
+            diags.Verify(
+                // (10,23): error CS0102: The type 'ObsoleteAttribute' already contains a definition for 'DiagnosticId'
+                //         public string DiagnosticId { get; set; } // 1
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "DiagnosticId").WithArguments("System.ObsoleteAttribute", "DiagnosticId").WithLocation(10, 23),
+                // (16,15): error CS0229: Ambiguity between 'ObsoleteAttribute.DiagnosticId' and 'ObsoleteAttribute.DiagnosticId'
+                //     [Obsolete(DiagnosticId = "TEST1")] // 2
+                Diagnostic(ErrorCode.ERR_AmbigMember, "DiagnosticId").WithArguments("System.ObsoleteAttribute.DiagnosticId", "System.ObsoleteAttribute.DiagnosticId").WithLocation(16, 15));
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_99()
         {
             var source = @"
@@ -8414,6 +8454,8 @@ class C2 : C1
     }
 }";
             var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
             verify(comp1.ToMetadataReference());
             verify(comp1.EmitToImageReference());
 
@@ -8467,6 +8509,8 @@ class C2 : C1
     }
 }";
             var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
             verify(comp1.ToMetadataReference());
             verify(comp1.EmitToImageReference());
 
@@ -8509,6 +8553,8 @@ class C2 : C1
     }
 }";
             var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
             verify(comp1.ToMetadataReference());
             verify(comp1.EmitToImageReference());
 
@@ -8527,7 +8573,7 @@ class C2 : C1
             }
         }
 
-        [Fact(Skip = "TODO: make behavior consistent between source and metadata"), WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_01()
         {
             var source1 = @"
@@ -8536,7 +8582,7 @@ using System;
 
 namespace System
 {
-    public class ObsoleteAttribute
+    public class ObsoleteAttribute : Attribute
     {
         public bool Flag { get; set; }
         public string DiagnosticId { get; set; }
@@ -8559,6 +8605,8 @@ class C2 : C1
     }
 }";
             var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
             verify(comp1.ToMetadataReference());
             verify(comp1.EmitToImageReference());
 
@@ -8566,9 +8614,55 @@ class C2 : C1
             {
                 var comp2 = CreateCompilation(source2, references: new[] { reference });
 
-                // TODO: we could try to skip over properties of types that we don't recognize, but it only applies for bad user-defined Obsolete attributes.
                 comp2.VerifyDiagnostics(
                     // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_02()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public string DiagnosticId;
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
                     //         M1(); // 1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
             }

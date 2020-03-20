@@ -117,14 +117,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
 
-            DiagnosticWithInfo dinfo = d as DiagnosticWithInfo;
-            if (d.Code == 0 || dinfo?.Info is CustomObsoleteDiagnosticInfo { Data: { DiagnosticId: object _ } })
+            DiagnosticWithInfo dinfo = null;
+            if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
             {
                 _code = d.Id;
                 _errorCodeType = typeof(string);
             }
             else
             {
+                dinfo = d as DiagnosticWithInfo;
                 if (dinfo == null)
                 {
                     _code = d.Code;

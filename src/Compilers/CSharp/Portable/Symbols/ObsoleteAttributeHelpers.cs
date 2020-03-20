@@ -158,15 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Issue a specialized diagnostic for add methods of collection initializers
             bool isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod);
-
-            if (data.Message == null)
-            {
-                return new CustomObsoleteDiagnosticInfo(symbol, data, isColInit);
-            }
-            else
-            {
-                return new CustomObsoleteDiagnosticInfo(symbol, data, isColInit);
-            }
+            return new CustomObsoleteDiagnosticInfo(symbol, data, isColInit);
         }
     }
 }

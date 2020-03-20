@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<byte>> s_attributeByteArrayValueExtractor = CrackByteArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
-        private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractorString = CrackObsoleteAttributeDataString;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractorStringBool = CrackObsoleteAttributeDataStringBool;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
@@ -1319,14 +1318,12 @@ namespace Microsoft.CodeAnalysis
         private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(AttributeInfo attributeInfo)
         {
             Debug.Assert(attributeInfo.HasValue);
-
             ObsoleteAttributeData? obsoleteData;
             switch (attributeInfo.SignatureIndex)
             {
                 case 0:
                     // ObsoleteAttribute()
-                    TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractor);
-                    return obsoleteData;
+                    return TryExtractParameterlessObsoleteData(attributeInfo.Handle);
                 case 1:
                     // ObsoleteAttribute(string)
                     TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractorString);
@@ -1337,6 +1334,171 @@ namespace Microsoft.CodeAnalysis
                     return obsoleteData;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+        }
+
+        private ObsoleteAttributeData? TryExtractParameterlessObsoleteData(CustomAttributeHandle handle)
+        {
+            Debug.Assert(!handle.IsNil);
+            try
+            {
+                BlobHandle valueBlob = GetCustomAttributeValueOrThrow(handle);
+                if (!valueBlob.IsNil)
+                {
+                    BlobReader reader = MetadataReader.GetBlobReader(valueBlob);
+
+                    if (reader.Length >= 4)
+                    {
+                        // check prolog
+                        if (reader.ReadInt16() == 1)
+                        {
+                            var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref reader);
+                            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId, urlFormat);
+                        }
+                    }
+                }
+            }
+            catch (BadImageFormatException)
+            { }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Decodes attribute argument type from attribute blob (called FieldOrPropType in the spec).
+        /// </summary>
+        /// <exception cref="UnsupportedSignatureContent">If the encoded argument type is invalid.</exception>
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static (SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) DecodeCustomAttributeFieldOrPropTypeOrThrow(ref BlobReader argReader)
+        {
+            var typeCode = argReader.ReadSerializationTypeCode();
+
+            // Spec:
+            // The FieldOrPropType (typeCode) shall be exactly one of: ELEMENT_TYPE_BOOLEAN,
+            // ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2,
+            // ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, ELEMENT_TYPE_U4, ELEMENT_TYPE_I8,
+            // ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
+            // 
+            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed
+            // by the FieldOrPropType of the element type. (See §II.23.1.16) An enum is
+            // specified as a single byte 0x55 followed by a SerString.
+            // 
+
+            // todo: this could be simplified for the "skip" case.
+            if (typeCode == SerializationTypeCode.SZArray)
+            {
+                var elementTypeCode = argReader.ReadSerializationTypeCode();
+                if (elementTypeCode == SerializationTypeCode.SZArray)
+                {
+                    // nested array not allowed:
+                    throw new UnsupportedSignatureContent();
+                }
+
+                return (typeCode, elementTypeCode);
+            }
+
+            switch (typeCode)
+            {
+                case SerializationTypeCode.Enum:
+                    if (!CrackStringInAttributeValue(out _, ref argReader))
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    return (typeCode, elementTypeCode: SerializationTypeCode.Invalid);
+
+                case SerializationTypeCode.TaggedObject:
+                case SerializationTypeCode.Type:
+                case SerializationTypeCode.String:
+                case SerializationTypeCode.Boolean:
+                case SerializationTypeCode.Char:
+                case SerializationTypeCode.SByte:
+                case SerializationTypeCode.Byte:
+                case SerializationTypeCode.Int16:
+                case SerializationTypeCode.UInt16:
+                case SerializationTypeCode.Int32:
+                case SerializationTypeCode.UInt32:
+                case SerializationTypeCode.Int64:
+                case SerializationTypeCode.UInt64:
+                case SerializationTypeCode.Single:
+                case SerializationTypeCode.Double:
+                    return (typeCode, elementTypeCode: SerializationTypeCode.Invalid);
+            }
+
+            throw new UnsupportedSignatureContent();
+        }
+
+        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static void SkipCustomAttributeElementOrThrow(ref BlobReader argReader, SerializationTypeCode typeCode)
+        {
+            if (typeCode == SerializationTypeCode.TaggedObject)
+            {
+                // Spec: If the parameter kind is System.Object, the value stored represents the "boxed" instance of that value-type.
+                var (argTypeCode, elementTypeCode) = DecodeCustomAttributeFieldOrPropTypeOrThrow(ref argReader);
+
+                if (argTypeCode == SerializationTypeCode.SZArray)
+                {
+                    SkipCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode);
+                    return;
+                }
+            }
+
+            SkipCustomAttributePrimitiveElementOrThrow(ref argReader, typeCode);
+        }
+
+        /// <exception cref="UnsupportedSignatureContent">If the given <paramref name="typeCode"/> is invalid.</exception>
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static void SkipCustomAttributePrimitiveElementOrThrow(ref BlobReader argReader, SerializationTypeCode typeCode)
+        {
+            switch (typeCode)
+            {
+                case SerializationTypeCode.Boolean:
+                case SerializationTypeCode.SByte:
+                case SerializationTypeCode.Byte:
+                    argReader.ReadByte();
+                    break;
+
+                case SerializationTypeCode.Int16:
+                case SerializationTypeCode.UInt16:
+                case SerializationTypeCode.Char:
+                    argReader.ReadInt16();
+                    break;
+
+                case SerializationTypeCode.Int32:
+                case SerializationTypeCode.UInt32:
+                case SerializationTypeCode.Single:
+                    argReader.ReadInt32();
+                    break;
+
+                case SerializationTypeCode.Int64:
+                case SerializationTypeCode.UInt64:
+                case SerializationTypeCode.Double:
+                    argReader.ReadInt64();
+                    break;
+
+                case SerializationTypeCode.String:
+                case SerializationTypeCode.Type:
+                    if (!CrackStringInAttributeValue(out _, ref argReader))
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    break;
+
+                default:
+                    throw new UnsupportedSignatureContent();
+            }
+        }
+
+        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static void SkipCustomAttributeElementArrayOrThrow(ref BlobReader argReader, SerializationTypeCode elementTypeCode)
+        {
+            int count = argReader.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                SkipCustomAttributeElementOrThrow(ref argReader, elementTypeCode);
             }
         }
 #nullable restore
@@ -1519,7 +1681,7 @@ namespace Microsoft.CodeAnalysis
                     // TODO: error checking offset in range
                     BlobReader reader = MetadataReader.GetBlobReader(valueBlob);
 
-                    if (reader.Length >= 4)
+                    if (reader.Length > 4)
                     {
                         // check prolog
                         if (reader.ReadByte() == 1 && reader.ReadByte() == 0)
@@ -1623,16 +1785,6 @@ namespace Microsoft.CodeAnalysis
 
 #nullable enable
         /// <summary>
-        /// Cracks the data on an Obsolete attribute using the parameterless constructor.
-        /// </summary>
-        private static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
-        {
-            CrackObsoleteProperties(out var diagnosticId, out var urlFormat, ref sig);
-            value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId: diagnosticId, urlFormat: urlFormat);
-            return true;
-        }
-
-        /// <summary>
         /// Cracks the data on an Obsolete attribute using the Obsolete(string) constructor.
         /// </summary>
         private static bool CrackObsoleteAttributeDataString(out ObsoleteAttributeData? value, ref BlobReader sig)
@@ -1640,7 +1792,7 @@ namespace Microsoft.CodeAnalysis
             string message;
             if (CrackStringInAttributeValue(out message, ref sig))
             {
-                CrackObsoleteProperties(out var diagnosticId, out var urlFormat, ref sig);
+                var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref sig);
                 value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false, diagnosticId: diagnosticId, urlFormat: urlFormat);
                 return true;
             }
@@ -1659,7 +1811,7 @@ namespace Microsoft.CodeAnalysis
             {
                 bool isError = sig.ReadBoolean();
 
-                CrackObsoleteProperties(out var diagnosticId, out var urlFormat, ref sig);
+                var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref sig);
                 value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId: diagnosticId, urlFormat: urlFormat);
                 return true;
             }
@@ -1668,53 +1820,72 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private static void CrackObsoleteProperties(out string? diagnosticId, out string? urlFormat, ref BlobReader sig)
+        /// <summary>
+        /// Gets the well-known optional named properties on ObsoleteAttribute, if present.
+        /// Both 'diagnosticId' and 'urlFormat' may be present, or only one, or neither.
+        /// </summary>
+        /// <remarks>
+        /// Failure to find any of these properties does not imply failure to decode the ObsoleteAttribute,
+        /// so we don't return a value indicating success or failure.
+        /// </remarks>
+        private static (string? diagnosticId, string? urlFormat) CrackObsoleteProperties(ref BlobReader sig)
         {
-            diagnosticId = null;
-            urlFormat = null;
+            string? diagnosticId = null;
+            string? urlFormat = null;
 
             // See CIL spec section II.23.3 Custom attributes
 
             // Next is a description of the optional “named” fields and properties.
             // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
             var numNamed = sig.ReadUInt16();
-            for (int i = 0; i < numNamed; i++)
+            for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
             {
-                // A NamedArg is simply a FixedArg preceded by information to identify which field or property it represents.
-                // PROPERTY is the single byte 0x54.
-                const int PROPERTY = 0x54;
-                var fieldOrProperty = sig.ReadByte();
-                if (fieldOrProperty != PROPERTY)
+                // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
+                // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
+                // we require a means to disambiguate such situations. end note] FIELD is the single byte 0x53. PROPERTY is
+                // the single byte 0x54.
+
+                var kind = (CustomAttributeNamedArgumentKind)sig.ReadCompressedInteger();
+                if (kind != CustomAttributeNamedArgumentKind.Field && kind != CustomAttributeNamedArgumentKind.Property)
                 {
-                    return;
+                    throw new UnsupportedSignatureContent();
                 }
 
-                const int ELEMENT_TYPE_STRING = 0x0e;
-                var fieldOrPropType = sig.ReadByte();
-                if (fieldOrPropType != ELEMENT_TYPE_STRING)
+                var (typeCode, elementTypeCode) = DecodeCustomAttributeFieldOrPropTypeOrThrow(ref sig);
+
+                if (!CrackStringInAttributeValue(out var name, ref sig))
                 {
-                    return;
+                    throw new UnsupportedSignatureContent();
                 }
 
-                // The FieldOrPropName is the name of the field or property, stored as a SerString.
-                if (!CrackStringInAttributeValue(out string fieldOrPropName, ref sig) ||
-                    !CrackStringInAttributeValue(out string fixedArg, ref sig))
+                if (typeCode == SerializationTypeCode.String && kind == CustomAttributeNamedArgumentKind.Property)
                 {
-                    return;
-                }
+                    if (!CrackStringInAttributeValue(out var value, ref sig))
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
 
-                switch (fieldOrPropName)
+                    switch (name)
+                    {
+                        case "DiagnosticId":
+                            diagnosticId = value;
+                            break;
+                        case "UrlFormat":
+                            urlFormat = value;
+                            break;
+                    }
+                }
+                else if (typeCode == SerializationTypeCode.SZArray)
                 {
-                    case "DiagnosticId":
-                        diagnosticId = fixedArg;
-                        break;
-                    case "UrlFormat":
-                        urlFormat = fixedArg;
-                        break;
+                    SkipCustomAttributeElementArrayOrThrow(ref sig, elementTypeCode);
                 }
-
-                // TODO: do we want to tolerate custom definitions of ObsoleteAttribute with different properties types besides string?
+                else
+                {
+                    SkipCustomAttributeElementOrThrow(ref sig, typeCode);
+                }
             }
+
+            return (diagnosticId, urlFormat);
         }
 #nullable restore
 

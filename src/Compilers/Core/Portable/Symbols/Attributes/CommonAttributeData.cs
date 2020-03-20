@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -292,25 +293,47 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            TypedConstant diagnosticId = default;
-            TypedConstant urlFormat = default;
+            Debug.Assert(AttributeClass is object);
+
+            string? diagnosticId = null;
+            string? urlFormat = null;
             foreach (var pair in this.CommonNamedArguments)
             {
                 switch (pair.Key)
                 {
-                    case "DiagnosticId":
-                        diagnosticId = pair.Value;
+                    case "DiagnosticId" when isProperty("DiagnosticId"):
+                        diagnosticId = pair.Value.ValueInternal as string;
                         break;
-                    case "UrlFormat":
-                        urlFormat = pair.Value;
+                    case "UrlFormat" when isProperty("UrlFormat"):
+                        urlFormat = pair.Value.ValueInternal as string;
                         break;
                     default:
-                        // unknown property specified on ObsoleteAttribute
+                        // unknown property or field specified on ObsoleteAttribute
                         break;
+                }
+
+                if (diagnosticId is object && urlFormat is object)
+                {
+                    break;
                 }
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, (string?)diagnosticId.ValueInternal, (string?)urlFormat.ValueInternal);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
+
+            // note: it is disallowed to declare a property and a field
+            // with the same name in C# or VB source, even if it is allowed in IL.
+            bool isProperty(string name)
+            {
+                foreach (var member in AttributeClass.GetMembers(name))
+                {
+                    if (member.Kind == SymbolKind.Property)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
