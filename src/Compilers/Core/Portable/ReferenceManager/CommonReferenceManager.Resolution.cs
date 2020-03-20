@@ -313,8 +313,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (metadata != null)
                 {
-                    Debug.Assert(metadata != null);
-
                     switch (peReference.Properties.Kind)
                     {
                         case MetadataImageKind.Assembly:
@@ -323,7 +321,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (assemblyMetadata.IsValidAssembly())
                             {
-                                PEAssembly assembly = assemblyMetadata.GetAssembly();
+                                PEAssembly? assembly = assemblyMetadata.GetAssembly();
                                 Debug.Assert(assembly is object);
                                 existingReference = TryAddAssembly(
                                     assembly.Identity,
