@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 !(exprStatement.Operation is ISimpleAssignmentOperation assignmentOp) ||
                 assignmentOp.Target == null)
             {
-                assignment = default;
+                assignment = null;
                 return false;
             }
 

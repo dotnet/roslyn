@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(hasErrors);
                 convertedExpression = new BoundConversion(
                     convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
+                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: null, type: CreateErrorType(), hasErrors: true)
                 { WasCompilerGenerated = true };
             }
 

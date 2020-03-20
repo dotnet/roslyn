@@ -247,11 +247,6 @@
         <target state="translated">Yöntemi ayıkla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">Metodu ayıkla + yerel</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">{0} için veri akışı analiz edilemedi</target>
@@ -312,6 +307,11 @@
         <target state="translated">Tüm arabirimleri örtük olarak uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -320,6 +320,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Örtük olarak uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -930,11 +935,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">Genel Ad Uzayı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">Arabirimi açıkça uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -2070,11 +2070,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Baş Harfleri Büyük Olmak Üzere Bitişik</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Birleştirme ifadesi kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_null_propagation">
         <source>Use null propagation</source>
         <target state="translated">Null yayılması kullan</target>
@@ -2190,11 +2185,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Equals/GetHashCode içinde kullanılacak üyeleri seçin</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">İfade ağaçlarında yapılan değişiklikler çalışma zamanında davranış değişikliklerine neden olabilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
         <target state="translated">Geçersiz kılmaları oluştur...</target>
@@ -2303,16 +2293,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Erişilemeyen kodları kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Değiştiriciler sıralı değil</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Değiştiricileri sırala</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

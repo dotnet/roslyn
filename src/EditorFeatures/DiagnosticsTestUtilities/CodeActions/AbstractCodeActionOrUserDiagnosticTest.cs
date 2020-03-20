@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     {
                         if (location is IEditorConfigStorageLocation2 editorConfigStorageLocation)
                         {
-                            var editorConfigString = editorConfigStorageLocation.GetEditorConfigString(value, default);
+                            var editorConfigString = editorConfigStorageLocation.GetEditorConfigString(value, null);
                             if (editorConfigString != null)
                             {
                                 textBuilder.AppendLine(GetSectionHeader(optionKey));

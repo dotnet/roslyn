@@ -196,6 +196,12 @@
   <data name="Populate_switch" xml:space="preserve">
     <value>Populate switch</value>
   </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
   <data name="Expression_value_is_never_used" xml:space="preserve">
     <value>Expression value is never used</value>
   </data>
@@ -231,5 +237,11 @@
   </data>
   <data name="Accessibility_modifiers_required" xml:space="preserve">
     <value>Accessibility modifiers required</value>
+  </data>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
+  </data>
+  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
+    <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
 </root>

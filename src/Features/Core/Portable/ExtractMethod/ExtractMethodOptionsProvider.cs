@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ExtractMethodOptions.AllowBestEffort,
-            ExtractMethodOptions.DontPutOutOrRefOnStruct,
-            ExtractMethodOptions.AllowMovingDeclaration);
+            ExtractMethodOptions.DontPutOutOrRefOnStruct);
     }
 }
