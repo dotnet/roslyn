@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-            public IStreamingProgressTracker ProgressTracker => _context.ProgressTracker;
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
 
             public FindReferencesProgressAdapter(
                 IThreadingContext threadingContext, Solution solution,
