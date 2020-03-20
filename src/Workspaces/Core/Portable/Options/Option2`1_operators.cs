@@ -4,15 +4,19 @@
 
 #nullable enable
 
-using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     internal partial class Option2<T>
     {
-        public static explicit operator Option<T>(Option2<T> option)
+        [return: NotNullIfNotNull("option")]
+        public static explicit operator Option<T>?(Option2<T>? option)
         {
-            RoslynDebug.Assert(option != null);
+            if (option is null)
+            {
+                return null;
+            }
 
             return new Option<T>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }

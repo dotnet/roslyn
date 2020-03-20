@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
 {
     internal static class FSharpCompletionOptions
     {
-        public static PerLanguageOption<bool> BlockForCompletionItems => (PerLanguageOption<bool>)Microsoft.CodeAnalysis.Completion.CompletionOptions.BlockForCompletionItems;
+        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
+        public static PerLanguageOption<bool> BlockForCompletionItems => ((PerLanguageOption<bool>)Microsoft.CodeAnalysis.Completion.CompletionOptions.BlockForCompletionItems)!;
     }
 }

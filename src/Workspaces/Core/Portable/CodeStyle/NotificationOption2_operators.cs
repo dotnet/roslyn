@@ -5,12 +5,14 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal sealed partial class NotificationOption2 : IEquatable<NotificationOption2?>
     {
+        [return: NotNullIfNotNull("notificationOption")]
         public static explicit operator NotificationOption2?(NotificationOption? notificationOption)
         {
             if (notificationOption is null)
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             };
         }
 
+        [return: NotNullIfNotNull("notificationOption")]
         public static explicit operator NotificationOption?(NotificationOption2? notificationOption)
         {
             if (notificationOption is null)
