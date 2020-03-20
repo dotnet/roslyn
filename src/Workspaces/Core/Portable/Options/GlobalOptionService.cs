@@ -254,24 +254,16 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public T GetOption<T>(Option<T> option)
-        {
-            return (T)GetOption(new OptionKey(option))!;
-        }
+            => OptionsHelpers.GetOption(option, GetOption);
 
         public T GetOption<T>(Option2<T> option)
-        {
-            return (T)GetOption(new OptionKey(option))!;
-        }
+            => OptionsHelpers.GetOption(option, GetOption);
 
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
-        {
-            return (T)GetOption(new OptionKey(option, language))!;
-        }
+            => OptionsHelpers.GetOption(option, language, GetOption);
 
         public T GetOption<T>(PerLanguageOption2<T> option, string? language)
-        {
-            return (T)GetOption(new OptionKey(option, language))!;
-        }
+            => OptionsHelpers.GetOption(option, language, GetOption);
 
         public object? GetOption(OptionKey optionKey)
         {

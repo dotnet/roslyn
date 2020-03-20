@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -74,11 +75,12 @@ namespace Microsoft.CodeAnalysis.Options
             var equals = this.Name == other.Name &&
                 this.Feature == other.Feature &&
                 this.Group == other.Group &&
-                this.IsPerLanguage == other.IsPerLanguage &&
-                this.Type == other.Type;
+                this.IsPerLanguage == other.IsPerLanguage;
 
-            // TODO: Should default value participate in equality check?
-            Debug.Assert(!equals || Equals(this.DefaultValue, other.DefaultValue));
+            if (equals && !(this.DefaultValue is ICodeStyleOption))
+            {
+                equals = Equals(this.DefaultValue, other.DefaultValue) && this.Type == other.Type;
+            }
 
             return equals;
         }
@@ -89,8 +91,13 @@ namespace Microsoft.CodeAnalysis.Options
             hash = unchecked((hash * (int)0xA5555529) + this.Group.GetHashCode());
             hash = unchecked((hash * (int)0xA5555529) + this.Name.GetHashCode());
             hash = unchecked((hash * (int)0xA5555529) + this.IsPerLanguage.GetHashCode());
-            hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
-            hash = unchecked((hash * (int)0xA5555529) + this.Type.GetHashCode());
+
+            if (!(this.DefaultValue is ICodeStyleOption))
+            {
+                hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
+                hash = unchecked((hash * (int)0xA5555529) + this.Type.GetHashCode());
+            }
+
             return hash;
         }
 
