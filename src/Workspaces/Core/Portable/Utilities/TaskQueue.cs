@@ -22,6 +22,9 @@ namespace Roslyn.Utilities
 
         internal TaskQueue(IAsynchronousOperationListener operationListener, TaskScheduler taskScheduler)
         {
+            Contract.ThrowIfNull(operationListener);
+            Contract.ThrowIfNull(taskScheduler);
+
             _operationListener = operationListener;
             _taskScheduler = taskScheduler;
             _latestTask = Task.CompletedTask;

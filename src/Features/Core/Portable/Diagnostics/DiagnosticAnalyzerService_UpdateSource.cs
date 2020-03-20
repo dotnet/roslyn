@@ -14,26 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class DiagnosticAnalyzerService : IDiagnosticUpdateSource
     {
-        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
-
-        // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap;
-        private readonly TaskQueue _eventQueue;
-
-        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
-        private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
-        {
-            _eventMap = new EventMap();
-
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
-
-            registrationService.Register(this);
-        }
-
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
         {
             add

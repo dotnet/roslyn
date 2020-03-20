@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
-        private readonly IAsynchronousOperationListener _listener;
         private readonly EventMap _eventMap;
         private readonly TaskQueue _eventQueue;
 
@@ -42,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // use diagnostic event task scheduler so that we never flood async events queue with million of events.
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(_listener, s_eventScheduler);
-
-            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), s_eventScheduler);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
