@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseNullPropagation
@@ -29,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             Return VisualBasicSyntaxFacts.Instance
         End Function
 
-        Protected Overrides Function GetSemanticFactsService() As ISemanticFactsService
-            Return VisualBasicSemanticFactsService.Instance
+        Protected Overrides Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
 
         Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFacts, conditionNode As SyntaxNode, ByRef conditionPartToCheck As SyntaxNode, ByRef isEquals As Boolean) As Boolean

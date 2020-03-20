@@ -2070,11 +2070,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Pascal Case</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Usar tratamento simplificado de nulo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">A declaração de variável pode ser embutida</target>
