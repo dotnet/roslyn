@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 location, additionalLocations, customTags: CustomTags, properties: Properties);
         }
 
-        public static (LinePosition startLine, LinePosition endLine) GetLinePositions(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
+        public static LinePositionSpan GetLinePositionSpan(DiagnosticDataLocation? dataLocation, SourceText text, bool useMapped)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (dataLocationStartLine >= lines.Count)
             {
                 var lastLine = lines.GetLinePosition(text.Length);
-                return (lastLine, lastLine);
+                return new LinePositionSpan(lastLine, lastLine);
             }
 
             AdjustBoundaries(dataLocationStartLine, dataLocationStartColumn, dataLocationEndLine, dataLocationEndColumn, lines,
@@ -251,14 +251,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var endLinePosition = new LinePosition(endLine, endColumn);
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
-            return (startLinePosition, endLinePosition);
+            return new LinePositionSpan(startLinePosition, endLinePosition);
         }
 
         public static TextSpan GetTextSpan(DiagnosticDataLocation? dataLocation, SourceText text)
         {
-            (var startLinePosition, var endLinePosition) = GetLinePositions(dataLocation, text, useMapped: false);
+            var linePositionSpan = GetLinePositionSpan(dataLocation, text, useMapped: false);
 
-            var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
+            var span = text.Lines.GetTextSpan(linePositionSpan);
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 

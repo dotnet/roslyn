@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        /// <summary>
+        /// Workaround for razor file paths being provided with a preceding slash on windows.
+        /// Long term fix in razor here - https://github.com/dotnet/aspnetcore/issues/19948
+        /// </summary>
         public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)

@@ -229,13 +229,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
 
-            var publishTasks = fileUriToDiagnostics.Keys.Select(async fileUri =>
+            foreach (var fileUri in fileUriToDiagnostics.Keys)
             {
                 var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = fileUriToDiagnostics[fileUri], Uri = fileUri };
                 await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
-            });
-
-            await Task.WhenAll(publishTasks).ConfigureAwait(false);
+            }
         }
 
         private async Task<Dictionary<Uri, LanguageServer.Protocol.Diagnostic[]>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
@@ -249,11 +247,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // https://docs.microsoft.com/en-us/aspnet/core/mvc/views/layout?view=aspnetcore-3.1#importing-shared-directives
             // https://docs.microsoft.com/en-us/aspnet/core/blazor/layouts?view=aspnetcore-3.1#centralized-layout-selection
             // The imported files contents are added to the content of the generated C# file, so we get diagnostics
-            // for both the c# contents in the original razor document and for any of the content in any of the imported files when we query diagnostics for the generated C# file.
-            // These diagnostics will be reported with DiagnosticDataLocation.OriginalFilePath = generated C# file, and DiagnosticDataLocation.MappedFilePath = imported razor file.
+            // for both the c# contents in the original razor document and for any of the content in any of the imported
+            // files when we query diagnostics for the generated C# file.
+            // These diagnostics will be reported with DiagnosticDataLocation.OriginalFilePath = generated C# file and
+            // DiagnosticDataLocation.MappedFilePath = imported razor file.
             // This means that in general we could have diagnostics produced by one generated file that map to many different actual razor files.
-            // We can't filter them out as we don't know which razor file(s) the underlying generated C# document actually maps to, and which are just imported.
-            // So we publish them all and let them get de-duped.
+            // We can't filter them out as we don't know which razor file(s) the underlying generated C# document actually maps to
+            // and which are just imported.  So we publish them all and let them get de-duped.
             var fileUriToDiagnostics = diagnostics.GroupBy(diagnostic => GetDiagnosticUri(document, diagnostic)).ToDictionary(
                 group => group.Key,
                 group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToArray());
@@ -261,7 +261,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData)
             {
-                var filePath = diagnosticData.DataLocation?.MappedFilePath ?? document.FilePath;
+                Contract.ThrowIfNull(diagnosticData.DataLocation, "Diagnostic data location should not be null here");
+
+                var filePath = diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
 
@@ -274,7 +276,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
                     Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
                     // Only the unnecessary diagnostic tag is currently supported via LSP.
-                    Tags = diagnosticData.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
+                    Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                        ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
+                        : Array.Empty<DiagnosticTag>()
                 };
             }
         }
@@ -293,21 +297,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
         {
-            (var startLine, var endLine) = DiagnosticData.GetLinePositions(diagnosticDataLocation, text, useMapped: true);
-
-            return new LanguageServer.Protocol.Range
-            {
-                Start = new Position
-                {
-                    Line = startLine.Line,
-                    Character = startLine.Character,
-                },
-                End = new Position
-                {
-                    Line = endLine.Line,
-                    Character = endLine.Character
-                }
-            };
+            var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
+            return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
     }
 }
