@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = editor.Generator;
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
                 var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) =>
+                    (c, _) =>
                     {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         }
 
                         var newNode = CreateConditionalAccessExpression(
-                            syntaxFacts, g, whenPartIsNullable, currentWhenPartToCheck, match, c);
+                            syntaxFacts, generator, whenPartIsNullable, currentWhenPartToCheck, match, c);
 
                         newNode = newNode.WithTriviaFrom(c);
                         return newNode;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, bool whenPartIsNullable,
+            ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator, bool whenPartIsNullable,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
         {
             if (whenPartIsNullable)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
+            ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
             if (matchParent is TMemberAccessExpression memberAccess)
@@ -157,10 +157,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             return currentConditional;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_null_propagation, createChangedDocument)
+                : base(AnalyzersResources.Use_null_propagation, createChangedDocument)
             {
             }
         }
