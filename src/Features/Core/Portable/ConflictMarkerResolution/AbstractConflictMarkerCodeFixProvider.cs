@@ -51,13 +51,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var lines = text.Lines;
 
             var position = context.Span.Start;
-            var conflictLine = lines.GetLineFromPosition(position);
-            if (position != conflictLine.Start)
-            {
-                Debug.Assert(false, "All conflict markers should start at the beginning of a line.");
-                return;
-            }
-
             if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
                 return;
 
