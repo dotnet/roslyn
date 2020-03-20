@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         {
         }
 
-        public ImmutableArray<Options.IOption> Options { get; }
-            = ImmutableArray.Create<Options.IOption>(
+        public ImmutableArray<IOption> Options { get; }
+            = ImmutableArray.Create<IOption>(
                 PythiaOptions.ShowDebugInfo,
                 PythiaOptions.RemoveRecommendationLimit);
     }

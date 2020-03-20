@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
-        bool IOption2.Equals(IOption2? other) => Equals(other);
+        bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
         public override string ToString() => _optionDefinition.ToString();
 

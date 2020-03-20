@@ -9,18 +9,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal interface IOption2
+    internal interface IOption2 : IEquatable<IOption2?>
 #if !CODE_STYLE
-        : IOption
+        , IOption
 #endif
     {
         OptionDefinition OptionDefinition { get; }
-
-        // Ensure that all the sub-types are equatable
-        // by requiring them to provide an implementation for Equals/GetHashCode.
-        bool Equals(IOption2? other);
-        bool Equals(object? other);
-        int GetHashCode();
 
 #if CODE_STYLE
         string Feature { get; }

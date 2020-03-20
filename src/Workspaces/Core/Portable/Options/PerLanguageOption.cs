@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         bool IOption.IsPerLanguage => true;
 
-        bool IOption2.Equals(IOption2? other) => Equals(other);
+        bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
         public override string ToString() => _optionDefinition.ToString();
 
