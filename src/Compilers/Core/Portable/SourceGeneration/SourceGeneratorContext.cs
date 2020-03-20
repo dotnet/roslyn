@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder.SyntaxReceiverCreator = receiverCreator;
         }
 
-        private void CheckIsEmpty<T>(T x)
+        private static void CheckIsEmpty<T>(T x)
         {
             if (x is object)
             {
