@@ -1021,12 +1021,6 @@ This version used in: {2}</value>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
-  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
-    <value>Prefer explicitly provided tuple element name</value>
-  </data>
-  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
-    <value>Use explicitly provided tuple name</value>
-  </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
   </data>
