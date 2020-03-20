@@ -99,9 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
             newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
-            if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) && ifStatement.Statement.IsKind(SyntaxKind.Block))
+            if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
+                ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax block))
             {
-                newStatement = ((BlockSyntax)ifStatement.Statement).WithStatements(SyntaxFactory.SingletonList(newStatement));
+                newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);

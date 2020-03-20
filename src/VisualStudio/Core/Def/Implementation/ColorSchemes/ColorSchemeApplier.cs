@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
+        private bool _migrationAttempted = false;
         private bool _isDisposed = false;
 
         [ImportingConstructor]
@@ -75,12 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
                 var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChanged;
+                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
 
                 QueueColorSchemeUpdate(themeChanged: true);
             }
@@ -96,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             QueueColorSchemeUpdate(themeChanged: true);
         }
 
-        private async Task ColorSchemeChanged(object sender, PropertyChangedEventArgs args)
+        private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
         {
             await QueueColorSchemeUpdate();
         }
@@ -112,10 +110,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             AssertIsForeground();
 
-            // Simply return if we were queued to run during shutdown or the user is in High Contrast mode.
-            if (_isDisposed || SystemParameters.HighContrast)
+            // Simply return if we were queued to run during shutdown.
+            if (_isDisposed)
             {
                 return;
+            }
+
+            if (!_migrationAttempted)
+            {
+                _migrationAttempted = true;
+
+                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
             }
 
             if (themeChanged)

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
 
                 ' Verify available diagnostic descriptors/analyzers
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Count())
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences1)
 
                 ' Verify available diagnostic descriptors/analyzers
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(2, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.AddAnalyzerReference(projectAnalyzerReference2)
 
                 ' Verify available diagnostic descriptors/analyzers
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(3, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.RemoveAnalyzerReference(projectAnalyzerReference1)
 
                 ' Verify available diagnostic descriptors/analyzers
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(2, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
@@ -135,18 +135,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(2, diagnostics.Count())
 
                 ' Verify available diagnostic descriptors/analyzers if not project specific
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference()
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference()
                 Assert.Equal(1, descriptorsMap.Count)
                 descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Count)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 ' Add an existing workspace analyzer to the project, ensure no duplicate diagnostics.
-                Dim duplicateProjectAnalyzersReference = diagnosticService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap().First().Value
+                Dim duplicateProjectAnalyzersReference = diagnosticService.HostAnalyzers.GetHostAnalyzerReferencesMap().First().Value
                 project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
 
                 ' Verify duplicate descriptors or diagnostics.
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
@@ -182,8 +182,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.WithAnalyzerReferences(projectAnalyzerReferences1)
 
                 ' Query descriptors twice: second query was hitting an assert in DiagnosticAnalyzersAndStates.
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
-                descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
+                descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
 
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 project = project.WithAnalyzerReferences(ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference))
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
 
                 ' two references in the map
                 Assert.Equal(1, descriptorsMap.Count)
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
 
                 ' Verify available diagnostic descriptors/analyzers
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Count())
@@ -317,15 +317,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
-                Dim workspaceDescriptors = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference()
+                Dim workspaceDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference()
                 Assert.Equal(0, workspaceDescriptors.Count)
 
-                Dim alphaDescriptors = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(alpha)
+                Dim alphaDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference(alpha)
                 Assert.Equal("XX0001", alphaDescriptors.Single().Value.Single().Id)
                 Dim alphaDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(alpha.Documents.Single(), New TextSpan(0, alpha.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0001", alphaDiagnostics.Single().Id)
 
-                Dim bravoDescriptors = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(bravo)
+                Dim bravoDescriptors = diagnosticService.GetDiagnosticDescriptorsPerReference(bravo)
                 Assert.Equal("XX0002", bravoDescriptors.Single().Value.Single().Id)
                 Dim bravoDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(bravo.Documents.Single(), New TextSpan(0, bravo.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0002", bravoDiagnostics.Single().Id)
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 analyzersMap.Add(LanguageNames.VisualBasic, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer2))
                 Dim diagnosticService2 = New TestDiagnosticAnalyzerService(analyzersMap.ToImmutableDictionary())
 
-                Dim descriptors = diagnosticService2.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference()
+                Dim descriptors = diagnosticService2.GetDiagnosticDescriptorsPerReference()
                 Assert.Equal(1, descriptors.Count)
                 Assert.Equal(2, descriptors.Single().Value.Count)
             End Using
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(ImmutableArray.Create(Of AnalyzerReference)(analyzerReference2))
 
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
 
                 ' Verify no duplicate diagnostics.
                 Dim document = project.Documents.Single()
@@ -454,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(0, descriptors.Count())
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=exceptionDiagnosticsSource, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -598,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                     project = project.AddAnalyzerReference(analyzerReference)
 
-                    Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                    Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                     Assert.Equal(1, descriptorsMap.Count)
 
                     Dim document = project.Documents.Single()
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -666,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
                 ' Ensure no duplicate diagnostics.
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -743,7 +743,7 @@ class AnonymousFunctions
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
                 ' Ensure no duplicate diagnostics.
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -783,7 +783,7 @@ class AnonymousFunctions
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 ' Ask for document diagnostics multiple times, and verify compilation diagnostics are reported.
@@ -940,7 +940,7 @@ class AnonymousFunctions
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 ' Verify no duplicate analysis/diagnostics.
@@ -977,7 +977,7 @@ class AnonymousFunctions
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single(Function(d) d.Name = "Test1.cs")
@@ -1032,7 +1032,7 @@ class AnonymousFunctions
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 ' Verify project diagnostics contains diagnostics reported on both partial definitions.
@@ -1081,7 +1081,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1123,7 +1123,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1165,7 +1165,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1216,7 +1216,7 @@ End Class
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1278,7 +1278,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1324,7 +1324,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1410,8 +1410,8 @@ public class B
             End Using
         End Sub
 
-        Private Shared Sub TestCompilationAnalyzerWithAnalyzerOptionsCore(project As Project, expectedDiagnosticMessage As String, diagnosticService As DiagnosticAnalyzerService)
-            Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+        Private Shared Sub TestCompilationAnalyzerWithAnalyzerOptionsCore(project As Project, expectedDiagnosticMessage As String, diagnosticService As TestDiagnosticAnalyzerService)
+            Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
             Assert.Equal(1, descriptorsMap.Count)
 
             Dim document = project.Documents.Single()
@@ -1931,7 +1931,7 @@ End Class
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -1991,7 +1991,7 @@ namespace ConsoleApplication1
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
@@ -2061,7 +2061,7 @@ class MyClass
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify available diagnostic descriptors/analyzers
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Assert.Equal(0, descriptorsMap.First().Value.Length)
 
@@ -2102,7 +2102,7 @@ class MyClass
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify available diagnostic descriptors
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
                 Assert.Equal(1, descriptors.Length)
@@ -2153,7 +2153,7 @@ class MyClass
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.AnalyzerInfoCache.GetDiagnosticDescriptorsPerReference(project)
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)

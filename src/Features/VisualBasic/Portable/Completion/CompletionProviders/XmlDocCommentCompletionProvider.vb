@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -12,9 +14,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities.DocumentationCommentXmlNames
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Partial Friend Class XmlDocCommentCompletionProvider
+    <ExportCompletionProvider(NameOf(XmlDocCommentCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(OverrideCompletionProvider))>
+    <[Shared]>
+    Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub
@@ -27,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return isStartOfTag OrElse isClosingTag OrElse isDoubleQuote OrElse
                    IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
         Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),

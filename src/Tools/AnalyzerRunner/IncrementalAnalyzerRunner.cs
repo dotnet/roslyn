@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IncrementalCaches;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace AnalyzerRunner
@@ -38,10 +37,12 @@ namespace AnalyzerRunner
                 return;
             }
 
+            var usePersistentStorage = _options.UsePersistentStorage;
+
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(StorageOptions.SolutionSizeThreshold, _options.UsePersistentStorage ? 0 : int.MaxValue)
                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)));
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)
+                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None)));
 
             if (!string.IsNullOrEmpty(_options.ProfileRoot))
             {
@@ -50,26 +51,11 @@ namespace AnalyzerRunner
 
             var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
 
-            var solutionSizeTracker = exportProvider.GetExports<ISolutionSizeTracker>().Single().Value;
-
-            // This will return the tracker, since it's a singleton.
-            var analyzer = ((IIncrementalAnalyzerProvider)solutionSizeTracker).CreateIncrementalAnalyzer(workspace);
-            await analyzer.NewSolutionSnapshotAsync(workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(workspace);
-            solutionCrawlerRegistrationService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzer));
 
-            var size = solutionSizeTracker.GetSolutionSize(workspace, workspace.CurrentSolution.Id);
-            Console.WriteLine("Current solution size:\t" + size);
-
-            if (_options.UsePersistentStorage)
+            if (usePersistentStorage)
             {
-                if (size <= 0)
-                {
-                    throw new InvalidOperationException("Solution size is too small; persistent storage is disabled.");
-                }
-
                 var persistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
                 var persistentStorage = persistentStorageService.GetStorage(workspace.CurrentSolution);
                 if (persistentStorage is NoOpPersistentStorage)

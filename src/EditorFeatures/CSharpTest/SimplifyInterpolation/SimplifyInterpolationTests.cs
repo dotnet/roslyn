@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
@@ -18,6 +19,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
+
+        [Fact]
+        public async Task SubsequentUnnecessarySpansDoNotRepeatTheSmartTag()
+        {
+            var parameters = new TestParameters(retainNonFixableDiagnostics: true, includeDiagnosticsOutsideSelection: true);
+
+            using var workspace = CreateWorkspaceFromOptions(@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue{|Unnecessary:[||].ToString()|}{|Unnecessary:.PadLeft(|}3{|Unnecessary:)|}} suffix"";
+    }
+}", parameters);
+
+            var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
+
+            Assert.Equal(
+                new[] {
+                    ("IDE0071", DiagnosticSeverity.Info),
+                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
+                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
+                },
+                diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
+        }
 
         [Fact]
         public async Task ToStringWithNoParameter()
@@ -198,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -218,13 +243,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
 
         [Fact]
-        public async Task PadLeftWithComplexConstantExpressionRequiringParentheses()
+        public async Task PadLeftWithComplexConstantExpression()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -240,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
+        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
     }
 }");
         }
@@ -260,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -280,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3} suffix"";
+        _ = $""prefix {someValue,-3} suffix"";
     }
 }");
         }
@@ -312,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
-        public async Task PadRightWithComplexConstantExpression()
+        public async Task PadRightWithComplexConstantExpressionRequiringParentheses()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -328,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         const int someConstant = 1;
-        _ = $""prefix {someValue,(byte)3.3 + someConstant} suffix"";
+        _ = $""prefix {someValue,-((byte)3.3 + someConstant)} suffix"";
     }
 }");
         }
@@ -420,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3:goo} suffix"";
+        _ = $""prefix {someValue,3:goo} suffix"";
     }
 }");
         }
@@ -440,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,3:goo} suffix"";
+        _ = $""prefix {someValue,-3:goo} suffix"";
     }
 }");
         }
@@ -511,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue,-3} suffix"";
+        _ = $""prefix {someValue,3} suffix"";
     }
 }");
         }
@@ -568,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     void M(string someValue)
     {
-        _ = $""prefix {someValue.PadLeft(3),3} suffix"";
+        _ = $""prefix {someValue.PadLeft(3),-3} suffix"";
     }
 }");
         }
@@ -660,6 +685,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(string someValue)
     {
         _ = $""prefix {[||]PadLeft(3)} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task OnConstantAlignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
+    }
+}",
+
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str,-maxLength}"");
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task MissingOnNonConstantAlignment()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        var maxLength = strings.Max(str => str.Length);
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
     }
 }");
         }

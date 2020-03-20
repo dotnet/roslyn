@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -738,9 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -749,9 +750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
@@ -768,9 +769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -1037,9 +1038,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement))
+                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
                 {
-                    GetLocalNames(((LocalDeclarationStatementSyntax)child).Declaration, ref result);
+                    GetLocalNames(localDecl.Declaration, ref result);
                 }
             }
         }

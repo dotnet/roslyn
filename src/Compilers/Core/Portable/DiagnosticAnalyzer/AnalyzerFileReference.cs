@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
-        private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace;
+        private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace!;
 
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
 
@@ -35,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
 
-        private string _lazyDisplay;
-        private object _lazyIdentity;
-        private Assembly _lazyAssembly;
+        private string? _lazyDisplay;
+        private object? _lazyIdentity;
+        private Assembly? _lazyAssembly;
 
-        public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
+        public event EventHandler<AnalyzerLoadFailureEventArgs>? AnalyzerLoadFailed;
 
         /// <summary>
         /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/> and <paramref name="assemblyLoader"/>.
@@ -87,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     InitializeDisplayAndId();
                 }
 
-                return _lazyDisplay;
+                // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+                return _lazyDisplay!;
             }
         }
 
@@ -100,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     InitializeDisplayAndId();
                 }
 
-                return _lazyIdentity;
+                // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+                return _lazyIdentity!;
             }
         }
 
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticAnalyzers.AddExtensions(builder, language);
         }
 
-        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string typeNameOpt = null)
+        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeNameOpt = null)
         {
             // unwrap:
             e = (e as TargetInvocationException) ?? e;
@@ -161,22 +165,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
         private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate)
         {
-            using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
-            {
-                // This is longer than strictly necessary to avoid thrashing the GC with string allocations
-                // in the call to GetFullyQualifiedTypeNames. Specifically, this checks for the presence of
-                // supported languages prior to creating the type names.
-                var typeNameMap = from module in assembly.GetModules()
-                                  from typeDefHandle in module.MetadataReader.TypeDefinitions
-                                  let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
-                                  let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
-                                  where supportedLanguages.Any()
-                                  let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
-                                  from supportedLanguage in supportedLanguages
-                                  group typeName by supportedLanguage;
+            using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
-                return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
-            }
+            // This is longer than strictly necessary to avoid thrashing the GC with string allocations
+            // in the call to GetFullyQualifiedTypeNames. Specifically, this checks for the presence of
+            // supported languages prior to creating the type names.
+            var typeNameMap = from module in assembly.GetModules()
+                              from typeDefHandle in module.MetadataReader.TypeDefinitions
+                              let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
+                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
+                              where supportedLanguages.Any()
+                              let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
+                              from supportedLanguage in supportedLanguages
+                              group typeName by supportedLanguage;
+
+            return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
         }
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, AttributePredicate attributePredicate)
@@ -226,8 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
-            EntityHandle ctor;
-            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), out ctor);
+            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), ctor: out _);
         }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
@@ -251,14 +253,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AnalyzerFileReference _reference;
             private readonly AttributePredicate _attributePredicate;
             private ImmutableArray<TExtension> _lazyAllExtensions;
-            private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
-            private ImmutableDictionary<string, ImmutableHashSet<string>> _lazyExtensionTypeNameMap;
+            private ImmutableDictionary<string, ImmutableArray<TExtension>>? _lazyExtensionsPerLanguage;
+            private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
             internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate)
             {
                 _reference = reference;
                 _attributePredicate = attributePredicate;
-                _lazyAllExtensions = default(ImmutableArray<TExtension>);
+                _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
 
@@ -420,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
                 foreach (var typeName in analyzerTypeNames)
                 {
-                    Type type;
+                    Type? type;
                     try
                     {
                         // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
@@ -436,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     Debug.Assert(type != null);
 
-                    TExtension analyzer;
+                    TExtension? analyzer;
                     try
                     {
                         analyzer = Activator.CreateInstance(type) as TExtension;
@@ -458,12 +460,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as AnalyzerFileReference);
         }
 
-        public bool Equals(AnalyzerReference other)
+        public bool Equals(AnalyzerReference? other)
         {
             if (other != null)
             {

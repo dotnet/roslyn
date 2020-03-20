@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -34,11 +33,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
-        internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
-        {
-            { PersistentStorageOptions.Enabled, true },
-            { StorageOptions.SolutionSizeThreshold, 100 }
-        });
 
         private AbstractPersistentStorageService _storageService;
         private readonly string _persistentFolder;
@@ -513,16 +507,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         internal IChecksummedPersistentStorage GetStorage(
             Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            // For the sake of tests, all solutions are bigger than our threshold, and thus deserve to get storage for them
-            var solutionSizeTrackerMock = new Mock<ISolutionSizeTracker>();
-            solutionSizeTrackerMock.Setup(m => m.GetSolutionSize(solution.Workspace, solution.Id))
-                                   .Returns(solution.Workspace.Options.GetOption(StorageOptions.SolutionSizeThreshold) + 1);
-
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder);
 
-            _storageService = GetStorageService(locationService, solutionSizeTrackerMock.Object, faultInjectorOpt);
+            _storageService = GetStorageService(locationService, faultInjectorOpt);
             var storage = _storageService.GetStorage(solution, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
@@ -551,7 +540,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 => solution.Id == _solutionId ? _storageLocation : null;
         }
 
-        internal abstract AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector);
+        internal abstract AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
-        public const string DesignerAttribute = nameof(DesignerAttribute);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);

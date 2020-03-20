@@ -72,16 +72,6 @@
         <target state="translated">折り返されたパラメーターを調整します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
-        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">コード内における不必要な値代入は、値計算が重複する原因になり得るため、避けてください。値計算が重複しておらず、代入を保持する場合は、代入先をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) のローカル変数に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">コードに未使用のパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">待機中のタスクから '{0}' が返されました</target>
@@ -90,6 +80,11 @@
       <trans-unit id="Awaited_task_returns_no_value">
         <source>Awaited task returns no value</source>
         <target state="translated">待機中のタスクは値を返しません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -127,6 +122,11 @@
         <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} コード スタイルの構成</target>
@@ -135,6 +135,16 @@
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="translated">{0} の重要度の構成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -192,6 +202,11 @@
         <target state="translated">スコープを失う前にオブジェクトを破棄</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">ソース ファイル '{0}' の現在のコンテンツが、ビルドされたソースと一致しません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
@@ -217,11 +232,6 @@
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_value_is_never_used">
-        <source>Expression value is never used</source>
-        <target state="translated">式の値が使用されていません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">インターフェイスの抽出...</target>
@@ -235,11 +245,6 @@
       <trans-unit id="Extract_method">
         <source>Extract method</source>
         <target state="translated">メソッドを抽出する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">メソッドとローカルの抽出</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -277,16 +282,6 @@
         <target state="translated">'GetHashCode' の実装を簡略化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement all interfaces explicitly">
-        <source>Implement all interfaces explicitly</source>
-        <target state="translated">すべてのインターフェイスを明示的に実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement explicitly">
-        <source>Implement explicitly</source>
-        <target state="translated">明示的に実装する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}' を明示的に実装する</target>
@@ -302,14 +297,39 @@
         <target state="new">Implement abstract class</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
         <source>Implement all interfaces implicitly</source>
         <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">暗黙的に実装する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -437,39 +457,9 @@
         <target state="translated">名前空間に移動します...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">パラメーター '{0}' は、それが同梱のパブリック API の一部ではなく、初期値が使用されていない場合に削除できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed, its initial value is never used</source>
-        <target state="translated">パラメーター '{0}' を削除できます。その初期値が使用されていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">割り当てられている値が読み取られることがないようにプライベートメンバー '{0}' を削除できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">プライベート メンバー '{0}' は使用されていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
-        <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="translated">プライベート メソッド '{0}' が呼び出されることがないよう削除できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
-        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">プライベート プロパティ '{0}' は、その get アクセサーが呼び出されることがないため、メソッドに変換できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -492,49 +482,24 @@
         <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_assignment">
-        <source>Remove redundant assignment</source>
-        <target state="translated">冗長な代入を削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unread_private_members">
-        <source>Remove unread private members</source>
-        <target state="translated">読み取られていないプライベート メンバーを削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_member">
-        <source>Remove unused member</source>
-        <target state="translated">未使用のメンバーを削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter">
-        <source>Remove unused parameter</source>
-        <target state="translated">未使用のパラメーターを削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0">
-        <source>Remove unused parameter '{0}'</source>
-        <target state="translated">未使用のパラメーター '{0}' を削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="translated">未使用のパラメーター '{0}' が同梱のパブリック API の一部ではない場合に削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_private_members">
-        <source>Remove unused private members</source>
-        <target state="translated">使用されていないプライベート メンバーを削除する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' を '{1}' に置き換える</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Rude 編集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -557,9 +522,24 @@
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} の非表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -575,16 +555,6 @@
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">ソース ファイル '{0}'、またはそれを含むプロジェクト用にビルドされた PDB を読み取れません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value">
-        <source>Unnecessary assignment of a value</source>
-        <target state="translated">値の不必要な代入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
-        <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">値の '{0}' への不必要な代入</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -647,34 +617,14 @@
         <target state="translated">ラムダ式にブロック本体を使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">ローカル関数にブロック本体を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
         <target state="translated">複合代入を使用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_discard_underscore">
-        <source>Use discard '_'</source>
-        <target state="translated">破棄 '_' を使用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_discarded_local">
-        <source>Use discarded local</source>
-        <target state="translated">破棄されたローカルを使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">ラムダ式に式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">ローカル関数に式本体を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
@@ -985,11 +935,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">グローバル名前空間</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">インターフェイスを明示的に実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -1593,11 +1538,6 @@ Do you want to continue?</source>
 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">不要なキャストの削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">名前を単純化します</target>
@@ -1724,18 +1664,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: 大きなフィールドを null に設定します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">重複する呼び出しを検出するには</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: 大きなフィールドを null に設定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -1878,26 +1813,6 @@ Do you want to continue?</source>
         <target state="translated">メソッドを同期させます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">this' または 'Me' 修飾子を追加します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">名前の違反を修正します: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">名前付けルール違反: {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">命名スタイル</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">{0} から</target>
@@ -2020,29 +1935,9 @@ This version used in: {2}</source>
         <target state="translated">パラメーター:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">欠落しているケースの追加</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">両方を追加する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">既定のケースの追加</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">可変個引数 SignatureHelpItem は、少なくとも 1 つのパラメーターが必要です。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">波かっこを追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2120,16 +2015,6 @@ This version used in: {2}</source>
         <target state="translated">パッケージ '{0}' のインストール</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">オブジェクトの初期化を簡略化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">スロー' 式を使用する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">プロジェクト {0}</target>
@@ -2138,71 +2023,6 @@ This version used in: {2}</source>
       <trans-unit id="Inline_variable_declaration">
         <source>Inline variable declaration</source>
         <target state="translated">インライン変数宣言</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">パターン マッチングを使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">メソッドに式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">メソッドにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">アクセサーにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">コンストラクターにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">インデクサーにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">オペレーターにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">プロパティにブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">アクセサーに式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">コンストラクターに式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">インデクサーに式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">オペレーターに式本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">プロパティに式本体を使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
@@ -2245,39 +2065,9 @@ This version used in: {2}</source>
         <target state="translated">パスカル ケース</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">コレクションの初期化を簡略化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">coalesce 式を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">null 値の反映を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">変数の宣言をインライン化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Null チェックを簡略化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">コレクションの初期化を簡略化します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">オブジェクトの初期化を簡略化します</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
@@ -2383,11 +2173,6 @@ This version used in: {2}</source>
       <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
         <source>Pick members to be used in Equals/GetHashCode</source>
         <target state="translated">Equals/GetHashCode で使用するメンバーを選択する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">式ツリーを変更すると、実行時の動作が変わる可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_overrides">
@@ -2500,24 +2285,9 @@ This version used in: {2}</source>
         <target state="translated">到達できないコードを削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">修飾子が順序付けされていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">修飾子を順序付けます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">{0} (プロジェクト{1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">アクセシビリティ修飾子が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -2528,11 +2298,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">ローカル関数を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
-        <source>Warning: Declaration changes scope and may change meaning.</source>
-        <target state="translated">警告: 宣言によりスコープが変更され、意味が変わる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
@@ -2548,11 +2313,6 @@ This version used in: {2}</source>
       <trans-unit id="Generate_constructor_in_0_without_fields">
         <source>Generate constructor in '{0}' (without fields)</source>
         <target state="translated">{0}' に (フィールドを含まない) コンストラクターを生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">ファイルのバナーを追加します</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">
@@ -2633,16 +2393,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">読み取り専用修飾子を追加します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">フィールドを読み取り専用にします</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

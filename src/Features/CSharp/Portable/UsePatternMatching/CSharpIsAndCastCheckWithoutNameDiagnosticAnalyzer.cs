@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -28,11 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    //
-    // disabled for preview 1 due to some perf issue. 
-    // we will re-enable it once the issue is addressed.
-    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
-    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
@@ -44,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    option: null,    // Analyzer is currently disabled
                    new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                       nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -218,7 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
                 semanticModel.SyntaxTree, updatedSyntaxTree);
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             return updatedCompilation.GetSemanticModel(updatedSyntaxTree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
         }
 
         private SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)

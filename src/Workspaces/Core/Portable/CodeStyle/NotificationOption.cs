@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Options
+#else
 namespace Microsoft.CodeAnalysis.CodeStyle
+#endif
 {
     /// <summary>
     /// Offers different notification styles for enforcing

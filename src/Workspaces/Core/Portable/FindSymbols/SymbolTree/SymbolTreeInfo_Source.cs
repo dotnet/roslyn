@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -82,25 +82,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var parseOptionsChecksum = projectStateChecksums.ParseOptions;
             var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
 
-            var allChecksums = ArrayBuilder<Checksum>.GetInstance();
-            try
-            {
-                allChecksums.AddRange(textChecksums);
-                allChecksums.Add(compilationOptionsChecksum);
-                allChecksums.Add(parseOptionsChecksum);
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var allChecksums);
 
-                // Include serialization format version in our checksum.  That way if the 
-                // version ever changes, all persisted data won't match the current checksum
-                // we expect, and we'll recompute things.
-                allChecksums.Add(SerializationFormatChecksum);
+            allChecksums.AddRange(textChecksums);
+            allChecksums.Add(compilationOptionsChecksum);
+            allChecksums.Add(parseOptionsChecksum);
 
-                var checksum = Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
-                return checksum;
-            }
-            finally
-            {
-                allChecksums.Free();
-            }
+            // Include serialization format version in our checksum.  That way if the 
+            // version ever changes, all persisted data won't match the current checksum
+            // we expect, and we'll recompute things.
+            allChecksums.Add(SerializationFormatChecksum);
+
+            return Checksum.Create(WellKnownSynchronizationKind.SymbolTreeInfo, allChecksums);
         }
 
         internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(

@@ -121,8 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return Compare(DirectCast(x, TypeStatementSyntax), DirectCast(y, TypeStatementSyntax))
             End Select
 
-            Contract.Fail("Syntax nodes x and y are not declarations")
-            Return 0
+            throw ExceptionUtilities.UnexpectedValue(x.Kind)
         End Function
 
         Private Shared Function ConvertBlockToStatement(node As SyntaxNode) As SyntaxNode

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +18,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class PropertySubpatternCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(PropertySubpatternCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(InternalsVisibleToCompletionProvider))]
+    [Shared]
+    internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
     {
+        [ImportingConstructor]
+        public PropertySubpatternCompletionProvider()
+        {
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
@@ -92,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         private static SyntaxToken TryGetOpenBraceOrCommaInPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {

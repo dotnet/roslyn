@@ -201,10 +201,10 @@ End Class";
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: false, cancellationToken: CancellationToken.None);
                 Assert.Empty(result.AnalysisResult);
 
-                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
+                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: true, cancellationToken: CancellationToken.None);
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
                 // check result
@@ -253,7 +253,7 @@ End Class";
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
@@ -265,8 +265,10 @@ End Class";
 
         private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
         {
-            var infoCache = new DiagnosticAnalyzerInfoCache(ImmutableArray<AnalyzerReference>.Empty);
-            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(AsynchronousOperationListenerProvider.NullListener, infoCache, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(
+                AsynchronousOperationListenerProvider.NullListener,
+                new DiagnosticAnalyzerInfoCache(),
+                hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
         }
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
@@ -280,7 +282,7 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, getSkippedAnalyzersInfo: null, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }

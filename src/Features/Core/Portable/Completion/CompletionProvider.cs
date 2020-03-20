@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -37,6 +38,14 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return false;
         }
+
+        /// <summary>
+        /// This allows Completion Providers that indicated they were triggered textually to use syntax to
+        /// confirm they are really triggered, or decide they are not actually triggered and should become 
+        /// an augmenting provider instead.
+        /// </summary>
+        internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+            => ShouldTriggerCompletion(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
 
         /// <summary>
         /// Gets the description of the specified item.

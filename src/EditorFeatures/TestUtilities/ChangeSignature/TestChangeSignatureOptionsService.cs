@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
         }
 
-        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
+        public ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
             Document document,
             int insertPosition,
             ISymbol symbol,

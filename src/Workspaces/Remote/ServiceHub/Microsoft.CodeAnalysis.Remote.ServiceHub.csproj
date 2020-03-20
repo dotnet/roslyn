@@ -43,12 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Telemetry\WatsonExtensions.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs">
-      <Link>Telemetry\VSTelemetryCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
-      <Link>Telemetry\VSTelemetryLogger.cs</Link>
-    </Compile>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Telemetry\WatsonReporter.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Telemetry\VSTelemetryCache.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Telemetry\VSTelemetryLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" />

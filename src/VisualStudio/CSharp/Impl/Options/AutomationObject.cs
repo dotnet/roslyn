@@ -113,12 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.Outlining, value); }
         }
 
-        public int ExtractMethod_AllowMovingDeclaration
-        {
-            get { return GetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration); }
-            set { SetBooleanOption(ExtractMethodOptions.AllowMovingDeclaration, value); }
-        }
-
         public int ExtractMethod_DoNotPutOutOrRefOnStruct
         {
             get { return GetBooleanOption(ExtractMethodOptions.DontPutOutOrRefOnStruct); }
@@ -544,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                return _workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp).CreateXElement().ToString();
+                return _workspace.Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp).CreateXElement().ToString();
             }
 
             set
@@ -552,7 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 try
                 {
                     _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                        .WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)))));
+                        .WithChangedOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)))));
                 }
                 catch (Exception)
                 {

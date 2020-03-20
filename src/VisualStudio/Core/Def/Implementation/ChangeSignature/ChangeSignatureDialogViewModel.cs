@@ -717,25 +717,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 get
                 {
                     if (!ParameterSymbol.HasExplicitDefaultValue)
-                    {
                         return string.Empty;
-                    }
-                    switch (ParameterSymbol.Language)
-                    {
-                        case LanguageNames.CSharp:
-                            return NullText("null");
-                        case LanguageNames.VisualBasic:
-                            return NullText("Nothing");
-                    }
-                    return string.Empty;
 
-                    string NullText(string @null)
+                    return ParameterSymbol.Language switch
                     {
-                        return ParameterSymbol.ExplicitDefaultValue == null ? @null :
-                               ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
-                               ParameterSymbol.ExplicitDefaultValue.ToString();
-                    }
+                        LanguageNames.CSharp => NullText("null", "default"),
+                        LanguageNames.VisualBasic => NullText("Nothing", "Nothing"),
+                        _ => string.Empty,
+                    };
 
+                    string NullText(string @null, string @default)
+                    {
+                        var value = ParameterSymbol.ExplicitDefaultValue;
+                        return value == null
+                            ? ParameterSymbol.Type.IsReferenceType ? @null : @default
+                            : value is string ? "\"" + value.ToString() + "\"" : value.ToString();
+                    }
                 }
             }
 

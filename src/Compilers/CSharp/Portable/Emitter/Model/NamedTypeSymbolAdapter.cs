@@ -661,10 +661,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
+            // All constructors in attributes should be emitted.
+            // Don't compute IsAttributeType if IncludePrivateMembers is true, as we'll include it anyway.
+            bool alwaysIncludeConstructors = context.IncludePrivateMembers || DeclaringCompilation.IsAttributeType(this);
+
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                if (method.ShouldInclude(context))
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.ShouldInclude(context))
                 {
                     yield return method;
                 }
@@ -676,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var m in generated)
                 {
-                    if (m.ShouldInclude(context))
+                    if ((alwaysIncludeConstructors && m.IsConstructor) || m.ShouldInclude(context))
                     {
                         yield return m;
                     }
@@ -947,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
+                    arg = new Cci.ModifiedTypeReference(arg, ImmutableArray<Cci.ICustomModifier>.CastUp(modifiers));
                 }
 
                 builder.Add(arg);

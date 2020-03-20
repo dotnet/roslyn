@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Humanizer;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -205,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 current = current.WalkDownParentheses();
 
-                if (current.Kind() == SyntaxKind.IdentifierName)
+                if (current is IdentifierNameSyntax identifierName)
                 {
-                    return ((IdentifierNameSyntax)current).Identifier.ValueText.ToCamelCase();
+                    return identifierName.Identifier.ValueText.ToCamelCase();
                 }
                 else if (current is MemberAccessExpressionSyntax memberAccess)
                 {
@@ -234,6 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return name.Identifier.ValueText.ToCamelCase();
                 }
+                else if (current.Parent is ForEachStatementSyntax foreachStatement &&
+                         foreachStatement.Expression == expression)
+                {
+                    return foreachStatement.Identifier.ValueText.ToCamelCase().Pluralize();
+                }
                 else
                 {
                     break;
@@ -255,16 +259,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we can't determine the type, then fallback to some placeholders.
             var type = info.Type;
-            return type.CreateParameterName(capitalize);
+            var pluralize = Pluralize(semanticModel, type);
+
+            var parameterName = type.CreateParameterName(capitalize);
+            return pluralize ? parameterName.Pluralize() : parameterName;
+        }
+
+        private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
         }
 
         private static string TryGenerateNameForArgumentExpression(
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var topExpression = expression.WalkUpParentheses();
-            if (topExpression.IsParentKind(SyntaxKind.Argument))
+            if (topExpression.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                var argument = (ArgumentSyntax)topExpression.Parent;
                 if (argument.NameColon != null)
                 {
                     return argument.NameColon.Name.Identifier.ValueText;
@@ -332,14 +350,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //    as the interface type itself.
             if (type != null)
             {
-                if (type.Parent is BaseTypeSyntax && type.Parent.IsParentKind(SyntaxKind.BaseList) && ((BaseTypeSyntax)type.Parent).Type == type)
+                if (type.Parent is BaseTypeSyntax baseType &&
+                    baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                    baseType.Type == type)
                 {
                     var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
                     if (containingType != null && containingType.TypeKind == TypeKind.Interface)
                     {
                         return containingType.DeclaredAccessibility;
                     }
-                    else if (((BaseListSyntax)type.Parent.Parent).Types[0] == type.Parent)
+                    else if (baseList.Types[0] == type.Parent)
                     {
                         return containingType.DeclaredAccessibility;
                     }
@@ -348,10 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // 4) The type of a constant must be at least as accessible as the constant itself.
             // 5) The type of a field must be at least as accessible as the field itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent;
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
@@ -360,10 +379,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
                 type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
                 type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                type.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
+                variableDeclaration.IsParentKind(SyntaxKind.FieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent.Parent.Parent.Parent;
                 return semanticModel.GetDeclaredSymbol(
                     variableDeclaration.Variables[0], cancellationToken).DeclaredAccessibility;
             }
@@ -420,10 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // 8) The type of an event must be at least as accessible as the event itself.
-            if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                type.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration))
+            if (type.IsParentKind(SyntaxKind.VariableDeclaration, out variableDeclaration) &&
+                variableDeclaration.IsParentKind(SyntaxKind.EventFieldDeclaration))
             {
-                var variableDeclaration = (VariableDeclarationSyntax)type.Parent;
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0], cancellationToken);
                 if (symbol != null)
                 {

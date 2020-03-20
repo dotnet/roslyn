@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
@@ -22,6 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private class ColorSchemeSettings
         {
+            private const string ColorSchemeApplierKey = @"Roslyn\ColorSchemeApplier";
+            private const string AppliedColorSchemeName = "AppliedColorScheme";
+
             private readonly IServiceProvider _serviceProvider;
             private readonly VisualStudioWorkspace _workspace;
 
@@ -35,11 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(visualStudioWorkspace);
             }
 
+
             public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {
-                    SchemeName.Enhanced,
+                    SchemeName.VisualStudio2019,
                     SchemeName.VisualStudio2017
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
@@ -64,20 +70,41 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
                     itemKey.SetValue(item.ValueName, item.ValueData);
+                    // Flush RegistryKeys out of paranoia
+                    itemKey.Flush();
                 }
 
-                _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, schemeName));
+                registryRoot.Flush();
+
+                SetAppliedColorScheme(schemeName);
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
             }
 
+            /// <summary>
+            /// Get the color scheme that is applied to the configuration registry.
+            /// </summary>
             public SchemeName GetAppliedColorScheme()
             {
-                var schemeName = _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme);
-                return schemeName != SchemeName.None
-                    ? schemeName
-                    : ColorSchemeOptions.AppliedColorScheme.DefaultValue;
+                // The applied color scheme is stored in the configuration registry with the color theme information because
+                // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
+                using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: false);
+                using var itemKey = registryRoot.OpenSubKey(ColorSchemeApplierKey);
+                return itemKey is object
+                    ? (SchemeName)itemKey.GetValue(AppliedColorSchemeName)
+                    : default;
+            }
+
+            private void SetAppliedColorScheme(SchemeName schemeName)
+            {
+                // The applied color scheme is stored in the configuration registry with the color theme information because
+                // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
+                using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
+                using var itemKey = registryRoot.CreateSubKey(ColorSchemeApplierKey);
+                itemKey.SetValue(AppliedColorSchemeName, (int)schemeName);
+                // Flush RegistryKeys out of paranoia
+                itemKey.Flush();
             }
 
             public SchemeName GetConfiguredColorScheme()
@@ -99,9 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return;
                 }
 
-                // Since we did not apply enhanced colors if the theme had been customized, default customized themes to classic colors.
+                // Since we did not apply 2019 colors if the theme had been customized, default customized themes to 2017 colors.
                 var colorScheme = (useEnhancedColorsSetting != ColorSchemeOptions.UseEnhancedColors.DoNotUse && !isThemeCustomized)
-                    ? SchemeName.Enhanced
+                    ? SchemeName.VisualStudio2019
                     : SchemeName.VisualStudio2017;
 
                 _workspace.SetOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme));
@@ -136,7 +163,24 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public sealed class HasThemeBeenDefaultedIndexer
             {
-                private static readonly ImmutableDictionary<Guid, Option<bool>> HasThemeBeenDefaultedOptions = new Dictionary<Guid, Option<bool>>
+                private readonly VisualStudioWorkspace _workspace;
+
+                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
+                {
+                    _workspace = visualStudioWorkspace;
+                }
+
+                public bool this[Guid themeId]
+                {
+                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions.Options[themeId]);
+
+                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions.Options[themeId], value));
+                }
+            }
+
+            internal class HasThemeBeenDefaultedOptions
+            {
+                internal static readonly ImmutableDictionary<Guid, Option<bool>> Options = new Dictionary<Guid, Option<bool>>
                 {
                     [KnownColorThemes.Blue] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Blue),
                     [KnownColorThemes.Light] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Light),
@@ -149,20 +193,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
                         storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted\{themeId}"));
                 }
+            }
 
-                private readonly VisualStudioWorkspace _workspace;
-
-                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
+            [ExportOptionProvider, Shared]
+            internal class HasThemeBeenDefaultedOptionProvider : IOptionProvider
+            {
+                [ImportingConstructor]
+                public HasThemeBeenDefaultedOptionProvider()
                 {
-                    _workspace = visualStudioWorkspace;
                 }
 
-                public bool this[Guid themeId]
-                {
-                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
+                public ImmutableArray<IOption> Options => HasThemeBeenDefaultedOptions.Options.Values.ToImmutableArray<IOption>();
 
-                    set => _workspace.SetOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value));
-                }
             }
         }
     }

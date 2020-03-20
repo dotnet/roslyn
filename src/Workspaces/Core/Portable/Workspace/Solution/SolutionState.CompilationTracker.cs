@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial class CompilationTracker
         {
-            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
+            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
+                state => string.Join(",", state.AssemblyName, state.DocumentIds.Count);
 
             public ProjectState ProjectState { get; }
 
@@ -339,11 +340,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.Compilation;
-            }
-
-            private static string LogBuildCompilationAsync(ProjectState state)
-            {
-                return string.Join(",", state.AssemblyName, state.DocumentIds.Count);
             }
 
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -806,7 +802,7 @@ namespace Microsoft.CodeAnalysis
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
                 var state = this.ReadState();
                 return state.DeclarationOnlyCompilation == null
-                    ? default(bool?)
+                    ? (bool?)null
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
             }
 
@@ -818,7 +814,7 @@ namespace Microsoft.CodeAnalysis
                 // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
                 var state = this.ReadState();
                 return state.DeclarationOnlyCompilation == null
-                    ? default(bool?)
+                    ? (bool?)null
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 

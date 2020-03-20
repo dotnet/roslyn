@@ -127,18 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return (symbol, selectedIndex);
             }
 
-            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
+                token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
             {
-                var objectCreation = matchingNode as ObjectCreationExpressionSyntax;
-
-                if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
+                var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
+                if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                 {
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-
-                    if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
-                    {
-                        return (typeSymbol, 0);
-                    }
+                    return (typeSymbol, 0);
                 }
             }
 
@@ -408,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer) ||
-                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
+            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
+                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
                 var constructorInit = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(document, declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -625,12 +621,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                             SyntaxFactory.List<XmlAttributeSyntax>(new[] { SyntaxFactory.XmlNameAttribute(parameter.Name) })),
                         SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName("param"))));
                 }
+
+                var updatedNodeList = new List<XmlNodeSyntax>();
+                var structuredContent = structuredTrivia.Content.ToList();
+                for (var i = 0; i < structuredContent.Count; i++)
+                {
+                    var content = structuredContent[i];
+                    if (!content.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement))
+                    {
+                        updatedNodeList.Add(content);
+                        continue;
+                    }
+
+                    if (xmlElement.StartTag.Name.ToString() != DocumentationCommentXmlNames.ParameterElementName)
+                    {
+                        updatedNodeList.Add(content);
+                        continue;
+                    }
+
+                    // Found a param tag, so insert the next one from the reordered list
+                    if (index < permutedParamNodes.Count)
+                    {
+                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
+                        index++;
+                    }
+                    else
+                    {
+                        // Inspecting a param element that we are deleting but not replacing.
+                    }
+                }
+
+                var newDocComments = SyntaxFactory.DocumentationCommentTrivia(structuredTrivia.Kind(), SyntaxFactory.List(updatedNodeList.AsEnumerable()));
+                newDocComments = newDocComments.WithEndOfComment(structuredTrivia.EndOfComment);
+                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
+                var newTrivia = SyntaxFactory.Trivia(newDocComments);
+
+                updatedLeadingTrivia.Add(newTrivia);
             }
 
             return permutedParams;
         }
 
-        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Document document,
             CancellationToken cancellationToken)

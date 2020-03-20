@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
         {
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
                 var last = builder.Count == 0 ? null : builder.Last();
@@ -271,7 +271,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, sequence);
-            builder.Free();
 
             return new RegexSequenceNode(sequence.ToImmutableAndFree());
         }
@@ -479,8 +478,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             out RegexToken? secondNumberToken, out RegexToken closeBraceToken)
         {
             firstNumberToken = default;
-            commaToken = default;
-            secondNumberToken = default;
+            commaToken = null;
+            secondNumberToken = null;
             closeBraceToken = default;
 
             var firstNumber = _lexer.TryScanNumber();
@@ -1238,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1258,7 +1257,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, contents);
-            builder.Free();
 
             if (closeBracketToken.IsMissing)
             {
@@ -2006,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             openBraceToken = default;
             categoryToken = default;
             closeBraceToken = default;
-            message = default;
+            message = null;
 
             if (_lexer.Text.Length - _lexer.Position < "{x}".Length)
             {

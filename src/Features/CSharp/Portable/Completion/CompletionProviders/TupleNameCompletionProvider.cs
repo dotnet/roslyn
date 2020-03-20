@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +20,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class TupleNameCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(TupleNameCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(XmlDocCommentCompletionProvider))]
+    [Shared]
+    internal class TupleNameCompletionProvider : LSPCompletionProvider
     {
         private const string ColonString = ":";
+
+        [ImportingConstructor]
+        public TupleNameCompletionProvider()
+        {
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -109,5 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.Span,
                 selectedItem.DisplayText));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

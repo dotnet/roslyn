@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -320,6 +319,33 @@ class Test
             Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem(30315, "https://github.com/dotnet/roslyn/issues/30315")>
+        Public Async Function ChangeSignature_ParameterDisplay_DefaultStruct() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+struct MyStruct
+{
+
+}
+
+class Goo
+{
+    void $$Bar(MyStruct s = default(MyStruct))
+    {
+
+    }
+}]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "private void Bar(MyStruct s = default(MyStruct))")
+            VerifyParameterInfo(
+                viewModel,
+                parameterIndex:=0,
+                type:="MyStruct",
+                defaultValue:="default")
+        End Function
+
         Private Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
@@ -420,6 +446,10 @@ class Test
 
             If isRemoved.HasValue Then
                 Assert.Equal(isRemoved.Value, parameter.IsRemoved)
+            End If
+
+            If needsBottomBorder.HasValue Then
+                Assert.Equal(needsBottomBorder.Value, parameter.NeedsBottomBorder)
             End If
         End Sub
 

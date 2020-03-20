@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return permutedParams
         End Function
 
-        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
+        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvokeAsync(
                 methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
                 document As Document,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))

@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
         [ImportingConstructor]
         public DefaultDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerInfoCache = analyzerService.AnalyzerInfoCache;
+            _hostAnalyzers = analyzerService.HostAnalyzers;
             registrationService.Register(this);
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                await AnalyzeForKind(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
 
                 bool IsSemanticAnalysisOn()
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task AnalyzeForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
                 }
 
-                var analyzerInfoCache = _service._analyzerInfoCache;
-                var analyzers = GetAnalyzers(analyzerInfoCache, document.Project);
+                var analyzers = GetAnalyzers(_service._hostAnalyzers, document.Project);
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     document.Project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
@@ -165,26 +164,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                        document, kind, compilationWithAnalyzers, getSkippedAnalyzersInfo: null, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
             }
 
-            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerInfoCache analyzerInfoCache, Project project)
+            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
             {
                 // C# or VB document that supports compiler
-                var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
+                var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
                     return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // a file is removed from a solution
                 //
@@ -195,13 +194,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // both of them at the end generates semantic errors
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Syntax, documentId);
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Semantic, documentId);
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
@@ -230,8 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
@@ -14,10 +15,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -30,21 +34,432 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public partial class SolutionTests : TestBase
+    public class SolutionTests : TestBase
     {
+#nullable enable
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
+        private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private Solution CreateSolution()
         {
             return new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCreateSolution()
+        private Solution CreateSolutionWithProjectAndDocuments()
         {
-            var sol = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+
+            return CreateSolution()
+                .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveDocument_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocument(s_unrelatedDocumentId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveDocuments_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(default));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveDocuments(ImmutableArray.Create((DocumentId)null!)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveAdditionalDocument_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocument(s_unrelatedDocumentId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveAdditionalDocuments_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(default));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAdditionalDocuments(ImmutableArray.Create((DocumentId)null!)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveAnalyzerConfigDocument_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocument(null!));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocument(s_unrelatedDocumentId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void RemoveAnalyzerConfigDocuments_Errors()
+        {
+            var solution = CreateSolution();
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(default));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create(s_unrelatedDocumentId)));
+            Assert.Throws<ArgumentNullException>(() => solution.RemoveAnalyzerConfigDocuments(ImmutableArray.Create((DocumentId)null!)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentName()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var name = "new name";
+
+            var newSolution1 = solution.WithDocumentName(documentId, name);
+            Assert.Equal(name, newSolution1.GetDocument(documentId)!.Name);
+
+            var newSolution2 = newSolution1.WithDocumentName(documentId, name);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(documentId, name: null!));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentName(null!, name));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentName(s_unrelatedDocumentId, name));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentFolders()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var folders = new[] { "folder1", "folder2" };
+
+            var newSolution1 = solution.WithDocumentFolders(documentId, folders);
+            Assert.Equal(folders, newSolution1.GetDocument(documentId)!.Folders);
+
+            var newSolution2 = newSolution1.WithDocumentFolders(documentId, folders);
+            Assert.Same(newSolution2, newSolution1);
+
+            // empty:
+            var newSolution3 = solution.WithDocumentFolders(documentId, new string[0]);
+            Assert.Equal(new string[0], newSolution3.GetDocument(documentId)!.Folders);
+
+            var newSolution4 = solution.WithDocumentFolders(documentId, ImmutableArray<string>.Empty);
+            Assert.Same(newSolution3, newSolution4);
+
+            var newSolution5 = solution.WithDocumentFolders(documentId, null);
+            Assert.Same(newSolution3, newSolution5);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: new string[] { null! }));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(null!, folders));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentFilePath()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var path = "new path";
+
+            var newSolution1 = solution.WithDocumentFilePath(documentId, path);
+            Assert.Equal(path, newSolution1.GetDocument(documentId)!.FilePath);
+
+            var newSolution2 = newSolution1.WithDocumentFilePath(documentId, path);
+            Assert.Same(newSolution1, newSolution2);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/37125
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null!));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null!, path));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_unrelatedDocumentId, path));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithSourceCodeKind()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            Assert.Same(solution, solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Regular));
+
+            var newSolution1 = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Script);
+            Assert.Equal(SourceCodeKind.Script, newSolution1.GetDocument(documentId)!.SourceCodeKind);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSourceCodeKind(documentId, (SourceCodeKind)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null!, SourceCodeKind.Script));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), Obsolete]
+        public void WithSourceCodeKind_Obsolete()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            var newSolution = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Interactive);
+            Assert.Equal(SourceCodeKind.Script, newSolution.GetDocument(documentId)!.SourceCodeKind);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentSyntaxRoot()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}").GetRoot();
+
+            var newSolution1 = solution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetSyntaxRoot(out var actualRoot));
+            Assert.Equal(root.ToString(), actualRoot!.ToString());
+
+            // the actual root has a new parent SyntaxTree:
+            Assert.NotSame(root, actualRoot);
+
+            var newSolution2 = newSolution1.WithDocumentSyntaxRoot(documentId, actualRoot);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSyntaxRoot(documentId, root, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSyntaxRoot(null!, root));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
+        public void WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"));
+
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}", path: "").GetRoot();
+            Assert.Throws<ArgumentException>(() => solution.WithDocumentSyntaxRoot(documentId, root));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentText_SourceText()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var text = SourceText.From("new text");
+
+            var newSolution1 = solution.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
+
+            var newSolution2 = newSolution1.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, text, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentText_TextAndVersion()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
+
+            var newSolution1 = solution.WithDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
+            Assert.Equal(textAndVersion.Version, actualVersion);
+
+            var newSolution2 = newSolution1.WithDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentText_MultipleDocuments()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var text = SourceText.From("new text");
+
+            var newSolution1 = solution.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
+
+            var newSolution2 = newSolution1.WithDocumentText(new[] { documentId }, text, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            // documents not in solution are skipped: https://github.com/dotnet/roslyn/issues/42029
+            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { null! }, text));
+            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { s_unrelatedDocumentId }, text));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(new[] { documentId }, null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAdditionalDocumentText_SourceText()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().AdditionalDocumentIds.Single();
+            var text = SourceText.From("new text");
+
+            var newSolution1 = solution.WithAdditionalDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
+
+            var newSolution2 = newSolution1.WithAdditionalDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, text, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAdditionalDocumentText_TextAndVersion()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().AdditionalDocumentIds.Single();
+            var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
+
+            var newSolution1 = solution.WithAdditionalDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetAdditionalDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
+            Assert.Equal(textAndVersion.Version, actualVersion);
+
+            var newSolution2 = newSolution1.WithAdditionalDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAnalyzerConfigDocumentText_SourceText()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var text = SourceText.From("new text");
+
+            var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetText(out var actualText));
+            Assert.Same(text, actualText);
+
+            var newSolution2 = newSolution1.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, text, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null!, text, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, text, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAnalyzerConfigDocumentText_TextAndVersion()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
+
+            var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetText(out var actualText));
+            Assert.True(newSolution1.GetAnalyzerConfigDocument(documentId)!.TryGetTextVersion(out var actualVersion));
+            Assert.Same(textAndVersion.Text, actualText);
+            Assert.Equal(textAndVersion.Version, actualVersion);
+
+            var newSolution2 = newSolution1.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
+            Assert.Same(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText(documentId, (SourceText)null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentText((DocumentId)null!, textAndVersion, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentText(s_unrelatedDocumentId, textAndVersion, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithDocumentTextLoader()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var loader = new TestTextLoader("new text");
+
+            var newSolution1 = solution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.Equal("new text", newSolution1.GetDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
+
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
+            var newSolution2 = solution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.NotSame(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAdditionalDocumentTextLoader()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().AdditionalDocumentIds.Single();
+            var loader = new TestTextLoader("new text");
+
+            var newSolution1 = solution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.Equal("new text", newSolution1.GetAdditionalDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
+
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
+            var newSolution2 = solution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.NotSame(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAdditionalDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAdditionalDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAdditionalDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void WithAnalyzerConfigDocumentTextLoader()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var loader = new TestTextLoader("new text");
+
+            var newSolution1 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.Equal("new text", newSolution1.GetAnalyzerConfigDocument(documentId)!.GetTextSynchronously(CancellationToken.None).ToString());
+
+            // Reusal is not currently implemented: https://github.com/dotnet/roslyn/issues/42028
+            var newSolution2 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);
+            Assert.NotSame(newSolution1, newSolution2);
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, null!, PreservationMode.PreserveIdentity));
+            Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, (PreservationMode)(-1)));
+
+            Assert.Throws<ArgumentNullException>(() => solution.WithAnalyzerConfigDocumentTextLoader(null!, loader, PreservationMode.PreserveIdentity));
+            Assert.Throws<InvalidOperationException>(() => solution.WithAnalyzerConfigDocumentTextLoader(s_unrelatedDocumentId, loader, PreservationMode.PreserveIdentity));
+        }
+#nullable restore
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject()
         {
@@ -2016,6 +2431,55 @@ class C
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOptionChangesForLanguagesNotInSolution()
+        {
+            // Create an empty solution with no projects.
+            var s0 = CreateSolution();
+            var optionService = s0.Workspace.Services.GetRequiredService<IOptionService>();
+
+            // Apply an option change to a C# option.
+            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var defaultValue = option.DefaultValue;
+            var changedValue = !defaultValue;
+            var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
+
+            // Verify option change is preserved even if the solution has no project with that language.
+            var s1 = s0.WithOptions(options);
+            VerifyOptionSet(s1.Options);
+
+            // Verify option value is preserved on adding a project for a different language.
+            var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
+            VerifyOptionSet(s2.Options);
+
+            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
+            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
+            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
+            VerifyOptionSet(roundTripOptionSet);
+
+            // Verify option value is preserved on removing a project.
+            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            VerifyOptionSet(s4.Options);
+
+            return;
+
+            void VerifyOptionSet(OptionSet optionSet)
+            {
+                Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
+                Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
+            }
+
+            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
+            {
+                using var stream = new MemoryStream();
+                using var writer = new ObjectWriter(stream);
+                optionSet.Serialize(writer, CancellationToken.None);
+                stream.Position = 0;
+                using var reader = ObjectReader.TryGetReader(stream);
+                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
+            }
         }
     }
 }
