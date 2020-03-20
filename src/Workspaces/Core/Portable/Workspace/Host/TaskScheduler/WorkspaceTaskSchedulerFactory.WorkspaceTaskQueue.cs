@@ -5,29 +5,30 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal sealed class WorkspaceTaskQueue
     {
-        private readonly WorkspaceTaskSchedulerFactory _factory;
+        private readonly IAsynchronousOperationListener _operationListener;
         private readonly SimpleTaskQueue _queue;
 
-        internal WorkspaceTaskQueue(WorkspaceTaskSchedulerFactory factory, TaskScheduler taskScheduler)
+        internal WorkspaceTaskQueue(IAsynchronousOperationListener operationListener, TaskScheduler taskScheduler)
         {
-            _factory = factory;
+            _operationListener = operationListener;
             _queue = new SimpleTaskQueue(taskScheduler);
         }
 
         private TTask ScheduleTask<TOperation, TTask>(Func<TOperation, CancellationToken, TTask> taskScheduler, string taskName, TOperation operation, CancellationToken cancellationToken)
             where TTask : Task
         {
-            var asyncToken = _factory.BeginAsyncOperation(taskName ?? GetType().Name + ".Task");
+            var asyncToken = _operationListener.BeginAsyncOperation(taskName ?? nameof(WorkspaceTaskQueue) + ".Task");
 
             var task = taskScheduler(operation, cancellationToken);
 
-            _factory.CompleteAsyncOperation(asyncToken, task);
+            _ = task.CompletesAsyncOperation(asyncToken);
             return task;
         }
 

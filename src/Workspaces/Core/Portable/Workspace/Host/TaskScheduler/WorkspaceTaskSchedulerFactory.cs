@@ -27,22 +27,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         public WorkspaceTaskQueue CreateBackgroundTaskScheduler()
         {
-            return new WorkspaceTaskQueue(this, TaskScheduler.Default);
+            return new WorkspaceTaskQueue(_listener, TaskScheduler.Default);
         }
 
         public WorkspaceTaskQueue CreateEventingTaskQueue()
         {
-            return new WorkspaceTaskQueue(this, GetCurrentContextScheduler());
-        }
-
-        internal object BeginAsyncOperation(string taskName)
-        {
-            return _listener.BeginAsyncOperation(taskName);
-        }
-
-        internal void CompleteAsyncOperation(object asyncToken, Task task)
-        {
-            task.CompletesAsyncOperation((IAsyncToken)asyncToken);
+            return new WorkspaceTaskQueue(_listener, GetCurrentContextScheduler());
         }
     }
 }
