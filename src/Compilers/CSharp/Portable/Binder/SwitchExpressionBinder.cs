@@ -68,9 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
+            bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
-                if (!reachableLabels.Contains(arm.Label))
+                hasErrors |= arm.HasErrors;
+                if (!hasErrors && !reachableLabels.Contains(arm.Label))
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
                 }
@@ -83,19 +85,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (hasErrors)
+                return true;
+
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
+            if (!hasErrors)
             {
-                if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
                 {
-                    diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
-                    return true;
+                    if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                        return true;
+                    }
                 }
             }
 
-            return false;
+            return hasErrors;
 
             ImmutableArray<BoundDecisionDagNode> nonNullSuccessors(BoundDecisionDagNode n)
             {

@@ -92,30 +92,28 @@ class C
 ";
             CompileAndVerify(text).VerifyIL("C.Main", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       58 (0x3a)
   .maxstack  2
   .locals init (string V_0) //Fruit
   IL_0000:  ldstr      ""Apple""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  brfalse.s  IL_003c
-  IL_0009:  ldloc.0
-  IL_000a:  ldstr      ""Banana""
-  IL_000f:  call       ""bool string.op_Equality(string, string)""
-  IL_0014:  brtrue.s   IL_003c
-  IL_0016:  ldloc.0
-  IL_0017:  ldstr      ""Chair""
-  IL_001c:  call       ""bool string.op_Equality(string, string)""
-  IL_0021:  brtrue.s   IL_003c
-  IL_0023:  ldloc.0
-  IL_0024:  ldstr      ""Apple""
-  IL_0029:  call       ""bool string.op_Equality(string, string)""
-  IL_002e:  brtrue.s   IL_003c
-  IL_0030:  ldloc.0
-  IL_0031:  ldstr      ""Table""
-  IL_0036:  call       ""bool string.op_Equality(string, string)""
-  IL_003b:  pop
-  IL_003c:  ret
+  IL_0007:  ldstr      ""Banana""
+  IL_000c:  call       ""bool string.op_Equality(string, string)""
+  IL_0011:  brtrue.s   IL_0039
+  IL_0013:  ldloc.0
+  IL_0014:  ldstr      ""Chair""
+  IL_0019:  call       ""bool string.op_Equality(string, string)""
+  IL_001e:  brtrue.s   IL_0039
+  IL_0020:  ldloc.0
+  IL_0021:  ldstr      ""Apple""
+  IL_0026:  call       ""bool string.op_Equality(string, string)""
+  IL_002b:  brtrue.s   IL_0039
+  IL_002d:  ldloc.0
+  IL_002e:  ldstr      ""Table""
+  IL_0033:  call       ""bool string.op_Equality(string, string)""
+  IL_0038:  pop
+  IL_0039:  ret
 }");
         }
 
