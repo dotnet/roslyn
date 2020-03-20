@@ -403,6 +403,42 @@ var f = 3 $${op} 1",
                 ));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestBitwiseExpression_Enum1()
+        {
+            await TestInMethodAsync($@"
+var f = System.Text.RegularExpressions.RegexOptions.Compiled $$| System.Text.RegularExpressions.RegexOptions.ExplicitCapture",
+                ConstantValueContent(
+                    ("8", NumericLiteral),
+                    (" ", Space),
+                    ("|", Operator),
+                    (" ", Space),
+                    ("4", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("12", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestBitwiseExpression_Enum2()
+        {
+            await TestInMethodAsync($@"
+var f = System.AttributeTargets.Assembly $$| System.AttributeTargets.Class",
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("|", Operator),
+                    (" ", Space),
+                    ("4", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("5", NumericLiteral)
+                ));
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("<", "true")]
         [InlineData("<=", "true")]

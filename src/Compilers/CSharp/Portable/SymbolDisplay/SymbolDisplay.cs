@@ -292,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
         /// <param name="obj">A value to display as string parts.</param>
+        /// <param name="format">The formatting options to apply. If <see langword="null"/> is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
         /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
@@ -299,9 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj)
+        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj, SymbolDisplayFormat? format = null)
         {
-            return PrimitiveToDisplayParts(obj, default);
+            if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
+            {
+                return default;
+            }
+
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+
+            var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(format.ConstantValueOptions));
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -309,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
         /// <param name="obj">A value to display as string parts.</param>
-        /// <param name="options">Specifies the display options.</param>
+        /// <param name="format">The formatting options to apply. If <see langword="null"/> is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
         /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
@@ -317,15 +327,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        internal static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj, SymbolDisplayConstantValueOptions options)
+        public static ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(
+            object? obj,
+            SemanticModel semanticModel,
+            int position,
+            SymbolDisplayFormat? format = null)
         {
             if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
             {
                 return default;
             }
 
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(options));
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(format.ConstantValueOptions));
             return builder.ToImmutableAndFree();
         }
 

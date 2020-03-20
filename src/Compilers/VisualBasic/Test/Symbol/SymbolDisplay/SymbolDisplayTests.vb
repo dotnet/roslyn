@@ -4814,13 +4814,13 @@ class Outer
 
         <Fact>
         Public Sub FormatPrimitiveToDisplayParts()
-            Dim decimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False)
-            Dim hexadecimalNumbersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False)
-            Dim hexadecimalCharactersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False)
-            Dim hexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False)
+            Dim decimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False))
+            Dim hexadecimalNumbersOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False))
+            Dim hexadecimalCharactersOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False))
+            Dim hexadecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False))
 
-            Dim noQuotesDecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True)
-            Dim noQuotesHexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True)
+            Dim noQuotesDecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True))
+            Dim noQuotesHexadecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True))
 
             Verify(SymbolDisplay.PrimitiveToDisplayParts(Nothing, decimalOptions), "Nothing", SymbolDisplayPartKind.Keyword)
             Verify(SymbolDisplay.PrimitiveToDisplayParts(Nothing, noQuotesHexadecimalOptions), "Nothing", SymbolDisplayPartKind.Keyword)
@@ -4899,13 +4899,13 @@ class Outer
 
         <Fact>
         Public Sub FormatPrimitiveToDisplayParts2()
-            Dim decimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False)
-            Dim hexadecimalNumbersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False)
-            Dim hexadecimalCharactersOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False)
-            Dim hexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False)
+            Dim decimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=False))
+            Dim hexadecimalNumbersOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes:=False))
+            Dim hexadecimalCharactersOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes:=False))
+            Dim hexadecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=False))
 
-            Dim noQuotesDecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True)
-            Dim noQuotesHexadecimalOptions = New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True)
+            Dim noQuotesDecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes:=True))
+            Dim noQuotesHexadecimalOptions = SymbolDisplayFormat.VisualBasicErrorMessageFormat.WithConstantValueOptions(New SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes:=True))
 
             Verify(
                 SymbolDisplay.PrimitiveToDisplayParts(ChrW(8), decimalOptions),

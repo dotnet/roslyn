@@ -131,6 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
         ''' <param name="obj">A value to display as string parts.</param>
+        ''' <param name="format">The formatting options to apply. If <see langword="Nothing"/> is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
         ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
         ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
@@ -138,8 +139,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Public Function PrimitiveToDisplayParts(obj As Object) As ImmutableArray(Of SymbolDisplayPart)
-            Return PrimitiveToDisplayParts(obj, Nothing)
+        Public Function PrimitiveToDisplayParts(obj As Object, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
+            If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
+                Return Nothing
+            End If
+
+            Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
+            Return builder.ToImmutableAndFree()
         End Function
 
         ''' <summary>
@@ -147,7 +154,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
         ''' <param name="obj">A value to display as string parts.</param>
-        ''' <param name="options">Specifies the display options.</param>
+        ''' <param name="semanticModel">Semantic information about the context in which the symbol is being displayed.</param>
+        ''' <param name="position">A position within the <see cref="SyntaxTree"/> Or <paramref name="semanticModel"/>.</param>
+        ''' <param name="format">The formatting options to apply. If <see langword="Nothing"/> is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
         ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
         ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
@@ -155,13 +164,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Friend Function PrimitiveToDisplayParts(obj As Object, options As SymbolDisplayConstantValueOptions) As ImmutableArray(Of SymbolDisplayPart)
+        Public Function PrimitiveToMinimalDisplayParts(obj As Object,
+                                                       semanticModel As SemanticModel,
+                                                       position As Integer,
+                                                       Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
             If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
                 Return Nothing
             End If
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(options))
+            AddConstantValue(builder, obj, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
             Return builder.ToImmutableAndFree()
         End Function
 

@@ -4414,13 +4414,13 @@ End Class
         [Fact]
         public void FormatPrimitiveToDisplayParts()
         {
-            var decimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: false);
-            var hexadecimalNumbersOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes: false);
-            var hexadecimalCharactersOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes: false);
-            var hexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: false);
+            var decimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: false));
+            var hexadecimalNumbersOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes: false));
+            var hexadecimalCharactersOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes: false));
+            var hexadecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: false));
 
-            var noQuotesDecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: true);
-            var noQuotesHexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true);
+            var noQuotesDecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: true));
+            var noQuotesHexadecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true));
 
             Verify(SymbolDisplay.PrimitiveToDisplayParts(null, decimalOptions), "null", SymbolDisplayPartKind.Keyword);
             Verify(SymbolDisplay.PrimitiveToDisplayParts(null, noQuotesHexadecimalOptions), "null", SymbolDisplayPartKind.Keyword);
@@ -4496,13 +4496,13 @@ End Class
         [Fact]
         public void FormatPrimitiveToDisplayParts2()
         {
-            var decimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: false);
-            var hexadecimalNumbersOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes: false);
-            var hexadecimalCharactersOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes: false);
-            var hexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: false);
+            var decimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: false));
+            var hexadecimalNumbersOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Decimal, noQuotes: false));
+            var hexadecimalCharactersOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Hexadecimal, noQuotes: false));
+            var hexadecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: false));
 
-            var noQuotesDecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: true);
-            var noQuotesHexadecimalOptions = new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true);
+            var noQuotesDecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Decimal, NumericFormat.Decimal, noQuotes: true));
+            var noQuotesHexadecimalOptions = SymbolDisplayFormat.CSharpErrorMessageFormat.WithConstantValueOptions(new SymbolDisplayConstantValueOptions(NumericFormat.Hexadecimal, NumericFormat.Hexadecimal, noQuotes: true));
 
             Verify(
                 SymbolDisplay.PrimitiveToDisplayParts('\u0008', decimalOptions),
