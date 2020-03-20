@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
@@ -16,26 +18,24 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         public DefinitionItem Definition { get; }
 
+        public string ProjectName { get; }
+        public string DisplayPath { get; }
+        public LinePositionSpan Span { get; }
+        public string Text { get; }
+
         public ExternalReferenceItem(
             DefinitionItem definition,
             string projectName,
-            object text,
-            string displayPath)
+            string displayPath,
+            LinePositionSpan span,
+            string text)
         {
             Definition = definition;
             ProjectName = projectName;
-            Text = text;
             DisplayPath = displayPath;
+            Span = span;
+            Text = text;
         }
-
-        public string ProjectName { get; }
-        /// <remarks>
-        /// Must be of type Microsoft.VisualStudio.Text.Adornments.ImageElement or
-        /// Microsoft.VisualStudio.Text.Adornments.ContainerElement or
-        /// Microsoft.VisualStudio.Text.Adornments.ClassifiedTextElement or System.String
-        /// </remarks> 
-        public object Text { get; }
-        public string DisplayPath { get; }
 
         public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
     }
