@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progressCollector = new StreamingProgressCollector();
             await FindReferencesAsync(
                 symbolAndProjectId, solution, progressCollector,
                 documents: null, options, cancellationToken).ConfigureAwait(false);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            progress ??= FindReferencesProgress.Instance;
+            progress ??= NoOpFindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(

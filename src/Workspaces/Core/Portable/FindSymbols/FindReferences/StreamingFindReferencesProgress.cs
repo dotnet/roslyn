@@ -3,31 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    /// <summary>
-    /// A class that reports the current progress made when finding references to symbols.  
-    /// </summary>
-    internal class StreamingFindReferencesProgress : IStreamingFindReferencesProgress
-    {
-        public static readonly IStreamingFindReferencesProgress Instance =
-            new StreamingFindReferencesProgress();
-
-        private StreamingFindReferencesProgress()
-        {
-        }
-
-        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
-
-        public Task OnCompletedAsync() => Task.CompletedTask;
-        public Task OnStartedAsync() => Task.CompletedTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
-    }
+#pragma warning disable CS0618 // Type or member is obsolete
 
     /// <summary>
     /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
@@ -37,9 +18,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly IFindReferencesProgress _progress;
 
+        public IStreamingProgressTracker ProgressTracker { get; }
+
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
+            this.ProgressTracker = new StreamingProgressTracker((current, max) =>
+            {
+                _progress.ReportProgress(current, max);
+                return Task.CompletedTask;
+            });
         }
 
         public Task OnCompletedAsync()
@@ -77,11 +65,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress.OnStarted();
             return Task.CompletedTask;
         }
-
-        public Task ReportProgressAsync(int current, int maximum)
-        {
-            _progress.ReportProgress(current, maximum);
-            return Task.CompletedTask;
-        }
     }
+
+#pragma warning restore CS0618 // Type or member is obsolete
+
 }

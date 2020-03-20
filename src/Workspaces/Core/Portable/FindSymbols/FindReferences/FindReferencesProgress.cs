@@ -5,14 +5,17 @@
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    /// <summary>
-    /// A class that reports the current progress made when finding references to symbols.  
-    /// </summary>
-    internal class FindReferencesProgress : IFindReferencesProgress
-    {
-        public static readonly IFindReferencesProgress Instance = new FindReferencesProgress();
+#pragma warning disable CS0618 // Type or member is obsolete
 
-        private FindReferencesProgress()
+    /// <summary>
+    /// A does-nothing version of the <see cref="IFindReferencesProgress"/>. Useful for
+    /// clients that have no need to report progress as they work.
+    /// </summary>
+    internal class NoOpFindReferencesProgress : IFindReferencesProgress
+    {
+        public static readonly IFindReferencesProgress Instance = new NoOpFindReferencesProgress();
+
+        private NoOpFindReferencesProgress()
         {
         }
 
@@ -44,4 +47,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
     }
+
+#pragma warning restore CS0618 // Type or member is obsolete
 }

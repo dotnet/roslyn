@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IFindUsagesContext
     {
         CancellationToken CancellationToken { get; }
+
+        IStreamingProgressTracker ProgressTracker { get; }
 
         /// <summary>
         /// Report a message to be displayed to the user.
@@ -24,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         Task OnDefinitionFoundAsync(DefinitionItem definition);
         Task OnReferenceFoundAsync(SourceReferenceItem reference);
 
+        [Obsolete("Use ProgressTracker instead", error: false)]
         Task ReportProgressAsync(int current, int maximum);
     }
 }
