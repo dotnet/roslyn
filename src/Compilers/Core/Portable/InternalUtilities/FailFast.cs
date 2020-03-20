@@ -49,20 +49,21 @@ namespace Microsoft.CodeAnalysis
         {
             Console.WriteLine("Dumping info before call to failfast");
             Console.WriteLine("Exception info");
-            Exception? current = exception;
-            do
+
+            for (Exception? current = exception; current is object; current = current.InnerException)
             {
                 Console.WriteLine(current.Message);
                 Console.WriteLine(current.StackTrace);
                 current = current.InnerException;
-            } while (current is object);
+            }
 
 #if !NET20 && !NETSTANDARD1_3
             Console.WriteLine("Stack trace of handler");
             var stackTrace = new StackTrace();
             Console.WriteLine(stackTrace.ToString());
-            Console.Out.Flush();
 #endif
+
+            Console.Out.Flush();
         }
 
         /// <summary>
