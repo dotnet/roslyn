@@ -155,10 +155,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
-            if (insertPosition == null)
-            {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
-            }
+
+            // TODO: Remove if unneeded
+            //if (insertPosition == null)
+            //{
+            //    return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
+            //}
 
             if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
             {
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, insertPosition.Value, symbol, parameterConfiguration);
+                declarationDocument, insertPosition!.Value, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)

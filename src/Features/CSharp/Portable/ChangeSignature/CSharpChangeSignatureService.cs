@@ -154,8 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return parameters != null ? GetParameterIndex(parameters.Parameters, position) : 0;
         }
 
-        // Find the position to insert the new parameter.
-        // We will insert a new comma and a parameter.
+        /// <summary>
+        /// Find the position to insert the new parameter.
+        /// We will insert a new comma and a parameter.
+        /// </summary>
         protected override int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
