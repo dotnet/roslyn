@@ -18,13 +18,16 @@ namespace Microsoft.CodeAnalysis
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public readonly struct SourceGeneratorContext
     {
-        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        private readonly DiagnosticBag _diagnostics;
+
+        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             AnalyzerOptions = options;
             SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
             AdditionalSources = new AdditionalSourcesCollection();
+            _diagnostics = diagnostics;
         }
 
         public Compilation Compilation { get; }
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis
 
         public AdditionalSourcesCollection AdditionalSources { get; }
 
-        public void ReportDiagnostic(Diagnostic diagnostic) { throw new NotImplementedException(); }
+        public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
@@ -105,7 +108,5 @@ namespace Microsoft.CodeAnalysis
         public CancellationToken CancellationToken { get; }
 
         public AdditionalSourcesCollection AdditionalSources { get; }
-
-        public void ReportDiagnostic(Diagnostic diagnostic) { throw new NotImplementedException(); }
     }
 }

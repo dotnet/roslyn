@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty), syntaxReceiverOpt);
+                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty), syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
                     stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }

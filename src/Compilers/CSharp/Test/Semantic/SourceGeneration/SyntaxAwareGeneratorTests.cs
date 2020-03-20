@@ -64,7 +64,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
             Assert.Null(receiver);
         }
@@ -87,7 +87,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _);
+            driver.RunFullGeneration(compilation, out _, out _);
 
             void Initialize(InitializationContext initContext)
             {

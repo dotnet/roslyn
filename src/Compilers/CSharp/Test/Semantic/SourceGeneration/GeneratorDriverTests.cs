@@ -546,6 +546,35 @@ class C { }
         }
 
         [Fact]
+        public void Error_During_Generation_Does_Not_Affect_Other_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("generate error");
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
+            var generator2 = new CallbackGenerator((ic) => { }, (sgc) => { }, sourceOpt: "public class D { }");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+
+            generatorDiagnostics.Verify(
+                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
         public void Error_During_Generation_With_Dependant_Source()
         {
             var source = @"
@@ -580,6 +609,32 @@ class C
             generatorDiagnostics.Verify(
                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Generator_Can_Report_Diagnostics()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            string description = "This is a test diagnostic";
+            DiagnosticDescriptor generatorDiagnostic = new DiagnosticDescriptor("TG001", "Test Diagnostic", description, "Generators", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: description);
+            var diagnostic = Microsoft.CodeAnalysis.Diagnostic.Create(generatorDiagnostic, Location.None);
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => sgc.ReportDiagnostic(diagnostic));
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                Diagnostic("TG001").WithLocation(1, 1)
                 );
         }
     }
