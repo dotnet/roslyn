@@ -612,23 +612,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output)
         {
             // check if the test is always true or always false
-            var fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
-            if (fac is { })
-            {
-                var values = fac.Related(rel.Relation.Operator(), rel.ConstantValue);
-                if (values.IsEmpty)
-                {
-                    return Tests.False.Instance;
-                }
-                else if (values.Complement().IsEmpty)
-                {
-                    return Tests.True.Instance;
-                }
-            }
-
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors)));
+            var fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+            var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
+            if (values?.IsEmpty == true)
+            {
+                tests.Add(Tests.False.Instance);
+            }
+            else if (values?.Complement().IsEmpty != true)
+            {
+                tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors)));
+            }
+
             return Tests.AndSequence.Create(tests);
         }
 

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
             {
-                if (pattern.Kind == BoundKind.RelationalPattern)
+                if (pattern.Kind switch { BoundKind.RelationalPattern => true, BoundKind.TypePattern => true, _ => false })
                 {
                     diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                 }
