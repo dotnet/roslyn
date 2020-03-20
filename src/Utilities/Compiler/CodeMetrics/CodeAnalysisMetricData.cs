@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         /// <summary>
         /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="compilation"/>.
         /// </summary>
+        [Obsolete("Use ComputeAsync(CodeMetricsAnalysisContext) instead.")]
         public static Task<CodeAnalysisMetricData> ComputeAsync(Compilation compilation, CancellationToken cancellationToken)
         {
             if (compilation == null)
@@ -189,12 +190,26 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            return ComputeAsync(compilation.Assembly, compilation, cancellationToken);
+            return ComputeAsync(compilation.Assembly, new CodeMetricsAnalysisContext(compilation, cancellationToken));
+        }
+
+        /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="context"/>.
+        /// </summary>
+        public static Task<CodeAnalysisMetricData> ComputeAsync(CodeMetricsAnalysisContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            return ComputeAsync(context.Compilation.Assembly, context);
         }
 
         /// <summary>
         /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="symbol"/> from the given <paramref name="compilation"/>.
         /// </summary>
+        [Obsolete("Use ComputeAsync(ISymbol, CodeMetricsAnalysisContext) instead.")]
         public static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
         {
             if (symbol == null)
@@ -207,39 +222,56 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var semanticModelProvider = new SemanticModelProvider(compilation);
-            return ComputeAsync(symbol, semanticModelProvider, cancellationToken);
+            return ComputeAsync(symbol, new CodeMetricsAnalysisContext(compilation, cancellationToken));
         }
 
-        internal async static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        /// <summary>
+        /// Computes <see cref="CodeAnalysisMetricData"/> for the given <paramref name="symbol"/> from the given <paramref name="context"/>.
+        /// </summary>
+        public static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
         {
-            return symbol.Kind switch
+            if (symbol == null)
             {
-                SymbolKind.Assembly => await AssemblyMetricData.ComputeAsync((IAssemblySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+                throw new ArgumentNullException(nameof(symbol));
+            }
 
-                SymbolKind.Namespace => await NamespaceMetricData.ComputeAsync((INamespaceSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-                SymbolKind.NamedType => await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+            return ComputeAsync(symbol, context);
 
-                SymbolKind.Method => await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+            async static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
+            {
+                return symbol.Kind switch
+                {
+                    SymbolKind.Assembly => await AssemblyMetricData.ComputeAsync((IAssemblySymbol)symbol, context).ConfigureAwait(false),
 
-                SymbolKind.Property => await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+                    SymbolKind.Namespace => await NamespaceMetricData.ComputeAsync((INamespaceSymbol)symbol, context).ConfigureAwait(false),
 
-                SymbolKind.Field => await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+                    SymbolKind.NamedType => await NamedTypeMetricData.ComputeAsync((INamedTypeSymbol)symbol, context).ConfigureAwait(false),
 
-                SymbolKind.Event => await EventMetricData.ComputeAsync((IEventSymbol)symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false),
+                    SymbolKind.Method => await MethodMetricData.ComputeAsync((IMethodSymbol)symbol, context).ConfigureAwait(false),
 
-                _ => throw new NotSupportedException(),
-            };
+                    SymbolKind.Property => await PropertyMetricData.ComputeAsync((IPropertySymbol)symbol, context).ConfigureAwait(false),
+
+                    SymbolKind.Field => await FieldMetricData.ComputeAsync((IFieldSymbol)symbol, context).ConfigureAwait(false),
+
+                    SymbolKind.Event => await EventMetricData.ComputeAsync((IEventSymbol)symbol, context).ConfigureAwait(false),
+
+                    _ => throw new NotSupportedException(),
+                };
+            }
         }
 
-        internal static async Task<ImmutableArray<CodeAnalysisMetricData>> ComputeAsync(IEnumerable<ISymbol> children, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<ImmutableArray<CodeAnalysisMetricData>> ComputeAsync(IEnumerable<ISymbol> children, CodeMetricsAnalysisContext context)
             => (await Task.WhenAll(
                 from child in children
 #if !LEGACY_CODE_METRICS_MODE // Skip implicitly declared symbols, such as default constructor, for non-legacy mode.
                 where !child.IsImplicitlyDeclared || (child as INamespaceSymbol)?.IsGlobalNamespace == true
 #endif
-                select Task.Run(() => ComputeAsync(child, semanticModelProvider, cancellationToken))).ConfigureAwait(false)).ToImmutableArray();
+                select Task.Run(() => ComputeAsync(child, context))).ConfigureAwait(false)).ToImmutableArray();
     }
 }
 
