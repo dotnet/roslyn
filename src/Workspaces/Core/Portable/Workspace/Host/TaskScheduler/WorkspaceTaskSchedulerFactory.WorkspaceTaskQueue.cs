@@ -21,37 +21,27 @@ namespace Microsoft.CodeAnalysis.Host
             _queue = new SimpleTaskQueue(taskScheduler);
         }
 
-        private TTask ScheduleTask<TOperation, TTask>(Func<TOperation, CancellationToken, TTask> taskScheduler, string taskName, TOperation operation, CancellationToken cancellationToken)
-            where TTask : Task
+        private IAsyncToken BeginOperation(string taskName)
+            => _operationListener.BeginAsyncOperation(taskName ?? nameof(WorkspaceTaskQueue) + ".Task");
+
+        private TTask EndOperation<TTask>(IAsyncToken token, TTask task) where TTask : Task
         {
-            var asyncToken = _operationListener.BeginAsyncOperation(taskName ?? nameof(WorkspaceTaskQueue) + ".Task");
-
-            var task = taskScheduler(operation, cancellationToken);
-
-            _ = task.CompletesAsyncOperation(asyncToken);
+            _ = task.CompletesAsyncOperation(token);
             return task;
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods (Task wrappers, not asynchronous methods)
         public Task ScheduleTask(Action operation, string taskName, CancellationToken cancellationToken = default)
-        {
-            return ScheduleTask((operation, cancellationToken) => _queue.ScheduleTask(operation, cancellationToken), taskName, operation, cancellationToken);
-        }
+            => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
         public Task<T> ScheduleTask<T>(Func<T> operation, string taskName, CancellationToken cancellationToken = default)
-        {
-            return ScheduleTask((operation, cancellationToken) => _queue.ScheduleTask(operation, cancellationToken), taskName, operation, cancellationToken);
-        }
+            => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
         public Task ScheduleTask(Func<Task> operation, string taskName, CancellationToken cancellationToken = default)
-        {
-            return ScheduleTask((operation, cancellationToken) => _queue.ScheduleTask(operation, cancellationToken), taskName, operation, cancellationToken);
-        }
+            => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
         public Task<T> ScheduleTask<T>(Func<Task<T>> operation, string taskName, CancellationToken cancellationToken = default)
-        {
-            return ScheduleTask((operation, cancellationToken) => _queue.ScheduleTask(operation, cancellationToken), taskName, operation, cancellationToken);
-        }
+            => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 #pragma warning restore VSTHRD200
     }
 }
