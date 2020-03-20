@@ -246,6 +246,66 @@ C.Field2 -> string!";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
         }
 
+        [Fact]
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithoutOblivious()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0036:ChangedField|};
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var unshippedText = @"C
+C.C() -> void
+C.ChangedField -> string";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.ChangedField -> string?";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var unshippedText = @"C
+C.C() -> void
+C.Field -> string";
+            var fixedUnshippedText = @"C
+C.C() -> void
+~C.Field -> string";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, newShippedApiText: shippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIShouldBeAnnotatedWithObliviousMarker_ShippedFile()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0036:{|RS0041:Field|}|}; // oblivious
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+~C.Field -> string";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+        }
+
         #endregion
     }
 }

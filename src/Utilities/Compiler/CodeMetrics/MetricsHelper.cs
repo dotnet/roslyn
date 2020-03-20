@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
@@ -62,25 +61,25 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
         {
             long linesOfCode = 0;
             foreach (var decl in declarations)
             {
-                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, context).ConfigureAwait(false);
 
                 // For namespace symbols, don't count lines of code for declarations of child namespaces.
                 // For example, "namespace N1.N2 { }" is a declaration reference for N1, but the actual declaration is for N2.
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
-                    var model = semanticModelProvider.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, cancellationToken) != (object)symbol)
+                    var model = context.GetSemanticModel(declSyntax);
+                    if (model.GetDeclaredSymbol(declSyntax, context.CancellationToken) != (object)symbol)
                     {
                         continue;
                     }
                 }
 
-                FileLinePositionSpan linePosition = declSyntax.SyntaxTree.GetLineSpan(declSyntax.FullSpan, cancellationToken);
+                FileLinePositionSpan linePosition = declSyntax.SyntaxTree.GetLineSpan(declSyntax.FullSpan, context.CancellationToken);
                 long delta = linePosition.EndLinePosition.Line - linePosition.StartLinePosition.Line;
                 if (delta == 0)
                 {
@@ -94,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return linesOfCode;
         }
 
-        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
         {
-            var declSyntax = await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            var declSyntax = await declaration.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
-                SemanticModel model = semanticModelProvider.GetSemanticModel(declSyntax);
-                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken), declaredSymbol))
+                SemanticModel model = context.GetSemanticModel(declSyntax);
+                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, context.CancellationToken), declaredSymbol))
                 {
                     declSyntax = declSyntax.Parent;
                 }
@@ -113,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableArray<SyntaxReference> declarations,
             ISymbol symbol,
             ImmutableHashSet<INamedTypeSymbol>.Builder builder,
-            SemanticModelProvider semanticModelProvider,
-            CancellationToken cancellationToken)
+            CodeMetricsAnalysisContext context)
         {
             int cyclomaticComplexity = 0;
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
@@ -122,11 +120,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
-            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
             foreach (var declaration in declarations)
             {
-                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, context).ConfigureAwait(false);
                 nodesToProcess.Enqueue(syntax);
 
                 // Ensure we process parameter initializers and attributes.
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var parameterSyntaxRef = parameter.DeclaringSyntaxReferences.FirstOrDefault();
                     if (parameterSyntaxRef != null)
                     {
-                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
                         nodesToProcess.Enqueue(parameterSyntax);
                     }
                 }
@@ -152,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (attribute.ApplicationSyntaxReference != null &&
                         attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
-                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
                         if (applicableAttributeNodes.Add(attributeSyntax))
                         {
                             nodesToProcess.Enqueue(attributeSyntax);
@@ -163,11 +161,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 do
                 {
                     var node = nodesToProcess.Dequeue();
-                    var model = semanticModelProvider.GetSemanticModel(node);
+                    var model = context.GetSemanticModel(node);
 
                     if (!ReferenceEquals(node, syntax))
                     {
-                        var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
+                        var declaredSymbol = model.GetDeclaredSymbol(node, context.CancellationToken);
                         if (declaredSymbol != null && !Equals(symbol, declaredSymbol) && declaredSymbol.Kind != SymbolKind.Parameter)
                         {
                             // Skip member declarations.
@@ -175,10 +173,10 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         }
                     }
 
-                    var typeInfo = model.GetTypeInfo(node, cancellationToken);
+                    var typeInfo = model.GetTypeInfo(node, context.CancellationToken);
                     AddCoupledNamedTypesCore(builder, typeInfo.Type, wellKnownTypeProvider);
 
-                    var operationBlock = model.GetOperation(node, cancellationToken);
+                    var operationBlock = model.GetOperation(node, context.CancellationToken);
                     if (operationBlock != null && operationBlock.Parent == null)
                     {
                         switch (operationBlock.Kind)

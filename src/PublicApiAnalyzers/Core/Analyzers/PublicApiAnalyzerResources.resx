@@ -126,6 +126,7 @@
   <data name="DeclarePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
+
   <data name="AnnotatePublicApiTitle" xml:space="preserve">
     <value>Annotate nullability of public types and members in the declared API</value>
   </data>
@@ -144,6 +145,16 @@
   </data>
   <data name="ShouldAnnotateApiFilesDescription" xml:space="preserve">
     <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+
+  <data name="ObliviousPublicApiTitle" xml:space="preserve">
+    <value>Public members should not use oblivious types</value>
+  </data>
+  <data name="ObliviousPublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' uses some oblivious reference types.</value>
+  </data>
+  <data name="ObliviousPublicApiDescription" xml:space="preserve">
+    <value>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
   </data>
   
   <data name="RemoveDeletedApiTitle" xml:space="preserve">

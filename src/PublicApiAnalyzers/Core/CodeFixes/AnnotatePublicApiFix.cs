@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
+                            if (diagnostic.Id != DeclarePublicApiAnalyzer.AnnotateApiRule.Id)
+                            {
+                                continue;
+                            }
+
                             string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
                             string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                             bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
