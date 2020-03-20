@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             Console.WriteLine("Dumping info before call to failfast");
             Console.WriteLine("Exception info");
 
-            for (Exception? current = exception; current is object; current = current.InnerException)
+            for (Exception? current = exception; current is object; current = current!.InnerException)
             {
                 Console.WriteLine(current.Message);
                 Console.WriteLine(current.StackTrace);
