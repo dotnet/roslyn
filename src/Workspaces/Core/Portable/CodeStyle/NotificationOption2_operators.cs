@@ -4,13 +4,12 @@
 
 #nullable enable
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal sealed partial class NotificationOption2 : IEquatable<NotificationOption2?>
+    internal sealed partial class NotificationOption2
     {
         [return: NotNullIfNotNull("notificationOption")]
         public static explicit operator NotificationOption2?(NotificationOption? notificationOption)
@@ -48,21 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 ReportDiagnostic.Error => NotificationOption.Error,
                 _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
             };
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return ReferenceEquals(this, obj);
-        }
-
-        public bool Equals(NotificationOption2? notificationOption2)
-        {
-            return ReferenceEquals(this, notificationOption2);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(Name.GetHashCode(), Severity.GetHashCode());
         }
     }
 }

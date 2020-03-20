@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// This also supports various properties for databinding.
     /// </remarks>
     /// <completionlist cref="NotificationOption2"/>
-    internal sealed partial class NotificationOption2
+    internal sealed partial class NotificationOption2 : IEquatable<NotificationOption2?>
     {
         /// <summary>
         /// Name for the notification option.
@@ -66,5 +68,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public override string ToString() => Name;
+
+        public override bool Equals(object? obj)
+        {
+            return ReferenceEquals(this, obj);
+        }
+
+        public bool Equals(NotificationOption2? notificationOption2)
+        {
+            return ReferenceEquals(this, notificationOption2);
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = this.Name.GetHashCode();
+            hash = unchecked((hash * (int)0xA5555529) + this.Severity.GetHashCode());
+            return hash;
+        }
     }
 }
