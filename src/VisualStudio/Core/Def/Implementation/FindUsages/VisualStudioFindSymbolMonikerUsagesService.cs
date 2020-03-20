@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 await progress.AddItemsAsync(1).ConfigureAwait(false);
 
                 var results = await codeIndexProvider.FindReferencesByMonikerAsync(
-                    monikers, includeDecleration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
@@ -92,17 +92,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             }
         }
 
-        private ExternalReferenceItem ConvertResult(DefinitionItem definition, string result)
+        private ExternalReferenceItem ConvertResult(DefinitionItem definition, JObject obj)
         {
-            var parsed = JObject.Parse(result);
-            var uri = new Uri(parsed.Value<string>("uri"));
-            var projectName = parsed.Value<string>("projectName");
-            var displayPath = parsed.Value<string>("displayPath");
-            var span = ConvertLinePositionSpan(parsed.Value<JObject>("range"));
-            var text = parsed.Value<string>("text");
+            var projectName = obj.Value<string>("projectName");
+            var displayPath = obj.Value<string>("displayPath");
+            var span = ConvertLinePositionSpan(obj.Value<JObject>("range"));
+            var text = obj.Value<string>("text");
 
             return new CodeIndexExternalReferenceItem(
-                this, definition, uri, projectName, displayPath, span, text);
+                this, definition, obj, projectName, displayPath, span, text);
 
             static LinePositionSpan ConvertLinePositionSpan(JObject obj)
                 => new LinePositionSpan(

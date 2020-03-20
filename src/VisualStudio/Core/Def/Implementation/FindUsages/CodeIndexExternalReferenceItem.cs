@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 {
@@ -18,19 +19,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         private class CodeIndexExternalReferenceItem : ExternalReferenceItem
         {
             private readonly VisualStudioFindSymbolMonikerUsagesService _service;
-            private readonly Uri _documentUri;
+            private readonly JObject _resultObject;
 
             public CodeIndexExternalReferenceItem(
                 VisualStudioFindSymbolMonikerUsagesService service,
                 DefinitionItem definition,
-                Uri documentUri,
+                JObject resultObject,
                 string projectName,
                 string displayPath,
                 LinePositionSpan span,
                 string text) : base(definition, projectName, displayPath, span, text)
             {
                 _service = service;
-                _documentUri = documentUri;
+                _resultObject = resultObject;
             }
 
             public override bool TryNavigateTo(bool isPreview)
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 try
                 {
                     await _service._codeIndexProvider!.OpenNavigationResultInEditorAsync(
-                        _documentUri, this.Span.Start.Line, this.Span.Start.Character, cancellationToken).ConfigureAwait(false);
+                        _resultObject, isPreview, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
