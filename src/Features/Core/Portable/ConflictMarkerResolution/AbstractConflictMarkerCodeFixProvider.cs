@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var lines = text.Lines;
 
             var position = context.Span.Start;
             if (!ShouldFix(root, text, position, out var startLine, out var middleLine, out var endLine))
