@@ -2070,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">ВсеЧастиСПрописнойБуквы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Используйте распространение значения NULL</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Объявление переменной может быть встроенным.</target>

@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.vb" />
   </ItemGroup>
 </Project>

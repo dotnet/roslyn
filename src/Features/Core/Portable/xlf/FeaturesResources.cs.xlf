@@ -2070,11 +2070,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">PascalCase</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Použít šíření hodnot null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Deklaraci proměnné je možné vložit do řádku.</target>
