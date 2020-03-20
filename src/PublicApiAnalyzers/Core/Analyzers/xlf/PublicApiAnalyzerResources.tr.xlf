@@ -102,6 +102,21 @@
         <target state="translated">Oluşturucu, devralınamayan temel sınıfı devralınabilir hale getirir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="new">All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="new">Symbol '{0}' uses some oblivious reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="new">Public members should not use oblivious types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">'{0}' sembolü geriye dönük uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametreleri olan genel API'nin, genel aşırı yüklemeleri arasında en çok parametreye sahip olması gerekir.' Ayrıntılar için bkz. '{1}'.</target>

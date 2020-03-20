@@ -9,6 +9,7 @@ namespace Analyzer.Utilities.Lightup
     {
         private static readonly Func<ITypeSymbol, NullableAnnotation> s_nullableAnnotation
             = LightupHelpers.CreateSymbolPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation), fallbackResult: Lightup.NullableAnnotation.None);
+
         private static readonly Func<ITypeSymbol, NullableAnnotation, ITypeSymbol> s_withNullableAnnotation
             = LightupHelpers.CreateSymbolWithPropertyAccessor<ITypeSymbol, NullableAnnotation>(typeof(ITypeSymbol), nameof(NullableAnnotation), fallbackResult: Lightup.NullableAnnotation.None);
 
