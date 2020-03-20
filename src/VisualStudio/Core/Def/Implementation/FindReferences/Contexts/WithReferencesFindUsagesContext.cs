@@ -122,14 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Normal references go into both sets of entries.
                 return OnEntryFoundAsync(
                     reference.Definition,
-                    bucket => new ExternalReferenceItemEntry(bucket, reference),
+                    bucket => Task.FromResult<Entry>(new ExternalReferenceItemEntry(bucket, reference)),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
-            }
-
-            private Task<Entry> TryCreateExternalItemEntryAsync(ExternalReferenceItem reference)
-            {
-                throw new NotImplementedException();
             }
 
             protected async Task OnEntryFoundAsync(
