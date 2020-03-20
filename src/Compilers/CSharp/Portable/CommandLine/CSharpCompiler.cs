@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag diagnostics)
         {
-            // SG_ISSUE #42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
+            // https://github.com/dotnet/roslyn/issues/42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
             if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
             {
                 return input;

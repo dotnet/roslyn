@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GeneratorAttribute : Attribute
     {
-        // SG_ISSUE #42566: we don't know if we'll keep this, but for now it lets us re-use the analyzer discovery mechansim
+        // https://github.com/dotnet/roslyn/issues/: we don't know if we'll keep this, but for now it lets us re-use the analyzer discovery mechanism
     }
 }

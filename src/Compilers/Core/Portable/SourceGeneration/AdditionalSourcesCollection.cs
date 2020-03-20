@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree()
         {
-            // SG_ISSUE #42627: This needs to be consistently ordered
+            // https://github.com/dotnet/roslyn/issues/42627: This needs to be consistently ordered
             ArrayBuilder<GeneratedSourceText> builder = ArrayBuilder<GeneratedSourceText>.GetInstance();
             foreach (var (hintName, sourceText) in _sourcesAdded)
             {

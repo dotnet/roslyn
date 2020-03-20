@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // SG_ISSUE #42629: should be possible to parallelize this
+            // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
             {
                 try
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        // When we expose this publically, remove arbitrary edit adding and replace with dedicated edit types
+        // When we expose this publicly, remove arbitrary edit adding and replace with dedicated edit types
         internal GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
         {
             var newState = _state.With(edits: _state.Edits.AddRange(edits));
