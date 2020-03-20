@@ -528,6 +528,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var resolvedAssembly = resolvedAssemblyMetadata.GetAssembly();
+            Debug.Assert(resolvedAssembly is object);
 
             // Allow reference and definition identities to differ in version, but not other properties.
             // Don't need to compare if we are reusing a previously resolved reference.
@@ -547,8 +548,10 @@ namespace Microsoft.CodeAnalysis
             PortableExecutableReference peReference,
             MetadataImportOptions importOptions)
         {
+            var assembly = assemblyMetadata.GetAssembly();
+            Debug.Assert(assembly is object);
             return CreateAssemblyDataForFile(
-                assemblyMetadata.GetAssembly(),
+                assembly,
                 assemblyMetadata.CachedSymbols,
                 peReference.DocumentationProvider,
                 SimpleAssemblyName,
