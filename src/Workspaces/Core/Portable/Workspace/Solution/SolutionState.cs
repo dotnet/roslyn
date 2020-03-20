@@ -48,9 +48,6 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
 
-        // PROTOTYPE: create a generator driver per-project
-        private ImmutableDictionary<ProjectId, GeneratorDriver> _projectIdToGeneratorDriverMap;
-
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
@@ -63,7 +60,6 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet options,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
-            ImmutableDictionary<ProjectId, GeneratorDriver> projectIdToGeneratorDriverMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph)
         {
@@ -75,7 +71,6 @@ namespace Microsoft.CodeAnalysis
             Options = options;
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
-            _projectIdToGeneratorDriverMap = projectIdToGeneratorDriverMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
 
@@ -99,7 +94,6 @@ namespace Microsoft.CodeAnalysis
                 options,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
-                projectIdToGeneratorDriverMap: ImmutableDictionary<ProjectId, GeneratorDriver>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty)
         {
@@ -179,7 +173,6 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet? options = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
-            ImmutableDictionary<ProjectId, GeneratorDriver>? projectIdToGeneratorDriverMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
@@ -191,7 +184,6 @@ namespace Microsoft.CodeAnalysis
             options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
-            projectIdToGeneratorDriverMap ??= _projectIdToGeneratorDriverMap;
             dependencyGraph ??= _dependencyGraph;
 
             if (branchId == _branchId &&
@@ -216,7 +208,6 @@ namespace Microsoft.CodeAnalysis
                 options,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
-                projectIdToGeneratorDriverMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph);
         }
@@ -242,7 +233,6 @@ namespace Microsoft.CodeAnalysis
                 Options,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
-                _projectIdToGeneratorDriverMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph);
         }
@@ -1079,6 +1069,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Create a new solution instance with the project specified updated to include the 
+        /// specified analyzer reference.
+        /// </summary>
+        public SolutionState AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (analyzerReference == null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReference));
+            }
+
+            CheckContainsProject(projectId);
+            return this.ForkProject(this.GetProjectState(projectId)!.AddAnalyzerReference(analyzerReference));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
@@ -1097,13 +1107,6 @@ namespace Microsoft.CodeAnalysis
             if (!analyzerReferences.Any())
             {
                 return this;
-            }
-
-            //PROTOTYPE
-            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
-            {
-                driver = driver.AddGenerators(analyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray());
-                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
             }
 
             CheckContainsProject(projectId);
@@ -1127,14 +1130,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             CheckContainsProject(projectId);
-
-            //PROTOTYPE:
-            if (_projectIdToGeneratorDriverMap.TryGetValue(projectId, out var driver))
-            {
-                driver = driver.RemoveGenerators(analyzerReference.GetGenerators());
-                _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(projectId, driver);
-            }
-
             return this.ForkProject(this.GetProjectState(projectId)!.RemoveAnalyzerReference(analyzerReference));
         }
 
@@ -1823,31 +1818,11 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The compilation is guaranteed to have a syntax tree for each document of the project.
         /// </remarks>
-        public async Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
+        public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
-            if (project.SupportsCompilation)
-            {
-                var comp = await GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
-
-                // PROTOTYPE: either get an existing generator, or create a new one
-                GeneratorDriver? driver = _projectIdToGeneratorDriverMap.ContainsKey(project.Id)
-                                       ? _projectIdToGeneratorDriverMap[project.Id]
-                                       : project.LanguageServices.CompilationFactory?.CreateGeneratorDriver(comp, project.ParseOptions,
-                                                                                                            generators: project.AnalyzerReferences.SelectMany(r => r.GetGenerators()).ToImmutableArray(),
-                                                                                                            additionalTexts: project.AdditionalDocumentStates.Values.SelectAsArray<TextDocumentState, AdditionalText>(d => new AdditionalTextWithState(d)));
-
-                if (driver is object)
-                {
-                    // PROTOTYPE: obviously we don't want to run full generation everytime
-                    //            we should instead periodically run full generation, and TryApplyEdits as needed.
-                    //            For now this lets us imagine what the experience feels like in the IDE
-                    driver = driver.RunFullGeneration(comp, out comp, out _);
-                    _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(project.Id, driver);
-                }
-
-                return comp;
-            }
-            return null;
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
+                : SpecializedTasks.Null<Compilation>();
         }
 
         /// <summary>
