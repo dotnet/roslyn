@@ -34,44 +34,44 @@ namespace Roslyn.Utilities
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods (Task wrappers, not asynchronous methods)
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(Action operation, CancellationToken cancellationToken = default)
         {
             lock (_gate)
             {
-                var task = _latestTask.SafeContinueWith(_ => taskAction(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                var task = _latestTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
                 _latestTask = task;
                 return task;
             }
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(Func<T> operation, CancellationToken cancellationToken = default)
         {
             lock (_gate)
             {
-                var task = _latestTask.SafeContinueWith(_ => taskFunc(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                var task = _latestTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
                 _latestTask = task;
                 return task;
             }
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(Func<Task> operation, CancellationToken cancellationToken = default)
         {
             lock (_gate)
             {
-                var task = _latestTask.SafeContinueWithFromAsync(_ => taskFuncAsync(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                var task = _latestTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
                 _latestTask = task;
                 return task;
             }
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
         {
             lock (_gate)
             {
-                var task = _latestTask.SafeContinueWithFromAsync(_ => taskFuncAsync(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                var task = _latestTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
                 _latestTask = task;
                 return task;
             }
