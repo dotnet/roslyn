@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,7 +25,7 @@ using VS.IntelliNav.Contracts;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 {
     [ExportWorkspaceService(typeof(IFindSymbolMonikerUsagesService), layer: ServiceLayer.Host), Shared]
-    internal class VisualStudioFindSymbolMonikerUsagesService : AbstractFindSymbolMonikerUsagesService
+    internal partial class VisualStudioFindSymbolMonikerUsagesService : AbstractFindSymbolMonikerUsagesService
     {
         private readonly ICodeIndexProvider? _codeIndexProvider;
 
@@ -127,66 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 _lastNavigationCancellationSource?.Cancel();
                 _lastNavigationCancellationSource = new CancellationTokenSource();
                 return _lastNavigationCancellationSource.Token;
-            }
-        }
-
-        private class MonikerWrapper : ISymbolMoniker
-        {
-            private readonly SymbolMoniker _moniker;
-
-            public MonikerWrapper(SymbolMoniker moniker)
-                => _moniker = moniker;
-
-            public string Scheme => _moniker.Scheme;
-
-            public string Identifier => _moniker.Identifier;
-
-            public IPackageInformation? PackageInformation => null;
-        }
-
-        private class CodeIndexExternalReferenceItem : ExternalReferenceItem
-        {
-            private readonly VisualStudioFindSymbolMonikerUsagesService _service;
-            private readonly Uri _documentUri;
-
-            public CodeIndexExternalReferenceItem(
-                VisualStudioFindSymbolMonikerUsagesService service,
-                DefinitionItem definition,
-                Uri documentUri,
-                string projectName,
-                string displayPath,
-                LinePositionSpan span,
-                string text) : base(definition, projectName, displayPath, span, text)
-            {
-                _service = service;
-                _documentUri = documentUri;
-            }
-
-            public override bool TryNavigateTo(bool isPreview)
-            {
-                // Cancel the navigation to any previous item the user was trying to navigate to.
-                // Then try to navigate to this. Because it's async, and we're not, just assume it
-                // will succeed.
-                var cancellationToken = _service.CancelLastNavigationAndGetNavigationToken();
-                _ = NavigateToAsync(isPreview: false, cancellationToken);
-                return true;
-            }
-
-            private async Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
-            {
-                // No way to report any errors thrown by OpenNavigationResultInEditorAsync.
-                // So just catch and report through our watson system.
-                try
-                {
-                    await _service._codeIndexProvider!.OpenNavigationResultInEditorAsync(
-                        _documentUri, this.Span.Start.Line, this.Span.Start.Character, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                {
-                }
             }
         }
     }
