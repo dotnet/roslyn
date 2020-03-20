@@ -447,10 +447,6 @@ class Goo
             If isRemoved.HasValue Then
                 Assert.Equal(isRemoved.Value, parameter.IsRemoved)
             End If
-
-            If needsBottomBorder.HasValue Then
-                Assert.Equal(needsBottomBorder.Value, parameter.NeedsBottomBorder)
-            End If
         End Sub
 
         Private Async Function GetViewModelTestStateAsync(

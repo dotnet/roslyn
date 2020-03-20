@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                 if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                 {
-                    var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                     return (typeSymbol, 0);
                 }
             }
@@ -407,8 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
-                var constructorInit = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(document, declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -451,11 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
                 modifiers: SyntaxFactory.TokenList(),
                 type: skipParameterType
-                    ? default
+                    ? null
                     : addedParameter.Type.GenerateTypeSyntax(allowVar: false)
                         .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
                 SyntaxFactory.Identifier(addedParameter.ParameterName),
-                @default: default);
+                @default: null);
 
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
             => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax(allowVar: false))
@@ -621,42 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                             SyntaxFactory.List<XmlAttributeSyntax>(new[] { SyntaxFactory.XmlNameAttribute(parameter.Name) })),
                         SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName("param"))));
                 }
-
-                var updatedNodeList = new List<XmlNodeSyntax>();
-                var structuredContent = structuredTrivia.Content.ToList();
-                for (var i = 0; i < structuredContent.Count; i++)
-                {
-                    var content = structuredContent[i];
-                    if (!content.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement))
-                    {
-                        updatedNodeList.Add(content);
-                        continue;
-                    }
-
-                    if (xmlElement.StartTag.Name.ToString() != DocumentationCommentXmlNames.ParameterElementName)
-                    {
-                        updatedNodeList.Add(content);
-                        continue;
-                    }
-
-                    // Found a param tag, so insert the next one from the reordered list
-                    if (index < permutedParamNodes.Count)
-                    {
-                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
-                        index++;
-                    }
-                    else
-                    {
-                        // Inspecting a param element that we are deleting but not replacing.
-                    }
-                }
-
-                var newDocComments = SyntaxFactory.DocumentationCommentTrivia(structuredTrivia.Kind(), SyntaxFactory.List(updatedNodeList.AsEnumerable()));
-                newDocComments = newDocComments.WithEndOfComment(structuredTrivia.EndOfComment);
-                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
-                var newTrivia = SyntaxFactory.Trivia(newDocComments);
-
-                updatedLeadingTrivia.Add(newTrivia);
             }
 
             return permutedParams;
