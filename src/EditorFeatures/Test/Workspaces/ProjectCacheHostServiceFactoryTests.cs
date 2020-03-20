@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
-            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory(AsynchronousOperationListenerProvider.NullProvider);
             private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)

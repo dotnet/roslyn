@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Host), Shared]
-    internal class VisualStudioTaskSchedulerFactory : EditorTaskSchedulerFactory
+    internal class VisualStudioTaskSchedulerFactory : WorkspaceTaskSchedulerFactory
     {
         private readonly IThreadingContext _threadingContext;
 

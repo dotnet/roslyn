@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +12,14 @@ namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Default)]
     [Shared]
-    internal partial class WorkspaceTaskSchedulerFactory : IWorkspaceTaskSchedulerFactory
+    internal class WorkspaceTaskSchedulerFactory : IWorkspaceTaskSchedulerFactory
     {
+        private readonly IAsynchronousOperationListener _listener;
+
         [ImportingConstructor]
-        public WorkspaceTaskSchedulerFactory()
+        public WorkspaceTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
         protected virtual TaskScheduler GetCurrentContextScheduler()
@@ -31,15 +35,14 @@ namespace Microsoft.CodeAnalysis.Host
             return new WorkspaceTaskQueue(this, GetCurrentContextScheduler());
         }
 
-        internal virtual object BeginAsyncOperation(string taskName)
+        internal object BeginAsyncOperation(string taskName)
         {
-            // do nothing ... overridden by services layer
-            return null;
+            return _listener.BeginAsyncOperation(taskName);
         }
 
-        internal virtual void CompleteAsyncOperation(object asyncToken, Task task)
+        internal void CompleteAsyncOperation(object asyncToken, Task task)
         {
-            // do nothing ... overridden by services layer
+            task.CompletesAsyncOperation((IAsyncToken)asyncToken);
         }
     }
 }
