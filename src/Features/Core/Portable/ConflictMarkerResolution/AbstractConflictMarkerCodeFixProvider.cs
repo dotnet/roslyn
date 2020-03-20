@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        private bool TryGetConflictLines(
+        private static bool TryGetConflictLines(
             SourceText text, int position,
             out TextLine startLine, out TextLine middleLine, out TextLine endLine)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             }
         }
 
-        private bool TryFindLineForwards(TextLine startLine, char ch, out TextLine foundLine)
+        private static bool TryFindLineForwards(TextLine startLine, char ch, out TextLine foundLine)
         {
             var text = startLine.Text!;
             var lines = text.Lines;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return false;
         }
 
-        private bool TryFindLineBackwards(TextLine startLine, char ch, out TextLine foundLine)
+        private static bool TryFindLineBackwards(TextLine startLine, char ch, out TextLine foundLine)
         {
             var text = startLine.Text!;
             var lines = text.Lines;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return false;
         }
 
-        private bool IsConflictMarker(TextLine currentLine, char ch)
+        private static bool IsConflictMarker(TextLine currentLine, char ch)
         {
             var text = currentLine.Text!;
             var currentLineStart = currentLine.Start;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 context.Diagnostics);
         }
 
-        private async Task<Document> AddEditsAsync(
+        private static async Task<Document> AddEditsAsync(
             Document document, int startPos, int equalsPos, int endPos,
             Action<SourceText, ArrayBuilder<TextChange>, int, int, int> addEdits,
             CancellationToken cancellationToken)
@@ -277,13 +277,13 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             edits.Add(new TextChange(TextSpan.FromBounds(endPos, bottomEnd), ""));
         }
 
-        private Task<Document> TakeTopAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
+        private static Task<Document> TakeTopAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
             => AddEditsAsync(document, startPos, equalsPos, endPos, AddTopEdits, cancellationToken);
 
-        private Task<Document> TakeBottomAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
+        private static Task<Document> TakeBottomAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
             => AddEditsAsync(document, startPos, equalsPos, endPos, AddBottomEdits, cancellationToken);
 
-        private Task<Document> TakeBothAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
+        private static Task<Document> TakeBothAsync(Document document, int startPos, int equalsPos, int endPos, CancellationToken cancellationToken)
             => AddEditsAsync(document, startPos, equalsPos, endPos, AddBothEdits, cancellationToken);
 
         private static int GetEndIncludingLineBreak(SourceText text, int position)
