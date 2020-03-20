@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
-        private readonly WorkspaceTaskQueue _taskQueue;
+        private readonly TaskQueue _taskQueue;
 
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;

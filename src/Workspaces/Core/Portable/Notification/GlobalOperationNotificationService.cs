@@ -20,14 +20,12 @@ namespace Microsoft.CodeAnalysis.Notification
         private readonly HashSet<GlobalOperationRegistration> _registrations = new HashSet<GlobalOperationRegistration>();
         private readonly HashSet<string> _operations = new HashSet<string>();
 
-        private readonly SimpleTaskQueue _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+        private readonly TaskQueue _eventQueue;
         private readonly EventMap _eventMap = new EventMap();
-
-        private readonly IAsynchronousOperationListener _listener;
 
         public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
         {
-            _listener = listener;
+            _eventQueue = new TaskQueue(listener, TaskScheduler.Default);
         }
 
         public override GlobalOperationRegistration Start(string operation)
@@ -57,11 +55,7 @@ namespace Microsoft.CodeAnalysis.Notification
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
             {
-                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStarted");
-                return _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
-                }).CompletesAsyncOperation(asyncToken);
+                return _eventQueue.ScheduleTask("GlobalOperationStarted", () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)));
             }
 
             return Task.CompletedTask;
@@ -72,13 +66,8 @@ namespace Microsoft.CodeAnalysis.Notification
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
             {
-                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStopped");
                 var args = new GlobalOperationEventArgs(operations, cancelled);
-
-                return _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(this, args));
-                }).CompletesAsyncOperation(asyncToken);
+                return _eventQueue.ScheduleTask("GlobalOperationStopped", () => ev.RaiseEvent(handler => handler(this, args)));
             }
 
             return Task.CompletedTask;

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly WorkspaceTaskQueue _taskQueue;
+        private readonly TaskQueue _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
             var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());

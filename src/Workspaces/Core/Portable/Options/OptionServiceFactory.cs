@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
         /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
-        /// and forwards them along using the same <see cref="WorkspaceTaskQueue"/> used by the
+        /// and forwards them along using the same <see cref="TaskQueue"/> used by the
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-            private readonly WorkspaceTaskQueue _taskQueue;
+            private readonly TaskQueue _taskQueue;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
                 var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-                _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
+                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }

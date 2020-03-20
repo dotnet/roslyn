@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundParser
     {
         private readonly Workspace _workspace;
-        private readonly WorkspaceTaskQueue _taskQueue;
+        private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
         private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 

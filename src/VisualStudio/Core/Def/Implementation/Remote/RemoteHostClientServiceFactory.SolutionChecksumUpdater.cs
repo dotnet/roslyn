@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
         {
             private readonly RemoteHostClientService _service;
-            private readonly SimpleTaskQueue _textChangeQueue;
+            private readonly TaskQueue _textChangeQueue;
             private readonly SemaphoreSlim _event;
             private readonly object _gate;
 
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                        service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
-                _textChangeQueue = new SimpleTaskQueue(TaskScheduler.Default);
+                _textChangeQueue = new TaskQueue(service.Listener, TaskScheduler.Default);
 
                 _event = new SemaphoreSlim(initialCount: 0);
                 _gate = new object();
@@ -174,8 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // only cancelled when remote host gets shutdown
-                var token = Listener.BeginAsyncOperation(nameof(PushTextChanges));
-                _textChangeQueue.ScheduleTask(async () =>
+                _textChangeQueue.ScheduleTask(nameof(PushTextChanges), async () =>
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(_service.Workspace, CancellationToken).ConfigureAwait(false);
                     if (client == null)
@@ -193,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         callbackTarget: null,
                         CancellationToken).ConfigureAwait(false);
 
-                }, CancellationToken).CompletesAsyncOperation(token);
+                }, CancellationToken);
             }
         }
     }
