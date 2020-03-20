@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Called to peform source generation. A generator can use the <paramref name="context"/>
-        /// to add source files via the the <see cref="SourceGeneratorContext.AdditionalSources"/>
-        /// collection.
+        /// to add source files via the <see cref="SourceGeneratorContext.AddSource(string, SourceText)"/> 
+        /// method.
         /// </summary>
         /// <param name="context">The <see cref="SourceGeneratorContext"/> to add source to</param>
         /// <remarks>
