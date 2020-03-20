@@ -2070,11 +2070,6 @@ This version used in: {2}</source>
         <target state="translated">パスカル ケース</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">null 値の反映を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">変数の宣言をインライン化できます</target>

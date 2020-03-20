@@ -44,5 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxToken Identifier(string identifier)
             => SyntaxFactory.Identifier(identifier);
+
+        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+            => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+
+        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+            => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
     }
 }

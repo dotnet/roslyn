@@ -2070,11 +2070,6 @@ Questa versione è usata {2}</target>
         <target state="translated">Notazione Pascal</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Usa la propagazione di valori Null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">La dichiarazione di variabile può essere impostata come inline</target>
