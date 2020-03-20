@@ -15,7 +15,9 @@ using Roslyn.Utilities;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
+    /// <summary>
+    /// Context passed to a source generator when <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> is called
+    /// </summary>
     public readonly struct SourceGeneratorContext
     {
         private readonly DiagnosticBag _diagnostics;
@@ -30,22 +32,41 @@ namespace Microsoft.CodeAnalysis
             _diagnostics = diagnostics;
         }
 
+        /// <summary>
+        /// Get the current <see cref="Compilation"/> at the time of execution.
+        /// </summary>
+        /// <remarks>
+        /// This compilation contains only the user supplied code; other generated code is not
+        /// available. As user code can depend on the results of generation, it is possible that
+        /// this compilation will contain errors.
+        /// </remarks>
         public Compilation Compilation { get; }
 
         // PROTOTYPE: replace AnalyzerOptions with an differently named type that is otherwise identical.
         // The concern being that something added to one isn't necessarily applicable to the other.
         public AnalyzerOptions AnalyzerOptions { get; }
 
+        /// <summary>
+        /// If the generator registered an <see cref="ISyntaxReceiver"/> during initialization, this will be the instance created for this generation pass.
+        /// </summary>
         public ISyntaxReceiver? SyntaxReceiver { get; }
 
+        /// <summary>
+        /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
+        /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        /// <summary>
+        /// PROTOTYPE:
+        /// </summary>
         public AdditionalSourcesCollection AdditionalSources { get; }
 
         public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
+    /// <summary>
+    /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(InitializationContext)"/> is called
+    /// </summary>
     public struct InitializationContext
     {
         internal InitializationContext(CancellationToken cancellationToken = default)
@@ -54,6 +75,9 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder = new GeneratorInfo.Builder();
         }
 
+        /// <summary>
+        /// A <see cref="CancellationToken"/> that can be checked to see if the initialization should be cancelled.
+        /// </summary>
         public CancellationToken CancellationToken { get; }
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
@@ -95,9 +119,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
-    // PROTOTYPE: this is going to need to track the input and output compilations that occured
-    public readonly struct EditContext
+    internal readonly struct EditContext
     {
         internal EditContext(ImmutableArray<GeneratedSourceText> sources, CancellationToken cancellationToken = default)
         {

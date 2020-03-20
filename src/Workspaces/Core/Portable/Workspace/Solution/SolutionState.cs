@@ -1213,15 +1213,6 @@ namespace Microsoft.CodeAnalysis
 
                 var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
 
-                // PROTOTYPE: we add the edit to the projects driver, if we have one
-                if (_projectIdToGeneratorDriverMap.TryGetValue(oldProjectState.Id, out var driver))
-                {
-                    var edits = newDocumentStatesForProject.SelectAsArray<T, PendingEdit>(s => new AdditionalFileAddedEdit(new AdditionalTextWithState(s)));
-                    driver = driver.WithPendingEdits(edits);
-
-                    _projectIdToGeneratorDriverMap = _projectIdToGeneratorDriverMap.SetItem(oldProjectState.Id, driver);
-                }
-
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     compilationTranslationAction,
                     newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));

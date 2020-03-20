@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
     ///     on generators that support it
     ///   - At any time a full generation pass can be re-run, resetting the pending edits
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public abstract class GeneratorDriver
     {
         internal readonly GeneratorDriverState _state;
@@ -164,8 +163,8 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        //PROTOTYPE: remove arbitrary edit adding and replace with dedicated edit types
-        public GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
+        // When we expose this publically, remove arbitrary edit adding and replace with dedicated edit types
+        internal GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
         {
             var newState = _state.With(edits: _state.Edits.AddRange(edits));
             return FromState(newState);
