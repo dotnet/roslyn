@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 _documentUri = documentUri;
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
+            public override bool TryNavigateTo(bool isPreview)
             {
                 // Cancel the navigation to any previous item the user was trying to navigate to.
                 // Then try to navigate to this. Because it's async, and we're not, just assume it
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             private async Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
             {
                 // No way to report any errors thrown by OpenNavigationResultInEditorAsync.
-                // So just catch and report through our watson ssystem.
+                // So just catch and report through our watson system.
                 try
                 {
                     await _service._codeIndexProvider!.OpenNavigationResultInEditorAsync(

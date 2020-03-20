@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
-        private class ExternalReferenceItemEntry : Entry
+        private class ExternalReferenceItemEntry : Entry, ISupportsNavigation
         {
             private readonly ExternalReferenceItem _reference;
 
@@ -20,6 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 _reference = reference;
             }
+
+            public bool TryNavigateTo(bool isPreview)
+                => _reference.TryNavigateTo(isPreview);
 
             protected override object GetValueWorker(string keyName)
                 => keyName switch

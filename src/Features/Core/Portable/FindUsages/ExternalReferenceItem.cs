@@ -37,6 +37,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Text = text;
         }
 
-        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
+        public abstract bool TryNavigateTo(bool isPreview);
     }
 }
