@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -50,24 +51,24 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
-        protected virtual Task RaiseGlobalOperationStartedAsync()
+        private Task RaiseGlobalOperationStartedAsync()
         {
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
             {
-                return _eventQueue.ScheduleTask("GlobalOperationStarted", () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)));
+                return _eventQueue.ScheduleTask("GlobalOperationStarted", () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
             }
 
             return Task.CompletedTask;
         }
 
-        protected virtual Task RaiseGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled)
+        private Task RaiseGlobalOperationStoppedAsync(IReadOnlyList<string> operations, bool cancelled)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
             {
                 var args = new GlobalOperationEventArgs(operations, cancelled);
-                return _eventQueue.ScheduleTask("GlobalOperationStopped", () => ev.RaiseEvent(handler => handler(this, args)));
+                return _eventQueue.ScheduleTask("GlobalOperationStopped", () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
             }
 
             return Task.CompletedTask;

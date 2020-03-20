@@ -42,20 +42,20 @@ namespace Roslyn.Utilities
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods (Task wrappers, not asynchronous methods)
-        public Task ScheduleTask(string taskName, Action operation, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(string taskName, Action operation, CancellationToken cancellationToken)
             => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
 
-        public Task<T> ScheduleTask<T>(string taskName, Func<T> operation, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(string taskName, Func<T> operation, CancellationToken cancellationToken)
             => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
 
-        public Task ScheduleTask(string taskName, Func<Task> operation, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(string taskName, Func<Task> operation, CancellationToken cancellationToken)
             => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
 
-        public Task<T> ScheduleTask<T>(string taskName, Func<Task<T>> operation, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(string taskName, Func<Task<T>> operation, CancellationToken cancellationToken)
             => EndOperation(BeginOperation(taskName), ScheduleTaskInProgress(operation, cancellationToken));
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task ScheduleTaskInProgress(Action operation, CancellationToken cancellationToken = default)
+        public Task ScheduleTaskInProgress(Action operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -66,7 +66,7 @@ namespace Roslyn.Utilities
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task<T> ScheduleTaskInProgress<T>(Func<T> operation, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTaskInProgress<T>(Func<T> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -77,7 +77,7 @@ namespace Roslyn.Utilities
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task ScheduleTaskInProgress(Func<Task> operation, CancellationToken cancellationToken = default)
+        public Task ScheduleTaskInProgress(Func<Task> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -88,7 +88,7 @@ namespace Roslyn.Utilities
         }
 
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        public Task<T> ScheduleTaskInProgress<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTaskInProgress<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {

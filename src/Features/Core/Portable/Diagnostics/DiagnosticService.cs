@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 ev.RaiseEvent(handler => handler(source, args));
-            });
+            }, CancellationToken.None);
         }
 
         private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ev.RaiseEvent(handler => handler(source, args));
                 }
-            });
+            }, CancellationToken.None);
         }
 
         private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)

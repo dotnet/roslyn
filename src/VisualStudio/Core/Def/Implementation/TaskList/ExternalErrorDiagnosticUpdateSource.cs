@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 state?.Built(projectId);
 
                 ClearProjectErrors(state?.Solution ?? _workspace.CurrentSolution, projectId);
-            });
+            }, CancellationToken.None);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -101,17 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
-                    _taskQueue.ScheduleTask("OnSolutionChanged", () => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p)));
+                    _taskQueue.ScheduleTask("OnSolutionChanged", () => e.OldSolution.ProjectIds.Do(p => ClearProjectErrors(e.OldSolution, p)), CancellationToken.None);
                     break;
 
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectReloaded:
-                    _taskQueue.ScheduleTask("OnProjectChanged", () => ClearProjectErrors(e.OldSolution, e.ProjectId));
+                    _taskQueue.ScheduleTask("OnProjectChanged", () => ClearProjectErrors(e.OldSolution, e.ProjectId), CancellationToken.None);
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
-                    _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId));
+                    _taskQueue.ScheduleTask("OnDocumentRemoved", () => ClearDocumentErrors(e.OldSolution, e.ProjectId, e.DocumentId), CancellationToken.None);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 inProgressState.Done();
-            });
+            }, CancellationToken.None);
         }
 
         private Task CleanupAllLiveErrorsAsync(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
-            _taskQueue.ScheduleTask("Project New Errors", () => state.AddError(projectId, diagnostic));
+            _taskQueue.ScheduleTask("Project New Errors", () => state.AddError(projectId, diagnostic), CancellationToken.None);
         }
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // capture state that will be processed in background thread.
             var state = GetOrCreateInProgressState();
 
-            _taskQueue.ScheduleTask("Document New Errors", () => state.AddError(documentId, diagnostic));
+            _taskQueue.ScheduleTask("Document New Errors", () => state.AddError(documentId, diagnostic), CancellationToken.None);
         }
 
         public void AddNewErrors(
@@ -277,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 state.AddErrors(projectId, projectErrors);
-            });
+            }, CancellationToken.None);
         }
 
         private InProgressState BuildInprogressState

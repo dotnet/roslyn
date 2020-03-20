@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => ev.RaiseEvent(handler => handler(this, args)));
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
             }
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this is to reduce for such case to happen.
                 void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(raiseEvents));
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(raiseEvents), CancellationToken.None);
             }
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // this is to reduce for such case to happen.
                 void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents));
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents), CancellationToken.None);
             }
         }
 

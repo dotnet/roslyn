@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                         ConventionFileChanged?.Invoke(this,
                             new ConventionsFileChangeEventArgs(fileName, directoryPath, changeType));
                     }
-                });
+                }, CancellationToken.None);
             }
 
             private static DateTime? TryGetFileTimeStamp(string fileName, string directoryPath)
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public void StopWatching(string fileName, string directoryPath)
             {
-                _taskQueue.ScheduleTask("StopWatching", () => _fileWatcher.StopWatching(fileName, directoryPath));
+                _taskQueue.ScheduleTask("StopWatching", () => _fileWatcher.StopWatching(fileName, directoryPath), CancellationToken.None);
             }
         }
     }

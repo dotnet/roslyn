@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                });
+                }, CancellationToken.None);
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
