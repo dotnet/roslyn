@@ -60,9 +60,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
+                await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
                 var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
@@ -73,7 +74,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
         }
