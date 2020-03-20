@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract class AbstractLiveShareLanguageServerClient : ILanguageClient
     {
+        private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
         private readonly LanguageServerProtocol _languageServerProtocol;
         private readonly Workspace _workspace;
@@ -56,11 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
+        public AbstractLiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService, string? diagnosticsClientName)
         {
             _languageServerProtocol = languageServerProtocol;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
+            _diagnosticsClientName = diagnosticsClientName;
         }
 
         public Task<Connection> ActivateAsync(CancellationToken token)
@@ -68,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Contract.ThrowIfFalse(_languageServer == null, "This language server has already been initialized");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: null);
+            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: _diagnosticsClientName);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

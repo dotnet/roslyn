@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         [ImportingConstructor]
         public RazorLanguageClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService)
+            : base(languageServerProtocol, workspace, diagnosticService, ClientName)
         {
         }
     }
