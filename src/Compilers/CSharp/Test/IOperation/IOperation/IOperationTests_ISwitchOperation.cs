@@ -3838,11 +3838,11 @@ public sealed class MyClass
                       LeftPattern: 
                         IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
                           LeftPattern: 
-                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Object)
+                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Int32)
                           RightPattern: 
-                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Object)
+                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Int64)
                       RightPattern: 
-                        ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'ulong') (InputType: System.Object, MatchedType: System.Object)
+                        ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'ulong') (InputType: System.Object, MatchedType: System.UInt64)
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
