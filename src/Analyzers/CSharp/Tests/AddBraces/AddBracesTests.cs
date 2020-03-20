@@ -656,12 +656,15 @@ class Program
                 expectDiagnostic);
         }
 
+
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - Remove the suppression when https://github.com/dotnet/roslyn/issues/42611 is fixed.
         /// <summary>
         /// Verifies that the use of braces in a construct nested within the true portion of an <c>if</c> statement does
         /// not trigger the multiline behavior the <c>else</c> clause of a containing stetemnet for
-        /// "PreferBracesPreference.WhenMultiline". The <c>else</c> clause would only need braces if the true
+        /// <see cref="F:PreferBracesPreference.WhenMultiline"/>. The <c>else</c> clause would only need braces if the true
         /// portion also used braces (which would be required if the true portion was considered multiline.
         /// </summary>
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
