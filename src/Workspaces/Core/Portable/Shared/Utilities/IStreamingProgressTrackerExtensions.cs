@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 => _progressTracker = progressTracker;
 
             public async ValueTask DisposeAsync()
-            {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
-            }
+                => await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
         }
     }
 }
