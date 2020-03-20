@@ -411,7 +411,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamespaceOrTypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.RequiresUnsafeModifierVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions_Accessibility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.MinimalAccessibilityVisitor.cs" />
