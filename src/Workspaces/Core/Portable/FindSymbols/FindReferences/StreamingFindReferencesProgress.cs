@@ -4,12 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-#pragma warning disable CS0618 // Type or member is obsolete
-
     /// <summary>
     /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
     /// so it can be used from the new streaming find references APIs.
@@ -66,7 +63,4 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Task.CompletedTask;
         }
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
-
 }
