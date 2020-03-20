@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
         {
-            if (InfoBuilder.EditCallback is object)
-            {
-                throw new InvalidOperationException($"Only a single {nameof(EditCallback<AdditionalFileEdit>)} can be registered per generator.");
-            }
+            CheckIsEmpty(InfoBuilder.EditCallback);
             InfoBuilder.EditCallback = callback;
         }
 
@@ -82,11 +79,16 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
-            if (InfoBuilder.SyntaxReceiverCreator is object)
-            {
-                throw new InvalidOperationException($"Only a single {nameof(SyntaxReceiverCreator)} can be registered per generator.");
-            }
+            CheckIsEmpty(InfoBuilder.SyntaxReceiverCreator);
             InfoBuilder.SyntaxReceiverCreator = receiverCreator;
+        }
+
+        private void CheckIsEmpty<T>(T x)
+        {
+            if (x is object)
+            {
+                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeof(T).Name));
+            }
         }
     }
 

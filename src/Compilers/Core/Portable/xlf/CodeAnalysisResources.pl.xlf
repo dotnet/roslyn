@@ -94,6 +94,11 @@
         <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">Analizator „{0}” zawiera deskryptor null we właściwości „SupportedDiagnostics”.</target>

@@ -81,8 +81,6 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            ISyntaxReceiver? receiver = null;
-
             var testGenerator = new CallbackGenerator(
                 onInit: Initialize,
                 onExecute: (e) => { }
@@ -94,14 +92,10 @@ class C { }
             void Initialize(InitializationContext initContext)
             {
                 initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
-                try
+                Assert.Throws<InvalidOperationException>(() =>
                 {
                     initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
-                    Assert.True(false, "Failed to throw");
-                }
-                catch
-                {
-                }
+                });
             }
         }
 
