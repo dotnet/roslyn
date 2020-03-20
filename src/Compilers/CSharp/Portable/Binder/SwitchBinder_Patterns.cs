@@ -240,8 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, SwitchGoverningValEscape,
-                            outputType: out _, outputValEscape: out _, hasErrors, diagnostics);
+                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 
@@ -250,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DefaultSwitchLabel:
                     {
-                        var pattern = new BoundDiscardPattern(node, SwitchGoverningType);
+                        var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, convertedType: SwitchGoverningType);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {

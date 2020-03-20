@@ -1948,6 +1948,7 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
@@ -2015,7 +2016,6 @@
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>
-    <Field Name="OutputType" Type="TypeSymbol"/>
   </Node>
 
   <Node Name="BoundNegatedPattern" Base="BoundPattern">

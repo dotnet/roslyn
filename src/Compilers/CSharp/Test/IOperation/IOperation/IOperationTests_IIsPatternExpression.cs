@@ -1118,7 +1118,7 @@ class C
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
                     Children(0)
                 Pattern: 
-                  ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, MatchedType: ?)
+                  ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, MatchedType: Prop[])
               IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
                 Member: 
                   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
@@ -1571,11 +1571,11 @@ class X
           LeftPattern: 
             IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
               LeftPattern: 
-                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Object)
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Int32)
               RightPattern: 
-                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Object)
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Int64)
           RightPattern: 
-            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Object)
+            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Boolean)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

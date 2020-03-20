@@ -768,11 +768,11 @@ class X
           LeftPattern: 
             IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
               LeftPattern: 
-                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Object)
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Int32)
               RightPattern: 
-                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Object)
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Int64)
           RightPattern: 
-            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Object)
+            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Boolean)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

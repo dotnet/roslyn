@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
@@ -284,8 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundRecursivePattern recursive:
                     return MakeTestsAndBindingsForRecursivePattern(input, recursive, out output, bindings);
                 case BoundITuplePattern iTuple:
-                    output = input;
-                    return MakeTestsAndBindingsForITuplePattern(input, iTuple, bindings);
+                    return MakeTestsAndBindingsForITuplePattern(input, iTuple, out output, bindings);
                 case BoundTypePattern type:
                     return MakeTestsForTypePattern(input, type, out output);
                 case BoundRelationalPattern rel:
@@ -303,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Tests MakeTestsAndBindingsForITuplePattern(
             BoundDagTemp input,
             BoundITuplePattern pattern,
+            out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             var syntax = pattern.Syntax;
@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
             tests.Add(new Tests.One(valueAsITupleEvaluation));
             var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
+            output = valueAsITuple;
 
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(new Tests.One(lengthEvaluation));
@@ -582,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
                 builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
                 var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.OutputType))
+                if (bin.InputType.Equals(bin.ConvertedType))
                 {
                     output = input;
                     return result;
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder = ArrayBuilder<Tests>.GetInstance(2);
                     builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.OutputType, isExplicitTest: false, tests: builder);
+                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.ConvertedType, isExplicitTest: false, tests: builder);
                     return Tests.AndSequence.Create(builder);
                 }
             }
@@ -600,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
                 builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                 output = rightOutput;
-                Debug.Assert(output.Type.Equals(bin.OutputType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
                 return Tests.AndSequence.Create(builder);
             }
         }

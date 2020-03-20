@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3185,8 +3181,8 @@ class C
 
         // 6. If P is an or pattern, the narrowed type is the common type of the narrowed type of the left pattern and the narrowed type of the right pattern if such a common type exists.
 // This test blocked until https://github.com/dotnet/roslyn/pull/42109 is integrated.
-        //o = 1;
-        //{ if (o is (1 or 2) and var i) M(i); } // System.Int32
+        o = 1;
+        { if (o is (1 or 2) and var i) M(i); } // System.Int32
 
         // 7. If P is an and pattern, the narrowed type is the narrowed type of the right pattern. Moreover, the narrowed type of the left pattern is the input type of the right pattern.
         o = ""SomeString"";
@@ -3194,7 +3190,8 @@ class C
 
         // 8. Otherwise the narrowed type of P is P's input type.
         o = new Q();
-        { if (o is (3, 4) and var i) M(i); } // System.Object
+        // PROTOTYPE(ngafter): we need a rule that explains this.
+        { if (o is (3, 4) and var i) M(i); } // System.Runtime.CompilerServices.ITuple
 
         o = null;
         { if (o is null and var i) M(i); } // System.Object
@@ -3217,15 +3214,478 @@ System.Int64
 System.UInt64
 System.Byte
 System.UInt32
+System.Int32
 System.String
+System.Runtime.CompilerServices.ITuple
 System.Object
 System.Object
-System.Object
-System.Int64";
+System.Int64
+";
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void New9PatternsSemanticModel_01()
+        {
+            // Tests for the semantic model in new patterns as of C# 9.0.
+            var source =
+@"
+using System;
+class Program
+{
+    void M(object o)
+    {
+        const int N = 12;
+        const char A = 'A';
+        const char Z = 'Z';
+        const char a = 'a';
+        const char z = 'z';
+        const char c0 = '0';
+        const char c9 = '9';
+        switch (o)
+        {
+            // Parenthesized patterns
+            case ((N, N)): break;
+            case (((long), (long))): break;
+            case ((N)): break;
+            // type patterns
+            case (int, int): break;
+            case (System.Int64, System.Int32): break;
+            case int: break;
+            // Conjunctive and disjunctive patterns
+            case (>= A and <= Z) or (>= a and <= z): break;
+            // Negated patterns
+            case not (> c0 and < c9): break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var patterns = tree.GetRoot().DescendantNodes().OfType<PatternSyntax>().ToArray();
+            Assert.Equal(31, patterns.Length);
+            for (int i = 0; i < 31; i++)
+            {
+                var pattern = patterns[i];
+                AssertEmpty(model.GetSymbolInfo(pattern));
+                switch (i)
+                {
+                    case 0:
+                        Assert.Equal("((N, N))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 1:
+                        Assert.Equal("(N, N)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 2:
+                    case 3:
+                        Assert.Equal("N", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int32 N", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 4:
+                        Assert.Equal("(((long), (long)))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 5:
+                        Assert.Equal("((long), (long))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 6:
+                    case 8:
+                        Assert.Equal("(long)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 7:
+                    case 9:
+                        Assert.Equal("long", pattern.ToString());
+                        Assert.Equal(SyntaxKind.TypePattern, pattern.Kind());
+                        Assert.Equal("System.Int64", model.GetSymbolInfo(((TypePatternSyntax)pattern).Type).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 10:
+                        Assert.Equal("(int, int)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 11:
+                    case 12:
+                    case 16:
+                        Assert.Equal("int", pattern.ToString());
+                        Assert.Equal(SyntaxKind.TypePattern, pattern.Kind());
+                        Assert.Equal("System.Int32", model.GetSymbolInfo(((TypePatternSyntax)pattern).Type).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 13:
+                        Assert.Equal("(System.Int64, System.Int32)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 14:
+                        Assert.Equal("System.Int64", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int64", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 15:
+                        Assert.Equal("System.Int32", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int32", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 17:
+                        Assert.Equal("(>= A and <= Z) or (>= a and <= z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.OrPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 18:
+                        Assert.Equal("(>= A and <= Z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 19:
+                        Assert.Equal(">= A and <= Z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 20:
+                        Assert.Equal(">= A", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char A", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 21:
+                        Assert.Equal("<= Z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char Z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 22:
+                        Assert.Equal("(>= a and <= z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 23:
+                        Assert.Equal(">= a and <= z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 24:
+                        Assert.Equal(">= a", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char a", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 25:
+                        Assert.Equal("<= z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 26:
+                        Assert.Equal("not (> c0 and < c9)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.NotPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 27:
+                        Assert.Equal("(> c0 and < c9)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 28:
+                        Assert.Equal("> c0 and < c9", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 29:
+                        Assert.Equal("> c0", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char c0", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 30:
+                        Assert.Equal("< c9", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char c9", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void New9PatternsSemanticModel_02()
+        {
+            // Tests for the semantic model in new patterns as of C# 9.0.
+            var source =
+@"
+using System;
+class Program
+{
+    void M(object o)
+    {
+        const int N = 12;
+        const char A = 'A';
+        const char Z = 'Z';
+        const char a = 'a';
+        const char z = 'z';
+        const char c0 = '0';
+        const char c9 = '9';
+
+        // Parenthesized patterns
+        _ = o is ((N, N));
+        _ = o is (((long), (long)));
+        _ = o is ((N));
+        // type patterns
+        _ = o is (int, int);
+        _ = o is (System.Int64, System.Int32);
+        _ = o is int;
+        // Conjunctive and disjunctive patterns
+        _ = o is (>= A and <= Z) or (>= a and <= z);
+        // Negated patterns
+        _ = o is not (> c0 and < c9);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var patterns = tree.GetRoot().DescendantNodes().OfType<PatternSyntax>().ToArray();
+            Assert.Equal(31, patterns.Length);
+            for (int i = 0; i < 31; i++)
+            {
+                var pattern = patterns[i];
+                AssertEmpty(model.GetSymbolInfo(pattern));
+                switch (i)
+                {
+                    case 0:
+                        Assert.Equal("((N, N))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 1:
+                        Assert.Equal("(N, N)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 2:
+                    case 3:
+                        Assert.Equal("N", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int32 N", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 4:
+                        Assert.Equal("(((long), (long)))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 5:
+                        Assert.Equal("((long), (long))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 6:
+                    case 8:
+                        Assert.Equal("(long)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 7:
+                    case 9:
+                        Assert.Equal("long", pattern.ToString());
+                        Assert.Equal(SyntaxKind.TypePattern, pattern.Kind());
+                        Assert.Equal("System.Int64", model.GetSymbolInfo(((TypePatternSyntax)pattern).Type).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 10:
+                        Assert.Equal("((N))", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(((ConstantPatternSyntax)pattern).Expression).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 11:
+                        Assert.Equal("(int, int)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 12:
+                    case 13:
+                        Assert.Equal("int", pattern.ToString());
+                        Assert.Equal(SyntaxKind.TypePattern, pattern.Kind());
+                        Assert.Equal("System.Int32", model.GetSymbolInfo(((TypePatternSyntax)pattern).Type).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 14:
+                        Assert.Equal("(System.Int64, System.Int32)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RecursivePattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Runtime.CompilerServices.ITuple", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 15:
+                        Assert.Equal("System.Int64", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int64", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int64", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 16:
+                        Assert.Equal("System.Int32", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ConstantPattern, pattern.Kind());
+                        Assert.Equal("System.Int32", model.GetSymbolInfo(((ConstantPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Int32", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 17:
+                        Assert.Equal("(>= A and <= Z) or (>= a and <= z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.OrPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 18:
+                        Assert.Equal("(>= A and <= Z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 19:
+                        Assert.Equal(">= A and <= Z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 20:
+                        Assert.Equal(">= A", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char A", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 21:
+                        Assert.Equal("<= Z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char Z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 22:
+                        Assert.Equal("(>= a and <= z)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 23:
+                        Assert.Equal(">= a and <= z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 24:
+                        Assert.Equal(">= a", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char a", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 25:
+                        Assert.Equal("<= z", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char z", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 26:
+                        Assert.Equal("not (> c0 and < c9)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.NotPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 27:
+                        Assert.Equal("(> c0 and < c9)", pattern.ToString());
+                        Assert.Equal(SyntaxKind.ParenthesizedPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 28:
+                        Assert.Equal("> c0 and < c9", pattern.ToString());
+                        Assert.Equal(SyntaxKind.AndPattern, pattern.Kind());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 29:
+                        Assert.Equal("> c0", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char c0", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Object", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                    case 30:
+                        Assert.Equal("< c9", pattern.ToString());
+                        Assert.Equal(SyntaxKind.RelationalPattern, pattern.Kind());
+                        Assert.Equal("System.Char c9", model.GetSymbolInfo(((RelationalPatternSyntax)pattern).Expression).Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).Type.ToTestDisplayString());
+                        Assert.Equal("System.Char", model.GetTypeInfo(pattern).ConvertedType.ToTestDisplayString());
+                        break;
+                }
+            }
         }
     }
 }
