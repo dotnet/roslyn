@@ -38,7 +38,4 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public Task ItemCompletedAsync() => Task.CompletedTask;
         }
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
-
 }
