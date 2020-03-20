@@ -48,39 +48,16 @@ namespace Analyzer.Utilities.Extensions
                          body.Operations[2] is IReturnOperation returnOp && returnOp.IsImplicit);
                 }
 
-                if (IsSingleStatementBody(methodBlock))
+                if (IsSingleStatementBody(methodBlock) &&
+                    methodBlock.Operations[0].GetTopmostExplicitDescendants() is { } descendants &&
+                    descendants.Length == 1 &&
+                    descendants[0] is IThrowOperation throwOperation &&
+                    throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                 {
-                    var innerOperation = methodBlock.Operations.First();
-
-                    // Because of https://github.com/dotnet/roslyn/issues/23152, there can be an expression-statement
-                    // wrapping expression-bodied throw operations. Compensate by unwrapping if necessary.
-                    if (innerOperation.Kind == OperationKind.ExpressionStatement &&
-                        innerOperation is IExpressionStatementOperation exprStatement)
+                    if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
+                        || Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
                     {
-                        innerOperation = exprStatement.Operation;
-                    }
-
-                    // Special case for methods with a return type and using arrowed expression where the throw-statement
-                    // is wrapped.
-                    // For example: public int GetSomething(int val) => throw new NotImplementedException();
-                    if (innerOperation.Kind == OperationKind.Return &&
-                        innerOperation is IReturnOperation @return &&
-                        @return.ReturnedValue.Kind == OperationKind.Conversion &&
-                        @return.ReturnedValue is IConversionOperation conversion &&
-                        conversion.Operand.Kind == OperationKind.Throw)
-                    {
-                        innerOperation = conversion.Operand;
-                    }
-
-                    if (innerOperation.Kind == OperationKind.Throw &&
-                        innerOperation is IThrowOperation throwOperation &&
-                        throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
-                    {
-                        if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
-                            || Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
