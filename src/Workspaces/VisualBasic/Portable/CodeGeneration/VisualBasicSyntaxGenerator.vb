@@ -2642,7 +2642,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return _list
         End Function
 
-<<<<<<< HEAD
         Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
             accessibility = Accessibility.NotApplicable
             modifiers = DeclarationModifiers.None
@@ -2702,8 +2701,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Next
         End Sub
 
-=======
->>>>>>> dotnet/master
         Private Function GetTypeParameters(typeParameterNames As IEnumerable(Of String)) As TypeParameterListSyntax
             If typeParameterNames Is Nothing Then
                 Return Nothing

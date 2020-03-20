@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // This should be called after the metadata check above to avoid looking for nodes in metadata.
             var declarationLocation = symbol.Locations.FirstOrDefault();
-            if (declarationLocation == default)
+            if (declarationLocation == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
             }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetDocument(documentId);
             var declarationChangeSignatureService = declarationDocument?.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            if (declarationChangeSignatureService == default)
+            if (declarationChangeSignatureService == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
             }
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var newArguments = new List<IUnifiedArgumentSyntax>();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
-            IUnifiedArgumentSyntax paramsArrayArgument = default;
+            IUnifiedArgumentSyntax paramsArrayArgument = null;
 
             foreach (var argument in argumentsToPermute)
             {
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // 6. Add the params argument with the first value:
-            if (paramsArrayArgument != default)
+            if (paramsArrayArgument != null)
             {
                 var param = argumentToParameterMap[paramsArrayArgument];
                 var actualIndex = updatedSignature.GetUpdatedIndex(declarationParameters.IndexOf(param));
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     {
                         fullList.Add(
                             Generator.Argument(
-                                name: seenNameEquals ? addedParameter.Name : default,
+                                name: seenNameEquals ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(addedParameter.CallSiteValue)));
                         separators.Add(Generator.CommaTokenWithElasticSpace());
