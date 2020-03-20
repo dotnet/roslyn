@@ -4,15 +4,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
+using Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolution
 {
+    using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpResolveConflictMarkerCodeFixProvider>;
+
     public class ConflictMarkerResolutionTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -674,6 +676,38 @@ b"";
                 NumberOfIncrementalIterations = 1,
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
+            }.RunAsync();
+        }
+
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestMissingWithMiddleMarkerAtTopOfFile()
+        {
+            var source = @"{|CS8300:=======|}
+class X {
+}
+{|CS8300:>>>>>>>|} merge rev";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [WorkItem(23847, "https://github.com/dotnet/roslyn/issues/23847")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
+        public async Task TestMissingWithMiddleMarkerAtBottomOfFile()
+        {
+            var source = @"{|CS8300:<<<<<<<|} working copy
+class X {
+}
+{|CS8300:=======|}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
             }.RunAsync();
         }
 
