@@ -672,6 +672,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 projectRef,
                 allowDuplicates: false);
 
+            var projectRefs = (IEnumerable<ProjectReference>)ImmutableArray.Create(
+                new ProjectReference(projectId2),
+                new ProjectReference(projectId2, ImmutableArray.Create("alias")),
+                new ProjectReference(projectId2, embedInteropTypes: true));
+
+            var solution2 = solution.WithProjectReferences(projectId, projectRefs);
+            Assert.Same(projectRefs, solution2.GetProject(projectId)!.AllProjectReferences);
+
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, new[] { projectRef }));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), new[] { projectRef }));
         }

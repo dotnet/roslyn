@@ -817,7 +817,20 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = oldProject.WithProjectReferences(newReferences);
 
-            var newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
+            ProjectDependencyGraph newDependencyGraph;
+            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
+            {
+                // The project contained multiple non-equivalent references to the project, 
+                // and not all of them were removed. The dependency graph doesn't change.
+                // Note that there might be two references to the same project, one with 
+                // extern alias and the other without. These are not considered duplicates.
+                newDependencyGraph = _dependencyGraph;
+            }
+            else
+            {
+                newDependencyGraph = _dependencyGraph.WithProjectReferenceRemoved(projectId, projectReference.ProjectId);
+            }
+
             return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
