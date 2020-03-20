@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        internal sealed class NullListenerProvider : IAsynchronousOperationListenerProvider
+        private sealed class NullListenerProvider : IAsynchronousOperationListenerProvider
         {
             public IAsynchronousOperationListener GetListener(string featureName) => NullListener;
         }

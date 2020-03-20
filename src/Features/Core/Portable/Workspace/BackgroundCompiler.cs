@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class BackgroundCompiler : IDisposable
+    internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
         private readonly WorkspaceTaskQueue _taskQueue;
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             // make a scheduler that runs on the thread pool
-            var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;

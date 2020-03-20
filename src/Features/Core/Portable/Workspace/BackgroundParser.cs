@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Host
         {
             _workspace = workspace;
 
-            var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 

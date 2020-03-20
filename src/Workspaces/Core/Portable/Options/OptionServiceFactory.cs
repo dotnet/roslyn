@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -62,8 +63,9 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 _globalOptionService = globalOptionService;
 
-                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+                var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
+                var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+                _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }

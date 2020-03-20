@@ -5,35 +5,30 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Host), Shared]
-    internal class VisualStudioTaskSchedulerFactory : WorkspaceTaskSchedulerFactory
+    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Host), Shared]
+    internal sealed class VisualStudioTaskSchedulerProvider : ITaskSchedulerProvider
     {
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTaskSchedulerFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider)
+        public VisualStudioTaskSchedulerProvider(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
         }
 
-        protected override TaskScheduler GetCurrentContextScheduler()
+        public TaskScheduler GetCurrentContextScheduler()
             => new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory);
 
-        private class JoinableTaskFactoryTaskScheduler : TaskScheduler
+        private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {
             private readonly JoinableTaskFactory _joinableTaskFactory;
 

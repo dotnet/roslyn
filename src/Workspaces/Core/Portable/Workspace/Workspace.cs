@@ -83,8 +83,9 @@ namespace Microsoft.CodeAnalysis
             _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+            var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
+            var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new WorkspaceTaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
