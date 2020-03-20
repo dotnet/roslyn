@@ -17,8 +17,8 @@ Microsoft.CodeAnalysis.InitializationContext
 Microsoft.CodeAnalysis.InitializationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.InitializationContext.RegisterForSyntaxNotifications(Microsoft.CodeAnalysis.SyntaxReceiverCreator receiverCreator) -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext
-Microsoft.CodeAnalysis.SourceGeneratorContext.AdditionalSources.get -> Microsoft.CodeAnalysis.AdditionalSourcesCollection
-Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.SourceGeneratorContext.AddSource(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>
 Microsoft.CodeAnalysis.SourceGeneratorContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void

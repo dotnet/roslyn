@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticBag _diagnostics;
 
-        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
-            AnalyzerOptions = options;
+            AdditionalFiles = additionalTexts;
             SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
             AdditionalSources = new AdditionalSourcesCollection();
@@ -42,9 +42,10 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public Compilation Compilation { get; }
 
-        // PROTOTYPE: replace AnalyzerOptions with an differently named type that is otherwise identical.
-        // The concern being that something added to one isn't necessarily applicable to the other.
-        public AnalyzerOptions AnalyzerOptions { get; }
+        /// <summary>
+        /// A set of additional non-code text files that can be used by generators.
+        /// </summary>
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         /// <summary>
         /// If the generator registered an <see cref="ISyntaxReceiver"/> during initialization, this will be the instance created for this generation pass.
@@ -56,10 +57,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        /// <summary>
-        /// PROTOTYPE:
-        /// </summary>
-        public AdditionalSourcesCollection AdditionalSources { get; }
+        internal AdditionalSourcesCollection AdditionalSources { get; }
+
+        public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
 
         public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
     }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
 
-        public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
+        internal void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
         {
             CheckIsEmpty(InfoBuilder.EditCallback);
             InfoBuilder.EditCallback = callback;

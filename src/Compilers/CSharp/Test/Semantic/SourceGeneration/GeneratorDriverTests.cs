@@ -690,7 +690,7 @@ class C { }
 
         public void Execute(SourceGeneratorContext context)
         {
-            foreach (var file in context.AnalyzerOptions.AdditionalFiles)
+            foreach (var file in context.AdditionalFiles)
             {
                 AddSourceForAdditionalFile(context.AdditionalSources, file);
             }

@@ -90,14 +90,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            //PROTOTYPE: should be possible to parallelize this
+            // SG_ISSUE #42629: should be possible to parallelize this
             foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
             {
                 try
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty), syntaxReceiverOpt, diagnosticsBag);
+                    var context = new SourceGeneratorContext(state.Compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
                     stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }
@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             foreach (var edit in _state.Edits)
             {
-                // PROTOTYPE: we'll need to pass in the various compilation states too
                 state = ApplyPartialEdit(state, edit);
                 if (state.EditsFailed)
                 {
