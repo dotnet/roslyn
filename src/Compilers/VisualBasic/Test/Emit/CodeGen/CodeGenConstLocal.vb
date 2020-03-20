@@ -181,7 +181,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub TestDoubleConstLocal()
             Dim verifier = CompileAndVerify(
@@ -214,8 +214,8 @@ End Module
 3.1415926
 3
 28.2743334
-1.79769313486232E+308
-1.79769313486232E+308
+1.7976931348623157E+308
+1.7976931348623157E+308
 3.1415926
             ]]>)
 

@@ -328,7 +328,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub ForLoopStepIsFloatNegativeVar()
             Dim TEMP = CompileAndVerify(
@@ -348,7 +348,7 @@ End Class
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 2
-0.9
+0.8999999999999999
 ]]>).VerifyIL("MyClass1.Main", <![CDATA[
 {
   // Code size       97 (0x61)

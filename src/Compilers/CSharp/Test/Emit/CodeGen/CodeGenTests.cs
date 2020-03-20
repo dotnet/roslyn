@@ -5924,7 +5924,7 @@ public class D
   IL_003a:  brfalse.s  IL_0042
   IL_003c:  ldloc.0
   IL_003d:  call       ""void System.Console.Write(bool)""
-  IL_0042:  ldc.r8     Infinity
+  IL_0042:  ldc.r8     ∞
   IL_004b:  ldc.r8     0
   IL_0054:  beq.s      IL_005c
   IL_0056:  ldloc.0
@@ -9819,7 +9819,7 @@ class MyClass
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
@@ -9882,9 +9882,9 @@ VerifyIL("MyClass.Main", @"
                 int V_3) //ret
   IL_0000:  ldc.r8     1.79769313486232E+308
   IL_0009:  stloc.0
-  IL_000a:  ldc.r8     Infinity
+  IL_000a:  ldc.r8     ∞
   IL_0013:  stloc.1
-  IL_0014:  ldc.r8     -Infinity
+  IL_0014:  ldc.r8     -∞
   IL_001d:  stloc.2
   IL_001e:  ldc.i4.0
   IL_001f:  stloc.3
@@ -12905,7 +12905,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-4e30f").WithArguments("-4E+30", "decimal"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/metadata-tools/issues/30")]
+        [Fact]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {

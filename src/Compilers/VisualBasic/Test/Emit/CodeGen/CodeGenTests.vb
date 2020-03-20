@@ -2587,7 +2587,7 @@ expectedOutput:=<![CDATA[
 {
   // Code size       15 (0xf)
   .maxstack  1
-  IL_0000:  ldc.r8     Infinity
+  IL_0000:  ldc.r8     ∞
   IL_0009:  box        "Double"
   IL_000e:  ret
 }
@@ -13824,7 +13824,7 @@ End Module
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
@@ -13870,7 +13870,7 @@ End Class
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
