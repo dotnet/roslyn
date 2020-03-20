@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Ctor_Errors()
         {
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(ImmutableArray<byte>)));
-            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(IEnumerable<byte>)));
-            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage(default(byte[])));
+            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage((IEnumerable<byte>)null));
+            Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.CreateFromImage((byte[])null));
             Assert.Throws<ArgumentNullException>(() => AssemblyMetadata.Create((ModuleMetadata)null));
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(default(ImmutableArray<ModuleMetadata>)));
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(ImmutableArray.Create<ModuleMetadata>()));
