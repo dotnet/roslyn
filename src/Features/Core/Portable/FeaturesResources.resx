@@ -1018,9 +1018,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Use_null_propagation" xml:space="preserve">
-    <value>Use null propagation</value>
-  </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>

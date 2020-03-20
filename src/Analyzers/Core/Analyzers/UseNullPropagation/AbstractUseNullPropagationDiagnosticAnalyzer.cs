@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
                    CodeStyleOptions2.PreferNullPropagation,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
-        protected abstract ISemanticFactsService GetSemanticFactsService();
+        protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
 
         protected abstract bool TryAnalyzePatternCondition(
             ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
@@ -157,8 +158,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 // converting to c?.nullable doesn't affect the type
             }
 
-            var semanticFacts = GetSemanticFactsService();
-            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
+            if (IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, context.CancellationToken))
             {
                 return;
             }

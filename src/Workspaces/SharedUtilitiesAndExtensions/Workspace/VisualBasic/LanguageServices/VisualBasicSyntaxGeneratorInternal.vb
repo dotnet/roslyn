@@ -44,5 +44,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function Identifier(text As String) As SyntaxToken
             Return SyntaxFactory.Identifier(text)
         End Function
+
+        Friend Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.ConditionalAccessExpression(
+                DirectCast(expression, ExpressionSyntax),
+                DirectCast(whenNotNull, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
+        End Function
     End Class
 End Namespace

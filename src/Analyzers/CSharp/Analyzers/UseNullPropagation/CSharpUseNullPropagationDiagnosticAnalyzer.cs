@@ -5,6 +5,8 @@
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 
-        protected override ISemanticFactsService GetSemanticFactsService()
-            => CSharpSemanticFactsService.Instance;
+        protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         protected override bool TryAnalyzePatternCondition(
             ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
