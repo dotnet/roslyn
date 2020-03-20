@@ -34,8 +34,33 @@ namespace Microsoft.CodeAnalysis
             }
 #endif
 
+            DumpStackTrace(exception);
+
             Environment.FailFast(exception.ToString(), exception);
             throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+        }
+
+        /// <summary>
+        /// Dumps the stack trace of the exception and the handler to the console. This is useful
+        /// for debugging unit tests that hit a fatal exception
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void DumpStackTrace(Exception exception)
+        {
+            Console.WriteLine("Dumping info before call to failfast");
+            Console.WriteLine("Exception info");
+            Exception? current = exception;
+            do
+            {
+                Console.WriteLine(current.Message);
+                Console.WriteLine(current.StackTrace);
+                current = current.InnerException;
+            } while (current is object);
+
+            Console.WriteLine("Stack trace of handler");
+            var stackTrace = new StackTrace();
+            Console.WriteLine(stackTrace.ToString());
+            Console.Out.Flush();
         }
 
         /// <summary>
