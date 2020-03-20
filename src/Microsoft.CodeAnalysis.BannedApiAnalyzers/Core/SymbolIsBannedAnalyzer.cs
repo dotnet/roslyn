@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     {
                         yield return currentSymbol;
 
-                        // It's possible to have `IsOverride` true and yet have `GetOverriddeMember` returning false when the code is invalid
+                        // It's possible to have `IsOverride` true and yet have `GetOverriddeMember` returning null when the code is invalid
                         // (e.g. base symbol is not marked as `virtual` or `abstract` and current symbol has the `overrides` modifier).
                         currentSymbol = currentSymbol.IsOverride
                             ? currentSymbol.GetOverriddenMember()?.OriginalDefinition
