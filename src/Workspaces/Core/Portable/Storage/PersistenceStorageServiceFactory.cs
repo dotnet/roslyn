@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                    {
-                        return new SQLitePersistentStorageService(optionService, locationService);
-                    }
+                        return new SQLitePersistentStorageService(locationService);
 
                     break;
             }

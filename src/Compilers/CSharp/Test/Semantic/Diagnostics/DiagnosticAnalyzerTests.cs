@@ -801,7 +801,7 @@ public class B
 
                     registerSyntaxNodeAction(context =>
                     {
-                        var descriptor = default(DiagnosticDescriptor);
+                        var descriptor = (DiagnosticDescriptor)null;
                         switch (CSharpExtensions.Kind(context.Node.Parent))
                         {
                             case SyntaxKind.PropertyDeclaration:

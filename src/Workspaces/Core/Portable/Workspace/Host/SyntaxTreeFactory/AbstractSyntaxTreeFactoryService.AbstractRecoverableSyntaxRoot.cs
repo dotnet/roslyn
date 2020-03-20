@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Host
                 DiagnosticOptions = diagnosticOptions;
             }
 
-            internal bool TryGetText([MaybeNullWhen(false)]out SourceText text)
+            internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
                 if (TextSource.TryGetValue(out var textAndVersion))
                 {
@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return true;
                 }
 
-                // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
-                text = null!;
+                text = null;
                 return false;
             }
 

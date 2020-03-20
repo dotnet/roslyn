@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     [Shared]
-    internal partial class ExplicitInterfaceMemberCompletionProvider : CommonCompletionProvider
+    internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
 
@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return text[characterPosition] == '.';
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

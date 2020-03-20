@@ -452,8 +452,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We also need to show the spans that are in conflict.
             var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
             var changedSpans = GetChangedSpans(diffResult, cancellationToken);
-            var description = default(string);
-            var allSpans = default(NormalizedSpanCollection);
+            var description = (string)null;
+            var allSpans = (NormalizedSpanCollection)null;
 
             if (newDocument.SupportsSyntaxTree)
             {

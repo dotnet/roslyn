@@ -32,5 +32,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
         internal abstract SyntaxToken Identifier(string identifier);
+
+        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
     }
 }
