@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,192 +21,131 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class TargetTypedConditionalOperatorTests : CSharpTestBase
     {
-        // PROTOTYPE(ngafter): Testing for target-typed semantics is needed.
-
-        /// <summary>
-        /// Both branches have the same type, so no conversion is necessary.
-        /// </summary>
         [Fact]
-        public void TestSameType()
+        public void TestImplicitConversions_Good()
         {
-            TestConditional("true ? 1 : 2", targetType: null, naturalType: "System.Int32");
-            TestConditional("false ? 'a' : 'b'", targetType: null, naturalType: "System.Char");
-            TestConditional("true ? 1.5 : GetDouble()", targetType: null, naturalType: "System.Double");
-            TestConditional("false ? GetObject() : GetObject()", targetType: null, naturalType: "System.Object");
-            TestConditional("true ? GetUserGeneric<T>() : GetUserGeneric<T>()", targetType: null, naturalType: "D<T>");
-            TestConditional("false ? GetTypeParameter<T>() : GetTypeParameter<T>()", targetType: null, naturalType: "T");
+            // Implicit constant expression conversions
+            TestConditional("b ? 1 : 2", "System.Int16", "System.Int32");
 
-            TestConditional("true ? 1 : 2", targetType: "System.Int32", naturalType: "System.Int32");
-            TestConditional("false ? 'a' : 'b'", targetType: "System.Char", naturalType: "System.Char");
-            TestConditional("true ? 1.5 : GetDouble()", targetType: "System.Double", naturalType: "System.Double");
-            TestConditional("false ? GetObject() : GetObject()", targetType: "System.Object", naturalType: "System.Object");
-            TestConditional("true ? GetUserGeneric<T>() : GetUserGeneric<T>()", targetType: "D<T>", naturalType: "D<T>");
-            TestConditional("false ? GetTypeParameter<T>() : GetTypeParameter<T>()", targetType: "T", naturalType: "T");
-        }
+            // Implicit reference conversions
+            TestConditional("b ? GetB() : GetC()", "A", null);
 
-        /// <summary>
-        /// Both branches have types and exactly one expression is convertible to the type of the other.
-        /// </summary>
-        [Fact]
-        public void TestOneConversion()
-        {
-            TestConditional("true ? GetShort() : GetInt()", targetType: "System.Int32");
-            TestConditional("false ? \"string\" : GetObject()", targetType: "System.Object");
-            TestConditional("true ? GetVariantInterface<string, int>() : GetVariantInterface<object, int>()", targetType: "I<System.String, System.Int32>");
-            TestConditional("false ? GetVariantInterface<int, object>() : GetVariantInterface<int, string>()", targetType: "I<System.Int32, System.Object>");
-        }
+            // Implicit numeric conversions
+            TestConditional("b ? GetUInt() : GetInt()", "System.Int64", null);
 
-        /// <summary>
-        /// Both branches have types and both expression are convertible to the type of the other.
-        /// The wider type is preferred.
-        /// </summary>
-        /// <remarks>
-        /// Cases where both conversions are possible and neither is preferred as the
-        /// wider of the two are possible only in the presence of user-defined implicit
-        /// conversions.  Such cases are tested separately.  
-        /// See SemanticErrorTests.CS0172ERR_AmbigQM.
-        /// </remarks>
-        [Fact]
-        public void TestAmbiguousPreferWider()
-        {
-            TestConditional("true ? 1 : (short)2", targetType: "System.Int32");
-            TestConditional("false ? (float)2 : 1", targetType: "System.Single");
-            TestConditional("true ? 1.5d : (double)2", targetType: "System.Double");
-        }
+            // Implicit enumeration conversions
+            TestConditional("b ? 0 : 0", "color", "System.Int32");
 
-        /// <summary>
-        /// Both branches have types but neither expression is convertible to the type
-        /// of the other.
-        /// </summary>
-        [Fact]
-        public void TestNoConversion()
-        {
-            TestConditional("true ? T : U", null,
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? T : U").WithArguments("T", "U"));
-            TestConditional("false ? T : 1", null,
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? T : 1").WithArguments("T", "int"));
-            TestConditional("true ? GetUserGeneric<char>() : GetUserNonGeneric()", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetUserGeneric<char>() : GetUserNonGeneric()").WithArguments("D<char>", "C"));
-        }
+            // Implicit interpolated string conversions
+            TestConditional(@"b ? $""x"" : $""x""", "System.FormattableString", "System.String");
 
-        /// <summary>
-        /// Exactly one branch has a type and the other expression is convertible to that type.
-        /// </summary>
-        [Fact]
-        public void TestOneUntypedSuccess()
-        {
-            TestConditional("true ? GetObject() : null", targetType: "System.Object"); //null literal
-            TestConditional("false ? GetString : (System.Func<string>)null", targetType: "System.Func<System.String>"); //method group
-            TestConditional("true ? (System.Func<int, int>)null : x => x", targetType: "System.Func<System.Int32, System.Int32>"); //lambda
-        }
+            // Implicit nullable conversions
+            // Null literal conversions
+            TestConditional("b ? 1 : null", "System.Int64?", null);
 
-        /// <summary>
-        /// Exactly one branch has a type but the other expression is not convertible to that type.
-        /// </summary>
-        [Fact]
-        public void TestOneUntypedFailure()
-        {
-            TestConditional("true ? GetInt() : null", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetInt() : null").WithArguments("int", "<null>"));
-            TestConditional("false ? GetString : (System.Func<int>)null", null, TestOptions.WithoutImprovedOverloadCandidates,
-                Diagnostic(ErrorCode.ERR_BadRetType, "GetString").WithArguments("C.GetString()", "string"));
-            TestConditional("false ? GetString : (System.Func<int>)null", null,
-                // (6,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'Func<int>'
-                //         _ = false ? GetString : (System.Func<int>)null;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? GetString : (System.Func<int>)null").WithArguments("method group", "System.Func<int>").WithLocation(6, 13));
-            TestConditional("true ? (System.Func<int, short>)null : x => x", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? (System.Func<int, short>)null : x => x").WithArguments("System.Func<int, short>", "lambda expression"));
+            // Boxing conversions
+            TestConditional("b ? GetUInt() : GetInt()", "System.IComparable", null);
+
+            // User - defined implicit conversions
+            TestConditional("b ? GetB() : GetC()", "X", null);
+
+            // Anonymous function conversions
+            TestConditional("b ? a=>a : b=>b", "Del", null);
+
+            // Method group conversions
+            TestConditional("b ? M1 : M2", "Del", null);
         }
 
         [Fact]
-        public void TestBothUntyped()
+        public void TestImplicitConversions_Bad()
         {
-            TestConditional("true ? null : null", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? null : null").WithArguments("<null>", "<null>"));
-            TestConditional("false ? null : GetInt", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? null : GetInt").WithArguments("<null>", "method group"));
-            TestConditional("true ? null : x => x", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? null : x => x").WithArguments("<null>", "lambda expression"));
+            // Implicit constant expression conversions
+            TestConditional("b ? 1000000 : 2", "System.Int16", "System.Int32",
+                // (6,30): error CS0029: Cannot implicitly convert type 'int' to 'short'
+                //         System.Int16 t = b ? 1000000 : 2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1000000").WithArguments("int", "short").WithLocation(6, 30)
+                );
 
-            TestConditional("false ? GetInt : GetInt", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? GetInt : GetInt").WithArguments("method group", "method group"));
-            TestConditional("true ? GetInt : x => x", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetInt : x => x").WithArguments("method group", "lambda expression"));
+            // Implicit reference conversions
+            TestConditional("b ? GetB() : GetC()", "System.String", null,
+                // (6,31): error CS0029: Cannot implicitly convert type 'B' to 'string'
+                //         System.String t = b ? GetB() : GetC();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetB()").WithArguments("B", "string").WithLocation(6, 31),
+                // (6,40): error CS0029: Cannot implicitly convert type 'C' to 'string'
+                //         System.String t = b ? GetB() : GetC();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetC()").WithArguments("C", "string").WithLocation(6, 40)
+                );
 
-            TestConditional("false ? x => x : x => x", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? x => x : x => x").WithArguments("lambda expression", "lambda expression"));
+            // Implicit numeric conversions
+            TestConditional("b ? GetUInt() : GetInt()", "System.UInt64", null,
+                // (6,43): error CS0029: Cannot implicitly convert type 'int' to 'ulong'
+                //         System.UInt64 t = b ? GetUInt() : GetInt();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetInt()").WithArguments("int", "ulong").WithLocation(6, 43)
+                );
+
+            // Implicit enumeration conversions
+            TestConditional("b ? 1 : 0", "color", "System.Int32",
+                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'color'
+                //         color t = b ? 1 : 0;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "color").WithLocation(6, 23)
+                );
+
+            // Implicit interpolated string conversions
+            TestConditional(@"b ? $""x"" : ""x""", "System.FormattableString", "System.String",
+                // (6,49): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                //         System.FormattableString t = b ? $"x" : "x";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 49)
+                );
+
+            // Implicit nullable conversions
+            // Null literal conversions
+            TestConditional(@"b ? """" : null", "System.Int64?", "System.String",
+                // (6,31): error CS0029: Cannot implicitly convert type 'string' to 'long?'
+                //         System.Int64? t = b ? "" : null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "long?").WithLocation(6, 31)
+                );
+            TestConditional(@"b ? 1 : """"", "System.Int64?", null,
+                // (6,35): error CS0029: Cannot implicitly convert type 'string' to 'long?'
+                //         System.Int64? t = b ? 1 : "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "long?").WithLocation(6, 35)
+                );
+
+            // Boxing conversions
+            TestConditional("b ? GetUInt() : GetInt()", "System.Collections.IList", null,
+                // (6,42): error CS0029: Cannot implicitly convert type 'uint' to 'System.Collections.IList'
+                //         System.Collections.IList t = b ? GetUInt() : GetInt();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetUInt()").WithArguments("uint", "System.Collections.IList").WithLocation(6, 42),
+                // (6,54): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.IList'
+                //         System.Collections.IList t = b ? GetUInt() : GetInt();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetInt()").WithArguments("int", "System.Collections.IList").WithLocation(6, 54)
+                );
+
+            // User - defined implicit conversions
+            TestConditional("b ? GetB() : GetD()", "X", null,
+                // (6,28): error CS0619: 'D.implicit operator X(D)' is obsolete: 'D'
+                //         X t = b ? GetB() : GetD();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "GetD()").WithArguments("D.implicit operator X(D)", "D").WithLocation(6, 28)
+                );
+
+            // Anonymous function conversions
+            TestConditional(@"b ? a=>a : b=>""""", "Del", null,
+                // (6,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         Del t = b ? a=>a : b=>"";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(6, 31),
+                // (6,31): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Del t = b ? a=>a : b=>"";
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, @"""""").WithArguments("lambda expression").WithLocation(6, 31)
+                );
+
+            // Method group conversions
+            TestConditional("b ? M1 : M3", "Del", null,
+                // (6,26): error CS0123: No overload for 'M3' matches delegate 'Del'
+                //         Del t = b ? M1 : M3;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M3").WithArguments("M3", "Del").WithLocation(6, 26)
+                );
         }
 
-        [Fact]
-        public void TestFunCall()
-        {
-            TestConditional("true ? GetVoid() : GetInt()", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetVoid() : GetInt()").WithArguments("void", "int"));
-            TestConditional("GetVoid() ? 1 : 2", null,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetVoid()").WithArguments("void", "bool"));
-            TestConditional("GetInt() ? 1 : 2", null,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetInt()").WithArguments("int", "bool"));
-            TestConditional("GetBool() ? 1 : 2", "System.Int32");
-        }
-
-        [Fact]
-        public void TestEmptyExpression()
-        {
-            TestConditional("true ?  : GetInt()", null,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"));
-            TestConditional("true ? GetInt() :  ", null,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"));
-        }
-
-        [Fact]
-        public void TestEnum()
-        {
-            TestConditional("true? 0 : color.Blue", "color");
-            TestConditional("true? 5 : color.Blue", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true? 5 : color.Blue").WithArguments("int", "color"));
-            TestConditional("true? null : color.Blue", null,
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true? null : color.Blue").WithArguments("<null>", "color"));
-        }
-
-        [Fact]
-        public void TestAs()
-        {
-            TestConditional(@"(1 < 2) ? ""MyString"" as string : "" """, "System.String");
-            TestConditional(@"(1 > 2) ? "" "" : ""MyString"" as string", "System.String");
-        }
-
-        [Fact]
-        public void TestGeneric()
-        {
-            TestConditional(@"GetUserNonGeneric()? 1 : 2", null, Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetUserNonGeneric()").WithArguments("C", "bool"));
-            TestConditional(@"GetUserGeneric<T>()? 1 : 2", null, Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetUserGeneric<T>()").WithArguments("D<T>", "bool"));
-            TestConditional(@"GetTypeParameter<T>()? 1 : 2", null, Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetTypeParameter<T>()").WithArguments("T", "bool"));
-            TestConditional(@"GetVariantInterface<T, U>()? 1 : 2", null, Diagnostic(ErrorCode.ERR_NoImplicitConv, "GetVariantInterface<T, U>()").WithArguments("I<T, U>", "bool"));
-        }
-
-        [Fact]
-        public void TestInvalidCondition()
-        {
-            // CONSIDER: dev10 reports ERR_ConstOutOfRange
-            TestConditional("1 ? 2 : 3", null,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
-
-            TestConditional("goo ? 'a' : 'b'", null,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
-
-            TestConditional("new Goo() ? GetObject() : null", null,
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"));
-
-            // CONSIDER: dev10 reports ERR_ConstOutOfRange
-            TestConditional("1 ? null : null", null,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>"));
-        }
-
-        private static void TestConditional(string conditionalExpression, string targetType, string naturalType, params DiagnosticDescription[] expectedDiagnostics)
+        private static void TestConditional(string conditionalExpression, string targetType, string? naturalType, params DiagnosticDescription[] expectedDiagnostics)
         {
             TestConditional(conditionalExpression, targetType, naturalType, null, expectedDiagnostics);
         }
@@ -217,32 +158,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             params DiagnosticDescription[] expectedDiagnostics)
         {
             string source = $@"
-class C
+class Program
 {{
     void Test<T, U>(bool b)
     {{
-        {targetType ?? "var"} t = {conditionalExpression};
+        {targetType} t = {conditionalExpression};
         Use(t);
     }}
 
+    A GetA() {{ return null; }}
+    B GetB() {{ return null; }}
+    C GetC() {{ return null; }}
+    D GetD() {{ return null; }}
     int GetInt() {{ return 1; }}
-    void GetVoid() {{ return ; }}
-    bool GetBool() {{ return true; }}
-    short GetShort() {{ return 1; }}
-    char GetChar() {{ return 'a'; }}
-    double GetDouble() {{ return 1.5; }}
-    string GetString() {{ return ""hello""; }}
-    object GetObject() {{ return new object(); }}
-    C GetUserNonGeneric() {{ return new C(); }}
-    D<T> GetUserGeneric<T>() {{ return new D<T>(); }}
-    T GetTypeParameter<T>() {{ return default(T); }}
-    I<T, U> GetVariantInterface<T, U>() {{ return null; }}
+    uint GetUInt() {{ return 1; }}
     void Use(object t) {{ }}
+
+    static int M1(int x) => x;
+    static int M2(int x) => x;
+    static int M3(int x, int y) => x;
 }}
 
-class D<T> {{ }}
 public enum color {{ Red, Blue, Green }};
-interface I<in T, out U> {{ }}";
+
+class A {{ }}
+class B : A {{ public static implicit operator X(B self) => new X(); }}
+class C : A {{ public static implicit operator X(C self) => new X(); }}
+class D : A {{ [System.Obsolete(""D"", true)] public static implicit operator X(D self) => new X(); }}
+
+class X {{ }}
+
+delegate int Del(int x);
+";
 
             parseOptions ??= TestOptions.Regular;
             parseOptions = parseOptions.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion());
@@ -254,24 +201,33 @@ interface I<in T, out U> {{ }}";
             var compUnit = tree.GetCompilationUnitRoot();
             var classC = (TypeDeclarationSyntax)compUnit.Members.First();
             var methodTest = (MethodDeclarationSyntax)classC.Members.First();
-            var stmt = (ExpressionStatementSyntax)methodTest.Body!.Statements.First();
-            var assignment = (AssignmentExpressionSyntax)stmt.Expression;
-            var conditionalExpr = (ConditionalExpressionSyntax)assignment.Right;
+            var stmt = (LocalDeclarationStatementSyntax)methodTest.Body!.Statements.First();
+            var conditionalExpr = (ConditionalExpressionSyntax)stmt.Declaration.Variables[0].Initializer!.Value;
 
             var model = comp.GetSemanticModel(tree);
 
-            Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
-
-            if (targetType != null)
+            if (naturalType is null)
             {
-                Assert.Equal(targetType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString());
-
-                if (!expectedDiagnostics.Any())
+                var actualType = model.GetTypeInfo(conditionalExpr).Type;
+                if (actualType is { })
                 {
-                    Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(conditionalExpr.Condition).Type!.SpecialType);
-                    Assert.Equal(targetType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
-                    Assert.Equal(targetType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
+                    Assert.NotEmpty(expectedDiagnostics);
+                    Assert.Equal("?", model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
                 }
+            }
+            else
+            {
+                Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
+            }
+
+            var convertedType = targetType;
+            Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString());
+
+            if (!expectedDiagnostics.Any())
+            {
+                Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(conditionalExpr.Condition).Type!.SpecialType);
+                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
+                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
             }
         }
     }

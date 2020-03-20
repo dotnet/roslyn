@@ -3751,7 +3751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol resultType;
-            if (node.HasErrors)
+            if (node.HasErrors || node is BoundConditionalOperator { WasTargetTyped: true })
             {
                 resultType = null;
             }
