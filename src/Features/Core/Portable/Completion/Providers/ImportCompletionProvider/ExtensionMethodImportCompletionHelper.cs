@@ -158,12 +158,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var assembly = compilation.Assembly;
 
                 var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
-                CheckDefaultAccessibility(compilation, internalsVisible, out var ignoreUnspecifiedContainerAccessibility, out var ignoreUnspecifiedMethodAccessibility);
 
                 var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                    compilation.Assembly, filter, namespaceFilter, !internalsVisible,
-                    ignoreUnspecifiedContainerAccessibility, ignoreUnspecifiedMethodAccessibility, counter,
-                    cancellationToken);
+                    compilation.Assembly, filter, namespaceFilter, internalsVisible,
+                    counter, cancellationToken);
 
                 var isSymbolFromCurrentCompilation = project == currentProject;
                 GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation, builder, namespaceNameCache);
@@ -178,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 
                     var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                        assembly, filter, namespaceFilter,
-                        !internalsVisible, ignoreUnspecifiedContainerAccessibility: true, ignoreUnspecifiedMethodAccessibility: true,
+                        assembly, filter, namespaceFilter, internalsVisible,
                         counter, cancellationToken);
 
                     GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation: false, builder, namespaceNameCache);
@@ -187,32 +184,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return builder.ToImmutable();
-        }
-
-        // Determine whether a declaration with default accessibility should be ignored when looking for matching symbol.
-        // The value returned will be used as a quick filter for symbol accessibility based on declared accessibility to
-        // SemanticModel when possible.
-        private static void CheckDefaultAccessibility(Compilation compilation, bool internalsVisible, out bool ignoreUnspecifiedContainerAccessibility, out bool ignoreUnspecifiedMethodAccessibility)
-        {
-            switch (compilation.Language)
-            {
-                // In C#, default accessibility for type is internal and for method is private.
-                case LanguageNames.CSharp:
-                    ignoreUnspecifiedContainerAccessibility = !internalsVisible;
-                    ignoreUnspecifiedMethodAccessibility = true;
-                    break;
-
-                // In VB, extension methods are declared in modules and default to public
-                case LanguageNames.VisualBasic:
-                    ignoreUnspecifiedContainerAccessibility = false;
-                    ignoreUnspecifiedMethodAccessibility = false;
-                    break;
-
-                default:
-                    ignoreUnspecifiedContainerAccessibility = true;
-                    ignoreUnspecifiedMethodAccessibility = true;
-                    break;
-            }
         }
 
         private static void GetExtensionMethodItemsWorker(
@@ -275,9 +246,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IAssemblySymbol assembly,
             MultiDictionary<string, string> extensionMethodFilter,
             ISet<string> namespaceFilter,
-            bool ignoreInternal,
-            bool ignoreUnspecifiedContainerAccessibility,
-            bool ignoreUnspecifiedMethodAccessibility,
+            bool internalsVisible,
             StatisticCounter counter,
             CancellationToken cancellationToken)
         {
@@ -303,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (containerSymbol == null
                     || !containerSymbol.MightContainExtensionMethods
-                    || ShouldIgnoreSymbol(containerSymbol, ignoreInternal, ignoreUnspecifiedContainerAccessibility))
+                    || !IsAccessible(containerSymbol, internalsVisible))
                 {
                     continue;
                 }
@@ -317,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         counter.TotalExtensionMethodsChecked++;
 
                         if (methodSymbol.IsExtensionMethod &&
-                            !ShouldIgnoreSymbol(methodSymbol, ignoreInternal, ignoreUnspecifiedMethodAccessibility))
+                            IsAccessible(methodSymbol, internalsVisible))
                         {
                             // Find a potential match.
                             builder.Add(methodSymbol);
@@ -328,17 +297,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return builder.ToImmutable();
 
-            // A syntax based check for accessibility, a semantic based check is still required later.
-            // Since we are dealing with extension methods and their container (top level static class and modules),
-            // only public, internal and private modifiers are in play here.
-            static bool ShouldIgnoreSymbol(ISymbol symbol, bool ignoreInternal, bool ignoreUnspecifiedAccessibility)
-                => symbol.DeclaredAccessibility switch
-                {
-                    Accessibility.Public => false,
-                    Accessibility.Internal => ignoreInternal,
-                    Accessibility.NotApplicable => ignoreUnspecifiedAccessibility,
-                    _ => true,
-                };
+            // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.
+            // Since we are dealing with extension methods and their container (top level static class and modules), only public,
+            // internal and private modifiers are in play here. 
+            // Also, this check is called for a method symbol only when the container was checked and is accessible.
+            static bool IsAccessible(ISymbol symbol, bool internalsVisible) =>
+                symbol.DeclaredAccessibility == Accessibility.Public ||
+                symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible;
         }
 
         private static async Task<GetIndicesResult> TryGetIndicesAsync(
@@ -442,11 +407,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return results;
         }
-
-        // We only call this when the containing symbol is accessible, 
-        // so being declared as public means this symbol is also accessible.
-        private static bool IsSymbolAccessible(ISymbol symbol, int position, SemanticModel semanticModel)
-            => symbol.DeclaredAccessibility == Accessibility.Public || semanticModel.IsAccessible(position, symbol);
 
         private readonly struct GetIndicesResult
         {

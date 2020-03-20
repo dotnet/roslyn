@@ -135,7 +135,7 @@ namespace Baz
 
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -173,7 +173,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -211,7 +211,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -249,7 +249,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -287,7 +287,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -324,7 +324,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -362,7 +362,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  displayTextSuffix: "<>",
@@ -401,7 +401,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -439,7 +439,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -477,7 +477,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -521,7 +521,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -564,7 +564,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -610,7 +610,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -657,7 +657,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  displayTextSuffix: "<>",
@@ -696,7 +696,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtentionMethod",
                  inlineDescription: "Foo");
@@ -731,7 +731,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
@@ -768,7 +768,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,
@@ -809,7 +809,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -847,7 +847,7 @@ namespace Baz
 }}";
             var markup = GetMarkup(file2, file1, ReferenceType.None);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -914,7 +914,7 @@ namespace Baz
 }}";
             var markup = GetMarkup(file2, file1, ReferenceType.Project, currentLanguage: LanguageNames.CSharp, referencedLanguage: LanguageNames.VisualBasic);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -949,7 +949,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Root");
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -984,7 +984,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp);
 
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtentionMethod",
                  inlineDescription: "");
@@ -1020,7 +1020,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
@@ -1070,7 +1070,7 @@ namespace Baz
 }}";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  expectedMethodname,
                  glyph: (int)Glyph.ExtensionMethodInternal,
@@ -1112,7 +1112,7 @@ namespace Baz
 }}";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1147,7 +1147,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtMethod",
                  inlineDescription: "Foo");
@@ -1193,13 +1193,13 @@ namespace Baz
 
             var markup = CreateMarkupForSingleProject(currentFile, file1, LanguageNames.CSharp);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod1",
                  glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod2",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1254,13 +1254,13 @@ namespace Baz
                 _ => null,
             };
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod1",
                  glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod2",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1309,25 +1309,77 @@ namespace Baz
 
             var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, new[] { refDoc1, refDoc2 });
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod1",
                  glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod2",
                  glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
 
-        private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
+        [InlineData("", "", false)]
+        [InlineData("", "public", true)]
+        [InlineData("public", "", false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCSharpDefaultAccessibility(string containerAccessibility, string methodAccessibility, bool isAvailable)
+        {
+            var file1 = $@"
+using System;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    {containerAccessibility} static class ExtensionClass
+    {{
+        {methodAccessibility} static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference: true);
+
+            if (isAvailable)
+            {
+                await VerifyImportItemExistsAsync(
+                     markup,
+                     "ExtentionMethod",
+                     glyph: (int)Glyph.ExtensionMethodPublic,
+                     inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                     markup,
+                     "ExtentionMethod",
+                     inlineDescription: "Foo");
+            }
+        }
+
+        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
         {
             return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
         }
 
-        private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+        private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
         {
             return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
         }
