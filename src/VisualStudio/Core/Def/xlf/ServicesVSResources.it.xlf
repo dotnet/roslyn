@@ -122,11 +122,6 @@
         <target state="new">TODO</target>
         <note>"TODO" is an indication that there is work to be done still</note>
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">Classificazioni</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">Analisi codice completata per '{0}'.</target>
