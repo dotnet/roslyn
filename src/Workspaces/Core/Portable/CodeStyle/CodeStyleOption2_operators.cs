@@ -24,12 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         [return: NotNullIfNotNull("option")]
         public static implicit operator CodeStyleOption2<T>?(CodeStyleOption<T>? option)
         {
-            if (option == null)
-            {
-                return null;
-            }
-
-            return new CodeStyleOption2<T>(option.Value, (NotificationOption2?)option.Notification);
+            return option?.UnderlyingOption;
         }
     }
 }

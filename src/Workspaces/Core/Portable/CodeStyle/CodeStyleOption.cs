@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => _codeStyleOptionImpl.Notification = (NotificationOption2)(value ?? throw new ArgumentNullException(nameof(value)));
         }
 
+        internal CodeStyleOption2<T> UnderlyingOption => _codeStyleOptionImpl;
+
         public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();
 
         public static CodeStyleOption<T> FromXElement(XElement element)
