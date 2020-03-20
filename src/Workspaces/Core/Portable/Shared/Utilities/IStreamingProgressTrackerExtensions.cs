@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private readonly IStreamingProgressTracker _progressTracker;
 
             public StreamingProgressDisposer(IStreamingProgressTracker progressTracker)
-            {
-                _progressTracker = progressTracker;
-            }
+                => _progressTracker = progressTracker;
 
             public async ValueTask DisposeAsync()
             {

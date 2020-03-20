@@ -69,26 +69,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
             IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
         {
-            try
-            {
-                // Let the find-refs window know we have outstanding work
-                await progress.AddItemsAsync(1).ConfigureAwait(false);
+            // Let the find-refs window know we have outstanding work
+            await using var _1 = await progress.AddSingleItemAsync().ConfigureAwait(false);
 
-                var results = await codeIndexProvider.FindReferencesByMonikerAsync(
-                    monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var results = await codeIndexProvider.FindReferencesByMonikerAsync(
+                monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
+            using var _2 = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
-                foreach (var result in results)
-                    referenceItems.Add(ConvertResult(definition, result));
+            foreach (var result in results)
+                referenceItems.Add(ConvertResult(definition, result));
 
-                return referenceItems.ToImmutable();
-            }
-            finally
-            {
-                // Mark that our async work is done.
-                await progress.ItemCompletedAsync().ConfigureAwait(false);
-            }
+            return referenceItems.ToImmutable();
         }
 
         private ExternalReferenceItem ConvertResult(DefinitionItem definition, JObject obj)
