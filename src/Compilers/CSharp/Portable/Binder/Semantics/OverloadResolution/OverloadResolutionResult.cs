@@ -473,7 +473,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
                 if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts)
-                    && !isMethodGroupConversion)
+                    && !isMethodGroupConversion
+                    // Function pointer type symbols don't have named parameters, so we just want to report a general mismatched parameter
+                    // count instead of name errors.
+                    && !(firstSupported.Member is FunctionPointerMethodSymbol _))
                 {
                     switch (firstSupported.Result.Kind)
                     {
