@@ -19,18 +19,22 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableFindReferencesSearchOptions
     {
         public bool AssociatePropertyReferencesWithSpecificAccessor;
+        public bool Cascade;
 
         public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
         {
             return new SerializableFindReferencesSearchOptions
             {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
+                Cascade = options.Cascade,
             };
         }
 
         public FindReferencesSearchOptions Rehydrate()
         {
-            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
+            return new FindReferencesSearchOptions(
+                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
+                cascade: Cascade);
         }
     }
 

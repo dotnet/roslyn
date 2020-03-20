@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -70,6 +71,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 optionName: "ShowItemsFromUnimportedNamespaces",
                 feature: "CompletionOptions",
                 language: LanguageNames.VisualBasic,
+                value: value);
+        }
+
+        public void SetTriggerCompletionInArgumentLists(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: CompletionOptions.TriggerInArgumentLists.Name,
+                feature: CompletionOptions.TriggerInArgumentLists.Feature,
+                language: LanguageNames.CSharp,
                 value: value);
         }
 

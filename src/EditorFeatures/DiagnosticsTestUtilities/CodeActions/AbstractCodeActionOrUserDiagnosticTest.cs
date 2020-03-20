@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -24,6 +25,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 #if CODE_STYLE
+using EditorConfigFileGenerator = Microsoft.CodeAnalysis.Options.EditorConfigFileGenerator;
 using Microsoft.CodeAnalysis.Internal.Options;
 #else
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     {
                         if (location is IEditorConfigStorageLocation2 editorConfigStorageLocation)
                         {
-                            var editorConfigString = editorConfigStorageLocation.GetEditorConfigString(value, default);
+                            var editorConfigString = editorConfigStorageLocation.GetEditorConfigString(value, null);
                             if (editorConfigString != null)
                             {
                                 textBuilder.AppendLine(GetSectionHeader(optionKey));
@@ -204,6 +206,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                             }
 
                             Assert.False(true, "Unexpected non-editorconfig option");
+                        }
+                        else if (value is NamingStylePreferences namingStylePreferences)
+                        {
+                            textBuilder.AppendLine(GetSectionHeader(optionKey));
+                            EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language, textBuilder);
+                            textBuilder.AppendLine();
+                            break;
                         }
                     }
                 }
@@ -746,6 +755,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<CodeStyleOption<T>> option, T enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option<T>(Option<T> option, T value)
+            => OptionsSet(SingleOption(option, value));
 
         protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<T> option, T value)
             => OptionsSet(SingleOption(option, value));

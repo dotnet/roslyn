@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                SimplificationOptions.NamingPreferences);
+                NamingStyleOptions.NamingPreferences);
     }
 }

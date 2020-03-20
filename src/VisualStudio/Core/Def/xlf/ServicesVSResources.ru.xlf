@@ -427,6 +427,11 @@
         <target state="translated">Предпочитать простой оператор using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Предпочитать статические локальные функции</target>

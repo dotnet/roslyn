@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         private readonly bool _isRetargetable;
 
         // cached display name
-        private string _lazyDisplayName;
+        private string? _lazyDisplayName;
 
         // cached hash code
         private int _lazyHashCode;
@@ -94,10 +97,10 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="hasPublicKey"/> is false and <paramref name="publicKeyOrToken"/> 
         /// contains a value that is not the size of a public key token, 8 bytes.</exception>
         public AssemblyIdentity(
-            string name,
-            Version version = null,
-            string cultureName = null,
-            ImmutableArray<byte> publicKeyOrToken = default(ImmutableArray<byte>),
+            string? name,
+            Version? version = null,
+            string? cultureName = null,
+            ImmutableArray<byte> publicKeyOrToken = default,
             bool hasPublicKey = false,
             bool isRetargetable = false,
             AssemblyContentType contentType = AssemblyContentType.Default)
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyIdentity(
             string name,
             Version version,
-            string cultureName,
+            string? cultureName,
             ImmutableArray<byte> publicKeyOrToken,
             bool hasPublicKey)
         {
@@ -176,9 +179,9 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyIdentity(
             bool noThrow,
             string name,
-            Version version = null,
-            string cultureName = null,
-            ImmutableArray<byte> publicKeyOrToken = default(ImmutableArray<byte>),
+            Version? version = null,
+            string? cultureName = null,
+            ImmutableArray<byte> publicKeyOrToken = default,
             bool hasPublicKey = false,
             bool isRetargetable = false,
             AssemblyContentType contentType = AssemblyContentType.Default)
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
 
-        private static string NormalizeCultureName(string cultureName)
+        private static string NormalizeCultureName(string? cultureName)
         {
             // Treat "neutral" culture as invariant culture name, although it is technically not a legal culture name.
             //
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis
             if (hasPublicKey)
             {
                 publicKey = publicKeyOrToken;
-                publicKeyToken = default(ImmutableArray<byte>);
+                publicKeyToken = default;
             }
             else
             {
@@ -226,7 +229,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool IsValidCultureName(string name)
+        internal static bool IsValidCultureName(string? name)
         {
             // The native compiler doesn't enforce that the culture be anything in particular. 
             // AssemblyIdentity should preserve user input even if it is of dubious utility.
@@ -237,14 +240,14 @@ namespace Microsoft.CodeAnalysis
             return name == null || name.IndexOf('\0') < 0;
         }
 
-        private static bool IsValidName(string name)
+        private static bool IsValidName([NotNullWhen(true)] string? name)
         {
             return !string.IsNullOrEmpty(name) && name.IndexOf('\0') < 0;
         }
 
         internal readonly static Version NullVersion = new Version(0, 0, 0, 0);
 
-        private static bool IsValid(Version value)
+        private static bool IsValid(Version? value)
         {
             return value == null
                 || value.Major >= 0
@@ -323,7 +326,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyPublicKeyToken.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPublicKeyToken, CalculatePublicKeyToken(_publicKey), default(ImmutableArray<byte>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPublicKeyToken, CalculatePublicKeyToken(_publicKey), default);
                 }
 
                 return _lazyPublicKeyToken;
@@ -365,7 +368,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="left">The operand appearing on the left side of the operator.</param>
         /// <param name="right">The operand appearing on the right side of the operator.</param>
-        public static bool operator ==(AssemblyIdentity left, AssemblyIdentity right)
+        public static bool operator ==(AssemblyIdentity? left, AssemblyIdentity? right)
         {
             return EqualityComparer<AssemblyIdentity>.Default.Equals(left, right);
         }
@@ -375,7 +378,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="left">The operand appearing on the left side of the operator.</param>
         /// <param name="right">The operand appearing on the right side of the operator.</param>
-        public static bool operator !=(AssemblyIdentity left, AssemblyIdentity right)
+        public static bool operator !=(AssemblyIdentity? left, AssemblyIdentity? right)
         {
             return !(left == right);
         }
@@ -384,7 +387,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the specified instance is equal to the current instance.
         /// </summary>
         /// <param name="obj">The object to be compared with the current instance.</param>
-        public bool Equals(AssemblyIdentity obj)
+        public bool Equals(AssemblyIdentity? obj)
         {
             return !ReferenceEquals(obj, null)
                 && (_lazyHashCode == 0 || obj._lazyHashCode == 0 || _lazyHashCode == obj._lazyHashCode)
@@ -395,7 +398,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the specified instance is equal to the current instance.
         /// </summary>
         /// <param name="obj">The object to be compared with the current instance.</param>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as AssemblyIdentity);
         }

@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
-                var namingPreferences = this.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+                var namingPreferences = this.Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
                 var localFunctionPreferences = namingPreferences.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
 
                 var namingRules = namingPreferences.Rules.NamingRules;

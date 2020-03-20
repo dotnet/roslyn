@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     if (node is ExpressionSyntax expression)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : (TextSpan?)null;
                     }
 
                     if (node is StatementSyntax statement)

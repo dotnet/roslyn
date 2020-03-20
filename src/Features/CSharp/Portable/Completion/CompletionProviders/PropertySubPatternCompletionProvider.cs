@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(PropertySubpatternCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(InternalsVisibleToCompletionProvider))]
     [Shared]
-    internal class PropertySubpatternCompletionProvider : CommonCompletionProvider
+    internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public PropertySubpatternCompletionProvider()
@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         private static SyntaxToken TryGetOpenBraceOrCommaInPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {

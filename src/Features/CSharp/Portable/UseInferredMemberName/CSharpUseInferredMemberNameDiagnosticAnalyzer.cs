@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            RoslynDebug.Assert(context.Compilation is object);
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = options.GetOption(
                 CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 return;
             }
 
+            RoslynDebug.Assert(context.Compilation is object);
             var preference = options.GetOption(
                 CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||

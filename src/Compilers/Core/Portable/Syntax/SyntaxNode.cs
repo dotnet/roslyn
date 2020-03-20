@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(TNode);
+            return null;
         }
 
         /// <summary>
@@ -1221,7 +1221,7 @@ recurse:
         {
             if (node == null)
             {
-                return default(T);
+                return null;
             }
 
             var annotations = this.Green.GetAnnotations();
