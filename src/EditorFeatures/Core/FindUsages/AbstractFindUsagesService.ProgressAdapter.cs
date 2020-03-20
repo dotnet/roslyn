@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
 
-            public IStreamingProgressTracker ProgressTracker => _context.ProgressTracker;
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
 
             public FindLiteralsProgressAdapter(
                 IFindUsagesContext context, DefinitionItem definition)
