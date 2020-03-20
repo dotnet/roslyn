@@ -851,6 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public TypeInfo GetTypeInfo(PatternSyntax pattern, CancellationToken cancellationToken = default(CancellationToken))
         {
+            while (pattern is ParenthesizedPatternSyntax pp)
+                pattern = pp.Pattern;
+
             CheckSyntaxNode(pattern);
             return GetTypeInfoWorker(pattern, cancellationToken);
         }
