@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public XElement ToXElement() =>
-            new XElement(nameof(CodeStyleOption2<T>), // `nameof()` returns just "CodeStyleOption"
+            new XElement("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),
