@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         {
         }
 
-        public override ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object value)
-            => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.PrimitiveToDisplayParts(value);
+        public override ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(SemanticModel semanticModel, int position, ITypeSymbol type, object value, SymbolDisplayFormat format)
+            => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.PrimitiveToMinimalDisplayParts(type, value, semanticModel, position, format);
 
         public override ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
         {

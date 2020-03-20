@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         /// <summary>
         /// Append a default argument (i.e. the default argument of an optional parameter).
         /// </summary>
-        protected void AddConstantValue(ITypeSymbol type, object value, bool preferNumericValueOrExpandedFlagsForEnum = false)
+        protected internal void AddConstantValue(ITypeSymbol type, object value, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
             Debug.Assert(value is null || value.GetType().IsPrimitive || value is string || value is decimal || value is DateTime);
             if (value is object && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)

@@ -130,7 +130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a textual representation of an object of primitive type as an array of string parts,
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
-        ''' <param name="obj">A value to display as string parts.</param>
+        ''' <param name="type">The type of the value.</param>
+        ''' <param name="value">A value to display as string parts.</param>
         ''' <param name="format">The formatting options to apply. If <see langword="Nothing"/> is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
         ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
@@ -139,13 +140,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Public Function PrimitiveToDisplayParts(obj As Object, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
-            If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
+        Public Function PrimitiveToDisplayParts(type As ITypeSymbol, value As Object, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
+            If Not (value Is Nothing OrElse value.GetType().IsPrimitive OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is Date) Then
                 Return Nothing
             End If
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
+            Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), Nothing, Nothing)
+            visitor.AddConstantValue(type, value)
             Return builder.ToImmutableAndFree()
         End Function
 
@@ -153,7 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a textual representation of an object of primitive type as an array of string parts,
         ''' each of which has a kind. Useful for colorizing the display string.
         ''' </summary>
-        ''' <param name="obj">A value to display as string parts.</param>
+        ''' <param name="type">The type of the value.</param>
+        ''' <param name="value">A value to display as string parts.</param>
         ''' <param name="semanticModel">Semantic information about the context in which the symbol is being displayed.</param>
         ''' <param name="position">A position within the <see cref="SyntaxTree"/> Or <paramref name="semanticModel"/>.</param>
         ''' <param name="format">The formatting options to apply. If <see langword="Nothing"/> is passed, <see cref="SymbolDisplayFormat.VisualBasicErrorMessageFormat"/> will be used.</param>
@@ -164,16 +167,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
         ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
-        Public Function PrimitiveToMinimalDisplayParts(obj As Object,
+        Public Function PrimitiveToMinimalDisplayParts(type As ITypeSymbol,
+                                                       value As Object,
                                                        semanticModel As SemanticModel,
                                                        position As Integer,
                                                        Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
-            If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
+            If Not (value Is Nothing OrElse value.GetType().IsPrimitive OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is Date) Then
                 Return Nothing
             End If
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
+            Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), semanticModel, position)
+            visitor.AddConstantValue(type, value)
             Return builder.ToImmutableAndFree()
         End Function
 

@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public sealed class SemanticQuickInfoSourceConstantValueTests : SemanticQuickInfoSourceTestsBase
     {
+        private const string UnicodeEllipsis = "…";
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantVariable()
         {
@@ -409,15 +411,36 @@ var f = 3 $${op} 1",
             await TestInMethodAsync($@"
 var f = System.Text.RegularExpressions.RegexOptions.Compiled $$| System.Text.RegularExpressions.RegexOptions.ExplicitCapture",
                 ConstantValueContent(
-                    ("8", NumericLiteral),
+                    ("System", Namespace),
+                    (".", Punctuation),
+                    ("Text", Namespace),
+                    (".", Punctuation),
+                    ("RegularExpressions", Namespace),
+                    (".", Punctuation),
+                    ("RegexOption", Enum),
+                    (UnicodeEllipsis, TextTags.Text),
                     (" ", Space),
                     ("|", Operator),
                     (" ", Space),
-                    ("4", NumericLiteral),
+                    ("System", Namespace),
+                    (".", Punctuation),
+                    ("Text", Namespace),
+                    (".", Punctuation),
+                    ("RegularExpressions", Namespace),
+                    (".", Punctuation),
+                    ("RegexOption", Enum),
+                    (UnicodeEllipsis, TextTags.Text),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("12", NumericLiteral)
+                    ("System", Namespace),
+                    (".", Punctuation),
+                    ("Text", Namespace),
+                    (".", Punctuation),
+                    ("RegularExpressions", Namespace),
+                    (".", Punctuation),
+                    ("RegexOption", Enum),
+                    (UnicodeEllipsis, TextTags.Text)
                 ));
         }
 
@@ -427,15 +450,26 @@ var f = System.Text.RegularExpressions.RegexOptions.Compiled $$| System.Text.Reg
             await TestInMethodAsync($@"
 var f = System.AttributeTargets.Assembly $$| System.AttributeTargets.Class",
                 ConstantValueContent(
-                    ("1", NumericLiteral),
+                    ("AttributeTargets", Enum),
+                    (".", Punctuation),
+                    ("Assembly", EnumMember),
                     (" ", Space),
                     ("|", Operator),
                     (" ", Space),
-                    ("4", NumericLiteral),
+                    ("AttributeTargets", Enum),
+                    (".", Punctuation),
+                    ("Class", EnumMember),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("5", NumericLiteral)
+                    ("AttributeTargets", Enum),
+                    (".", Punctuation),
+                    ("Assembly", EnumMember),
+                    (" ", Space),
+                    ("|", Punctuation),
+                    (" ", Space),
+                    ("AttributeTarge", Enum),
+                    (UnicodeEllipsis, TextTags.Text)
                 ));
         }
 
@@ -496,8 +530,6 @@ var f = false $$? 0 : 1",
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLongString()
         {
-            const string UnicodeEllipsis = "\u2026";
-
             await TestInMethodAsync(@"
 var f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$+ ""o""",
                 ConstantValueContent(

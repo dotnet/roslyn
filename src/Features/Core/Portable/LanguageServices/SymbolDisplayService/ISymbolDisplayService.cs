@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal interface ISymbolDisplayService : ILanguageService
     {
-        ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object value);
+        ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(SemanticModel semanticModel, int position, ITypeSymbol type, object value, SymbolDisplayFormat format);
         string ToDisplayString(ISymbol symbol, SymbolDisplayFormat format = null);
         string ToMinimalDisplayString(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format = null);
         ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null);

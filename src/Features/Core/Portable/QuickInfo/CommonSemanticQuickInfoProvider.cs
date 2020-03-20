@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
+        private const int MaxConstantLength = 42;
+
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
@@ -398,27 +400,28 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 semanticModel.GetConstantValue(left, cancellationToken) is var leftConstant && leftConstant.HasValue &&
                 semanticModel.GetConstantValue(right, cancellationToken) is var rightConstant && rightConstant.HasValue)
             {
-                textBuilder.AddRange(FormatValue(leftConstant.Value));
+                textBuilder.AddRange(FormatValue(semanticModel.GetTypeInfo(left, cancellationToken).ConvertedType, leftConstant.Value, displayService, semanticModel, left.SpanStart));
                 textBuilder.AddSpace();
                 textBuilder.Add(
                     new TaggedText(
                         syntaxFacts.IsReservedKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
                         operatorToken.Text));
                 textBuilder.AddSpace();
-                textBuilder.AddRange(FormatValue(rightConstant.Value));
+                textBuilder.AddRange(FormatValue(semanticModel.GetTypeInfo(right, cancellationToken).ConvertedType, rightConstant.Value, displayService, semanticModel, right.SpanStart));
                 textBuilder.AddSpace();
                 textBuilder.AddOperator("=");
                 textBuilder.AddSpace();
             }
 
-            textBuilder.AddRange(FormatValue(constant.Value));
+            textBuilder.AddRange(FormatValue(semanticModel.GetTypeInfo(token.Parent, cancellationToken).Type, constant.Value, displayService, semanticModel, token.SpanStart));
 
             return textBuilder.ToImmutable();
 
-            ImmutableArray<TaggedText> FormatValue(object value)
+            // Local function
+            static ImmutableArray<TaggedText> FormatValue(ITypeSymbol? type, object value, ISymbolDisplayService displayService, SemanticModel semanticModel, int position)
             {
-                var taggedText = displayService.PrimitiveToDisplayParts(value).ToTaggedText();
-                return TrimTaggedTextRun(taggedText, 42);
+                var taggedText = displayService.PrimitiveToMinimalDisplayParts(semanticModel, position, type, value, format: null).ToTaggedText();
+                return TrimTaggedTextRun(taggedText, MaxConstantLength);
             }
         }
 

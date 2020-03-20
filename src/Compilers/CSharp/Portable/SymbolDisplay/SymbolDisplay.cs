@@ -291,7 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a textual representation of an object of primitive type as an array of string parts,
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
-        /// <param name="obj">A value to display as string parts.</param>
+        /// <param name="type">The type of the value.</param>
+        /// <param name="value">A value to display as string parts.</param>
         /// <param name="format">The formatting options to apply. If <see langword="null"/> is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
@@ -300,9 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object? obj, SymbolDisplayFormat? format = null)
+        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(ITypeSymbol type, object? value, SymbolDisplayFormat? format = null)
         {
-            if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
+            if (!(value is null || value.GetType().IsPrimitive || value is string || value is decimal))
             {
                 return default;
             }
@@ -310,7 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(format.ConstantValueOptions));
+            var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt: null, positionOpt: 0);
+            visitor.AddConstantValue(type, value);
             return builder.ToImmutableAndFree();
         }
 
@@ -318,7 +320,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a textual representation of an object of primitive type as an array of string parts,
         /// each of which has a kind. Useful for colorizing the display string.
         /// </summary>
-        /// <param name="obj">A value to display as string parts.</param>
+        /// <param name="type">The type of the value.</param>
+        /// <param name="value">A value to display as string parts.</param>
+        /// <param name="semanticModel">Semantic information about the context in which the value is being displayed.</param>
+        /// <param name="position">A position within the <see cref="SyntaxTree"/> or <paramref name="semanticModel"/>.</param>
         /// <param name="format">The formatting options to apply. If <see langword="null"/> is passed, <see cref="SymbolDisplayFormat.CSharpErrorMessageFormat"/> will be used.</param>
         /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
         /// <remarks>
@@ -328,12 +333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// and <see langword="null"/>.
         /// </remarks>
         public static ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(
-            object? obj,
+            ITypeSymbol type,
+            object? value,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat? format = null)
         {
-            if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
+            if (!(value is null || value.GetType().IsPrimitive || value is string || value is decimal))
             {
                 return default;
             }
@@ -341,7 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            AddConstantValue(builder, obj, ToObjectDisplayOptions(format.ConstantValueOptions));
+            var visitor = new SymbolDisplayVisitor(builder, format, semanticModel, position);
+            visitor.AddConstantValue(type, value);
             return builder.ToImmutableAndFree();
         }
 

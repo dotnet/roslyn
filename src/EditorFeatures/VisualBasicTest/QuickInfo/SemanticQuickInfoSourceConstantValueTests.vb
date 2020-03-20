@@ -8,6 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public NotInheritable Class SemanticQuickInfoSourceConstantValueTests
         Inherits SemanticQuickInfoSourceTestsBase
 
+        Private Const UnicodeEllipsis = "…"
+
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantVariable() As Task
             Await TestInClassAsync($"
@@ -310,6 +312,46 @@ dim f = 3 $${op} 1",
                 ))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestBitwiseExpression_Enum1() As Task
+            Await TestInMethodAsync("
+Dim f = System.Text.RegularExpressions.RegexOptions.Compiled $$Or System.Text.RegularExpressions.RegexOptions.ExplicitCapture",
+                ConstantValueContent(
+                    ("Compiled", EnumMember),
+                    (" ", Space),
+                    ("Or", Keyword),
+                    (" ", Space),
+                    ("ExplicitCapture", EnumMember),
+                    (" ", Space),
+                    ("=", [Operator]),
+                    (" ", Space),
+                    ("ExplicitCapture", EnumMember),
+                    (" ", Space),
+                    ("Or", Keyword),
+                    (" ", Space),
+                    ("Compiled", EnumMember)))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestBitwiseExpression_Enum2() As Task
+            Await TestInMethodAsync("
+Dim f = System.AttributeTargets.Assembly $$Or System.AttributeTargets.Class",
+                ConstantValueContent(
+                    ("Assembly", EnumMember),
+                    (" ", Space),
+                    ("Or", Keyword),
+                    (" ", Space),
+                    ("Class", EnumMember),
+                    (" ", Space),
+                    ("=", [Operator]),
+                    (" ", Space),
+                    ("Assembly", EnumMember),
+                    (" ", Space),
+                    ("Or", Keyword),
+                    (" ", Space),
+                    ("Class", EnumMember)))
+        End Function
+
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("<", "True")>
         <InlineData("<=", "True")>
@@ -354,8 +396,6 @@ dim f = true $${op} not true",
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestLongString() As Task
-            Const UnicodeEllipsis = ChrW(&H2026)
-
             Await TestInMethodAsync("
 dim f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$& ""o""",
                 ConstantValueContent(

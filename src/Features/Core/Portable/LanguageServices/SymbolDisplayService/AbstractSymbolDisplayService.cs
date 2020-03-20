@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             AnonymousTypeDisplayService = anonymousTypeDisplayService;
         }
 
-        public abstract ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(object value);
+        public abstract ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(SemanticModel semanticModel, int position, ITypeSymbol type, object value, SymbolDisplayFormat format);
         public abstract ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null);
         public abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format);
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
