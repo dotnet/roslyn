@@ -18,10 +18,11 @@ namespace Microsoft.CodeAnalysis
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public readonly struct SourceGeneratorContext
     {
-        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, AnalyzerOptions options, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             AnalyzerOptions = options;
+            SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
             AdditionalSources = new AdditionalSourcesCollection();
         }
@@ -31,6 +32,8 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE: replace AnalyzerOptions with an differently named type that is otherwise identical.
         // The concern being that something added to one isn't necessarily applicable to the other.
         public AnalyzerOptions AnalyzerOptions { get; }
+
+        public ISyntaxReceiver? SyntaxReceiver { get; }
 
         public CancellationToken CancellationToken { get; }
 
@@ -52,7 +55,41 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
 
-        public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback) => InfoBuilder.EditCallback = callback;
+        public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
+        {
+            CheckIsEmpty(InfoBuilder.EditCallback);
+            InfoBuilder.EditCallback = callback;
+        }
+
+        /// <summary>
+        /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method allows generators to be 'syntax aware'. Before each generation the <paramref name="receiverCreator"/> will be invoked to create
+        /// an instance of <see cref="ISyntaxReceiver"/>. This receiver will have its <see cref="ISyntaxReceiver.OnVisitSyntaxNode(SyntaxNode)"/> 
+        /// invoked for each syntax node in the compilation, allowing the receiver to build up information about the compilation before generation occurs.
+        /// 
+        /// During <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> the generator can obtain the <see cref="ISyntaxReceiver"/> instance that was
+        /// created by accessing the <see cref="SourceGeneratorContext.SyntaxReceiver"/> property. Any information that was collected by the receiver can be
+        /// used to generate the final output.
+        /// 
+        /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning there is no need to manage the lifetime of the 
+        /// receiver or its contents.
+        /// </remarks>
+        /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
+        public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
+        {
+            CheckIsEmpty(InfoBuilder.SyntaxReceiverCreator);
+            InfoBuilder.SyntaxReceiverCreator = receiverCreator;
+        }
+
+        private static void CheckIsEmpty<T>(T x)
+        {
+            if (x is object)
+            {
+                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeof(T).Name));
+            }
+        }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]

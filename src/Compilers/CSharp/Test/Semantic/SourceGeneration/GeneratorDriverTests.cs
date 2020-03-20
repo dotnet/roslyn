@@ -166,9 +166,6 @@ class GeneratedClass { }
             Assert.NotEqual(compilation, outputCompilation1);
             Assert.NotEqual(compilation, outputCompilation2);
             Assert.NotEqual(compilation, outputCompilation3);
-            Assert.Equal(outputCompilation1, outputCompilation2);
-            Assert.Equal(outputCompilation2, outputCompilation3);
-            Assert.Equal(outputCompilation3, outputCompilation1);
         }
 
         [Fact]
@@ -417,7 +414,6 @@ class C { }
 
             SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
             SingleFileTestGenerator testGenerator2 = new SingleFileTestGenerator("public class E { }");
-
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),

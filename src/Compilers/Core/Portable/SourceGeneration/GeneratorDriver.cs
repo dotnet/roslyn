@@ -53,19 +53,11 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // PERF: if the input compilation is the same as the last compilation we saw, and we have a final compilation
-            //       we know nothing can have changed and can just short circuit, returning the already processed final compilation 
-            if (compilation == _state.Compilation && _state.FinalCompilation is object)
-            {
-                outputCompilation = _state.FinalCompilation;
-                return this;
-            }
-
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
             var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
+            var receivers = PooledDictionary<ISourceGenerator, ISyntaxReceiver>.GetInstance();
 
-            //PROTOTYPE: should be possible to parallelize this
             foreach (var generator in state.Generators)
             {
                 // initialize the generator if needed
@@ -73,13 +65,36 @@ namespace Microsoft.CodeAnalysis
                 {
                     generatorState = InitializeGenerator(generator, cancellationToken);
                 }
+                stateBuilder.Add(generator, generatorState);
 
+                // create the syntax receiver if requested
+                if (generatorState.Info.SyntaxReceiverCreator is object)
+                {
+                    var rx = generatorState.Info.SyntaxReceiverCreator();
+                    receivers.Add(generator, rx);
+                }
+            }
+
+            // Run a syntax walk if any of the generators requested it
+            if (receivers.Count > 0)
+            {
+                GeneratorSyntaxWalker walker = new GeneratorSyntaxWalker(receivers.Values.ToImmutableArray());
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    walker.Visit(syntaxTree.GetRoot());
+                }
+            }
+
+            //PROTOTYPE: should be possible to parallelize this
+            foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
+            {
                 try
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
-                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty));
+                    _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
+                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty), syntaxReceiverOpt);
                     generator.Execute(context);
-                    stateBuilder.Add(generator, generatorState.WithSources(context.AdditionalSources.ToImmutableAndFree()));
+                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree()));
                 }
                 catch
                 {
@@ -116,6 +131,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            // remove the previously generated syntax trees
+            compilation = RemoveGeneratedSyntaxTrees(_state, compilation);
+
             success = true;
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
         }
@@ -146,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        private static GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, CancellationToken cancellationToken = default)
+        private GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, CancellationToken cancellationToken = default)
         {
             var initialState = state;
 
@@ -157,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                 if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
-                    var context = new EditContext(generatorState.Sources, cancellationToken);
+                    var context = new EditContext(generatorState.Sources.Keys.ToImmutableArray(), cancellationToken);
                     var succeeded = edit.TryApply(generatorState.Info, context);
                     if (!succeeded)
                     {
@@ -167,10 +185,10 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(context.AdditionalSources.ToImmutableAndFree())));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree()))));
                 }
             }
-
+            state = edit.Commit(state);
             return state;
         }
 
@@ -204,28 +222,47 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorState(info);
         }
 
-        private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
+        private static Compilation RemoveGeneratedSyntaxTrees(GeneratorDriverState state, Compilation compilation)
         {
-            var finalCompilation = compilation;
+            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
             foreach (var (_, generatorState) in state.GeneratorStates)
             {
-                foreach (var sourceText in generatorState.Sources)
+                foreach (var (_, tree) in generatorState.Sources)
                 {
-                    try
+                    if (tree is object && compilation.ContainsSyntaxTree(tree))
                     {
-                        //PROTOTYPE: should be possible to parallelize the parsing
-                        var tree = ParseGeneratedSourceText(sourceText, cancellationToken);
-                        finalCompilation = finalCompilation.AddSyntaxTrees(tree);
-                    }
-                    catch
-                    {
-                        //PROTOTYPE: should issue a diagnostic that the generator produced unparseable source
+                        trees.Add(tree);
                     }
                 }
             }
-            outputCompilation = finalCompilation;
+
+            var comp = compilation.RemoveSyntaxTrees(trees);
+            trees.Free();
+            return comp;
+        }
+
+        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources)
+        {
+            var trees = PooledDictionary<GeneratedSourceText, SyntaxTree>.GetInstance();
+            foreach (var source in generatedSources)
+            {
+                trees.Add(source, ParseGeneratedSourceText(source, default)); //PROTOTYPE
+            }
+            return trees.ToImmutableDictionaryAndFree();
+        }
+
+        private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
+        {
+            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
+            foreach (var (generator, generatorState) in state.GeneratorStates)
+            {
+                trees.AddRange(generatorState.Sources.Values);
+            }
+            outputCompilation = compilation.AddSyntaxTrees(trees);
+            trees.Free();
+
             state = state.With(compilation: compilation,
-                               finalCompilation: finalCompilation,
+                               finalCompilation: outputCompilation,
                                edits: ImmutableArray<PendingEdit>.Empty,
                                editsFailed: false);
             return FromState(state);
