@@ -286,18 +286,18 @@ namespace Microsoft.CodeAnalysis
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
+        protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(taskName, action);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action);
         }
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
+        protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(taskName, func);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func);
         }
 
         /// <summary>
