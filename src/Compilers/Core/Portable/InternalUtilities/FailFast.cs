@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
             {
                 exception = aggregate.InnerExceptions[0];
             }
-#endif
 
+#endif
             DumpStackTrace(exception);
 
             Environment.FailFast(exception.ToString(), exception);
@@ -57,10 +57,12 @@ namespace Microsoft.CodeAnalysis
                 current = current.InnerException;
             } while (current is object);
 
+#if !NET20 && !NETSTANDARD1_3
             Console.WriteLine("Stack trace of handler");
             var stackTrace = new StackTrace();
             Console.WriteLine(stackTrace.ToString());
             Console.Out.Flush();
+#endif
         }
 
         /// <summary>
