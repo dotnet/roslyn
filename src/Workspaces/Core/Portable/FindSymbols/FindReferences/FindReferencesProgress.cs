@@ -5,8 +5,6 @@
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-#pragma warning disable CS0618 // Type or member is obsolete
-
     /// <summary>
     /// A does-nothing version of the <see cref="IFindReferencesProgress"/>. Useful for
     /// clients that have no need to report progress as they work.
@@ -47,6 +45,4 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
     }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 }
