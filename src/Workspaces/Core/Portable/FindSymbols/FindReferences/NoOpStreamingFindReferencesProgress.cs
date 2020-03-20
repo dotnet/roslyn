@@ -16,11 +16,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly IStreamingFindReferencesProgress Instance =
             new NoOpStreamingFindReferencesProgress();
 
-        public IStreamingProgressTracker ProgressTracker { get; }
+        public IStreamingProgressTracker ProgressTracker { get; } = new NoOpProgressTracker();
 
         private NoOpStreamingFindReferencesProgress()
         {
-            this.ProgressTracker = new NoOpProgressTracker();
         }
 
         public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
