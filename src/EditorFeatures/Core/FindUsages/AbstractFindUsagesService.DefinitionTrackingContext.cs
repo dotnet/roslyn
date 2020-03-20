@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -34,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;
 
+            public IStreamingProgressTracker ProgressTracker
+                => _underlyingContext.ProgressTracker;
+
             public Task ReportMessageAsync(string message)
                 => _underlyingContext.ReportMessageAsync(message);
 
@@ -46,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
                 => _underlyingContext.OnExternalReferenceFoundAsync(reference);
 
+            [Obsolete("Use ProgressTracker instead", error: false)]
             public Task ReportProgressAsync(int current, int maximum)
                 => _underlyingContext.ReportProgressAsync(current, maximum);
 

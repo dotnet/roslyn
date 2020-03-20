@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (moniker == null)
                 return;
 
-            var progress = new StreamingProgressTracker(context.ReportProgressAsync);
+            var progress = context.ProgressTracker;
             try
             {
                 // Let the find-refs window know we have outstanding work

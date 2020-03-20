@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progressCollector = new StreamingProgressCollector();
             await FindReferencesAsync(
                 symbolAndProjectId, solution, progressCollector,
                 documents: null, options, cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            progress ??= FindReferencesProgress.Instance;
+            progress ??= NoOpFindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(

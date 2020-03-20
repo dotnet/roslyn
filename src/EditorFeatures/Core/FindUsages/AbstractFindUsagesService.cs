@@ -147,14 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
 
-            // We're doing to kick off two find-references here.  One that roslyn performs, and one
-            // that goes through rich-nav.  In order for things like progress to work, we have each
-            // subsystem call into their context object.  These then get aggregated and passed along
-            // to the real context object.
-            var aggregator = new FindUsagesContextAggregator(context);
-            var roslynFindUsagesContext = aggregator.CreateForwardingContext();
-            var codeIndexFindUsagesContext = aggregator.CreateForwardingContext();
-
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
@@ -162,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, project.Id),
                 project.Solution,
-                new FindReferencesProgressAdapter(threadingContext, project.Solution, roslynFindUsagesContext, options),
+                new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options),
                 documents: null,
                 options,
                 cancellationToken);
@@ -171,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
                 monikerUsagesService,
                 symbol,
-                codeIndexFindUsagesContext,
+                context,
                 cancellationToken);
 
             await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
