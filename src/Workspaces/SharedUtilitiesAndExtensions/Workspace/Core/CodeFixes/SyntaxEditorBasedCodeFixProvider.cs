@@ -62,13 +62,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// from any of those, but we'll only want perform an edit for only one diagnostic for each
         /// of those sets of diagnostics.
         ///
+        /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
+        /// in that it also passes along the <see cref="SemanticModel"/>.
+        ///
         /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in
         /// that it also passes along the <see cref="FixAllState"/> in case that would be useful
-        /// (for example if the <see cref="FixAllState.CodeActionEquivalenceKey"/> is used.  
+        /// (for example if the <see cref="FixAllState.CodeActionEquivalenceKey"/> is used.
         ///
-        /// Only one of these two overloads needs to be overridden if you want to customize
+        /// Only one of these three overloads needs to be overridden if you want to customize
         /// behavior.
         /// </summary>
+        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string equivalenceKey, CancellationToken cancellationToken)
+            => IncludeDiagnosticDuringFixAll(diagnostic, document, equivalenceKey, cancellationToken);
+
         protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
             => IncludeDiagnosticDuringFixAll(diagnostic);
 
@@ -83,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// here. If only the diagnostic needs to be queried to make this determination, only this
         /// overload needs to be overridden.  However, if information from <see cref="FixAllState"/>
         /// is needed (for example <see cref="FixAllState.CodeActionEquivalenceKey"/>), then <see
-        /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, string, CancellationToken)"/>
+        /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
         /// should be overridden instead.
         ///
         /// Only one of these two overloads needs to be overridden if you want to customize

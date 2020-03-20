@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
             Assert.True(actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);
-            Assert.Equal(new[] { "." }, actual.CompletionProvider.TriggerCharacters);
+            Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~", "=", "{", "/" }.OrderBy(string.Compare),
+                actual.CompletionProvider.TriggerCharacters.OrderBy(string.Compare));
 
             Assert.Equal(new[] { "(", "," }, actual.SignatureHelpProvider.TriggerCharacters);
 
