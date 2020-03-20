@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.Host
             //
             // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
             var task = _taskQueue.ScheduleTask(
-                () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
+                () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 cancellationToken);
 
             // Always ensure that we mark this work as done from the workmap.

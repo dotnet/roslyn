@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(action, taskName);
+            return _taskQueue.ScheduleTask(taskName, action);
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(func, taskName);
+            return _taskQueue.ScheduleTask(taskName, func);
         }
 
         /// <summary>

@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Host
         {
             var cancellationToken = _cancellationSource.Token;
             return _taskQueue.ScheduleTask(
-                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 "BackgroundCompiler.BuildCompilationsAsync",
+                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 cancellationToken);
         }
 

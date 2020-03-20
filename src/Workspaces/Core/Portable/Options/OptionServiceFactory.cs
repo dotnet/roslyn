@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                _taskQueue.ScheduleTask(() =>
+                _taskQueue.ScheduleTask("OptionsService.OnGlobalOptionServiceOptionChanged", () =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
+                });
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()

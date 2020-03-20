@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods (Task wrappers, not asynchronous methods)
-        public Task ScheduleTask(Action operation, string taskName, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(string taskName, Action operation, CancellationToken cancellationToken = default)
             => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
-        public Task<T> ScheduleTask<T>(Func<T> operation, string taskName, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(string taskName, Func<T> operation, CancellationToken cancellationToken = default)
             => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
-        public Task ScheduleTask(Func<Task> operation, string taskName, CancellationToken cancellationToken = default)
+        public Task ScheduleTask(string taskName, Func<Task> operation, CancellationToken cancellationToken = default)
             => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 
-        public Task<T> ScheduleTask<T>(Func<Task<T>> operation, string taskName, CancellationToken cancellationToken = default)
+        public Task<T> ScheduleTask<T>(string taskName, Func<Task<T>> operation, CancellationToken cancellationToken = default)
             => EndOperation(BeginOperation(taskName), _queue.ScheduleTask(operation, cancellationToken));
 #pragma warning restore VSTHRD200
     }
