@@ -2280,16 +2280,6 @@ This version used in: {2}</source>
         <target state="translated">В отчете о диагностике "{0}" используется исходное расположение "{1}" в файле "{2}". Это расположение находится за пределами указанного файла.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Обнаружен недостижимый код</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Удалить недостижимый код</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">в {0} (проект {1})</target>
