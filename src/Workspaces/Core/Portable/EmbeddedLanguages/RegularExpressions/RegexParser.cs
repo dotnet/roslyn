@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return copy;
         }
 
-        private static RegexOptions OptionFromCode(VirtualChar ch)
+        private static RegexOptions OptionFromCode(uint ch)
         {
             switch (ch)
             {
@@ -1494,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
                 var nextChar = _currentToken.VirtualChars[0];
-                switch (nextChar)
+                switch (nextChar.CodePoint)
                 {
                     case 'D':
                     case 'd':
@@ -1866,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return new RegexOctalEscapeNode(backslashToken, octalDigits);
             }
 
-            switch (ch)
+            switch (ch.CodePoint)
             {
                 case 'a':
                 case 'b':

@@ -88,5 +88,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             => !(char1 == char2);
 
         public static implicit operator uint(VirtualChar vc) => vc.CodePoint;
+        public static implicit operator string(VirtualChar vc) => vc.ToString();
     }
 }
