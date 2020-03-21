@@ -1392,6 +1392,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     {
                         Debug.Assert(IsEscapedMinus(sequence.ChildAt(i).Node));
                     }
+#endif
 
                     var last = sequence.ChildAt(sequence.ChildCount - 1).Node;
                     if (IsEscapedMinus(last))
