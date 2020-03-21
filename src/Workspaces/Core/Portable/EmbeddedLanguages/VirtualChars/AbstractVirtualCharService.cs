@@ -154,17 +154,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     result.Add(new VirtualChar(tokenText[index], span));
                     index += result.Last().Span.Length;
                 }
-                else if (index + 1 < tokenText.Length &&
-                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out var rune))
+                else if (Rune.TryCreate(tokenText[index], out var rune))
                 {
-                    // Had a surrogate pair.
-                    result.Add(new VirtualChar(rune, new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
-                else if (Rune.TryCreate(tokenText[index], out rune))
-                {
+                    // First, see if this was a single char that can become a rune (the common case).
                     result.Add(new VirtualChar(rune, new TextSpan(offset + index, 1)));
                     index += 1;
+                }
+                else if (index + 1 < tokenText.Length &&
+                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+                {
+                    // Otherwise, see if we have a surrogate pair (less common, but possible).
+                    result.Add(new VirtualChar(rune, new TextSpan(offset + index, 2)));
+                    index += 2;
                 }
                 else
                 {

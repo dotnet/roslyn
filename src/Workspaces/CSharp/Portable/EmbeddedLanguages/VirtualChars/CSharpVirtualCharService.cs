@@ -112,15 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            // Do things in two passes.  First, convert everything in the string to a
-            // 16-bit-char+span.  Then walk again, trying to create Runes from the 16-bit-chars. We
-            // do this to simplify complex cases where we may have escapes and non-escapes mixed
-            // together.
+            // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
+            // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
+            // have escapes and non-escapes mixed together.
 
             using var _1 = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
 
-            // First pass, just convert everything in the string (i.e. escapes) to plan 16-bit
-            // characters.
+            // First pass, just convert everything in the string (i.e. escapes) to plan 16-bit characters.
             var offset = token.SpanStart;
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
