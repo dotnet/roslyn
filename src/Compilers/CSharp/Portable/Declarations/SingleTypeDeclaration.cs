@@ -35,12 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
             /// </summary>
-            AllTopLevelStatementsLocalFunctions = 1 << 7,
-
-            /// <summary>
-            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
-            /// </summary>
-            IsIterator = 1 << 8,
+            IsIterator = 1 << 7,
         }
 
         internal SingleTypeDeclaration(
@@ -145,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
-            }
-        }
-
-        public bool AllTopLevelStatementsLocalFunctions
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.AllTopLevelStatementsLocalFunctions) != 0;
             }
         }
 

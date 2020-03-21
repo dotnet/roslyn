@@ -442,9 +442,9 @@
         <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithExecutableStatements">
-        <source>In all but one compilation unit the top-level statements must all be local function declarations.</source>
-        <target state="new">In all but one compilation unit the top-level statements must all be local function declarations.</target>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">

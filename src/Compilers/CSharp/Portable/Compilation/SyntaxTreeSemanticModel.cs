@@ -180,10 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case CompilationUnitSyntax unit:
-                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for any of the compilation units with top level statements.
-                    if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation)?.IsDefinedInSourceTree(unit.SyntaxTree, definedWithinSpan: null, cancellationToken) == true)
+                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for a compilation unit with top level statements.
+                    if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
                     {
-                        model = this.GetMemberModel(unit.Members.OfType<GlobalStatementSyntax>().First());
+                        model = this.GetMemberModel(entryPoint.SyntaxRef.GetSyntax());
                         break;
                     }
 
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    return createMethodBodySemanticModel(additionalFlags, node, SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation));
+                    return createMethodBodySemanticModel(additionalFlags, node, SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)node, fallbackToMainEntryPoint: false));
 
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
@@ -1185,11 +1185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberSemanticModel createMethodBodySemanticModel(BinderFlags additionalFlags, CSharpSyntaxNode memberDecl, SourceMemberMethodSymbol symbol)
             {
                 ExecutableCodeBinder binder = symbol?.TryGetBodyBinder(_binderFactory, additionalFlags);
-
-                if (memberDecl.IsKind(SyntaxKind.CompilationUnit))
-                {
-                    binder = (ExecutableCodeBinder)binder?.GetBinder(memberDecl);
-                }
 
                 if (binder == null)
                 {

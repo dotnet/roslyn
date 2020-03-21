@@ -1722,12 +1722,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
-            return FinishBindBlockParts(node, scopeDesignator: node, boundStatements.ToImmutableAndFree(), diagnostics);
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
         }
 
-        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, CSharpSyntaxNode scopeDesignator, ImmutableArray<BoundStatement> boundStatements, DiagnosticBag diagnostics)
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, DiagnosticBag diagnostics)
         {
-            ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(scopeDesignator);
+            ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
             {
@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 node,
                 locals,
-                GetDeclaredLocalFunctionsForScope(scopeDesignator),
+                GetDeclaredLocalFunctionsForScope(node),
                 boundStatements);
         }
 
@@ -3239,45 +3239,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
 
-            ImmutableArray<BoundStatement> boundStatements = BindSimpleProgramUnits(compilationUnit, simpleProgram, diagnostics);
-
-            // PROTOTYPE(SimplePrograms): Note that each semantic model gets bound node associated with compilation unit it models.
-            //                            This could be observable through IOperations. Could this be confusing?
-            CSharpSyntaxNode simpleProgramSyntaxNode = simpleProgram.SyntaxNode;
-            var result = GetBinder(simpleProgramSyntaxNode).FinishBindBlockParts(compilationUnit, scopeDesignator: simpleProgramSyntaxNode, boundStatements, diagnostics);
-
-            if (compilationUnit == simpleProgramSyntaxNode)
-            {
-                result.MakeCompilerGenerated();
-            }
-
-            return result;
+            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
         }
 
-        protected virtual ImmutableArray<BoundStatement> BindSimpleProgramUnits(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
         {
-            ArrayBuilder<BoundStatement> builder = ArrayBuilder<BoundStatement>.GetInstance();
-#if DEBUG
-            bool seenTheCompilationUnit = false;
-#endif
-            foreach (var unit in simpleProgram.GetUnits())
-            {
-#if DEBUG
-                seenTheCompilationUnit |= (unit == compilationUnit);
-#endif
-                GetBinder(unit).BindSimpleProgramUnit(unit, builder, diagnostics);
-            }
-
-#if DEBUG
-            Debug.Assert((compilationUnit == simpleProgram.SyntaxNode) ^ seenTheCompilationUnit);
-#endif
-
-            ImmutableArray<BoundStatement> boundStatements = builder.ToImmutableAndFree();
-            return boundStatements;
-        }
-
-        private void BindSimpleProgramUnit(CompilationUnitSyntax compilationUnit, ArrayBuilder<BoundStatement> boundStatements, DiagnosticBag diagnostics)
-        {
+            ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in compilationUnit.Members)
             {
                 if (statement is GlobalStatementSyntax topLevelStatement)
@@ -3286,6 +3253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundStatements.Add(boundStatement);
                 }
             }
+
+            return FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics);
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)

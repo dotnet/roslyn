@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -18,47 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
     {
         /// <summary>
-        /// A synthetic syntax tree associated with this method. An empty <see cref="CompilationUnitSyntax"/>
-        /// is the root of this tree. In several places in the compiler (like for example in 
-        /// <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, DiagnosticBag, out ImportChain, out bool, out MethodBodySemanticModel.InitialState)"/>)
-        /// we expect that a <see cref="SourceMemberMethodSymbol"/> that contains user code is associated with 
-        /// a single syntax node. We are using the empty <see cref="CompilationUnitSyntax"/> for this purpose.
-        /// Also, since multiple compilation units contribute locals and local functions to a single scope, we
-        /// need a single syntax node that can be used as a <see cref="Binder.ScopeDesignator"/> for it without
-        /// creating an ambiguity.
-        /// Another dependency on a presence of a single syntax node is a <see cref="ExecutableCodeBinder"/> that is
-        /// now also responsible for building binders for the compound simple program body.
-        /// 
-        /// There is one-to-one correspondence between an instance of <see cref="SynthesizedSimpleProgramEntryPointSymbol"/> 
-        /// and the tree. Even though the <see cref="CompilationUnitSyntax"/> node it empty, logically it represents a
-        /// compound simple program body, the logical children are all real <see cref="CompilationUnitSyntax"/> nodes with
-        /// top-level statements in the compilation.
+        /// The corresponding <see cref="SingleTypeDeclaration"/>. 
         /// </summary>
-        private readonly CSharpSyntaxTree _syntheticSyntaxTree = new CSharpSyntaxTree.DummySyntaxTree();
-
-        /// <summary>
-        /// The first syntax tree with a top-level statement that is not a <see cref="LocalFunctionStatementSyntax"/>.
-        /// That is the tree that comes first in the logical method body. It is possible to have no tree like that. 
-        /// </summary>
-        internal readonly SyntaxTree? PrimarySyntaxTree;
+        SingleTypeDeclaration _declaration;
 
         private readonly TypeSymbol _returnType;
         private WeakReference<ExecutableCodeBinder>? _weakBodyBinder;
-        private MemberSemanticModel.SimpleProgramBodySemanticModelMergedBoundNodeCache? _lazyMergedBoundNodeCache;
 
-        internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
-            : base(containingType, syntaxReferenceOpt: null, containingType.Locations, isIterator: declaration.IsIterator)
+        internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, SingleTypeDeclaration declaration, DiagnosticBag diagnostics)
+            : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, ImmutableArray.Create(declaration.SyntaxReference.GetLocation()), isIterator: declaration.IsIterator)
         {
-            bool hasAwait = declaration.HasAwaitExpressions;
+            _declaration = declaration;
 
-            foreach (var singleDecl in declaration.Declarations)
-            {
-                if (!singleDecl.AllTopLevelStatementsLocalFunctions)
-                {
-                    PrimarySyntaxTree = singleDecl.SyntaxReference.SyntaxTree;
-                    break;
-                }
-            }
+            bool hasAwait = declaration.HasAwaitExpressions;
 
             if (hasAwait)
             {
@@ -130,27 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return LexicalSortKey.NotInSource;
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ContainingType.DeclaringSyntaxReferences;
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ContainingType.Locations;
-            }
-        }
-
         public override RefKind RefKind
         {
             get
@@ -204,31 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
-            SyntaxTree? primarySyntaxTree = PrimarySyntaxTree;
-
-            if (primarySyntaxTree is object)
-            {
-                var type = (SimpleProgramNamedTypeSymbol)ContainingSymbol;
-
-                foreach (var singleDecl in type.MergedDeclaration.Declarations)
-                {
-                    if (!singleDecl.AllTopLevelStatementsLocalFunctions)
-                    {
-                        var syntaxTree = singleDecl.SyntaxReference.SyntaxTree;
-                        if (syntaxTree != primarySyntaxTree)
-                        {
-                            foreach (var statement in ((CompilationUnitSyntax)syntaxTree.GetRoot()).Members)
-                            {
-                                if (statement is GlobalStatementSyntax topLevelStatement && !topLevelStatement.Statement.IsKind(SyntaxKind.LocalFunctionStatement))
-                                {
-                                    Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, topLevelStatement.Statement.GetFirstToken());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         internal override bool IsExpressionBodied => false;
@@ -236,15 +163,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        protected override object MethodChecksLockObject => _syntheticSyntaxTree;
+        protected override object MethodChecksLockObject => _declaration;
 
         internal override CSharpSyntaxNode SyntaxNode
         {
             get
             {
-                return (CSharpSyntaxNode)_syntheticSyntaxTree.GetRoot();
+                return (CSharpSyntaxNode)_declaration.SyntaxReference.SyntaxTree.GetRoot();
             }
         }
+
+        internal CompilationUnitSyntax CompilationUnit => (CompilationUnitSyntax)SyntaxNode;
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
         {
@@ -281,73 +210,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal MemberSemanticModel.SimpleProgramBodySemanticModelMergedBoundNodeCache? GetSemanticModelMergedBoundNodeCache(Binder rootBinder)
-        {
-            var binder = (SimpleProgramBinder)rootBinder.GetBinder(SyntaxNode)!;
-            Debug.Assert(binder == _weakBodyBinder?.GetTarget()?.GetBinder(SyntaxNode));
-
-            if (((SimpleProgramNamedTypeSymbol)ContainingSymbol).MergedDeclaration.Declarations.Length == 1)
-            {
-                // No need to merge
-                // PROTOTYPE(SimplePrograms): Should we still use the cache? Otherwise, we have single-unit programs at disadvantage.
-                //                            Different models will rebind again, but in case of a multi-unit program the result of binding will be 
-                //                            reused.
-                return null;
-            }
-
-            var oldCache = _lazyMergedBoundNodeCache;
-
-            if (oldCache is object && oldCache.WeakBodyBinder.GetTarget() == binder)
-            {
-                return oldCache;
-            }
-
-            Debug.Assert(oldCache is null || oldCache.WeakBodyBinder.GetTarget() == null);
-
-            var newCache = new MemberSemanticModel.SimpleProgramBodySemanticModelMergedBoundNodeCache(binder);
-
-            var original = Interlocked.CompareExchange(ref _lazyMergedBoundNodeCache, newCache, oldCache);
-
-            if (original == oldCache)
-            {
-                return newCache;
-            }
-
-            RoslynDebug.Assert(original is object);
-            RoslynDebug.Assert(original.WeakBodyBinder.GetTarget() == binder);
-            return original;
-        }
-
-        /// <summary>
-        /// Returns the set of children for the synthesized entry point body.
-        /// If there is a <see cref="PrimarySyntaxTree"/>, a <see cref="CompilationUnitSyntax"/>
-        /// from it is returned first. The order of remaining units matches the order 
-        /// of syntax referemces in <see cref="MergedTypeDeclaration"/> for the simple program type.
-        /// </summary>
-        internal IEnumerable<CompilationUnitSyntax> GetUnits()
-        {
-            SyntaxTree? primarySyntaxTree = PrimarySyntaxTree;
-
-            if (primarySyntaxTree is object)
-            {
-                yield return (CompilationUnitSyntax)primarySyntaxTree.GetRoot();
-            }
-
-            var type = (SimpleProgramNamedTypeSymbol)ContainingSymbol;
-
-            foreach (var singleDecl in type.MergedDeclaration.Declarations)
-            {
-                var unit = (CompilationUnitSyntax)singleDecl.SyntaxReference.SyntaxTree.GetRoot();
-                if (unit.SyntaxTree != primarySyntaxTree)
-                {
-                    yield return unit;
-                }
-            }
-        }
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
-            return ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken);
+            if (_declaration.SyntaxReference.SyntaxTree == tree)
+            {
+                if (!definedWithinSpan.HasValue)
+                {
+                    return true;
+                }
+                else
+                {
+                    var span = definedWithinSpan.GetValueOrDefault();
+
+                    foreach (var global in ((CompilationUnitSyntax)tree.GetRoot()).Members.OfType<GlobalStatementSyntax>())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (global.Span.IntersectsWith(span))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

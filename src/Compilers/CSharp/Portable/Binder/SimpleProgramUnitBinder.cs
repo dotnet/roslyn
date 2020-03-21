@@ -5,15 +5,12 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This binder provides a context for binding Simple Program top-level statements within a specific
-    /// compilation unit. It ensures that locals and labels are in scope, however it is not responsible
+    /// This binder provides a context for binding within a specific compilation unit, but outside of top-level statements.
+    /// It ensures that locals and labels are in scope, however it is not responsible
     /// for creating the symbols. That task is actually owned by <see cref="SimpleProgramBinder"/> and
     /// this binder simply delegates to it when appropriate. That ensures that the same set of symbols is 
     /// shared across all compilation units.
@@ -74,15 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             return _scope.GetDeclaredLocalFunctionsForScope(scopeDesignator);
-        }
-
-        internal override Binder? GetBinder(SyntaxNode node)
-        {
-            // Delegating to the _scope first allows to get to a binder for another compilation unit
-            // with top level statements. That avoids adding any special cases for situations when 
-            // a SemanticModel binds an entire simple program body by calling Binder.BindMethodBody method
-            // on its root binder, which is specific to the compilation unit the model is associated with.
-            return _scope.GetBinder(node) ?? base.GetBinder(node);
         }
     }
 }

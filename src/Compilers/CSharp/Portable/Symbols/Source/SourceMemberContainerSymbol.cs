@@ -1339,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //       we often need to get members just to do a lookup.
         //       All additional checks and diagnostics may be not
         //       needed yet or at all.
-        private MembersAndInitializers GetMembersAndInitializers()
+        protected MembersAndInitializers GetMembersAndInitializers()
         {
             var membersAndInitializers = _lazyMembersAndInitializers;
             if (membersAndInitializers != null)
@@ -1672,7 +1672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
             // Partial methods are allowed to collide by signature.
-            if (method1.IsPartial && method2.IsPartial)
+            if ((method1.IsPartial && method2.IsPartial) ||
+                (method1 is SynthesizedSimpleProgramEntryPointSymbol && method2 is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 return;
             }

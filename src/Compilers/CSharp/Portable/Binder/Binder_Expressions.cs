@@ -1763,23 +1763,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node.SpanStart < localSymbolLocation.SourceSpan.Start;
                 }
 
-                if (localSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-                {
-                    // Primary tree "precedes" other trees in a simple program
-                    if (node.SyntaxTree == entryPoint.PrimarySyntaxTree)
-                    {
-                        return true;
-                    }
-                    else if (localSymbolLocation.SourceTree == entryPoint.PrimarySyntaxTree)
-                    {
-                        return false;
-                    }
-
-                    // None is a primary tree, just compare ordinals for the trees involved
-                    // PROTOTYPE(SimplePrograms): It feels like we are going to have a problem with this for a speculative code.
-                    return Compilation.CompareSyntaxTreeOrdering(node.SyntaxTree, localSymbolLocation.SourceTree) < 0;
-                }
-
                 return false;
             }
         }

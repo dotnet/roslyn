@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are any we create an implicit class to wrap them.
             bool hasGlobalMembers = false;
             bool acceptSimpleProgram = node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular;
-            bool allTopLevelStatementsLocalFunctions = true;
             bool hasAwaitExpressions = false;
             bool isIterator = false;
             SyntaxReference firstTopLevelStatement = null;
@@ -69,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     firstTopLevelStatement ??= _syntaxTree.GetReference(member);
                     var topLevelStatement = ((GlobalStatementSyntax)member).Statement;
-
-                    if (topLevelStatement.Kind() != SyntaxKind.LocalFunctionStatement)
-                    {
-                        allTopLevelStatementsLocalFunctions = false;
-                    }
 
                     if (!hasAwaitExpressions)
                     {
@@ -94,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap all global statements in a compilation unit into a simple program type:
             if (firstTopLevelStatement is object)
             {
-                childrenBuilder.Add(CreateSimpleProgram(firstTopLevelStatement, hasAwaitExpressions, allTopLevelStatementsLocalFunctions, isIterator));
+                childrenBuilder.Add(CreateSimpleProgram(firstTopLevelStatement, hasAwaitExpressions, isIterator));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -126,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(SyntaxReference firstTopLevelStatement, bool hasAwaitExpressions,
-                                                                            bool allTopLevelStatementsLocalFunctions, bool isIterator)
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(SyntaxReference firstTopLevelStatement, bool hasAwaitExpressions, bool isIterator)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
@@ -135,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
-                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
-                           (allTopLevelStatementsLocalFunctions ? SingleTypeDeclaration.TypeDeclarationFlags.AllTopLevelStatementsLocalFunctions : SingleTypeDeclaration.TypeDeclarationFlags.None),
+                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None),
                 syntaxReference: firstTopLevelStatement,
                 nameLocation: new SourceLocation(firstTopLevelStatement),
                 memberNames: ImmutableHashSet<string>.Empty,

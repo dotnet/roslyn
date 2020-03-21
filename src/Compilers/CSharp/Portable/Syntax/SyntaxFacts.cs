@@ -505,19 +505,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool HasAwaitOperations(SyntaxNode node)
         {
             // Do not descend into functions
-            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).Any(node =>
-                                                                                      {
-                                                                                          switch (node)
-                                                                                          {
-                                                                                              case AwaitExpressionSyntax _:
-                                                                                              case LocalDeclarationStatementSyntax local when local.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
-                                                                                              case CommonForEachStatementSyntax @foreach when @foreach.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
-                                                                                              case UsingStatementSyntax @using when @using.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
-                                                                                                  return true;
-                                                                                              default:
-                                                                                                  return false;
-                                                                                          }
-                                                                                      });
+            return node.DescendantNodesAndSelf(child => !IsNestedFunction(child)).Any(
+                            node =>
+                            {
+                                switch (node)
+                                {
+                                    case AwaitExpressionSyntax _:
+                                    case LocalDeclarationStatementSyntax local when local.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case CommonForEachStatementSyntax @foreach when @foreach.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                    case UsingStatementSyntax @using when @using.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword):
+                                        return true;
+                                    default:
+                                        return false;
+                                }
+                            });
         }
 
         internal static bool IsNestedFunction(SyntaxNode child)
