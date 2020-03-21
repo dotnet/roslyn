@@ -745,7 +745,7 @@ ForwardDecode:
             return bytesWritten;
         }
 
-        public override bool Equals(object? obj) => (obj is Rune other) && Equals(other);
+        public override bool Equals(object obj) => (obj is Rune other) && Equals(other);
 
         public bool Equals(Rune other) => this == other;
 
