@@ -161,10 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
-        private static bool IsHighSurrogateCodePoint(uint value) => IsInRangeInclusive(value, 0xD800U, 0xDBFFU);
-        private static bool IsLowSurrogateCodePoint(uint value) => IsInRangeInclusive(value, 0xDC00U, 0xDFFFU);
-        private static bool IsInRangeInclusive(uint value, uint lowerBound, uint upperBound) => (value - lowerBound) <= (upperBound - lowerBound);
-
         private bool TryAddEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
         {
