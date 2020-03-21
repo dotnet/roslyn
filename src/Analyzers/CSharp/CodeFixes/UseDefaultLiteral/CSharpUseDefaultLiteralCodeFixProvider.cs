@@ -10,13 +10,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 {
@@ -54,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // to replace one at a time, and only actually replace if it's still safe to do so.
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var preferSimpleDefaultExpression = options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value;
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = document.Project.AnalyzerOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, tree, cancellationToken).Value;
 
             var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;
@@ -72,10 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Simplify_default_expression, createChangedDocument, FeaturesResources.Simplify_default_expression)
+                : base(CSharpAnalyzersResources.Simplify_default_expression, createChangedDocument, CSharpAnalyzersResources.Simplify_default_expression)
             {
             }
         }
