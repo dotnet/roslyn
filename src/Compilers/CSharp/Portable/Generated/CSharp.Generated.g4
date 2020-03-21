@@ -501,20 +501,11 @@ case_pattern_switch_label
   ;
 
 pattern
-  : binary_pattern
-  | constant_pattern
+  : constant_pattern
   | declaration_pattern
   | discard_pattern
-  | parenthesized_pattern
   | recursive_pattern
-  | relational_pattern
-  | type_pattern
-  | unary_pattern
   | var_pattern
-  ;
-
-binary_pattern
-  : pattern ('or' | 'and') pattern
   ;
 
 constant_pattern
@@ -547,10 +538,6 @@ discard_pattern
   : '_'
   ;
 
-parenthesized_pattern
-  : '(' pattern ')'
-  ;
-
 recursive_pattern
   : type? positional_pattern_clause? property_pattern_clause? variable_designation?
   ;
@@ -565,23 +552,6 @@ subpattern
 
 property_pattern_clause
   : '{' (subpattern (',' subpattern)* ','?)? '}'
-  ;
-
-relational_pattern
-  : '!=' expression
-  | '<' expression
-  | '<=' expression
-  | '==' expression
-  | '>' expression
-  | '>=' expression
-  ;
-
-type_pattern
-  : type
-  ;
-
-unary_pattern
-  : 'not' pattern
   ;
 
 var_pattern
