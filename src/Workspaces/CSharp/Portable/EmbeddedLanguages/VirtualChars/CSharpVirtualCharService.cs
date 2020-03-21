@@ -268,6 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     uintChar = (uint)((uintChar << 4) + HexValue(character));
                 }
 
+                if (uintChar > 0x0010FFFF)
+                {
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
+                    return false;
+                }
+
                 result.Add(new VirtualChar(uintChar, new TextSpan(startIndex + offset, 2 + 8)));
                 return true;
             }
