@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingPattern = 8504,
         ERR_DefaultPattern = 8505,
         ERR_SwitchExpressionNoBestType = 8506,
-        // ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507, // Retired C# 8 diagnostic
+        ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507,
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,
@@ -1756,27 +1756,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_DoesNotReturnMismatch = 8770,
         ERR_NoOutputDirectory = 8771,
-        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
-
-        // available 8773
-
-        #region diagnostics introduced for C# 9.0
 
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
 
-        ERR_DesignatorBeneathPatternCombinator = 8780,
-        ERR_UnsupportedTypeForRelationalPattern = 8781,
-        ERR_RelationalPatternWithNaN = 8782,
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 
         ERR_ConditionalOnLocalFunction = 8783,
 
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
-
-        #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
