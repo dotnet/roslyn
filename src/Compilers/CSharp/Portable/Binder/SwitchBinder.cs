@@ -207,15 +207,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // compute the constant value to place in the label symbol
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
-                        var boundLabelExpression = sectionBinder.BindRValueWithoutTargetType(caseLabel.Value, tempDiagnosticBag);
-                        boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                        var boundLabelExpression = sectionBinder.BindTypeOrRValue(caseLabel.Value, tempDiagnosticBag);
+                        if (boundLabelExpression is BoundTypeExpression type)
+                        {
+                            // Nothing to do at this point.  The label will be bound later.
+                        }
+                        else
+                        {
+                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                        }
                         break;
 
                     case SyntaxKind.CasePatternSwitchLabel:
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
-                        var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, labelSyntax.HasErrors, tempDiagnosticBag);
+                        _ = sectionBinder.BindPattern(
+                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:

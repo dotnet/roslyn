@@ -1482,10 +1482,9 @@ class _
 {
 }";
             var compilation = CreatePatternCompilation(source);
+            // Diagnostics are not ideal here.  On the other hand, this is not likely to be a frequent occurrence except in test code
+            // so any effort at improving the diagnostics would not likely be well spent.
             compilation.VerifyDiagnostics(
-                // (9,18): error CS0119: '_' is a type, which is not valid in the given context
-                //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "_").WithArguments("_", "type").WithLocation(9, 18),
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),

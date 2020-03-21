@@ -132,6 +132,11 @@
         <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве шаблона. Используйте другой литерал (например, "0" или "null") по мере необходимости. Чтобы задать полное совпадение, используйте шаблон отмены "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Шаблон отмены запрещено использовать как метку case в операторе switch. Используйте "case var _:" в качестве шаблона отмены или "case @_:" в качестве константы "_".</target>
@@ -432,6 +437,11 @@
         <target state="translated">Левая часть выражения назначения ссылки должна быть локальной ссылкой или параметром.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
@@ -510,6 +520,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Чтобы тип "{2}" можно было использовать как параметр "{1}" в универсальном типе метода "{0}", он должен быть типом значения, который, как и все поля на любом уровне вложения, не допускает значения NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -859,6 +874,11 @@
         <target state="translated">альтернативные интерполированные буквальные строки</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAndPattern">
+        <source>and pattern</source>
+        <target state="new">and pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
         <target state="translated">асинхронный оператор using</target>
@@ -934,6 +954,11 @@
         <target state="translated">ограничение универсального типа notnull</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotPattern">
+        <source>not pattern</source>
+        <target state="new">not pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">ссылочные типы, допускающие значение NULL</target>
@@ -942,6 +967,16 @@
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
         <target state="translated">устарело для метода доступа к свойству</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureOrPattern">
+        <source>or pattern</source>
+        <target state="new">or pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParenthesizedPattern">
+        <source>parenthesized pattern</source>
+        <target state="new">parenthesized pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
@@ -984,6 +1019,11 @@
         <target state="translated">повторное назначение по ссылке</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelationalPattern">
+        <source>relational pattern</source>
+        <target state="new">relational pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="translated">инициализатор stackalloc</target>
@@ -1002,6 +1042,11 @@
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">равенство кортежей</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTypePattern">
+        <source>type pattern</source>
+        <target state="new">type pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
@@ -8758,11 +8803,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">Возможность "{0}" недоступна в C# 7.0. Используйте версию языка {1} или более позднюю.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Функция "{0}" не реализована в этом компиляторе.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

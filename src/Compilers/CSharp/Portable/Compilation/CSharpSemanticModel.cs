@@ -851,6 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public TypeInfo GetTypeInfo(PatternSyntax pattern, CancellationToken cancellationToken = default(CancellationToken))
         {
+            while (pattern is ParenthesizedPatternSyntax pp)
+                pattern = pp.Pattern;
+
             CheckSyntaxNode(pattern);
             return GetTypeInfoWorker(pattern, cancellationToken);
         }
@@ -4014,7 +4017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // chose for M.
                         var call = (BoundCall)boundNodeForSyntacticParent;
                         InvocationExpressionSyntax invocation = call.Syntax as InvocationExpressionSyntax;
-                        if (invocation != null && invocation.Expression.SkipParens() == boundNode.Syntax.SkipParens() && (object)call.Method != null)
+                        if (invocation != null && invocation.Expression.SkipParens() == ((ExpressionSyntax)boundNode.Syntax).SkipParens() && (object)call.Method != null)
                         {
                             if (call.OriginalMethodsOpt.IsDefault)
                             {
