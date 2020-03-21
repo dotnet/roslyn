@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sectionBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(switchSections.Length);
-            bool anyPreviousErrors = false;
             foreach (var oldSection in switchSections)
             {
                 var labelBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (syntax)
                         {
                             case CasePatternSwitchLabelSyntax p:
-                                if (!p.Pattern.HasErrors && !anyPreviousErrors)
+                                if (!p.Pattern.HasErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
                                 }
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // We use the traditional diagnostic when possible
                                     diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
                                 }
-                                else if (!label.Pattern.HasErrors && !anyPreviousErrors)
+                                else if (!label.Pattern.HasErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
                                 }
@@ -124,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
                     }
 
-                    anyPreviousErrors |= label.HasErrors;
                     labelBuilder.Add(newLabel);
                 }
 
@@ -239,17 +237,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
-                        BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
-                        pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
+                        if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
+                            hasErrors = true;
+                        }
+
+                        BoundConstantPattern pattern = sectionBinder.BindConstantPattern(
+                            node, SwitchGoverningType, caseLabelSyntax.Value, hasErrors, diagnostics, out bool wasExpression);
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
+                        pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
 
                         return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
                     }
 
                 case SyntaxKind.DefaultSwitchLabel:
                     {
-                        var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, convertedType: SwitchGoverningType);
+                        var defaultLabelSyntax = (DefaultSwitchLabelSyntax)node;
+                        var pattern = new BoundDiscardPattern(node, SwitchGoverningType);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {
@@ -269,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, node.HasErrors, diagnostics);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, node.HasErrors, diagnostics);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 
@@ -284,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
             {
-                if (pattern is BoundConstantPattern { HasErrors: false } && IsUnderscore(expression))
+                if (!pattern.HasErrors &&
+                    expression is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken())
                 {
                     diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
                 }

@@ -719,15 +719,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DeclarationPattern_NullableArray()
         {
             UsingStatement("switch (e) { case T[]? t: break; }",
-                // (1,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,21): error CS0443: Syntax error; value expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T[]").WithArguments("type pattern").WithLocation(1, 19),
-                // (1,22): error CS1003: Syntax error, ':' expected
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 21),
+                // (1,27): error CS1525: Invalid expression term 'break'
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 27),
+                // (1,27): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 27));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -740,39 +740,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.CaseSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.TypePattern);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.ArrayType);
+                            N(SyntaxKind.ElementAccessExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "T");
                                 }
-                                N(SyntaxKind.ArrayRankSpecifier);
+                                N(SyntaxKind.BracketedArgumentList);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "t");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                         M(SyntaxKind.ColonToken);
                     }
-                    N(SyntaxKind.LabeledStatement);
+                    N(SyntaxKind.BreakStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "t");
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.BreakStatement);
-                        {
-                            N(SyntaxKind.BreakKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -26,8 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken = cancellationToken;
             }
 
-            public Task ReportProgressAsync(int current, int maximum)
-                => _progress.ReportProgressAsync(current, maximum);
+            public Task AddItemsAsync(int count)
+                => _progress.ProgressTracker.AddItemsAsync(count);
+
+            public Task ItemCompletedAsync()
+                => _progress.ProgressTracker.ItemCompletedAsync();
 
             public async Task OnReferenceFoundAsync(
                 DocumentId documentId, TextSpan span)
