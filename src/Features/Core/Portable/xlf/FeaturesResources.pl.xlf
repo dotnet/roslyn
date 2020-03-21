@@ -2240,16 +2240,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Implementuj {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">Uprość wyrażenie „default”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'Wyrażenie „default” można uprościć</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">Ciąg formatu zawiera nieprawidłowy symbol zastępczy</target>
