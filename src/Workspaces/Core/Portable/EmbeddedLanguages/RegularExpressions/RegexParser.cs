@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal partial struct RegexParser
     {
         private readonly ImmutableDictionary<string, TextSpan> _captureNamesToSpan;
-        private readonly ImmutableDictionary<uint, TextSpan> _captureNumbersToSpan;
+        private readonly ImmutableDictionary<int, TextSpan> _captureNumbersToSpan;
 
         private RegexLexer _lexer;
         private RegexOptions _options;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexParser(
             VirtualCharSequence text, RegexOptions options,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
-            ImmutableDictionary<uint, TextSpan> captureNumbersToSpan) : this()
+            ImmutableDictionary<int, TextSpan> captureNumbersToSpan) : this()
         {
             _lexer = new RegexLexer(text);
             _options = options;
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // that exists or not.
                 var tree1 = new RegexParser(text, options,
                     ImmutableDictionary<string, TextSpan>.Empty,
-                    ImmutableDictionary<uint, TextSpan>.Empty).ParseTree();
+                    ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
                 var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(text, tree1.Root, options);
 
@@ -512,8 +513,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     // Nothing allowed between {x,n}
                     ConsumeCurrentToken(allowTrivia: false);
 
-                    var val1 = (uint)firstNumberToken.Value;
-                    var val2 = (uint)secondNumberTokenLocal.Value;
+                    var val1 = (int)firstNumberToken.Value;
+                    var val2 = (int)secondNumberTokenLocal.Value;
 
                     if (val2 < val1)
                     {
@@ -785,7 +786,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (_currentToken.Kind == RegexKind.CloseParenToken)
                 {
                     innerCloseParenToken = _currentToken;
-                    if (!HasCapture((uint)capture.Value))
+                    if (!HasCapture((int)capture.Value))
                     {
                         capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             WorkspacesResources.Reference_to_undefined_group,
@@ -836,7 +837,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 result, ParseGroupingCloseParen());
         }
 
-        private bool HasCapture(uint value)
+        private bool HasCapture(int value)
             => _captureNumbersToSpan.ContainsKey(value);
 
         private bool HasCapture(string value)
@@ -1002,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var capture = captureToken.Value;
-            if (capture.Kind == RegexKind.NumberToken && (uint)capture.Value == 0)
+            if (capture.Kind == RegexKind.NumberToken && (int)capture.Value == 0)
             {
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Capture_number_cannot_be_zero,
@@ -1101,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (captureToken.Kind == RegexKind.NumberToken)
             {
-                var val = (uint)captureToken.Value;
+                var val = (int)captureToken.Value;
                 if (!HasCapture(val))
                 {
                     captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
@@ -1173,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseGroupingEmbeddedExpression(GetNewOptionsFromToken(_options, optionsToken)), ParseGroupingCloseParen());
 
         private static bool IsTextChar(RegexToken currentToken, char ch)
-            => currentToken.Kind == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0].CodePoint == ch;
+            => currentToken.Kind == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0] == ch;
 
         private static RegexOptions GetNewOptionsFromToken(RegexOptions currentOptions, RegexToken optionsToken)
         {
@@ -1181,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var on = true;
             foreach (var ch in optionsToken.VirtualChars)
             {
-                switch (ch.CodePoint)
+                switch (ch.Rune.Value)
                 {
                     case '-': on = false; break;
                     case '+': on = true; break;
@@ -1202,9 +1203,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return copy;
         }
 
-        private static RegexOptions OptionFromCode(uint ch)
+        private static RegexOptions OptionFromCode(Rune ch)
         {
-            switch (ch)
+            switch (ch.Value)
             {
                 case 'i': case 'I': return RegexOptions.IgnoreCase;
                 case 'm': case 'M': return RegexOptions.Multiline;
@@ -1323,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private bool IsEscapedMinus(RegexNode node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
-        private bool TryGetRangeComponentValue(RegexExpressionNode component, out uint ch)
+        private bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
         {
             // Don't bother examining the component if it has any errors already.  This also means
             // we don't have to worry about running into invalid escape sequences and the like.
@@ -1336,18 +1337,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private bool TryGetRangeComponentValueWorker(RegexNode component, out uint ch)
+        private bool TryGetRangeComponentValueWorker(RegexNode component, out int ch)
         {
             switch (component.Kind)
             {
                 case RegexKind.SimpleEscape:
                     var escapeNode = (RegexSimpleEscapeNode)component;
-                    ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
+                    ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]).Value;
                     return true;
 
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
-                    var controlCh = controlEscape.ControlToken.VirtualChars[0].CodePoint;
+                    var controlCh = controlEscape.ControlToken.VirtualChars[0].Rune.Value;
 
                     // \ca interpreted as \cA
                     if (controlCh >= 'a' && controlCh <= 'z')
@@ -1358,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     // The control characters have values mapping from the A-Z range to numeric
                     // values 1-26.  So, to map that, we subtract 'A' from the value (which would
                     // give us 0-25) and then add '1' back to it.
-                    ch = (char)(controlCh - 'A' + 1);
+                    ch = controlCh - 'A' + 1;
                     return true;
 
                 case RegexKind.OctalEscape:
@@ -1391,7 +1392,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     {
                         Debug.Assert(IsEscapedMinus(sequence.ChildAt(i).Node));
                     }
-#endif
 
                     var last = sequence.ChildAt(sequence.ChildCount - 1).Node;
                     if (IsEscapedMinus(last))
@@ -1406,43 +1406,37 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private char GetCharValue(RegexToken hexText, int withBase)
+        private int GetCharValue(RegexToken hexText, int withBase)
         {
             unchecked
             {
-                var total = 0u;
+                var total = 0;
                 foreach (var vc in hexText.VirtualChars)
                 {
-                    total = (uint)(total * withBase);
-                    total = total + HexValue(vc.CodePoint);
+                    total *= withBase;
+                    total += HexValue(vc.Rune);
                 }
 
-                return (char)total;
+                return total;
             }
         }
 
-        private uint HexValue(uint ch)
+        private int HexValue(Rune ch)
         {
             Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
             {
-                var temp = (uint)(ch - '0');
-                if (temp <= 9)
-                {
+                var temp = ch.Value - '0';
+                if (temp >= 0 && temp <= 9)
                     return temp;
-                }
 
-                temp = (ch - 'a');
-                if (temp <= 5)
-                {
+                temp = ch.Value - 'a';
+                if (temp >= 0 && temp <= 5)
                     return temp + 10;
-                }
 
-                temp = (ch - 'A');
-                if (temp <= 5)
-                {
+                temp = ch.Value - 'A';
+                if (temp >= 0 && temp <= 5)
                     return temp + 10;
-                }
             }
 
             throw new InvalidOperationException();
@@ -1494,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
                 var nextChar = _currentToken.VirtualChars[0];
-                switch (nextChar.CodePoint)
+                switch (nextChar.Rune.Value)
                 {
                     case 'D':
                     case 'd':
@@ -1607,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// </summary>
         private RegexEscapeNode ParseEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
 
             // No spaces between \ and next char.
             ConsumeCurrentToken(allowTrivia: false);
@@ -1621,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
-            switch (_currentToken.VirtualChars[0].CodePoint)
+            switch (_currentToken.VirtualChars[0].Rune.Value)
             {
                 case 'b':
                 case 'B':
@@ -1653,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode ParseBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
 
             // No spaces between \ and next char.
             ConsumeCurrentToken(allowTrivia: false);
@@ -1667,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
-            var ch = _currentToken.VirtualChars[0].CodePoint;
+            var ch = _currentToken.VirtualChars[0];
             if (ch == 'k')
             {
                 return ParsePossibleKCaptureEscape(backslashToken, allowTriviaAfterEnd);
@@ -1706,11 +1700,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             //
             // This is addressable if we add position tracking when we locate all the captures.
 
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
             var start = _lexer.Position;
 
             var bestPosition = -1;
-            var capVal = 0u;
+            var capVal = 0;
             while (_lexer.Position < _lexer.Text.Length &&
                    _lexer.Text[_lexer.Position] is var ch &&
                    (ch >= '0' && ch <= '9'))
@@ -1745,11 +1739,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexEscapeNode ParsePossibleRegularBackreferenceEscape(
             RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
             var start = _lexer.Position;
 
             var numberToken = _lexer.TryScanNumber().Value;
-            var capVal = (uint)numberToken.Value;
+            var capVal = (int)numberToken.Value;
             if (HasCapture(capVal) ||
                 capVal <= 9)
             {
@@ -1765,9 +1759,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode ParsePossibleCaptureEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
-            Debug.Assert(_lexer.Text[_lexer.Position].CodePoint == '<' ||
-                         _lexer.Text[_lexer.Position].CodePoint == '\'');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position] == '<' ||
+                         _lexer.Text[_lexer.Position] == '\'');
 
             var afterBackslashPosition = _lexer.Position;
             ScanCaptureParts(allowTriviaAfterEnd, out var openToken, out var capture, out var closeToken);
@@ -1849,7 +1843,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode ParseCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            Debug.Assert(_lexer.Text[_lexer.Position - 1].CodePoint == '\\');
+            Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
 
             // no trivia between \ and the next char
             ConsumeCurrentToken(allowTrivia: false);
@@ -1866,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return new RegexOctalEscapeNode(backslashToken, octalDigits);
             }
 
-            switch (ch.CodePoint)
+            switch (ch.Rune.Value)
             {
                 case 'a':
                 case 'b':
@@ -1929,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
-            var ch = _currentToken.VirtualChars[0].CodePoint;
+            var ch = _currentToken.VirtualChars[0].Rune.Value;
 
             unchecked
             {

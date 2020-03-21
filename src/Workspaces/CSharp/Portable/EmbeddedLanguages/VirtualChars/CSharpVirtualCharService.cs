@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -135,6 +136,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                     index += result.Last().Span.Length;
                 }
+                else if (IsHighSurrogateCodePoint(tokenText[index]))
+                {
+                    // we had a high surrogate.  we better have a following low surrogate for this to be a legal string.
+                    if (index + 1 < endIndexExclusive && IsLowSurrogateCodePoint(tokenText[index + 1]))
+                    {
+                        result.Add(new VirtualChar(
+                            new Rune(highSurrogate: tokenText[index], lowSurrogate: tokenText[index + 1]),
+                            new TextSpan(offset + index, 2)));
+                        index += 2;
+                    }
+                    else
+                    {
+                        Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
+                        return default;
+                    }
+                }
                 else
                 {
                     result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
@@ -146,6 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
+        private static bool IsHighSurrogateCodePoint(uint value) => IsInRangeInclusive(value, 0xD800U, 0xDBFFU);
+        private static bool IsLowSurrogateCodePoint(uint value) => IsInRangeInclusive(value, 0xDC00U, 0xDFFFU);
+        private static bool IsInRangeInclusive(uint value, uint lowerBound, uint upperBound) => (value - lowerBound) <= (upperBound - lowerBound);
+
         private bool TryAddEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
         {
@@ -156,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                    TryAddMultiCharacterEscape(result, tokenText, offset, index);
         }
 
-        public override bool TryGetEscapeCharacter(uint ch, out char escapedChar)
+        public override bool TryGetEscapeCharacter(Rune ch, out char escapedChar)
         {
             // Keep in sync with TryAddSingleCharacterEscape
-            switch (ch)
+            switch (ch.Value)
             {
                 // Note: we don't care about single quote as that doesn't need to be escaped when
                 // producing a normal C# string literal.
@@ -274,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     return false;
                 }
 
-                result.Add(new VirtualChar(uintChar, new TextSpan(startIndex + offset, 2 + 8)));
+                result.Add(new VirtualChar(new Rune(uintChar), new TextSpan(startIndex + offset, 2 + 8)));
                 return true;
             }
             else if (character == 'u')

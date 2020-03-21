@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
-        public abstract bool TryGetEscapeCharacter(uint ch, out char escapedChar);
+        public abstract bool TryGetEscapeCharacter(Rune ch, out char escapedChar);
 
         protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);

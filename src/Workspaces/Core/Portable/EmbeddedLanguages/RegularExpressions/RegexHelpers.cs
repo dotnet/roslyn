@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -34,17 +35,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// 'a' this will map to actual '\a' char (the bell character).  However, for something like
         /// '(' this will just map to '(' as that's all that \( does in a regex.
         /// </summary>
-        public static uint MapEscapeChar(uint ch)
-            => ch switch
+        public static Rune MapEscapeChar(Rune ch)
+            => ch.Value switch
             {
-                'a' => '\u0007',    // bell
-                'b' => '\b',        // backspace
-                'e' => '\u001B',    // escape
-                'f' => '\f',        // form feed
-                'n' => '\n',        // new line
-                'r' => '\r',        // carriage return
-                't' => '\t',        // tab
-                'v' => '\u000B',    // vertical tab
+                'a' => new Rune('\u0007'),    // bell
+                'b' => new Rune('\b'),        // backspace
+                'e' => new Rune('\u001B'),    // escape
+                'f' => new Rune('\f'),        // form feed
+                'n' => new Rune('\n'),        // new line
+                'r' => new Rune('\r'),        // carriage return
+                't' => new Rune('\t'),        // tab
+                'v' => new Rune('\u000B'),    // vertical tab
                 _ => ch,
             };
 
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             if (node.TypeToken.VirtualChars.Length > 0)
             {
-                var ch = node.TypeToken.VirtualChars[0].CodePoint;
+                var ch = node.TypeToken.VirtualChars[0].Rune;
                 return MapEscapeChar(ch) == ch;
             }
 

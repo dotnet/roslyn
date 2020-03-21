@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -68,8 +69,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
-        private static RegexKind GetKind(uint ch)
-            => ch switch
+        private static RegexKind GetKind(Rune ch)
+            => ch.Value switch
             {
                 '|' => RegexKind.BarToken,
                 '*' => RegexKind.AsteriskToken,
@@ -216,10 +217,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(uint ch)
+        private bool IsBlank(Rune ch)
         {
             // List taken from the native regex parser.
-            switch (ch)
+            switch (ch.Value)
             {
                 case '\u0009':
                 case '\u000A':
@@ -274,7 +275,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             const int MaxValueDiv10 = int.MaxValue / 10;
             const int MaxValueMod10 = int.MaxValue % 10;
 
-            var value = 0u;
+            var value = 0;
             var start = Position;
             var error = false;
             while (Position < Text.Length && this.CurrentChar is var ch && IsDecimalDigit(ch))
@@ -351,9 +352,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(uint ch)
+        private bool IsOptionChar(Rune ch)
         {
-            switch (ch)
+            switch (ch.Value)
             {
                 case '+':
                 case '-':
@@ -379,8 +380,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var beforeSlash = start - 2;
 
             // Make sure we're right after the \x or \u.
-            Debug.Assert(Text[beforeSlash].CodePoint == '\\');
-            Debug.Assert(Text[beforeSlash + 1].CodePoint == 'x' || Text[beforeSlash + 1].CodePoint == 'u');
+            Debug.Assert(Text[beforeSlash] == '\\');
+            Debug.Assert(Text[beforeSlash + 1] == 'x' || Text[beforeSlash + 1] == 'u');
 
             for (var i = 0; i < count; i++)
             {
@@ -404,16 +405,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return result;
         }
 
-        public static bool IsHexChar(uint ch)
+        public static bool IsHexChar(Rune ch)
             => IsDecimalDigit(ch) ||
-               (ch >= 'a' && ch <= 'f') ||
-               (ch >= 'A' && ch <= 'F');
+               (ch.Value >= 'a' && ch.Value <= 'f') ||
+               (ch.Value >= 'A' && ch.Value <= 'F');
 
-        private static bool IsDecimalDigit(uint ch)
-            => ch >= '0' && ch <= '9';
+        private static bool IsDecimalDigit(Rune ch)
+            => ch.Value >= '0' && ch.Value <= '9';
 
-        private static bool IsOctalDigit(uint ch)
-            => ch >= '0' && ch <= '7';
+        private static bool IsOctalDigit(Rune ch)
+            => ch.Value >= '0' && ch.Value <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
         {
@@ -422,11 +423,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Make sure we're right after the \
             // And we only should have been called if we were \octal-char 
-            Debug.Assert(Text[beforeSlash].CodePoint == '\\');
-            Debug.Assert(IsOctalDigit(Text[start].CodePoint));
+            Debug.Assert(Text[beforeSlash] == '\\');
+            Debug.Assert(IsOctalDigit(Text[start]));
 
             const int maxChars = 3;
-            var currentVal = 0u;
+            var currentVal = 0;
 
             for (var i = 0; i < maxChars; i++)
             {

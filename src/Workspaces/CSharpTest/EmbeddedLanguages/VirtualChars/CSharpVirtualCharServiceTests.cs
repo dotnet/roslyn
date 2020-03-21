@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(@"""\U0002A6A5𪚥""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\uD869',[11,12]]['\uDEA5',[12,13]]");
+            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
         }
 
         [Fact]
@@ -285,14 +286,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         }
 
         private string ConvertToString(VirtualChar vc)
-            => $"[{ConvertToString(vc.CodePoint)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
+            => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
-        private string ConvertToString(uint c)
+        private string ConvertRuneToString(VirtualChar c)
             => PrintAsUnicodeEscape(c)
                 ? c <= char.MaxValue ? $"'\\u{(int)c:X4}'" : $"'\\U{(int)c:X8}'"
                 : $"'{(char)c}'";
 
-        private static bool PrintAsUnicodeEscape(uint c)
+        private static bool PrintAsUnicodeEscape(VirtualChar c)
         {
             if (c < 127 && char.IsLetterOrDigit((char)c))
             {

@@ -25,18 +25,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal readonly struct VirtualChar : IEquatable<VirtualChar>
     {
-        /// <summary>
-        /// Can represent any unicode code point.  Values are represented in Utf32.
-        /// </summary>
-        public readonly uint CodePoint;
+        public readonly Rune Rune;
         public readonly TextSpan Span;
 
-        public VirtualChar(uint codePoint, TextSpan span)
+        public VirtualChar(char ch, TextSpan span)
+            : this(new Rune(ch), span)
+        {
+        }
+
+        public VirtualChar(Rune rune, TextSpan span)
         {
             if (span.IsEmpty)
                 throw new ArgumentException("Span should not be empty.", nameof(span));
 
-            CodePoint = codePoint;
+            Rune = rune;
             Span = span;
         }
 
@@ -49,25 +51,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public void AppendTo(StringBuilder builder)
         {
-            if (CodePoint <= char.MaxValue)
-            {
-                builder.Append((char)CodePoint);
-                return;
-            }
+            Span<char> chars = stackalloc char[2];
 
-            // taken from SlidingTextWindow.GetCharsFromUtf32
-            var highSurrogate = ((CodePoint - 0x00010000) / 0x0400) + 0xD800;
-            var lowSurrogate = ((CodePoint - 0x00010000) % 0x0400) + 0xDC00;
-
-            builder.Append((char)highSurrogate);
-            builder.Append((char)lowSurrogate);
+            var length = Rune.EncodeToUtf16(chars);
+            builder.Append(chars[0]);
+            if (length == 2)
+                builder.Append(chars[1]);
         }
 
         public override bool Equals(object obj)
             => obj is VirtualChar vc && Equals(vc);
 
         public bool Equals(VirtualChar other)
-            => CodePoint == other.CodePoint &&
+            => Rune == other.Rune &&
                Span == other.Span;
 
         public override int GetHashCode()
@@ -75,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             unchecked
             {
                 var hashCode = 244102310;
-                hashCode = hashCode * -1521134295 + CodePoint.GetHashCode();
+                hashCode = hashCode * -1521134295 + Rune.GetHashCode();
                 hashCode = hashCode * -1521134295 + Span.GetHashCode();
                 return hashCode;
             }
@@ -87,7 +83,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static bool operator !=(VirtualChar char1, VirtualChar char2)
             => !(char1 == char2);
 
-        public static implicit operator uint(VirtualChar vc) => vc.CodePoint;
+        public static implicit operator Rune(VirtualChar vc) => vc.Rune;
+        public static implicit operator int(VirtualChar vc) => vc.Rune.Value;
         public static implicit operator string(VirtualChar vc) => vc.ToString();
     }
 }
