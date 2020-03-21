@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Copied from https://github.com/dotnet/corefx/blob/e99ec129cfd594d53f4390bf97d1d736cff6f860/src/Common/src/CoreLib/System/Text/Rune.cs#L1
+// Copied from https://github.com/dotnet/runtime/blob/c73774b53944a6007ee85f138e3ff3d3297846ea/src/libraries/System.Private.CoreLib/src/System/Text/Rune.cs#L1
 // So that we can use Runes in netstandard 2.0
 
 #if !NETCOREAPP
