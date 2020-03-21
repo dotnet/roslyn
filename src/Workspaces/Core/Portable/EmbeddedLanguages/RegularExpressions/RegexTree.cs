@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     internal sealed class RegexTree : EmbeddedSyntaxTree<RegexKind, RegexNode, RegexCompilationUnit>
     {
         public readonly ImmutableDictionary<string, TextSpan> CaptureNamesToSpan;
-        public readonly ImmutableDictionary<int, TextSpan> CaptureNumbersToSpan;
+        public readonly ImmutableDictionary<uint, TextSpan> CaptureNumbersToSpan;
 
         public RegexTree(
             VirtualCharSequence text,
             RegexCompilationUnit root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
-            ImmutableDictionary<int, TextSpan> captureNumbersToSpan)
+            ImmutableDictionary<uint, TextSpan> captureNumbersToSpan)
             : base(text, root, diagnostics)
         {
             CaptureNamesToSpan = captureNamesToSpan;

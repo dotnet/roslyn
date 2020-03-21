@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                    TryAddMultiCharacterEscape(result, tokenText, offset, index);
         }
 
-        public override bool TryGetEscapeCharacter(char ch, out char escapedChar)
+        public override bool TryGetEscapeCharacter(uint ch, out char escapedChar)
         {
             // Keep in sync with TryAddSingleCharacterEscape
             switch (ch)
@@ -247,8 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             index += 2;
             if (character == 'U')
             {
-                // 8 character escape.  May represent 1 or 2 actual chars.  In the case of
-                // 2 chars, we will fail out as that isn't supported in this system (currently).
+                // 8 character escape.  May represent 1 or 2 actual chars.
                 uint uintChar = 0;
 
                 if (!IsHexDigit(tokenText[index]))
@@ -269,21 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     uintChar = (uint)((uintChar << 4) + HexValue(character));
                 }
 
-                if (uintChar > 0x0010FFFF)
-                {
-                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                    return false;
-                }
-
-                // Surrogate characters aren't supported here.
-                if (uintChar >= 0x00010000)
-                {
-                    // This is possible.  It's a legal C# escape, but we don't support it here because it
-                    // would need two chars to encode.
-                    return false;
-                }
-
-                result.Add(new VirtualChar((char)uintChar, new TextSpan(startIndex + offset, 2 + 8)));
+                result.Add(new VirtualChar(uintChar, new TextSpan(startIndex + offset, 2 + 8)));
                 return true;
             }
             else if (character == 'u')

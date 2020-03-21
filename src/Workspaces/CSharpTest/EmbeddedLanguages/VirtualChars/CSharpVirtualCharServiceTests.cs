@@ -234,29 +234,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         }
 
         [Fact]
-        public void TestValidLongEscape1()
+        public void TestValidLongEscape1_InCharRange()
         {
             Test(@"""\U00000000""", @"['\u0000',[1,11]]");
         }
 
         [Fact]
-        public void TestValidLongEscape2()
+        public void TestValidLongEscape2_InCharRange()
         {
             Test(@"""\U0000ffff""", @"['\uFFFF',[1,11]]");
         }
 
         [Fact]
-        public void TestValidLongEscape3()
+        public void TestValidLongEscape3_InCharRange()
         {
             Test(@"""a\U00000000a""", @"['a',[1,2]]['\u0000',[2,12]]['a',[12,13]]");
         }
 
         [Fact]
-        public void TestValidButUnsupportedLongEscape1()
+        public void TestValidLongEscape1_NotInCharRange()
         {
             var token = GetStringToken(@"""\U00010000""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            TestFailure(@"""\U00010000""");
+            Test(@"""\U00010000""", @"['\U00010000',[1,11]]");
+        }
+
+        [Fact]
+        public void TestValidLongEscape2_NotInCharRange()
+        {
+            var token = GetStringToken(@"""\U0002A6A5𪚥""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\uD869',[11,12]]['\uDEA5',[12,13]]");
         }
 
         [Fact]
@@ -277,14 +285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         }
 
         private string ConvertToString(VirtualChar vc)
-            => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
+            => $"[{ConvertToString(vc.CodePoint)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
-        private string ConvertToString(char c)
-            => PrintAsUnicodeEscape(c) ? $"'\\u{((int)c).ToString("X4")}'" : $"'{c}'";
+        private string ConvertToString(uint c)
+            => PrintAsUnicodeEscape(c)
+                ? c <= char.MaxValue ? $"'\\u{(int)c:X4}'" : $"'\\U{(int)c:X8}'"
+                : $"'{(char)c}'";
 
-        private static bool PrintAsUnicodeEscape(char c)
+        private static bool PrintAsUnicodeEscape(uint c)
         {
-            if (char.IsLetterOrDigit(c) && c < 127)
+            if (c < 127 && char.IsLetterOrDigit((char)c))
             {
                 return false;
             }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         ///
         /// If this function succeeds, certain invariants will hold.  First, each character in the
         /// sequence of characters in <paramref name="token"/>.ValueText will become a single
-        /// VirtualChar in the result array with a matching <see cref="VirtualChar.Char"/> property.
+        /// VirtualChar in the result array with a matching <see cref="VirtualChar.CodePoint"/> property.
         /// Similarly, each VirtualChar's <see cref="VirtualChar.Span"/> will abut each other, and
         /// the union of all of them will cover the span of the token's <see
         /// cref="SyntaxToken.Text"/>
@@ -62,6 +62,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// character, then this would produce <c>t</c> as <c>\t</c> is what would go into a string
         /// literal.
         /// </summary>
-        bool TryGetEscapeCharacter(char ch, out char escapeChar);
+        bool TryGetEscapeCharacter(uint ch, out char escapeChar);
     }
 }

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var captureToken = GetCaptureToken(node);
             if (captureToken.Kind == RegexKind.NumberToken)
             {
-                var val = (int)captureToken.Value;
+                var val = (uint)captureToken.Value;
                 if (tree.CaptureNumbersToSpan.TryGetValue(val, out var captureSpan))
                 {
                     return CreateHighlights(node, captureSpan);

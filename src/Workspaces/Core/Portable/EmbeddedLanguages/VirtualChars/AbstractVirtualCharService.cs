@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
-        public abstract bool TryGetEscapeCharacter(char ch, out char escapedChar);
+        public abstract bool TryGetEscapeCharacter(uint ch, out char escapedChar);
 
         protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);

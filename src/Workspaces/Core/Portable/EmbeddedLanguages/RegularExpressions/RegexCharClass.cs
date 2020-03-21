@@ -6,12 +6,9 @@
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/corefx/blob/68b76c30eafb3647c11e3f766a2645b130ca1448/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
@@ -203,13 +200,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return EscapeCategories.ContainsKey(value);
         }
 
-        public static bool IsWordChar(char ch)
+        public static bool IsWordChar(uint ch)
         {
+            // unicode characters that do not fit in 16bits are not supported by 
+            // .net regex system.
+            if (ch > char.MaxValue)
+                return false;
+
             // According to UTS#18 Unicode Regular Expressions (http://www.unicode.org/reports/tr18/)
             // RL 1.4 Simple Word Boundaries  The class of <word_character> includes all Alphabetic
             // values from the Unicode character database, from UnicodeData.txt [UData], plus the U+200C
             // ZERO WIDTH NON-JOINER and U+200D ZERO WIDTH JOINER.
-            return CharInClass(ch, WordClass) || ch == ZeroWidthJoiner || ch == ZeroWidthNonJoiner;
+            return CharInClass((char)ch, WordClass) || ch == ZeroWidthJoiner || ch == ZeroWidthNonJoiner;
         }
 
         internal static bool CharInClass(char ch, string set)

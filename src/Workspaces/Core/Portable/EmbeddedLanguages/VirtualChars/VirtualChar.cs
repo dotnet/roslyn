@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -23,25 +25,49 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal readonly struct VirtualChar : IEquatable<VirtualChar>
     {
-        public readonly char Char;
+        /// <summary>
+        /// Can represent any unicode code point.  Values are represented in Utf32.
+        /// </summary>
+        public readonly uint CodePoint;
         public readonly TextSpan Span;
 
-        public VirtualChar(char @char, TextSpan span)
+        public VirtualChar(uint codePoint, TextSpan span)
         {
             if (span.IsEmpty)
-            {
                 throw new ArgumentException("Span should not be empty.", nameof(span));
+
+            CodePoint = codePoint;
+            Span = span;
+        }
+
+        public override string ToString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            this.AppendTo(builder);
+            return builder.ToString();
+        }
+
+        public void AppendTo(StringBuilder builder)
+        {
+            if (CodePoint <= char.MaxValue)
+            {
+                builder.Append((char)CodePoint);
+                return;
             }
 
-            Char = @char;
-            Span = span;
+            // taken from SlidingTextWindow.GetCharsFromUtf32
+            var highSurrogate = ((CodePoint - 0x00010000) / 0x0400) + 0xD800;
+            var lowSurrogate = ((CodePoint - 0x00010000) % 0x0400) + 0xDC00;
+
+            builder.Append((char)highSurrogate);
+            builder.Append((char)lowSurrogate);
         }
 
         public override bool Equals(object obj)
             => obj is VirtualChar vc && Equals(vc);
 
         public bool Equals(VirtualChar other)
-            => Char == other.Char &&
+            => CodePoint == other.CodePoint &&
                Span == other.Span;
 
         public override int GetHashCode()
@@ -49,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             unchecked
             {
                 var hashCode = 244102310;
-                hashCode = hashCode * -1521134295 + Char.GetHashCode();
+                hashCode = hashCode * -1521134295 + CodePoint.GetHashCode();
                 hashCode = hashCode * -1521134295 + Span.GetHashCode();
                 return hashCode;
             }
@@ -61,6 +87,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static bool operator !=(VirtualChar char1, VirtualChar char2)
             => !(char1 == char2);
 
-        public static implicit operator char(VirtualChar vc) => vc.Char;
+        public static implicit operator uint(VirtualChar vc) => vc.CodePoint;
     }
 }

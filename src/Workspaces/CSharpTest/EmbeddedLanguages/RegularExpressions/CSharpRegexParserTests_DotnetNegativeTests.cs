@@ -4790,7 +4790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <LessThanToken>&lt;</LessThanToken>
-        <NumberToken value=""-2147483648"">2147483648</NumberToken>
+        <NumberToken value=""2147483648"">2147483648</NumberToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
         <Sequence>
           <Text>
@@ -4806,9 +4806,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Diagnostic Message=""{WorkspacesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}"" Span=""[21..31)"" Text=""2147483648"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""-2147483648"" Span=""[18..36)"" Text=""(?&lt;2147483648&gt;dog)"" />
     <Capture Name=""0"" Span=""[10..36)"" Text=""(cat)\s+(?&lt;2147483648&gt;dog)"" />
     <Capture Name=""1"" Span=""[10..15)"" Text=""(cat)"" />
+    <Capture Name=""2147483648"" Span=""[18..36)"" Text=""(?&lt;2147483648&gt;dog)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }

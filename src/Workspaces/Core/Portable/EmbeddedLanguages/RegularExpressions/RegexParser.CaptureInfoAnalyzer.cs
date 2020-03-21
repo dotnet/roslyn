@@ -27,15 +27,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private struct CaptureInfoAnalyzer
         {
             private readonly VirtualCharSequence _text;
-            private readonly ImmutableDictionary<int, TextSpan>.Builder _captureNumberToSpan;
+            private readonly ImmutableDictionary<uint, TextSpan>.Builder _captureNumberToSpan;
             private readonly ImmutableDictionary<string, TextSpan>.Builder _captureNameToSpan;
             private readonly ArrayBuilder<string> _captureNames;
-            private int _autoNumber;
+            private uint _autoNumber;
 
             private CaptureInfoAnalyzer(VirtualCharSequence text)
             {
                 _text = text;
-                _captureNumberToSpan = ImmutableDictionary.CreateBuilder<int, TextSpan>();
+                _captureNumberToSpan = ImmutableDictionary.CreateBuilder<uint, TextSpan>();
                 _captureNameToSpan = ImmutableDictionary.CreateBuilder<string, TextSpan>();
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
 
-            public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
+            public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<uint, TextSpan>) Analyze(
                 VirtualCharSequence text, RegexCompilationUnit root, RegexOptions options)
             {
                 var analyzer = new CaptureInfoAnalyzer(text);
                 return analyzer.Analyze(root, options);
             }
 
-            private (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
+            private (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<uint, TextSpan>) Analyze(
                 RegexCompilationUnit root, RegexOptions options)
             {
                 CollectCaptures(root, options);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 {
                     if (token.Kind == RegexKind.NumberToken)
                     {
-                        AddIfMissing(_captureNumberToSpan, list: null, (int)token.Value, span);
+                        AddIfMissing(_captureNumberToSpan, list: null, (uint)token.Value, span);
                     }
                     else
                     {

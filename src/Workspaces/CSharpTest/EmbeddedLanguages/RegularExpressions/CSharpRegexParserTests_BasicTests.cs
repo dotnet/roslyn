@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           <TextToken>a</TextToken>
         </Text>
         <OpenBraceToken>{{</OpenBraceToken>
-        <NumberToken value=""-2147483648"">2147483648</NumberToken>
+        <NumberToken value=""2147483648"">2147483648</NumberToken>
         <CloseBraceToken>}}</CloseBraceToken>
       </ExactNumericQuantifier>
     </Sequence>
@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           <TextToken>a</TextToken>
         </Text>
         <OpenBraceToken>{{</OpenBraceToken>
-        <NumberToken value=""-2147483648"">2147483648</NumberToken>
+        <NumberToken value=""2147483648"">2147483648</NumberToken>
         <CommaToken>,</CommaToken>
         <CloseBraceToken>}}</CloseBraceToken>
       </OpenRangeNumericQuantifier>
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <OpenBraceToken>{{</OpenBraceToken>
         <NumberToken value=""0"">0</NumberToken>
         <CommaToken>,</CommaToken>
-        <NumberToken value=""-2147483648"">2147483648</NumberToken>
+        <NumberToken value=""2147483648"">2147483648</NumberToken>
         <CloseBraceToken>}}</CloseBraceToken>
       </ClosedRangeNumericQuantifier>
     </Sequence>
