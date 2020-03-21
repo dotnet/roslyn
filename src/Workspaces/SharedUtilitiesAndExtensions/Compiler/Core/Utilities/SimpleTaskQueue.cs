@@ -22,30 +22,11 @@ namespace Roslyn.Utilities
         private readonly object _gate = new object();
 
         private Task _latestTask;
-        private int _taskCount;
 
         public SimpleTaskQueue(TaskScheduler taskScheduler)
         {
             _taskScheduler = taskScheduler;
-
-            _taskCount = 0;
             _latestTask = Task.CompletedTask;
-        }
-
-        private TTask ScheduleTaskWorker<TArg, TTask>(Func<int, TArg, TTask> taskCreator, TArg arg)
-            where TTask : Task
-        {
-            lock (_gate)
-            {
-                _taskCount++;
-                var delay = (_taskCount % 100) == 0 ? 1 : 0;
-
-                var task = taskCreator(delay, arg);
-
-                _latestTask = task;
-
-                return task;
-            }
         }
 
         [PerformanceSensitive(
@@ -54,9 +35,12 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
         {
-            return ScheduleTaskWorker(
-                (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelay(arg.taskAction, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
-                (this, taskAction, cancellationToken));
+            lock (_gate)
+            {
+                var task = _latestTask.SafeContinueWith(_ => taskAction(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                _latestTask = task;
+                return task;
+            }
         }
 
         [PerformanceSensitive(
@@ -65,9 +49,12 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
         {
-            return ScheduleTaskWorker(
-                (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelay(arg.taskFunc, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
-                (this, taskFunc, cancellationToken));
+            lock (_gate)
+            {
+                var task = _latestTask.SafeContinueWith(_ => taskFunc(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                _latestTask = task;
+                return task;
+            }
         }
 
         [PerformanceSensitive(
@@ -76,9 +63,12 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
         {
-            return ScheduleTaskWorker(
-                (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelayFromAsync(arg.taskFuncAsync, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
-                (this, taskFuncAsync, cancellationToken));
+            lock (_gate)
+            {
+                var task = _latestTask.SafeContinueWithFromAsync(_ => taskFuncAsync(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                _latestTask = task;
+                return task;
+            }
         }
 
         [PerformanceSensitive(
@@ -87,9 +77,12 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
         {
-            return ScheduleTaskWorker(
-                (delay, arg) => arg.Item1._latestTask.ContinueWithAfterDelayFromAsync(arg.taskFuncAsync, arg.cancellationToken, delay, TaskContinuationOptions.None, arg.Item1._taskScheduler),
-                (this, taskFuncAsync, cancellationToken));
+            lock (_gate)
+            {
+                var task = _latestTask.SafeContinueWithFromAsync(_ => taskFuncAsync(), cancellationToken, TaskContinuationOptions.None, _taskScheduler);
+                _latestTask = task;
+                return task;
+            }
         }
 
         public Task LastScheduledTask => _latestTask;

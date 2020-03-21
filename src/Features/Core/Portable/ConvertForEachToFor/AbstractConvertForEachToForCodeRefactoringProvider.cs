@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
             out ITypeSymbol explicitCastInterface, out string collectionNameSuggestion, out string countName)
         {
-            explicitCastInterface = default;
-            collectionNameSuggestion = default;
-            countName = default;
+            explicitCastInterface = null;
+            collectionNameSuggestion = null;
+            countName = null;
 
             // go through list of types and interfaces to find out right set;
             var foreachType = foreachVariable.Type;

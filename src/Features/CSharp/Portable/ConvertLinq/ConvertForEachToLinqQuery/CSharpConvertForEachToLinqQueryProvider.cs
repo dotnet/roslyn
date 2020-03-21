@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     break;
             }
 
-            converter = default;
+            converter = null;
             return false;
         }
 

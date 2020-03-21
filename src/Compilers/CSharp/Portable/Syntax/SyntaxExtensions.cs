@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static ExpressionSyntax SkipParens(this ExpressionSyntax expression)
+        internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thisKeyword,
                 parameterList,
                 accessorList,
-                expressionBody: default,
+                expressionBody: null,
                 semicolonToken: default);
         }
 
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorToken,
                 parameterList,
                 block,
-                expressionBody: default,
+                expressionBody: null,
                 semicolonToken);
         }
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 constraintClauses,
                 block,
-                expressionBody: default,
+                expressionBody: null,
                 semicolonToken);
         }
 

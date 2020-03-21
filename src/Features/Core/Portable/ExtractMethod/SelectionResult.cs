@@ -196,14 +196,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return syntaxFacts.IsFalseLiteralExpression(expression);
         }
 
-        public bool AllowMovingDeclaration
-        {
-            get
-            {
-                return Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, SemanticDocument.Project.Language);
-            }
-        }
-
         public bool DontPutOutOrRefOnStruct
         {
             get

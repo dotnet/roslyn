@@ -1815,10 +1815,6 @@ endRegion:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:
                 case OperationKind.PropertySubpattern:
-                case OperationKind.RelationalPattern:
-                case OperationKind.NegatedPattern:
-                case OperationKind.BinaryPattern:
-                case OperationKind.TypePattern:
                     return true;
             }
 

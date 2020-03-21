@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 yield break;
             }
 
-            if (state.UnimplementedMembers.Length > 0)
+            if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            if (state.UnimplementedExplicitMembers.Length > 0)
+            if (state.MembersWithoutExplicitImplementation.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
 
@@ -93,6 +94,36 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     yield return ImplementInterfaceWithDisposePatternCodeAction.CreateImplementExplicitlyWithDisposePatternCodeAction(this, document, state);
                 }
             }
+
+            if (AnyImplementedImplicitly(state))
+            {
+                yield return ImplementInterfaceCodeAction.CreateImplementRemainingExplicitlyCodeAction(this, document, state);
+            }
+        }
+
+        private static bool AnyImplementedImplicitly(State state)
+        {
+            if (state.MembersWithoutExplicitOrImplicitImplementation.Length != state.MembersWithoutExplicitImplementation.Length)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < state.MembersWithoutExplicitOrImplicitImplementation.Length; i++)
+            {
+                var (typeA, membersA) = state.MembersWithoutExplicitOrImplicitImplementation[i];
+                var (typeB, membersB) = state.MembersWithoutExplicitImplementation[i];
+                if (!typeA.Equals(typeB))
+                {
+                    return true;
+                }
+
+                if (!membersA.SequenceEqual(membersB))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private IList<ISymbol> GetDelegatableMembers(State state)

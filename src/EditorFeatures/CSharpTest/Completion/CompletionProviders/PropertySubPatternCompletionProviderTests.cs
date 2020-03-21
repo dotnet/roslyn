@@ -486,7 +486,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
         {
             var markup =
@@ -530,7 +530,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
         {
             var markup =
@@ -550,7 +550,7 @@ public class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
         {
             var markup =

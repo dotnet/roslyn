@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             }
 
             iterationVariable = default;
-            memberAccess = default;
-            initializer = default;
-            stepValueExpressionOpt = default;
+            memberAccess = null;
+            initializer = null;
+            stepValueExpressionOpt = null;
             return false;
         }
 
@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             {
                 case SyntaxKind.PostIncrementExpression:
                     operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
-                    stepValue = default;
+                    stepValue = null;
                     break;
 
                 case SyntaxKind.PreIncrementExpression:
                     operand = ((PrefixUnaryExpressionSyntax)incrementor).Operand;
-                    stepValue = default;
+                    stepValue = null;
                     break;
 
                 case SyntaxKind.AddAssignmentExpression:

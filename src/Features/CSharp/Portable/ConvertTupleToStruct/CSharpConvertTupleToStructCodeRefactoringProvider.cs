@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
         {
             return SyntaxFactory.ObjectCreationExpression(
-                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: default);
+                nameNode, SyntaxFactory.ArgumentList(openParen, arguments, closeParen), initializer: null);
         }
     }
 }

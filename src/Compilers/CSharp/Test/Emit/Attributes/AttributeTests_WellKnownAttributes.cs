@@ -401,8 +401,8 @@ class C
                 var attrSym = type1.GetAttribute(ciptSym);
                 Assert.Equal(0, attrSym.CommonConstructorArguments.Length);
 
-                MethodSymbol method = default(MethodSymbol);
-                ParameterSymbol parm = default(ParameterSymbol);
+                MethodSymbol method = null;
+                ParameterSymbol parm = null;
                 var sourceAssembly = assembly as SourceAssemblySymbol;
                 if (sourceAssembly != null)
                 {
@@ -2378,7 +2378,7 @@ class C
                 // get expected attr symbol
                 var type1 = m.GlobalNamespace.GetTypeMember("DllImportTest");
 
-                MethodSymbol method = default(MethodSymbol);
+                MethodSymbol method = null;
                 method = type1.GetMember<MethodSymbol>("DllImportSub");
                 var attrSym = method.GetAttributes().First();
                 Assert.Equal("DllImportAttribute", attrSym.AttributeClass.Name);

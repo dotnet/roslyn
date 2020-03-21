@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal class FailedExtractMethodResult : ExtractMethodResult
     {
         public FailedExtractMethodResult(OperationStatus status)
-            : base(status.Flag, status.Reasons, null, default, default)
+            : base(status.Flag, status.Reasons, null, default, null)
         {
         }
     }

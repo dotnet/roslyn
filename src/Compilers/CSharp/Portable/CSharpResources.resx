@@ -4518,6 +4518,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
     <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
+  <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
+    <value>Feature '{0}' is not implemented in this compiler.</value>
+  </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
   </data>
@@ -5353,11 +5356,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
-    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
+    <value>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Return type doesn't match overridden member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</value>
@@ -5365,11 +5368,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match overridden member.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes" xml:space="preserve">
-    <value>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
+    <value>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Type of parameter doesn't match overridden member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOnPartial" xml:space="preserve">
     <value>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</value>
@@ -5395,17 +5398,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
-    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match implemented member '{0}'.</value>
@@ -5425,17 +5428,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</value>
   </data>
-  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</value>
+  <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
     <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
@@ -6013,24 +6016,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
-  <data name="IDS_FeatureParenthesizedPattern" xml:space="preserve">
-    <value>parenthesized pattern</value>
-  </data>
-  <data name="IDS_FeatureOrPattern" xml:space="preserve">
-    <value>or pattern</value>
-  </data>
-  <data name="IDS_FeatureAndPattern" xml:space="preserve">
-    <value>and pattern</value>
-  </data>
-  <data name="IDS_FeatureNotPattern" xml:space="preserve">
-    <value>not pattern</value>
-  </data>
-  <data name="IDS_FeatureTypePattern" xml:space="preserve">
-    <value>type pattern</value>
-  </data>
-  <data name="IDS_FeatureRelationalPattern" xml:space="preserve">
-    <value>relational pattern</value>
-  </data>
   <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
     <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
   </data>
@@ -6051,14 +6036,5 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
     <value>An expression tree may not contain a range ('..') expression.</value>
-  </data>
-  <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
-    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
-  </data>
-  <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
-    <value>Relational patterns may not be used for a value of type '{0}'.</value>
-  </data>
-  <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
-    <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
 </root>

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            replacementNode = default;
+            replacementNode = null;
             issueSpan = default;
             return false;
         }

@@ -169,6 +169,7 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="AliasOpt" Type="AliasSymbol?"/>
 
     <!-- 
@@ -212,7 +213,6 @@
     <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
 
     <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations"/>
   </Node>
 
@@ -1329,11 +1329,6 @@
     <!--Check that the input is the same as the given constant value (other than null).-->
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
-  <Node Name="BoundDagRelationalTest" Base="BoundDagTest">
-    <!--Check that the input is related to (equal, not equal, less, less or equal, greater, greater or equal) the given constant value (other than null).-->
-    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
-  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>
@@ -1948,7 +1943,6 @@
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="ConvertedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
@@ -1971,7 +1965,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
+    <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
@@ -2005,27 +1999,6 @@
     <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
     <Field Name="Symbol" Type="Symbol?"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundTypePattern" Base="BoundPattern">
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
-    <Field Name="IsExplicitNotNullTest" Type="bool"/>
-  </Node>
-
-  <Node Name="BoundBinaryPattern" Base="BoundPattern">
-    <Field Name="Disjunction" Type="bool"/>
-    <Field Name="Left" Type="BoundPattern"/>
-    <Field Name="Right" Type="BoundPattern"/>
-  </Node>
-
-  <Node Name="BoundNegatedPattern" Base="BoundPattern">
-    <Field Name="Negated" Type="BoundPattern"/>
-  </Node>
-
-  <Node Name="BoundRelationalPattern" Base="BoundPattern">
-    <Field Name="Relation" Type="BinaryOperatorKind"/>
-    <Field Name="Value" Type="BoundExpression"/>
-    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

@@ -70,31 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitTypePattern(BoundTypePattern node)
-        {
-            Visit(node.DeclaredType);
-            return null;
-        }
-
-        public override BoundNode VisitRelationalPattern(BoundRelationalPattern node)
-        {
-            Visit(node.Value);
-            return null;
-        }
-
-        public override BoundNode VisitNegatedPattern(BoundNegatedPattern node)
-        {
-            Visit(node.Negated);
-            return null;
-        }
-
-        public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
-        {
-            Visit(node.Left);
-            Visit(node.Right);
-            return null;
-        }
-
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
             VisitAndUnsplitAll(node.Subpatterns);
@@ -132,14 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDeclarationPattern _:
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
-                case BoundRelationalPattern _:
                     break; // nothing to learn
-                case BoundTypePattern tp:
-                    if (tp.IsExplicitNotNullTest)
-                    {
-                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
-                    }
-                    break;
                 case BoundRecursivePattern rp:
                     {
                         if (rp.IsExplicitNotNullTest)
@@ -173,13 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
-                    break;
-                case BoundNegatedPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
-                    break;
-                case BoundBinaryPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);
@@ -406,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputState.MayBeNull());
                                     break;
-                                case BoundDagExplicitNullTest _:
+                                case BoundDagExplicitNullTest t:
                                     if (inputSlot > 0)
                                     {
                                         LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue, markDependentSlotsNotNull: true);
@@ -417,14 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagValueTest t:
                                     Debug.Assert(t.Value != ConstantValue.Null);
-                                    if (inputSlot > 0)
-                                    {
-                                        learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
-                                    }
-                                    gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
-                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
-                                    break;
-                                case BoundDagRelationalTest _:
                                     if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
@@ -448,31 +401,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var variableAccess = binding.VariableAccess;
                             var tempSource = binding.TempContainingValue;
                             var foundTemp = tempMap.TryGetValue(tempSource, out var tempSlotAndType);
-                            if (foundTemp) // in erroneous programs, we might not have seen a temp defined.
+                            Debug.Assert(foundTemp);
+                            var (tempSlot, tempType) = tempSlotAndType;
+                            var tempState = this.State[tempSlot];
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                             {
-                                var (tempSlot, tempType) = tempSlotAndType;
-                                var tempState = this.State[tempSlot];
-                                if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
+                                var value = TypeWithState.Create(tempType, tempState);
+                                var inferredType = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
+                                if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
-                                    var value = TypeWithState.Create(tempType, tempState);
-                                    var inferredType = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
-                                    if (_variableTypes.TryGetValue(local, out var existingType))
-                                    {
-                                        // merge inferred nullable annotation from different branches of the decision tree
-                                        _variableTypes[local] = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
-                                    }
-                                    else
-                                    {
-                                        _variableTypes[local] = inferredType;
-                                    }
-
-                                    int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
-                                    this.State[localSlot] = tempState;
+                                    // merge inferred nullable annotation from different branches of the decision tree
+                                    _variableTypes[local] = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
                                 }
                                 else
                                 {
-                                    // https://github.com/dotnet/roslyn/issues/34144 perform inference for top-level var-declared fields in scripts
+                                    _variableTypes[local] = inferredType;
                                 }
+
+                                int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
+                                this.State[localSlot] = tempState;
+                            }
+                            else
+                            {
+                                // https://github.com/dotnet/roslyn/issues/34144 perform inference for top-level var-declared fields in scripts
                             }
                         }
 
