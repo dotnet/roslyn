@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(@"""\U0002A6A5𪚥""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\uD869',[11,12]]['\uDEA5',[12,13]]");
+            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
         }
 
         [Fact]

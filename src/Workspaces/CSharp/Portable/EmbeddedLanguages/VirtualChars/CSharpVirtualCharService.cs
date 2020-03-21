@@ -135,6 +135,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                     index += result.Last().Span.Length;
                 }
+                else if (char.IsHighSurrogate(tokenText[index]))
+                {
+                    // we had a high surrogate.  we better have a following low surrogate for this to be a legal string.
+                    if (index + 1 >= endIndexExclusive || !char.IsLowSurrogate(tokenText[index + 1]))
+                    {
+                        Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
+                        return default;
+                    }
+
+                    result.Add(new VirtualChar(
+                        (uint)char.ConvertToUtf32(highSurrogate: tokenText[index], lowSurrogate: tokenText[index + 1]),
+                        new TextSpan(offset + index, 2)));
+                    index += 2;
+                }
                 else
                 {
                     result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
