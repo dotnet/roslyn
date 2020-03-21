@@ -1761,6 +1761,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalOnLocalFunction = 8783,
 
+        WRN_GeneratorFailedDuringInitialization = 8784,
+        WRN_GeneratorFailedDuringGeneration = 8785,
+
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,

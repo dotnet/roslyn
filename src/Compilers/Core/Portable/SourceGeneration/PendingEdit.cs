@@ -13,11 +13,9 @@ using System.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public delegate bool EditCallback<T>(EditContext context, T edit) where T : PendingEdit;
+    internal delegate bool EditCallback<T>(EditContext context, T edit) where T : PendingEdit;
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
-    public abstract class PendingEdit
+    internal abstract class PendingEdit
     {
         internal abstract GeneratorDriverState Commit(GeneratorDriverState state);
 
@@ -26,13 +24,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool TryApply(GeneratorInfo info, EditContext context);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
-    public abstract class AdditionalFileEdit : PendingEdit
+    internal abstract class AdditionalFileEdit : PendingEdit
     {
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In progress")]
-    public sealed class AdditionalFileAddedEdit : AdditionalFileEdit
+    internal sealed class AdditionalFileAddedEdit : AdditionalFileEdit
     {
         public AdditionalFileAddedEdit(AdditionalText addedText)
         {

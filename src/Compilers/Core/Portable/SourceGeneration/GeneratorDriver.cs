@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
     ///     on generators that support it
     ///   - At any time a full generation pass can be re-run, resetting the pending edits
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
     public abstract class GeneratorDriver
     {
         internal readonly GeneratorDriverState _state;
@@ -44,12 +43,13 @@ namespace Microsoft.CodeAnalysis
             _state = new GeneratorDriverState(compilation, parseOptions, generators, additionalTexts, ImmutableDictionary<ISourceGenerator, GeneratorState>.Empty, ImmutableArray<PendingEdit>.Empty, finalCompilation: null, editsFailed: true);
         }
 
-        public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, CancellationToken cancellationToken = default)
+        public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do
             if (_state.Generators.Length == 0)
             {
                 outputCompilation = compilation;
+                diagnostics = ImmutableArray<Diagnostic>.Empty;
                 return this;
             }
 
@@ -57,15 +57,20 @@ namespace Microsoft.CodeAnalysis
             var state = StateWithPendingEditsApplied(_state);
             var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
             var receivers = PooledDictionary<ISourceGenerator, ISyntaxReceiver>.GetInstance();
+            var diagnosticsBag = new DiagnosticBag();
 
             foreach (var generator in state.Generators)
             {
                 // initialize the generator if needed
                 if (!state.GeneratorStates.TryGetValue(generator, out GeneratorState generatorState))
                 {
-                    generatorState = InitializeGenerator(generator, cancellationToken);
+                    generatorState = InitializeGenerator(generator, diagnosticsBag, cancellationToken);
                 }
-                stateBuilder.Add(generator, generatorState);
+
+                if (generatorState.Info.Initialized)
+                {
+                    stateBuilder.Add(generator, generatorState);
+                }
 
                 // create the syntax receiver if requested
                 if (generatorState.Info.SyntaxReceiverCreator is object)
@@ -85,23 +90,24 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            //PROTOTYPE: should be possible to parallelize this
+            // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
             {
                 try
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(state.Compilation, new AnalyzerOptions(state.AdditionalTexts.NullToEmpty(), CompilerAnalyzerConfigOptionsProvider.Empty), syntaxReceiverOpt);
+                    var context = new SourceGeneratorContext(state.Compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
-                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree()));
+                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }
                 catch
                 {
-                    //PROTOTYPE: we should issue a diagnostic that the generator failed
+                    diagnosticsBag.Add(Diagnostic.Create(MessageProvider, MessageProvider.WRN_GeneratorFailedDuringGeneration, generator.GetType().Name));
                 }
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableDictionaryAndFree());
+            diagnostics = diagnosticsBag.ToReadOnlyAndFree();
 
             // build the final state, and return 
             return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
@@ -121,7 +127,6 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             foreach (var edit in _state.Edits)
             {
-                // PROTOTYPE: we'll need to pass in the various compilation states too
                 state = ApplyPartialEdit(state, edit);
                 if (state.EditsFailed)
                 {
@@ -157,8 +162,8 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        //PROTOTYPE: remove arbitrary edit adding and replace with dedicated edit types
-        public GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
+        // When we expose this publicly, remove arbitrary edit adding and replace with dedicated edit types
+        internal GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
         {
             var newState = _state.With(edits: _state.Edits.AddRange(edits));
             return FromState(newState);
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree()))));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken))));
                 }
             }
             state = edit.Commit(state);
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis
             return state.With(edits: ImmutableArray<PendingEdit>.Empty, editsFailed: false);
         }
 
-        private static GeneratorState InitializeGenerator(ISourceGenerator generator, CancellationToken cancellationToken)
+        private GeneratorState InitializeGenerator(ISourceGenerator generator, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             GeneratorInfo info = default;
             try
@@ -217,7 +222,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch
             {
-                // PROTOTYPE: we should issue a diagnostic when generator intialization fails
+                diagnostics.Add(Diagnostic.Create(MessageProvider, MessageProvider.WRN_GeneratorFailedDuringInitialization, generator.GetType().Name));
             }
             return new GeneratorState(info);
         }
@@ -241,12 +246,12 @@ namespace Microsoft.CodeAnalysis
             return comp;
         }
 
-        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources)
+        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = PooledDictionary<GeneratedSourceText, SyntaxTree>.GetInstance();
             foreach (var source in generatedSources)
             {
-                trees.Add(source, ParseGeneratedSourceText(source, default)); //PROTOTYPE
+                trees.Add(source, ParseGeneratedSourceText(source, cancellationToken));
             }
             return trees.ToImmutableDictionaryAndFree();
         }
@@ -267,6 +272,8 @@ namespace Microsoft.CodeAnalysis
                                editsFailed: false);
             return FromState(state);
         }
+
+        internal abstract CommonMessageProvider MessageProvider { get; }
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 

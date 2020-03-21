@@ -693,8 +693,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        //PROTOTYPE: hook to do generation, by default does nothing
-
         /// <summary>
         /// Peform source generation, if the compiler supports it.
         /// </summary>
@@ -702,8 +700,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
+        /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts) { return input; }
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
@@ -785,12 +784,9 @@ namespace Microsoft.CodeAnalysis
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
-            // PROTOTYPE: at this point we have a compilation with nothing yet computed. 
+            // At this point we have a compilation with nothing yet computed. 
             // We pass it to the generators, which will realize any symbols they require. 
-
-            // PROTOTYPE: we'll need to handle diagnostics produced by the generators seperately too, so we
-            // can fail the build on a generator error
-            compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts);
+            compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
 
             CompileAndEmit(
                 touchedFilesLogger,

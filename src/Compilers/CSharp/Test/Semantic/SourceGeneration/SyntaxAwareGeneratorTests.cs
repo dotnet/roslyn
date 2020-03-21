@@ -38,7 +38,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _);
+            driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -64,7 +64,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
             Assert.Null(receiver);
         }
@@ -87,7 +87,7 @@ class C { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _);
+            driver.RunFullGeneration(compilation, out _, out _);
 
             void Initialize(InitializationContext initContext)
             {
@@ -128,7 +128,7 @@ class C
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _);
+            driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -168,7 +168,7 @@ class C
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out _);
+            driver = driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -179,7 +179,7 @@ class C
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
 
             var previousReceiver = receiver;
-            driver = driver.RunFullGeneration(compilation, out _);
+            driver = driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.NotEqual(receiver, previousReceiver);

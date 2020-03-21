@@ -11,9 +11,7 @@ using Roslyn.Utilities;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    // PROTOTYPE: should this implement ICollection?
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "In Progress")]
-    public sealed class AdditionalSourcesCollection
+    internal sealed class AdditionalSourcesCollection
     {
         private readonly PooledDictionary<string, SourceText> _sourcesAdded;
 
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree()
         {
-            // PROTOTYPE: This needs to be consistently ordered
+            // https://github.com/dotnet/roslyn/issues/42627: This needs to be consistently ordered
             ArrayBuilder<GeneratedSourceText> builder = ArrayBuilder<GeneratedSourceText>.GetInstance();
             foreach (var (hintName, sourceText) in _sourcesAdded)
             {

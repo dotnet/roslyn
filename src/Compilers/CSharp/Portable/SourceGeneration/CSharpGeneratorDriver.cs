@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken)
-            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); //PROTOTYPE: hint path/ filename uniqueness
+            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, input.HintName, cancellationToken); // https://github.com/dotnet/roslyn/issues/42628: hint path/ filename uniqueness
 
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
+
+        internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
     }
 }

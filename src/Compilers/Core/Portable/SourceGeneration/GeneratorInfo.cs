@@ -11,10 +11,13 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; }
 
+        internal bool Initialized { get; }
+
         internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxReceiverCreator? receiverCreator)
         {
             EditCallback = editCallback;
             SyntaxReceiverCreator = receiverCreator;
+            Initialized = true;
         }
 
         internal class Builder

@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Contract.ThrowIfFalse(project.SupportsCompilation);
-            //AssertCompilation(project, compilation); //PROTOTYPE: this assert no longer holds
+            AssertCompilation(project, compilation);
 
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
