@@ -269,6 +269,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         }
 
         [Fact]
+        public void TestSurrogate1()
+        {
+            var token = GetStringToken(@"""😊""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""😊""", @"['\U0001F60A',[1,3]]");
+        }
+
+        [Fact]
+        public void TestSurrogate2()
+        {
+            var token = GetStringToken(@"""\U0001F60A""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\U0001F60A""", @"['\U0001F60A',[1,11]]");
+        }
+
+        [Fact]
+        public void TestSurrogate3()
+        {
+            var token = GetStringToken(@"""\ud83d\ude0a""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\ud83d\ude0a""", @"['\U0001F60A',[1,13]]");
+        }
+
+        [Fact]
+        public void TestHighSurrogate()
+        {
+            var token = GetStringToken(@"""\ud83d""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            TestFailure(@"""\ud83d""");
+        }
+
+        [Fact]
+        public void TestLowSurrogate()
+        {
+            var token = GetStringToken(@"""\ude0a""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            TestFailure(@"""\ude0a""");
+        }
+
+        [Fact]
+        public void TestMixedSurrogate1()
+        {
+            var token = GetStringToken("\"\ud83d\\ude0a\"", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
+        }
+
+        [Fact]
+        public void TestMixedSurrogate2()
+        {
+            var token = GetStringToken("\"\\ud83d\ude0a\"", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
+        }
+
+        [Fact]
         public void TestEscapedQuoteInVerbatimString()
         {
             Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");

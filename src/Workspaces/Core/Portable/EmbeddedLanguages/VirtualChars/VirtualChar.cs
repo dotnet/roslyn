@@ -43,11 +43,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         public override string ToString()
-        {
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-            this.AppendTo(builder);
-            return builder.ToString();
-        }
+            => this.Rune.ToString();
 
         public void AppendTo(StringBuilder builder)
         {

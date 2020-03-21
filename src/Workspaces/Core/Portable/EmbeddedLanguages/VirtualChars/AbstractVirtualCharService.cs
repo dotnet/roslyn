@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
-        protected static bool TryAddBraceEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        protected static bool IsLegalBraceEscape(
+            string tokenText, int offset, int index, out TextSpan span)
         {
             if (index + 1 < tokenText.Length)
             {
@@ -26,11 +27,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 if ((ch == '{' && next == '{') ||
                     (ch == '}' && next == '}'))
                 {
-                    result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
+                    span = new TextSpan(offset + index, 2);
                     return true;
                 }
             }
 
+            span = default;
             return false;
         }
 
@@ -139,32 +141,44 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                if (tokenText[index] == '"' &&
-                    tokenText[index + 1] == '"')
+                if (tokenText[index] == '"' && tokenText[index + 1] == '"')
                 {
                     result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
                     index += 2;
                 }
-                else if (escapeBraces &&
-                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
                 {
-                    if (!TryAddBraceEscape(result, tokenText, offset, index))
-                    {
+                    if (!IsLegalBraceEscape(tokenText, offset, index, out var span))
                         return default;
-                    }
 
+                    result.Add(new VirtualChar(tokenText[index], span));
                     index += result.Last().Span.Length;
+                }
+                else if (index + 1 < tokenText.Length &&
+                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out var rune))
+                {
+                    // Had a surrogate pair.
+                    result.Add(new VirtualChar(rune, new TextSpan(offset + index, 2)));
+                    index += 2;
+                }
+                else if (Rune.TryCreate(tokenText[index], out rune))
+                {
+                    result.Add(new VirtualChar(rune, new TextSpan(offset + index, 1)));
+                    index += 1;
                 }
                 else
                 {
-                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                    index++;
+                    // Something that couldn't be encoded as runes.
+                    return default;
                 }
             }
 
             return CreateVirtualCharSequence(
                 tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
+
+        protected static bool IsOpenOrCloseBrace(char ch)
+            => ch == '{' || ch == '}';
 
         protected static VirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result)

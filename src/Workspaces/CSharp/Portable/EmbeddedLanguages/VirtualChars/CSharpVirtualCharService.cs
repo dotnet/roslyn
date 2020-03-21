@@ -112,57 +112,78 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            // Do things in two passes.  First, convert everything in the string to a
+            // 16-bit-char+span.  Then walk again, trying to create Runes from the 16-bit-chars. We
+            // do this to simplify complex cases where we may have escapes and non-escapes mixed
+            // together.
 
+            using var _1 = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
+
+            // First pass, just convert everything in the string (i.e. escapes) to plan 16-bit
+            // characters.
             var offset = token.SpanStart;
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                if (tokenText[index] == '\\')
+                var ch = tokenText[index];
+                if (ch == '\\')
                 {
-                    if (!TryAddEscape(result, tokenText, offset, index))
-                    {
+                    if (!TryAddEscape(charResults, tokenText, offset, index))
                         return default;
-                    }
 
-                    index += result.Last().Span.Length;
+                    index += charResults.Last().span.Length;
                 }
-                else if (escapeBraces &&
-                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                else if (escapeBraces && IsOpenOrCloseBrace(ch))
                 {
-                    if (!TryAddBraceEscape(result, tokenText, offset, index))
-                    {
+                    if (!IsLegalBraceEscape(tokenText, offset, index, out var braceSpan))
                         return default;
-                    }
 
-                    index += result.Last().Span.Length;
-                }
-                else if (char.IsHighSurrogate(tokenText[index]))
-                {
-                    // we had a high surrogate.  we better have a following low surrogate for this to be a legal string.
-                    if (index + 1 >= endIndexExclusive || !char.IsLowSurrogate(tokenText[index + 1]))
-                    {
-                        Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                        return default;
-                    }
-
-                    result.Add(new VirtualChar(
-                        new Rune(highSurrogate: tokenText[index], lowSurrogate: tokenText[index + 1]),
-                        new TextSpan(offset + index, 2)));
-                    index += 2;
+                    charResults.Add((ch, braceSpan));
+                    index += charResults.Last().span.Length;
                 }
                 else
                 {
-                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
+                    charResults.Add((ch, new TextSpan(offset + index, 1)));
                     index++;
                 }
             }
 
+            // Second pass.  Convert those characters to Runes.
+            using var _2 = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
+
+            for (int i = 0; i < charResults.Count;)
+            {
+                var (ch, span) = charResults[i];
+
+                // First, see if this was a valid single char that can become a Rune.
+                if (Rune.TryCreate(ch, out var rune))
+                {
+                    runeResults.Add(new VirtualChar(rune, span));
+                    i++;
+                    continue;
+                }
+
+                // Next, see if we got at least a surrogate pair that can be converted into a Rune.
+                if (i + 1 < charResults.Count)
+                {
+                    var (nextCh, nextSpan) = charResults[i + 1];
+                    if (Rune.TryCreate(ch, nextCh, out rune))
+                    {
+                        runeResults.Add(new VirtualChar(rune, TextSpan.FromBounds(span.Start, nextSpan.End)));
+                        i += 2;
+                        continue;
+                    }
+                }
+
+                // Didn't have a string that could succesfully be converted into Runes.  Bail out.
+                return default;
+            }
+
             return CreateVirtualCharSequence(
-                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+                tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
         private bool TryAddEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -201,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private bool TryAddSingleCharacterEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -229,12 +250,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     return false;
             }
 
-            result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
+            result.Add((ch, new TextSpan(offset + index, 2)));
             return true;
         }
 
         private bool TryAddMultiCharacterEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -253,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private bool TryAddMultiCharacterEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index, char character)
+            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index, char character)
         {
             var startIndex = index;
             Debug.Assert(tokenText[index] == '\\');
@@ -283,14 +304,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     uintChar = (uint)((uintChar << 4) + HexValue(character));
                 }
 
+                // Copied from Lexer.cs and SlidingTextWindow.cs
+
                 if (uintChar > 0x0010FFFF)
                 {
                     Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                     return false;
                 }
 
-                result.Add(new VirtualChar(new Rune(uintChar), new TextSpan(startIndex + offset, 2 + 8)));
-                return true;
+                if (uintChar < (uint)0x00010000)
+                {
+                    // something like \U0000000A
+                    //
+                    // Represents a single char value.
+                    result.Add(((char)uintChar, new TextSpan(startIndex + offset, 2 + 8)));
+                    return true;
+                }
+                else
+                {
+                    Debug.Assert(uintChar > 0x0000FFFF && uintChar <= 0x0010FFFF);
+                    var lowSurrogate = ((uintChar - 0x00010000) % 0x0400) + 0xDC00;
+                    var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
+
+                    // Encode this as a surrogate pair.
+                    var pos = startIndex + offset;
+                    result.Add(((char)highSurrogate, new TextSpan(pos, 0)));
+                    result.Add(((char)lowSurrogate, new TextSpan(pos, 2 + 8)));
+                    return true;
+                }
             }
             else if (character == 'u')
             {
@@ -316,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 character = (char)intChar;
-                result.Add(new VirtualChar(character, new TextSpan(startIndex + offset, 2 + 4)));
+                result.Add((character, new TextSpan(startIndex + offset, 2 + 4)));
                 return true;
             }
             else
@@ -346,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 character = (char)intChar;
-                result.Add(new VirtualChar(character, TextSpan.FromBounds(startIndex + offset, endIndex + offset)));
+                result.Add((character, TextSpan.FromBounds(startIndex + offset, endIndex + offset)));
                 return true;
             }
         }
