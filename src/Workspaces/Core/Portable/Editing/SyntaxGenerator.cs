@@ -37,9 +37,11 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
         internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
+        internal abstract SyntaxTrivia SingleLineComment(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -1063,8 +1065,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility);
 
-        internal abstract bool CanHaveAccessibility(SyntaxNode declaration);
-
         /// <summary>
         /// Gets the <see cref="DeclarationModifiers"/> for the declaration.
         /// </summary>
@@ -1464,11 +1464,14 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode LocalDeclarationStatement(
             SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
 
-        internal abstract SyntaxNode LocalDeclarationStatement(
-            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
+        internal SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false)
+            => SyntaxGeneratorInternal.LocalDeclarationStatement(type, identifier, initializer, isConst);
 
-        internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
-        internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
+        internal SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer)
+            => SyntaxGeneratorInternal.WithInitializer(variableDeclarator, initializer);
+        internal SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
+            => SyntaxGeneratorInternal.EqualsValueClause(operatorToken, value);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1686,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode IdentifierName(string identifier);
 
         internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
-        internal abstract SyntaxToken Identifier(string identifier);
+        internal SyntaxToken Identifier(string identifier) => SyntaxGeneratorInternal.Identifier(identifier);
         internal abstract SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression);
 
         /// <summary>

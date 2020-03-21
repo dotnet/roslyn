@@ -237,13 +237,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Value.Priority);
                             return content != null;
                         case StandardTableKeyNames.Text:
-                            content = data.Message;
+                            content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
+                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

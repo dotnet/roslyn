@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((SwitchExpressionSyntax)node).SwitchKeyword.Span;
 
                 default:
-                    return default;
+                    return null;
             }
         }
 

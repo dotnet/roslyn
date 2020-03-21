@@ -4599,7 +4599,7 @@ class innerClass
                 SyntaxFactory.List<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
                 SyntaxFactory.ParseTypeName("int"),
-                default,
+                null,
                 SyntaxFactory.Identifier("Prop"),
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List(

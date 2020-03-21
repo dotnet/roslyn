@@ -7415,33 +7415,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDynamicIndexer(
              SyntaxNode syntax,
-             BoundExpression receiverOpt,
+             BoundExpression receiver,
              AnalyzedArguments arguments,
              ImmutableArray<PropertySymbol> applicableProperties,
              DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
-            if (receiverOpt != null)
+            BoundKind receiverKind = receiver.Kind;
+            if (receiverKind == BoundKind.BaseReference)
             {
-                BoundKind receiverKind = receiverOpt.Kind;
-                if (receiverKind == BoundKind.BaseReference)
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
-                    hasErrors = true;
-                }
-                else if (receiverKind == BoundKind.TypeOrValueExpression)
-                {
-                    var typeOrValue = (BoundTypeOrValueExpression)receiverOpt;
+                Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
+                hasErrors = true;
+            }
+            else if (receiverKind == BoundKind.TypeOrValueExpression)
+            {
+                var typeOrValue = (BoundTypeOrValueExpression)receiver;
 
-                    // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
-                    // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
-                    // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
-                    bool inStaticContext;
-                    bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
+                // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
+                // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
+                bool inStaticContext;
+                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
-                    receiverOpt = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
-                }
+                receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
@@ -7451,7 +7448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicIndexerAccess(
                 syntax,
-                receiverOpt,
+                receiver,
                 argArray,
                 arguments.GetNames(),
                 refKindsArray,

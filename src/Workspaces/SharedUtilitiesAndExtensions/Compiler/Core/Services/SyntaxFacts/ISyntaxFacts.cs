@@ -9,6 +9,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
+
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal partial interface ISyntaxFacts
@@ -347,6 +353,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
+        bool IsClassDeclaration(SyntaxNode node);
+        bool IsNamespaceDeclaration(SyntaxNode node);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
@@ -417,6 +425,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
+
+        bool CanHaveAccessibility(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the accessibility of the declaration.
+        /// </summary>
+        Accessibility GetAccessibility(SyntaxNode declaration);
+
+        public abstract void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
+
+        public abstract SyntaxTokenList GetModifierTokens(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the <see cref="DeclarationKind"/> for the declaration.
+        /// </summary>
+        DeclarationKind GetDeclarationKind(SyntaxNode declaration);
     }
 
     [Flags]

@@ -1177,5 +1177,95 @@ abstract class B
     }
 }");
         }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    public Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
     }
 }

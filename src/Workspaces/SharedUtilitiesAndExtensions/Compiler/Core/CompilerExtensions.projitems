@@ -185,6 +185,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SimpleIntervalTree`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\GenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalyzerConfigOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ChildSyntaxListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions.cs" />
@@ -197,6 +198,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LocationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Fading\FadingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\CustomDataFlowAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\DataFlowAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\FlowCaptureKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\LValueFlowCaptureProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.AnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.BasicBlockAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.DataFlowAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.DataFlowAnalyzer.FlowGraphAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.OperationTreeAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.Walker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ContextIntervalTree.cs" />
@@ -305,6 +318,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncBatchingWorkQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.Builder.cs" />
@@ -324,6 +338,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IGroupingExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\IntegerUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReferenceCountedDisposable.cs" />

@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_SzArray_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Boolean };
         private static readonly byte[] s_signature_HasThis_Void_SzArray_Byte = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Byte };
         private static readonly byte[] s_signature_HasThis_Void_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, String };
+        private static readonly byte[] s_signature_HasThis_Void_Boolean_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, SzArray, String };
 
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
@@ -270,6 +271,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMaybeNullAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfMaybeNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfNotNullAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_SzArray_String };
+        private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_SzArray_String };
         private static readonly byte[][] s_signaturesOfNotNullIfNotNullAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfDoesNotReturnIfAttribute = { s_signature_HasThis_Void_Boolean };
@@ -478,6 +481,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MaybeNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullAttribute", s_signaturesOfMaybeNullAttribute);
         internal static readonly AttributeDescription MaybeNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullWhenAttribute", s_signaturesOfMaybeNullWhenAttribute);
         internal static readonly AttributeDescription NotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullAttribute", s_signaturesOfNotNullAttribute);
+        internal static readonly AttributeDescription MemberNotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MemberNotNullAttribute", s_signaturesOfMemberNotNullAttribute);
+        internal static readonly AttributeDescription MemberNotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MemberNotNullWhenAttribute", s_signaturesOfMemberNotNullWhenAttribute);
         internal static readonly AttributeDescription NotNullIfNotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullIfNotNullAttribute", s_signaturesOfNotNullIfNotNullAttribute);
         internal static readonly AttributeDescription NotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullWhenAttribute", s_signaturesOfNotNullWhenAttribute);
         internal static readonly AttributeDescription DoesNotReturnIfAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DoesNotReturnIfAttribute", s_signaturesOfDoesNotReturnIfAttribute);

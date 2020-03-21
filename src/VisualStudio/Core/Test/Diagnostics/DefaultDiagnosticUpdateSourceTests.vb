@@ -183,10 +183,10 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
-
-                analyzer.RemoveDocument(document.Id)
+                Await analyzer.RemoveDocumentAsync(document.Id, CancellationToken.None)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()

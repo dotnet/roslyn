@@ -1129,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (prologue.Count > 0)
             {
-                newStatements.Add(new BoundSequencePoint(null, null) { WasCompilerGenerated = true });
+                newStatements.Add(BoundSequencePoint.CreateHidden());
             }
 
             InsertAndFreePrologue(newStatements, prologue);
