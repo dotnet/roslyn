@@ -207,6 +207,11 @@
         <target state="new">Use coalesce expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="new">Use null propagation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="new">Use 'throw' expression</target>

@@ -1018,9 +1018,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Use_null_propagation" xml:space="preserve">
-    <value>Use null propagation</value>
-  </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
@@ -1587,6 +1584,10 @@ This version used in: {2}</value>
   </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
+  <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
+    <value>Add 'DebuggerDisplay' attribute</value>
+    <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
   </data>
   <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
     <value>Do not change this code. Put cleanup code in '{0}' method</value>
