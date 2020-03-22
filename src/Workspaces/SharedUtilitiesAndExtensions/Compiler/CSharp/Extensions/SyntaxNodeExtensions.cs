@@ -965,15 +965,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                             return true;
                     }
-                    else if (current is SelectOrGroupClauseSyntax clause)
+                    else if (current is SelectOrGroupClauseSyntax ||
+                             current is OrderingSyntax)
                     {
-                        var info = semanticModel.GetSymbolInfo(clause, cancellationToken);
-                        if (TakesExpressionTree(info, expressionTypeOpt))
-                            return true;
-                    }
-                    else if (current is OrderingSyntax ordering)
-                    {
-                        var info = semanticModel.GetSymbolInfo(ordering, cancellationToken);
+                        var info = semanticModel.GetSymbolInfo(current, cancellationToken);
                         if (TakesExpressionTree(info, expressionTypeOpt))
                             return true;
                     }
