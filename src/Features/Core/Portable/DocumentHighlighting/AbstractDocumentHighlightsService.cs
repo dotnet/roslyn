@@ -137,8 +137,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
-                var progress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var progress = new StreamingProgressCollector();
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(

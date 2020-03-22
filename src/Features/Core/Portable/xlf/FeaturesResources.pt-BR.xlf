@@ -2240,16 +2240,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Implementar {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">Simplificar expressão 'default'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'a expressão 'default' pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">A cadeia de formato contém espaço reservado inválido</target>
@@ -2278,16 +2268,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">O diagnóstico relatado '{0}' tem um local de origem '{1}' no arquivo '{2}', que está fora do arquivo fornecido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Código inacessível detectado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Remover código inacessível</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

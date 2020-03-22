@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -35,9 +36,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken = cancellationToken;
             }
 
+            public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
+            public Task ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
+
             public Task OnStartedAsync() => _progress.OnStartedAsync();
             public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
 
             public Task OnFindInDocumentStartedAsync(DocumentId documentId)
             {
