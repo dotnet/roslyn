@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
+        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+            ImmutableArray.Create(
+                CodeGenerationOperatorKind.LessThan,
+                CodeGenerationOperatorKind.LessThanOrEqual,
+                CodeGenerationOperatorKind.GreaterThan,
+                CodeGenerationOperatorKind.GreaterThanOrEqual);
+
         [ImportingConstructor]
         public GenerateComparisonOperatorsCodeRefactoringProvider()
         {
@@ -73,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 if (compareMethod == null)
                     continue;
 
-                if (HasComparisonOperators(containingType, comparedType))
+                if (HasAllComparisonOperators(containingType, comparedType))
                     continue;
 
                 missingComparableTypes.Add(iface);
@@ -176,10 +183,11 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationSymbolFactory.CreateParameterSymbol(containingType, LeftName),
                 CodeGenerationSymbolFactory.CreateParameterSymbol(comparedType, RightName));
 
-            operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.LessThan, boolType, parameters, thisExpression));
-            operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.LessThanOrEqual, boolType, parameters, thisExpression));
-            operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.GreaterThan, boolType, parameters, thisExpression));
-            operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.GreaterThanOrEqual, boolType, parameters, thisExpression));
+            foreach (var op in s_operatorKinds)
+            {
+                if (!HasComparisonOperator(containingType, comparedType, op))
+                    operators.Add(CreateOperator(generator, op, boolType, parameters, thisExpression));
+            }
 
             return operators.ToImmutable();
         }
@@ -222,10 +230,21 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return generator.ReturnStatement(comparison);
         }
 
-        private bool HasComparisonOperators(INamedTypeSymbol containingType, ITypeSymbol comparedType)
+        private bool HasAllComparisonOperators(INamedTypeSymbol containingType, ITypeSymbol comparedType)
+        {
+            foreach (var op in s_operatorKinds)
+            {
+                if (!HasComparisonOperator(containingType, comparedType, op))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private bool HasComparisonOperator(INamedTypeSymbol containingType, ITypeSymbol comparedType, CodeGenerationOperatorKind kind)
         {
             // Look for an `operator <(... c1, ComparedType c2)` member.
-            foreach (var member in containingType.GetMembers(WellKnownMemberNames.LessThanOperatorName))
+            foreach (var member in containingType.GetMembers(GetOperatorName(kind)))
             {
                 if (member is IMethodSymbol method &&
                     method.Parameters.Length >= 2 &&
@@ -237,6 +256,16 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 
             return false;
         }
+
+        private string GetOperatorName(CodeGenerationOperatorKind kind)
+            => kind switch
+            {
+                CodeGenerationOperatorKind.LessThan => WellKnownMemberNames.LessThanOperatorName,
+                CodeGenerationOperatorKind.LessThanOrEqual => WellKnownMemberNames.LessThanOrEqualOperatorName,
+                CodeGenerationOperatorKind.GreaterThan => WellKnownMemberNames.GreaterThanOperatorName,
+                CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

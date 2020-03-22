@@ -278,7 +278,7 @@ class C : IComparable<Goo>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
-        public async Task TestMissingWithExistingOperator()
+        public async Task TestMissingWithAllExistingOperators()
         {
             await TestMissingAsync(
 @"
@@ -293,7 +293,69 @@ class C : IComparable<C>
         return left.CompareTo(right) < 0;
     }
 
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+
 [||]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestWithExistingOperator()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+[||]
+}",
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
 }");
         }
     }
