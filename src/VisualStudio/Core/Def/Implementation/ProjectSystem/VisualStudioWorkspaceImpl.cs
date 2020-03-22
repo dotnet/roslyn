@@ -1531,7 +1531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
+                SetCurrentSolution(oldSolution => TransformationResult(solutionTransformation(oldSolution), WorkspaceChangeKind.ProjectChanged, projectId));
             }
         }
 

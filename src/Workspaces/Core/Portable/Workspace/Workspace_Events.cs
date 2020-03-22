@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
 
 using System;
 using System.Threading;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId projectId = null, DocumentId documentId = null)
+        protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId? projectId = null, DocumentId? documentId = null)
         {
             if (newSolution == null)
             {
@@ -119,21 +118,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected Task RaiseDocumentOpenedEventAsync(Document document)
-        {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentOpenedEventName);
-            if (ev.HasHandlers && document != null)
-            {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentOpenedEventName);
-            }
-            else
-            {
-                return Task.CompletedTask;
-            }
-        }
+            => (document != null) ? RaiseDocumentEventAsync(document, DocumentOpenedEventName) : Task.CompletedTask;
 
         /// <summary>
         /// An event that is fired when a document is closed in the editor.
@@ -152,20 +137,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected Task RaiseDocumentClosedEventAsync(Document document)
+            => (document != null) ? RaiseDocumentEventAsync(document, DocumentClosedEventName) : Task.CompletedTask;
+
+        private Task RaiseDocumentEventAsync(Document document, string eventName)
         {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentClosedEventName);
-            if (ev.HasHandlers && document != null)
+            var ev = GetEventHandlers<DocumentEventArgs>(eventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentClosedEventName);
+                }, eventName);
             }
-            else
-            {
-                return Task.CompletedTask;
-            }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [Obsolete]
         protected void CheckProjectDoesNotContainOpenDocuments(ProjectId projectId)
         {
             if (ProjectHasOpenDocuments(projectId))
@@ -315,27 +316,35 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
+                RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
         }
 
+        [Obsolete]
         protected void CheckDocumentIsClosed(DocumentId documentId)
+            => CheckDocumentIsClosed(CurrentSolution, documentId);
+
+        private void CheckDocumentIsClosed(Solution solution, DocumentId documentId)
         {
-            if (this.IsDocumentOpen(documentId))
+            if (IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources._0_is_still_open,
-                    this.GetDocumentName(documentId)));
+                    GetDocumentName(solution, documentId)));
             }
         }
 
+        [Obsolete]
         protected void CheckDocumentIsOpen(DocumentId documentId)
+            => CheckDocumentIsOpen(CurrentSolution, documentId);
+
+        private void CheckDocumentIsOpen(Solution solution, DocumentId documentId)
         {
-            if (!this.IsDocumentOpen(documentId))
+            if (!IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_open,
-                    this.GetDocumentName(documentId)));
+                    GetDocumentName(solution, documentId)));
             }
         }
 
@@ -343,19 +352,19 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-                CheckDocumentIsClosed(documentId);
+            AddToOpenDocumentMap(documentId);
 
-                var oldSolution = this.CurrentSolution;
+            var (oldSolution, result) = SetCurrentSolution(oldSolution =>
+            {
+                CheckDocumentIsInSolution(oldSolution, documentId);
+                CheckDocumentIsClosed(oldSolution, documentId);
+
                 var oldDocument = oldSolution.GetRequiredDocument(documentId);
                 var oldDocumentState = oldDocument.State;
 
-                AddToOpenDocumentMap(documentId);
-
                 var newText = textContainer.CurrentText;
-                Solution currentSolution;
+
+                Solution newSolution;
                 if (oldDocument.TryGetText(out var oldText) &&
                     oldDocument.TryGetTextVersion(out var version))
                 {
@@ -363,7 +372,7 @@ namespace Microsoft.CodeAnalysis
                     var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
 
                     // keep open document text alive by using PreserveIdentity
-                    currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                    newSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
                 else
                 {
@@ -375,22 +384,20 @@ namespace Microsoft.CodeAnalysis
                     //
                     // Note: we pass along the newText here so that clients can easily get the text
                     // of an opened document just by calling TryGetText without any blocking.
-                    currentSolution = oldSolution.UpdateDocumentTextLoader(documentId,
+                    newSolution = oldSolution.UpdateDocumentTextLoader(documentId,
                         new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 
-                var newSolution = this.SetCurrentSolution(currentSolution);
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+                return TransformationResult(newSolution, WorkspaceChangeKind.DocumentChanged, documentId, DocumentOpenedEventName);
+            });
 
-                var newDoc = newSolution.GetRequiredDocument(documentId);
-                this.OnDocumentTextChanged(newDoc);
-
-                // Fire and forget that the workspace is changing.
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-                this.RaiseDocumentOpenedEventAsync(newDoc);
+            if (oldSolution != result.Solution)
+            {
+                OnDocumentTextChanged(result.Solution.GetDocument(documentId));
             }
 
-            this.RegisterText(textContainer);
+            SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+            RegisterText(textContainer);
         }
 
         private class ReuseVersionLoader : TextLoader
@@ -434,10 +441,13 @@ namespace Microsoft.CodeAnalysis
 
         private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
         {
-            var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
-            _textTrackers.Add(documentId, tracker);
-            this.UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
-            tracker.Connect();
+            using (_stateLock.DisposableWait())
+            {
+                var tracker = new TextTracker(this, documentId, textContainer, onChangedHandler);
+                _textTrackers.Add(documentId, tracker);
+                UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext);
+                tracker.Connect();
+            }
         }
 
         private void AddToOpenDocumentMap(DocumentId documentId)
@@ -455,7 +465,7 @@ namespace Microsoft.CodeAnalysis
                 textContainer,
                 isCurrentContext,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                CheckAdditionalDocumentIsInCurrentSolution,
+                CheckAdditionalDocumentIsInSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAdditionalDocumentText(documentId, newText, mode),
                 withDocumentTextAndVersion: (oldSolution, documentId, newTextAndVersion, mode) => oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, mode),
                 onDocumentTextChanged: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
@@ -468,7 +478,7 @@ namespace Microsoft.CodeAnalysis
                 textContainer,
                 isCurrentContext,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                CheckAnalyzerConfigDocumentIsInSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAnalyzerConfigDocumentText(documentId, newText, mode),
                 withDocumentTextAndVersion: (oldSolution, documentId, newTextAndVersion, mode) => oldSolution.WithAnalyzerConfigDocumentText(documentId, newTextAndVersion, mode),
                 onDocumentTextChanged: (w, id, text, mode) => w.OnAnalyzerConfigDocumentTextChanged(id, text, mode));
@@ -482,87 +492,66 @@ namespace Microsoft.CodeAnalysis
             SourceTextContainer textContainer,
             bool isCurrentContext,
             WorkspaceChangeKind workspaceChangeKind,
-            Action<DocumentId> checkTextDocumentIsInCurrentSolution,
+            Action<Solution, DocumentId> checkTextDocumentIsInSolution,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> withDocumentText,
             Func<Solution, DocumentId, TextAndVersion, PreservationMode, Solution> withDocumentTextAndVersion,
             Action<Workspace, DocumentId, SourceText, PreservationMode> onDocumentTextChanged)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                checkTextDocumentIsInCurrentSolution(documentId);
-                CheckDocumentIsClosed(documentId);
+            AddToOpenDocumentMap(documentId);
 
-                var oldSolution = this.CurrentSolution;
+            SetCurrentSolution(oldSolution =>
+            {
+                checkTextDocumentIsInSolution(oldSolution, documentId);
+                CheckDocumentIsClosed(oldSolution, documentId);
+
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
                 Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
 
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
-                AddToOpenDocumentMap(documentId);
-
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
-                Solution currentSolution;
 
+                Solution newSolution;
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {
                     // if the supplied text is the same as the previous text, then also use same version
                     var version = oldDocument.GetTextVersionSynchronously(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
-                    currentSolution = withDocumentTextAndVersion(oldSolution, documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                    newSolution = withDocumentTextAndVersion(oldSolution, documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
                 else
                 {
-                    currentSolution = withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
+                    newSolution = withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
-                var newSolution = this.SetCurrentSolution(currentSolution);
+                return TransformationResult(newSolution, workspaceChangeKind, documentId);
+            });
 
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged);
-
-                // Fire and forget.
-                this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
-            }
-
-            this.RegisterText(textContainer);
+            SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged);
+            RegisterText(textContainer);
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
-            // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
-            // We are choosing ReportWithoutCrashAndPropagate because this is a public API that has callers outside VS and also non-VisualStudioWorkspace callers inside VS, and
-            // we don't want to be crashing underneath them if they were already handling exceptions or (worse) was using those exceptions for expected code flow.
-            try
+            // forget any open document info
+            ClearOpenDocument(documentId);
+            OnDocumentClosing(documentId);
+
+            var (oldSolution, result) = SetCurrentSolution(oldSolution =>
             {
-                using (_serializationLock.DisposableWait())
-                {
-                    this.CheckDocumentIsInCurrentSolution(documentId);
-                    this.CheckDocumentIsOpen(documentId);
+                CheckDocumentIsInSolution(oldSolution, documentId);
+                CheckDocumentIsOpen(oldSolution, documentId);
 
-                    // forget any open document info
-                    ClearOpenDocument(documentId);
+                var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
+                return TransformationResult(newSolution, WorkspaceChangeKind.DocumentChanged, documentId, DocumentClosedEventName);
+            });
 
-                    var oldSolution = this.CurrentSolution;
-                    var oldDocument = oldSolution.GetDocument(documentId);
-
-                    this.OnDocumentClosing(documentId);
-
-                    var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
-                    newSolution = this.SetCurrentSolution(newSolution);
-
-                    var newDoc = newSolution.GetRequiredDocument(documentId);
-                    this.OnDocumentTextChanged(newDoc);
-
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
-                    this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            if (oldSolution != result.Solution)
             {
-                throw ExceptionUtilities.Unreachable;
+                OnDocumentTextChanged(result.Solution.GetDocument(documentId));
             }
         }
 
@@ -572,7 +561,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                CheckAdditionalDocumentIsInCurrentSolution,
+                CheckAdditionalDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode));
         }
 
@@ -582,7 +571,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                CheckAnalyzerConfigDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode));
         }
 
@@ -593,26 +582,24 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId,
             TextLoader reloader,
             WorkspaceChangeKind workspaceChangeKind,
-            Action<DocumentId> checkTextDocumentIsInCurrentSolution,
+            Action<Solution, DocumentId> checkTextDocumentIsInSolution,
             Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
         {
-            using (_serializationLock.DisposableWait())
+            // forget any open document info
+            ClearOpenDocument(documentId);
+
+            SetCurrentSolution(oldSolution =>
             {
-                checkTextDocumentIsInCurrentSolution(documentId);
-                this.CheckDocumentIsOpen(documentId);
+                checkTextDocumentIsInSolution(oldSolution, documentId);
+                CheckDocumentIsOpen(oldSolution, documentId);
 
-                // forget any open document info
-                ClearOpenDocument(documentId);
-
-                var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
                 Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
 
                 var newSolution = withTextDocumentTextLoader(oldSolution, documentId, reloader, PreservationMode.PreserveValue);
-                newSolution = this.SetCurrentSolution(newSolution);
 
-                this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
-            }
+                return TransformationResult(newSolution, workspaceChangeKind, documentId);
+            });
         }
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
@@ -670,7 +657,7 @@ namespace Microsoft.CodeAnalysis
 
         private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)
         {
-            CheckDocumentIsOpen(documentId);
+            CheckDocumentIsOpen(solution, documentId);
             var doc = solution.GetRequiredTextDocument(documentId);
             // text should always be preserved, so TryGetText will succeed.
             Contract.ThrowIfFalse(doc.TryGetText(out var text));
@@ -714,6 +701,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution.GetRequiredProject(oldProject.Id);
+        }
+
+        /// <summary>
+        /// Update a project as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly move current solution forward when such event happened
+        /// </summary>
+        internal void OnProjectOptionsChanged(ProjectId projectId)
+        {
+            SetCurrentSolution(oldSolution => TransformationResult(oldSolution.WithProjectOptionsChanged(projectId), WorkspaceChangeKind.ProjectChanged, projectId));
         }
 
         internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
