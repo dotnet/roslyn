@@ -5,6 +5,7 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.Host.Mef;
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;

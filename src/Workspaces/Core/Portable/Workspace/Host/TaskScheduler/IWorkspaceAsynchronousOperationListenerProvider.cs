@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// A factory that creates either sequential or parallel task schedulers.
+    /// Workspace service that provides <see cref="IAsynchronousOperationListener"/> instance.
     /// </summary>
     internal interface IWorkspaceAsynchronousOperationListenerProvider : IWorkspaceService
     {
