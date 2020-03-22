@@ -14,9 +14,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialogViewModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 Imports Microsoft.VisualStudio.Text.Classification
-Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
