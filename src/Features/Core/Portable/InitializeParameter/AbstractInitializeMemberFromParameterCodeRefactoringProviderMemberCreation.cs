@@ -116,17 +116,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c));
 
                 // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
-                // make this parameter into a field as well.
+                // make this parameter into a field as well.  Otherwise, default to generating a property
                 var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatementOpt);
-                if (siblingFieldOrProperty is IFieldSymbol)
-                {
-                    return ImmutableArray.Create<CodeAction>(fieldAction, propertyAction);
-                }
-                else
-                {
-                    // Otherwise, default to generating a property
-                    return ImmutableArray.Create<CodeAction>(propertyAction, fieldAction);
-                }
+                return siblingFieldOrProperty is IFieldSymbol
+                    ? ImmutableArray.Create<CodeAction>(fieldAction, propertyAction)
+                    : ImmutableArray.Create<CodeAction>(propertyAction, fieldAction);
             }
         }
 
