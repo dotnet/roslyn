@@ -87,5 +87,45 @@ class C : IComparable<C>
     public static bool operator >=(C left, C right) => left.CompareTo(right) >= 0;
 }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestExplicitImpl()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+[||]class C : IComparable<C>
+{
+    int IComparable<C>.CompareTo(C c) => 0;
+}",
+@"
+using System;
+
+class C : IComparable<C>
+{
+    int IComparable<C>.CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return ((IComparable<C>)left).CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return ((IComparable<C>)left).CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return ((IComparable<C>)left).CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return ((IComparable<C>)left).CompareTo(right) >= 0;
+    }
+}");
+        }
     }
 }
