@@ -692,5 +692,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
                 .WhereAsArray(s => !s.IsUnsafe());
         }
+
+        public static bool IsInSystemNamespace(this ISymbol symbol)
+        {
+            for (var namespaceSymbol = symbol as INamespaceSymbol ?? symbol.ContainingNamespace;
+                namespaceSymbol is object;
+                namespaceSymbol = namespaceSymbol.ContainingNamespace)
+            {
+                if (namespaceSymbol is { Name: nameof(System), ContainingNamespace: { IsGlobalNamespace: true } })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

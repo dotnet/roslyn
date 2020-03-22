@@ -342,6 +342,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
             else if (documentedSymbol is object)
             {
+                if (documentedSymbol.IsInSystemNamespace())
+                {
+                    // Don't show <remarks> content for items in the System namespace (or any child namespace).
+                    // https://github.com/dotnet/roslyn/issues/42606
+                    return default;
+                }
+
                 var documentation = documentedSymbol.GetRemarksDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
