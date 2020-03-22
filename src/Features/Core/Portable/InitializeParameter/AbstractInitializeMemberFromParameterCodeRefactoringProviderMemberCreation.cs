@@ -296,9 +296,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
 
-            InsertStatement(
-                editor, functionDeclaration, method,
-                statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
