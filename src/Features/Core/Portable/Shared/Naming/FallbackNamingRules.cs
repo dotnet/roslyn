@@ -28,9 +28,18 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                         new SymbolKindOrTypeKind(SymbolKind.RangeVariable))),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
+            // Include an entry for _ prefixed fields (.Net style).  That way features that are looking to see if
+            // there's a potential matching field for a particular name will find these as well.
+            new NamingRule(
+                new SymbolSpecification(
+                    Guid.NewGuid(),
+                    "CamelCaseWithUnderscore",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field))),
+                new NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
+                enforcementLevel: ReportDiagnostic.Hidden),
             // Everything else should be pascal cased.
             new NamingRule(
-                SymbolSpecification.CreateDefaultSymbolSpecification(),
+                CreateDefaultSymbolSpecification(),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
                 enforcementLevel: ReportDiagnostic.Hidden));
 
