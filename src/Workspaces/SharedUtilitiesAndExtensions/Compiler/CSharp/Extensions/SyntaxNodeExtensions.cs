@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return initializer.ArgumentList.Arguments.Any<ArgumentSyntax>(a => a.Span.Contains(textSpan));
+            return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
         }
 
         public static bool ContainsInBlockBody(this BlockSyntax block, TextSpan textSpan)
