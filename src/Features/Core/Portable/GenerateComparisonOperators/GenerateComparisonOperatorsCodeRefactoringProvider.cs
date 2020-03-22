@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 isInlinable: false));
         }
 
-        private IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
+        private static IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
         {
             foreach (var member in comparableType.GetMembers(nameof(IComparable<int>.CompareTo)))
             {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return null;
         }
 
-        private async Task<Document> GenerateComparisonOperatorsAsync(
+        private static async Task<Document> GenerateComparisonOperatorsAsync(
             Document document,
             SyntaxNode typeDeclaration,
             INamedTypeSymbol comparableType,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 : thisExpression;
         }
 
-        private ImmutableArray<IMethodSymbol> GenerateComparisonOperators(
+        private static ImmutableArray<IMethodSymbol> GenerateComparisonOperators(
             SyntaxGenerator generator,
             Compilation compilation,
             INamedTypeSymbol containingType,
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return operators.ToImmutable();
         }
 
-        private SyntaxNode GenerateStatement(
+        private static SyntaxNode GenerateStatement(
             SyntaxGenerator generator, CodeGenerationOperatorKind kind, SyntaxNode leftExpression)
         {
             var zero = generator.LiteralExpression(0);
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return generator.ReturnStatement(comparison);
         }
 
-        private bool HasAllComparisonOperators(INamedTypeSymbol containingType, ITypeSymbol comparedType)
+        private static bool HasAllComparisonOperators(INamedTypeSymbol containingType, ITypeSymbol comparedType)
         {
             foreach (var op in s_operatorKinds)
             {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return true;
         }
 
-        private bool HasComparisonOperator(INamedTypeSymbol containingType, ITypeSymbol comparedType, CodeGenerationOperatorKind kind)
+        private static bool HasComparisonOperator(INamedTypeSymbol containingType, ITypeSymbol comparedType, CodeGenerationOperatorKind kind)
         {
             // Look for an `operator <(... c1, ComparedType c2)` member.
             foreach (var member in containingType.GetMembers(GetOperatorName(kind)))
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             return false;
         }
 
-        private string GetOperatorName(CodeGenerationOperatorKind kind)
+        private static string GetOperatorName(CodeGenerationOperatorKind kind)
             => kind switch
             {
                 CodeGenerationOperatorKind.LessThan => WellKnownMemberNames.LessThanOperatorName,
