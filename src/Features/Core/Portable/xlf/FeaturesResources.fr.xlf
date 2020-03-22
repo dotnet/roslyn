@@ -2270,16 +2270,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Le diagnostic signalé '{0}' a un emplacement source '{1}' dans le fichier '{2}', qui se trouve en dehors du fichier donné.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Code inaccessible détecté</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Supprimer le code inaccessible</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">dans {0} (projet {1})</target>
