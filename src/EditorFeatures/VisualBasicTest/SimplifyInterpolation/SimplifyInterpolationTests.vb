@@ -512,5 +512,58 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        Public Async Function MissingOnBaseToString() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Overrides Function ToString() As String
+        Return $""Test: {MyBase[||].ToString()}""
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        Public Async Function MissingOnBaseToStringEvenWhenNotOverridden() As Task
+            Await TestMissingAsync(
+"Class C
+    Function M() As String
+        Return $""Test: {MyBase[||].ToString()}""
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        Public Async Function MissingOnBaseToStringWithArgument() As Task
+            Await TestMissingAsync(
+"Class Base
+    Public Function ToString(format As String) As String
+        Return format
+    End Function
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public Overrides Function ToString() As String
+        Return $""Test: {MyBase[||].ToString(""a"")}""
+    End Function
+End Class")
+        End Function
+
+        <Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")>
+        Public Async Function PadLeftSimplificationIsStillOfferedOnBaseToString() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Public Overrides Function ToString() As String
+        Return $""Test: {MyBase.ToString()[||].PadLeft(10)}""
+    End Function
+End Class",
+"Class C
+    Public Overrides Function ToString() As String
+        Return $""Test: {MyBase.ToString(),10}""
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace

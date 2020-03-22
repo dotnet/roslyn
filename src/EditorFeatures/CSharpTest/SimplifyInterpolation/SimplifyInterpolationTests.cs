@@ -752,5 +752,54 @@ public static class Sample
     }
 }");
         }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToString()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringEvenWhenNotOverridden()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    string M() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringWithArgument()
+        {
+            await TestMissingAsync(
+@"class Base
+{
+    public string ToString(string format) => format;
+}
+
+class Derived : Base
+{
+    public override string ToString() => $""Test: {base[||].ToString(""a"")}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString()[||].PadLeft(10)}"";
+}",
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString(),10}"";
+}");
+        }
     }
 }
