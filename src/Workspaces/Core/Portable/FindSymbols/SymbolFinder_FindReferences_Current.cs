@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
-            progress ??= StreamingFindReferencesProgress.Instance;
+            progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options, cancellationToken);
             return engine.FindReferencesAsync(symbolAndProjectId);

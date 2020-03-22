@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -15,10 +18,25 @@ namespace Microsoft.CodeAnalysis
         {
             _compilation = compilation;
         }
-
-        public int Compare(SyntaxNode x, SyntaxNode y)
+        public int Compare(SyntaxNode? x, SyntaxNode? y)
         {
-            return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+            else if (y is null)
+            {
+                return 1;
+            }
+            else
+            {
+                return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
+            }
         }
     }
 }
