@@ -127,5 +127,127 @@ class C : IComparable<C>
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestOnInterface()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C : [||]IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+}",
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestAtEndOfInterface()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C : IComparable<C>[||]
+{
+    public int CompareTo(C c) => 0;
+}",
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestInBody()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+[||]
+}",
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+}");
+        }
     }
 }
