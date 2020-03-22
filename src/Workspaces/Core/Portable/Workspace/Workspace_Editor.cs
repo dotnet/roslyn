@@ -82,9 +82,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected void ClearOpenDocument(DocumentId documentId)
+            => ClearOpenDocumentImpl(documentId, throwIfAlreadyClosed: false);
+
+        private void ClearOpenDocumentImpl(DocumentId documentId, bool throwIfAlreadyClosed)
         {
             using (_stateLock.DisposableWait())
             {
+                if (throwIfAlreadyClosed)
+                {
+                    CheckDocumentIsOpenNoLock(documentId);
+                }
+
                 _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
 
                 // Stop tracking the buffer or update the documentId associated with the buffer.
@@ -175,10 +183,13 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                return _projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocuments) &&
-                       openDocuments.Contains(documentId);
+                return IsDocumentOpenNoLock(documentId);
             }
         }
+
+        private bool IsDocumentOpenNoLock(DocumentId documentId)
+            => _projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocuments) &&
+               openDocuments.Contains(documentId);
 
         /// <summary>
         /// Gets a list of the currently opened documents.
@@ -322,29 +333,39 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete]
         protected void CheckDocumentIsClosed(DocumentId documentId)
-            => CheckDocumentIsClosed(CurrentSolution, documentId);
-
-        private void CheckDocumentIsClosed(Solution solution, DocumentId documentId)
         {
-            if (IsDocumentOpen(documentId))
+            using (_stateLock.DisposableWait())
+            {
+                CheckDocumentIsClosedNoLock(documentId);
+            }
+        }
+
+        private void CheckDocumentIsClosedNoLock(DocumentId documentId)
+        {
+            if (IsDocumentOpenNoLock(documentId))
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources._0_is_still_open,
-                    GetDocumentName(solution, documentId)));
+                    GetDocumentName(CurrentSolution, documentId)));
             }
         }
 
         [Obsolete]
         protected void CheckDocumentIsOpen(DocumentId documentId)
-            => CheckDocumentIsOpen(CurrentSolution, documentId);
-
-        private void CheckDocumentIsOpen(Solution solution, DocumentId documentId)
         {
-            if (!IsDocumentOpen(documentId))
+            using (_stateLock.DisposableWait())
+            {
+                CheckDocumentIsOpenNoLock(documentId);
+            }
+        }
+
+        private void CheckDocumentIsOpenNoLock(DocumentId documentId)
+        {
+            if (!IsDocumentOpenNoLock(documentId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_open,
-                    GetDocumentName(solution, documentId)));
+                    GetDocumentName(CurrentSolution, documentId)));
             }
         }
 
@@ -357,7 +378,6 @@ namespace Microsoft.CodeAnalysis
             var (oldSolution, result) = SetCurrentSolution(oldSolution =>
             {
                 CheckDocumentIsInSolution(oldSolution, documentId);
-                CheckDocumentIsClosed(oldSolution, documentId);
 
                 var oldDocument = oldSolution.GetRequiredDocument(documentId);
                 var oldDocumentState = oldDocument.State;
@@ -454,6 +474,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
+                CheckDocumentIsClosedNoLock(documentId);
                 _projectToOpenDocumentsMap.MultiAdd(documentId.ProjectId, documentId);
             }
         }
@@ -502,7 +523,6 @@ namespace Microsoft.CodeAnalysis
             SetCurrentSolution(oldSolution =>
             {
                 checkTextDocumentIsInSolution(oldSolution, documentId);
-                CheckDocumentIsClosed(oldSolution, documentId);
 
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
                 Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
@@ -537,13 +557,12 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             // forget any open document info
-            ClearOpenDocument(documentId);
+            ClearOpenDocumentImpl(documentId, throwIfAlreadyClosed: true);
             OnDocumentClosing(documentId);
 
             var (oldSolution, result) = SetCurrentSolution(oldSolution =>
             {
                 CheckDocumentIsInSolution(oldSolution, documentId);
-                CheckDocumentIsOpen(oldSolution, documentId);
 
                 var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
                 return TransformationResult(newSolution, WorkspaceChangeKind.DocumentChanged, documentId, DocumentClosedEventName);
@@ -586,12 +605,11 @@ namespace Microsoft.CodeAnalysis
             Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
         {
             // forget any open document info
-            ClearOpenDocument(documentId);
+            ClearOpenDocumentImpl(documentId, throwIfAlreadyClosed: true);
 
             SetCurrentSolution(oldSolution =>
             {
                 checkTextDocumentIsInSolution(oldSolution, documentId);
-                CheckDocumentIsOpen(oldSolution, documentId);
 
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
                 Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
@@ -655,52 +673,34 @@ namespace Microsoft.CodeAnalysis
             return docIds[0];
         }
 
-        private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)
-        {
-            CheckDocumentIsOpen(solution, documentId);
-            var doc = solution.GetRequiredTextDocument(documentId);
-            // text should always be preserved, so TryGetText will succeed.
-            Contract.ThrowIfFalse(doc.TryGetText(out var text));
-            return text;
-        }
-
         /// <summary>
         ///  This method is called during OnSolutionReload.  Override this method if you want to manipulate
         ///  the reloaded solution.
         /// </summary>
         protected virtual Solution AdjustReloadedSolution(Solution oldSolution, Solution reloadedSolution)
-        {
-            var newSolution = reloadedSolution;
+            => GetSolutionWithOpenDocumentTextsReused(oldSolution, reloadedSolution, projectId: null);
 
+        protected virtual Project AdjustReloadedProject(Project oldProject, Project reloadedProject)
+            => GetSolutionWithOpenDocumentTextsReused(oldProject.Solution, reloadedProject.Solution, oldProject.Id).GetRequiredProject(oldProject.Id);
+
+        private Solution GetSolutionWithOpenDocumentTextsReused(Solution oldSolution, Solution newSolution, ProjectId projectId)
+        {
             // keep open documents using same text
-            foreach (var docId in this.GetOpenDocumentIds())
+            foreach (var documentId in GetOpenDocumentIds(projectId))
             {
-                var document = newSolution.GetTextDocument(docId);
-                if (document != null)
+                var newDocument = newSolution.GetTextDocument(documentId);
+                if (newDocument != null)
                 {
-                    newSolution = document.WithText(this.GetOpenDocumentText(oldSolution, docId)).Project.Solution;
+                    var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
+
+                    // document and its text should always be preserved
+                    Contract.ThrowIfFalse(oldDocument.TryGetText(out var text));
+
+                    newSolution = newDocument.WithText(text).Project.Solution;
                 }
             }
 
             return newSolution;
-        }
-
-        protected virtual Project AdjustReloadedProject(Project oldProject, Project reloadedProject)
-        {
-            var oldSolution = oldProject.Solution;
-            var newSolution = reloadedProject.Solution;
-
-            // keep open documents open using same text
-            foreach (var docId in this.GetOpenDocumentIds(oldProject.Id))
-            {
-                var document = newSolution.GetTextDocument(docId);
-                if (document != null)
-                {
-                    newSolution = document.WithText(this.GetOpenDocumentText(oldSolution, docId)).Project.Solution;
-                }
-            }
-
-            return newSolution.GetRequiredProject(oldProject.Id);
         }
 
         /// <summary>
