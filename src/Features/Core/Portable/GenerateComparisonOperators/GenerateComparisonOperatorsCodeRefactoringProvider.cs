@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 if (!iface.OriginalDefinition.Equals(comparableType))
                     continue;
 
-                var comparedType = comparableType.TypeArguments[0];
+                var comparedType = iface.TypeArguments[0];
                 if (comparedType.IsErrorType())
                     continue;
 
@@ -181,15 +181,6 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.GreaterThan, boolType, parameters, thisExpression));
             operators.Add(CreateOperator(generator, CodeGenerationOperatorKind.GreaterThanOrEqual, boolType, parameters, thisExpression));
 
-            //operators.Add(CodeGenerationSymbolFactory.CreateOperatorSymbol(
-            //    attributes: default,
-            //    Accessibility.Public,
-            //    DeclarationModifiers.Static,
-            //    boolType,
-            //    CodeGenerationOperatorKind.LessThan,
-            //    parameters,
-            //    statements));
-
             return operators.ToImmutable();
         }
 
@@ -238,7 +229,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             {
                 if (member is IMethodSymbol method &&
                     method.Parameters.Length >= 2 &&
-                    comparedType.Equals(method.Parameters[1]))
+                    comparedType.Equals(method.Parameters[1].Type))
                 {
                     return true;
                 }

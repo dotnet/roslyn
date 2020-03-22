@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateComparisonOperators;
@@ -247,6 +246,54 @@ class C : IComparable<C>
     {
         return left.CompareTo(right) >= 0;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestMissingWithoutCompareMethod()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C : IComparable<C>
+{
+[||]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestMissingWithUnknownType()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C : IComparable<Goo>
+{
+    public int CompareTo(Goo g) => 0;
+
+[||]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestMissingWithExistingOperator()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C : IComparable<C>
+{
+    public int CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+[||]
 }");
         }
     }
