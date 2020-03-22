@@ -50,13 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isExpression = (BinaryExpressionSyntax)location.FindNode(
                 getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
-            var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.AnalyzeExpression(
-                workspace, semanticModel, isExpression, cancellationToken);
+                semanticModel, isExpression, cancellationToken);
 
             var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.Instance.ReplaceMatches(
-                workspace, semanticModel, isExpression, localName, matches, cancellationToken);
+                semanticModel, isExpression, localName, matches, cancellationToken);
 
             var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);

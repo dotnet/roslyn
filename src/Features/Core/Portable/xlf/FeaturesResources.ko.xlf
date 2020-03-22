@@ -2245,16 +2245,6 @@ This version used in: {2}</source>
         <target state="translated">{0} 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">default' 식 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'default' 식을 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>
@@ -2283,16 +2273,6 @@ This version used in: {2}</source>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">보고된 진단 '{0}'의 소스 위치 '{1}'이(가) 지정된 파일의 범위 밖인 파일 '{2}'에 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">접근할 수 없는 코드가 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">접근할 수 없는 코드 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

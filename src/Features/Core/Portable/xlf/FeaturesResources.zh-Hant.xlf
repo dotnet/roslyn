@@ -2245,16 +2245,6 @@ This version used in: {2}</source>
         <target state="translated">實作 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">簡化 'default' 運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'default' 運算式可予簡化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">格式字串包含無效的預留位置</target>
@@ -2283,16 +2273,6 @@ This version used in: {2}</source>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">回報之診斷 '{0}' 中的來源位置 '{1}' 位於檔案 '{2}' 內，而該檔案不在指定的檔案內。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">偵測到執行不到的程式碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">移除執行不到的程式碼</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

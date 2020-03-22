@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
                 symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),

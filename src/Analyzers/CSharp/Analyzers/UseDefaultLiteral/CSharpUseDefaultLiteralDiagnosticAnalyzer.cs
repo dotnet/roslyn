@@ -3,11 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
+#else
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 {
@@ -18,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
                    CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_default_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.default_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.default_expression_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

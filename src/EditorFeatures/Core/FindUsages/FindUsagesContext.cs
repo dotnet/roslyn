@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -13,8 +14,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         public virtual CancellationToken CancellationToken { get; }
 
+        public IStreamingProgressTracker ProgressTracker { get; }
+
         protected FindUsagesContext()
         {
+            this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
         }
 
         public virtual Task ReportMessageAsync(string message) => Task.CompletedTask;
@@ -27,6 +31,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => Task.CompletedTask;
 
-        public virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+        protected virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+
+        Task IFindUsagesContext.ReportProgressAsync(int current, int maximum)
+            => ReportProgressAsync(current, maximum);
     }
 }
