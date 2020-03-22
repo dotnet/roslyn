@@ -124,13 +124,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
         }
 
-        private ISymbol? TryFindSiblingFieldOrProperty(
-            IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
-                TryFindFieldOrPropertyAssignmentStatement(
-                    siblingParam, blockStatementOpt, out var sibling);
+                TryFindFieldOrPropertyAssignmentStatement(siblingParam, blockStatementOpt, out var sibling);
                 if (sibling != null)
                     return sibling;
             }
