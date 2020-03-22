@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
 
         internal struct BoolAndStringArrayData
         {
@@ -107,6 +108,18 @@ namespace Microsoft.CodeAnalysis
 
             public readonly bool Sense;
             public readonly ImmutableArray<string> Strings;
+        }
+
+        internal struct BoolAndStringData
+        {
+            public BoolAndStringData(bool sense, string @string)
+            {
+                Sense = sense;
+                String = @string;
+            }
+
+            public readonly bool Sense;
+            public readonly string String;
         }
 
         // 'ignoreAssemblyRefs' is used by the EE only, when debugging
@@ -1220,34 +1233,38 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<string> GetMemberNotNullAttributeValues(EntityHandle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.MemberNotNullAttribute);
-            ArrayBuilder<string> result = extractMemberNotNullData(attrInfos);
-            return result?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty;
-
-            ArrayBuilder<string> extractMemberNotNullData(List<AttributeInfo> attrInfos)
+            if (attrInfos is null || attrInfos.Count == 0)
             {
-                if (attrInfos is null)
-                {
-                    return null;
-                }
+                return ImmutableArray<string>.Empty;
+            }
 
-                var result = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+            var result = ArrayBuilder<string>.GetInstance(attrInfos.Count);
 
-                foreach (var ai in attrInfos)
+            foreach (var ai in attrInfos)
+            {
+                if (ai.SignatureIndex == 0)
                 {
-                    if (TryExtractStringArrayValueFromAttribute(ai.Handle, out var extracted))
+                    if (TryExtractStringValueFromAttribute(ai.Handle, out var extracted))
                     {
-                        foreach (var value in extracted)
+                        if (extracted is object)
                         {
-                            if (value is object)
-                            {
-                                result.Add(value);
-                            }
+                            result.Add(extracted);
                         }
                     }
                 }
-
-                return result;
+                else if (TryExtractStringArrayValueFromAttribute(ai.Handle, out var extracted2))
+                {
+                    foreach (var value in extracted2)
+                    {
+                        if (value is object)
+                        {
+                            result.Add(value);
+                        }
+                    }
+                }
             }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -1256,38 +1273,41 @@ namespace Microsoft.CodeAnalysis
         internal (ImmutableArray<string> whenTrue, ImmutableArray<string> whenFalse) GetMemberNotNullWhenAttributeValues(EntityHandle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.MemberNotNullWhenAttribute);
-            (ArrayBuilder<string> whenTrue, ArrayBuilder<string> whenFalse) result = extractMemberNotNullWhenData(attrInfos);
-
-            return (result.whenTrue?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty,
-                result.whenFalse?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty);
-
-            (ArrayBuilder<string> whenTrue, ArrayBuilder<string> whenFalse) extractMemberNotNullWhenData(List<AttributeInfo> attrInfos)
+            if (attrInfos is null || attrInfos.Count == 0)
             {
-                if (attrInfos is null)
-                {
-                    return default;
-                }
+                return (ImmutableArray<string>.Empty, ImmutableArray<string>.Empty);
+            }
 
-                var whenTrue = ArrayBuilder<string>.GetInstance(attrInfos.Count);
-                var whenFalse = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+            var whenTrue = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+            var whenFalse = ArrayBuilder<string>.GetInstance(attrInfos.Count);
 
-                foreach (var ai in attrInfos)
+            foreach (var ai in attrInfos)
+            {
+                if (ai.SignatureIndex == 0)
                 {
-                    if (TryExtractValueFromAttribute(ai.Handle, out var extracted, s_attributeBoolAndStringArrayValueExtractor))
+                    if (TryExtractValueFromAttribute(ai.Handle, out var extracted, s_attributeBoolAndStringValueExtractor))
                     {
-                        var whenResult = extracted.Sense ? whenTrue : whenFalse;
-                        foreach (var value in extracted.Strings)
+                        if (extracted.String is object)
                         {
-                            if (value is object)
-                            {
-                                whenResult.Add(value);
-                            }
+                            var whenResult = extracted.Sense ? whenTrue : whenFalse;
+                            whenResult.Add(extracted.String);
                         }
                     }
                 }
-
-                return (whenTrue, whenFalse);
+                else if (TryExtractValueFromAttribute(ai.Handle, out var extracted2, s_attributeBoolAndStringArrayValueExtractor))
+                {
+                    var whenResult = extracted2.Sense ? whenTrue : whenFalse;
+                    foreach (var value in extracted2.Strings)
+                    {
+                        if (value is object)
+                        {
+                            whenResult.Add(value);
+                        }
+                    }
+                }
             }
+
+            return (whenTrue.ToImmutableAndFree(), whenFalse.ToImmutableAndFree());
         }
 
         // This method extracts all the non-null string values from the given attributes.
@@ -1715,6 +1735,19 @@ namespace Microsoft.CodeAnalysis
                 CrackStringArrayInAttributeValue(out ImmutableArray<string> strings, ref sig))
             {
                 value = new BoolAndStringArrayData(sense, strings);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        internal static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
+        {
+            if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
+                CrackStringInAttributeValue(out string @string, ref sig))
+            {
+                value = new BoolAndStringData(sense, @string);
                 return true;
             }
 
