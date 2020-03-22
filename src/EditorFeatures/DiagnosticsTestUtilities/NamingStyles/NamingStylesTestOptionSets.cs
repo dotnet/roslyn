@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             _optionKey = NamingStyleOptions.GetNamingPreferencesOptionKey(languageName);
         }
 
+        public OptionKey OptionKey => _optionKey;
+
         public IDictionary<OptionKey, object> MergeStyles(IDictionary<OptionKey, object> first, IDictionary<OptionKey, object> second, string languageName)
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
@@ -56,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
             Options(_optionKey, MethodNamesArePascalCaseOption());
+
+        public IDictionary<OptionKey, object> MethodNamesAreCamelCase =>
+            Options(_optionKey, MethodNamesAreCamelCaseOption());
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
             Options(_optionKey, ParameterNamesAreCamelCaseOption());
@@ -290,6 +295,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         }
 
         private static NamingStylePreferences MethodNamesArePascalCaseOption()
+            => MethodNamesAreCasedOption(Capitalization.PascalCase);
+
+        internal static NamingStylePreferences MethodNamesAreCamelCaseOption()
+            => MethodNamesAreCasedOption(Capitalization.CamelCase);
+
+        private static NamingStylePreferences MethodNamesAreCasedOption(Capitalization capitalization)
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -300,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
+                capitalizationScheme: capitalization,
                 name: "Name",
                 prefix: "",
                 suffix: "",
