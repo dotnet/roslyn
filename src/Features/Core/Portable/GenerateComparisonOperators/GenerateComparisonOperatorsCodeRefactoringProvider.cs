@@ -163,7 +163,11 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             IMethodSymbol compareMethod)
         {
             var thisExpression = generator.IdentifierName(LeftName);
-            var generateCast = compareMethod != null && compareMethod.DeclaredAccessibility != Accessibility.Public;
+            var generateCast =
+                compareMethod != null &&
+                compareMethod.DeclaredAccessibility != Accessibility.Public &&
+                compareMethod.Name != nameof(IComparable.CompareTo);
+
             return generateCast
                 ? generator.CastExpression(comparableType, thisExpression)
                 : thisExpression;
