@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -906,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return initializer.ArgumentList.Arguments.Any(a => a.Span.Contains(textSpan));
+            return initializer.ArgumentList.Arguments.Any<ArgumentSyntax>(a => a.Span.Contains(textSpan));
         }
 
         public static bool ContainsInBlockBody(this BlockSyntax block, TextSpan textSpan)
@@ -962,6 +963,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
                         if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                            return true;
+                    }
+                    else if (current is SelectOrGroupClauseSyntax clause)
+                    {
+                        var info = semanticModel.GetSymbolInfo(clause, cancellationToken);
+                        if (TakesExpressionTree(info, expressionTypeOpt))
+                            return true;
+                    }
+                    else if (current is OrderingSyntax ordering)
+                    {
+                        var info = semanticModel.GetSymbolInfo(ordering, cancellationToken);
+                        if (TakesExpressionTree(info, expressionTypeOpt))
+                            return true;
+                    }
+                    else if (current is QueryClauseSyntax queryClause)
+                    {
+                        var info = semanticModel.GetQueryClauseInfo(queryClause, cancellationToken);
+                        if (TakesExpressionTree(info.CastInfo, expressionTypeOpt) ||
+                            TakesExpressionTree(info.OperationInfo, expressionTypeOpt))
                         {
                             return true;
                         }
@@ -970,6 +990,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+
+            static bool TakesExpressionTree(SymbolInfo info, INamedTypeSymbol expressionType)
+            {
+                foreach (var symbol in info.GetAllSymbols())
+                {
+                    if (symbol is IMethodSymbol method &&
+                        method.Parameters.Length > 0 &&
+                        expressionType.Equals(method.Parameters[0].Type?.OriginalDefinition))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static bool IsInDeconstructionLeft(
