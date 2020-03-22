@@ -358,5 +358,49 @@ class C : IComparable<C>
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestMultipleInterfaces()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C : IComparable<C>, IComparable<int>
+{
+    public int CompareTo(C c) => 0;
+    public int CompareTo(int c) => 0;
+
+[||]
+}",
+@"
+using System;
+
+class C : IComparable<C>, IComparable<int>
+{
+    public int CompareTo(C c) => 0;
+    public int CompareTo(int c) => 0;
+
+    public static bool operator <(C left, int right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, int right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, int right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, int right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+}", index: 1);
+        }
     }
 }

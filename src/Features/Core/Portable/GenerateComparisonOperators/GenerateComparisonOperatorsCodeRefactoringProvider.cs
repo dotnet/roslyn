@@ -20,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 {
+    using static CodeGenerationSymbolFactory;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
     {
@@ -180,33 +182,25 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             var comparedType = comparableType.TypeArguments[0];
 
             var parameters = ImmutableArray.Create(
-                CodeGenerationSymbolFactory.CreateParameterSymbol(containingType, LeftName),
-                CodeGenerationSymbolFactory.CreateParameterSymbol(comparedType, RightName));
+                CreateParameterSymbol(containingType, LeftName),
+                CreateParameterSymbol(comparedType, RightName));
 
-            foreach (var op in s_operatorKinds)
+            foreach (var kind in s_operatorKinds)
             {
-                if (!HasComparisonOperator(containingType, comparedType, op))
-                    operators.Add(CreateOperator(generator, op, boolType, parameters, thisExpression));
+                if (!HasComparisonOperator(containingType, comparedType, kind))
+                {
+                    operators.Add(CreateOperatorSymbol(
+                        attributes: default,
+                        Accessibility.Public,
+                        DeclarationModifiers.Static,
+                        boolType,
+                        kind,
+                        parameters,
+                        ImmutableArray.Create(GenerateStatement(generator, kind, thisExpression))));
+                }
             }
 
             return operators.ToImmutable();
-        }
-
-        private IMethodSymbol CreateOperator(
-            SyntaxGenerator generator,
-            CodeGenerationOperatorKind kind,
-            INamedTypeSymbol boolType,
-            ImmutableArray<IParameterSymbol> parameters,
-            SyntaxNode thisExpression)
-        {
-            return CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                attributes: default,
-                Accessibility.Public,
-                DeclarationModifiers.Static,
-                boolType,
-                kind,
-                parameters,
-                ImmutableArray.Create(GenerateStatement(generator, kind, thisExpression)));
         }
 
         private SyntaxNode GenerateStatement(
