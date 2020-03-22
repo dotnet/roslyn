@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    ((IntellisenseTextBox)dialog.NameContentControl.Content).Text = parameterName;
+                    dialog.NameContentControl.Text = parameterName;
                 });
             }
         }
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    ((IntellisenseTextBox)dialog.TypeContentControl.Content).Text = typeName;
+                    dialog.TypeContentControl.Text = typeName;
                 });
             }
         }
