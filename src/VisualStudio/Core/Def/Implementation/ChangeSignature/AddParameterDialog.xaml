@@ -33,12 +33,12 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Label x:Name="TypeNameLabelName" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,0,5" x:Name="TypeContentControl" AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"></TextBox>
-            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
-            <TextBox Grid.Row="3" Grid.Column="1" Margin="0,5,0,5" x:Name="NameContentControl" AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"></TextBox>
-            <Label x:Name="CallSiteValueLabelName" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallSiteValueLabel}" />
-            <TextBox x:Name="CallSiteValueTextBox" Grid.Row="5" Grid.Column="1" Text="{Binding CallSiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallSiteValueLabelName}" />
+            <Label x:Name="TypeNameLabelName" Grid.Row="0" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
+            <TextBox x:Name="TypeContentControl" Grid.Row="1" Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"></TextBox>
+            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+            <TextBox x:Name="NameContentControl" Grid.Row="3" Margin="0,5,0,5"  AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"></TextBox>
+            <Label x:Name="CallSiteValueLabelName" Grid.Row="4" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallSiteValueLabel}" />
+            <TextBox x:Name="CallSiteValueTextBox" Grid.Row="5" Text="{Binding CallSiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallSiteValueLabelName}" />
         </Grid>
         <StackPanel Grid.Row="1"
                     HorizontalAlignment="Right" 
