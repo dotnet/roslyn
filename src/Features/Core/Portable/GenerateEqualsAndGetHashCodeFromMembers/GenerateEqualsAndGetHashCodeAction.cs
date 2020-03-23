@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var (oldType, newType) = await AddMethodsAsync(methods, cancellationToken).ConfigureAwait(false);
+                var newType = AddMethods(methods);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 }
 
                 var newDocument = await UpdateDocumentAndAddImportsAsync(
-                    oldType, newType, cancellationToken).ConfigureAwait(false);
+                    _typeDeclaration, newType, cancellationToken).ConfigureAwait(false);
 
                 var service = _document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 var formattedDocument = await service.FormatDocumentAsync(
@@ -136,24 +136,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 return newDocument;
             }
 
-            private async Task<(SyntaxNode oldType, SyntaxNode newType)> AddMethodsAsync(
-                IList<IMethodSymbol> methods,
-                CancellationToken cancellationToken)
-            {
-                var workspace = _document.Project.Solution.Workspace;
-                var syntaxTree = await _document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-                var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
-                var typeDeclaration = declarationService.GetDeclarations(_containingType)
-                                                        .Select(r => r.GetSyntax(cancellationToken))
-                                                        .First(s => s.SyntaxTree == syntaxTree && s.FullSpan.IntersectsWith(_textSpan.Start));
-
-                var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
-                    typeDeclaration, methods, workspace,
-                    new CodeGenerationOptions(contextLocation: syntaxTree.GetLocation(_textSpan)));
-
-                return (typeDeclaration, newTypeDeclaration);
-            }
+            private SyntaxNode AddMethods(IList<IMethodSymbol> methods)
+                => CodeGenerator.AddMemberDeclarations(
+                    _typeDeclaration, methods, _document.Project.Solution.Workspace,
+                    new CodeGenerationOptions(contextLocation: _typeDeclaration.GetLocation()));
 
             private async Task AddOperatorsAsync(List<IMethodSymbol> members, CancellationToken cancellationToken)
             {
