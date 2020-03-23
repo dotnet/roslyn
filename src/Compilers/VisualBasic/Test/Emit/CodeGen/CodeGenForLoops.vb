@@ -328,7 +328,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(MonoOrCoreClrOnly))>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub ForLoopStepIsFloatNegativeVar()
             Dim TEMP = CompileAndVerify(
