@@ -250,9 +250,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
             {
-                if (string.IsNullOrEmpty(xmlText) && IsEligibleForAutomaticInheritdoc(symbol))
+                if (string.IsNullOrEmpty(xmlText))
                 {
-                    xmlText = $@"<doc><inheritdoc/></doc>";
+                    if (IsEligibleForAutomaticInheritdoc(symbol))
+                    {
+                        xmlText = $@"<doc><inheritdoc/></doc>";
+                    }
+                    else
+                    {
+                        return DocumentationComment.Empty;
+                    }
                 }
 
                 try

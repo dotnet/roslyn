@@ -739,9 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -750,9 +750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
@@ -769,9 +769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.LocalFunctionStatement:

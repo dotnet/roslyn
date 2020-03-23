@@ -5641,7 +5641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleOpt = (NamedTypeSymbol)node.Type;
             if (tupleOpt is null)
             {
-                SetResultType(node, TypeWithState.Create(default, NullableFlowState.NotNull));
+                SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
             }
             else
             {

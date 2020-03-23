@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteWorkspace : Workspace
     {
-        private readonly ISolutionCrawlerRegistrationService _registrationService;
+        private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
         // guard to make sure host API doesn't run concurrently
         private readonly object _gate = new object();
@@ -74,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, out Solution solution)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)]out Solution? solution)
         {
             if (solutionInfo == null)
             {
