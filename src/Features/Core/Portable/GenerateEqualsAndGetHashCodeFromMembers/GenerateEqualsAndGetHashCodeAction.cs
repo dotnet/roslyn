@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var newType = AddMethods(methods);
+                var newType = CodeGenerator.AddMemberDeclarations(
+                    _typeDeclaration, methods, _document.Project.Solution.Workspace);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -135,11 +136,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     cancellationToken: cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
-
-            private SyntaxNode AddMethods(IList<IMethodSymbol> methods)
-                => CodeGenerator.AddMemberDeclarations(
-                    _typeDeclaration, methods, _document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(contextLocation: _typeDeclaration.GetLocation()));
 
             private async Task AddOperatorsAsync(List<IMethodSymbol> members, CancellationToken cancellationToken)
             {
