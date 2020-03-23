@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -35,19 +36,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE: The receiver type must have a single declared instance method called 'With'
-            var members = receiverType.GetMembers("With");
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            LookupMembersWithoutInheritance(
+                lookupResult,
+                receiverType,
+                "With",
+                arity: 0,
+                LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
+                this,
+                this.ContainingType,
+                diagnose: false,
+                ref useSiteDiagnostics,
+                ConsList<TypeSymbol>.Empty);
+
             MethodSymbol? withMethod = null;
-            if (members.Length == 1 && members[0] is MethodSymbol m)
+            if (lookupResult.IsSingleViable &&
+                lookupResult.SingleSymbolOrDefault is MethodSymbol m &&
+                m.ContainingType.Equals(receiverType, TypeCompareKind.ConsiderEverything))
             {
                 withMethod = m;
             }
-            else if (members.Length > 1)
+            else if (lookupResult.IsMultiViable)
             {
                 // If there are multiple With methods, exclude overrides and
                 // look for a single remaining one
-                foreach (var member in members)
+                foreach (var member in lookupResult.Symbols)
                 {
-                    if (member is MethodSymbol { IsOverride: false } method)
+                    if (member is MethodSymbol { IsOverride: false } method &&
+                        method.ContainingType.Equals(receiverType, TypeCompareKind.ConsiderEverything))
                     {
                         if (withMethod is null)
                         {
@@ -62,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            var lookupResult = LookupResult.GetInstance();
+            lookupResult.Clear();
             ImmutableArray<Symbol?> withMembers;
 
             if (withMethod is null)
@@ -117,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
 
                         if (!member.GetTypeOrReturnType().Equals(
-                            p.TypeWithAnnotations,
-                            TypeCompareKind.ConsiderEverything))
+                                p.TypeWithAnnotations,
+                                TypeCompareKind.ConsiderEverything))
                         {
                             diagnostics.Add(
                                 ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType,

@@ -869,5 +869,51 @@ data class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 26)
             );
         }
+
+        [Fact]
+        public void WithExpr17()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    private B With(int X) => null;
+}
+class C : B
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "With".
+                //         b = b with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "b").WithArguments("B").WithLocation(12, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr18()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    protected B With(int X) => null;
+}
+class C : B
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
     }
 }
