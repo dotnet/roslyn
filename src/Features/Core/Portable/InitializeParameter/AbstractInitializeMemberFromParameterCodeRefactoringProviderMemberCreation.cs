@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -75,53 +76,139 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
-            {
                 return ImmutableArray<CodeAction>.Empty;
-            }
 
             var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty != null)
             {
-                // Found a field/property that this parameter should be assigned to.
-                // Just offer the simple assignment to it.
+                return HandleExistingFieldOrProperty(
+                    document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty);
+            }
 
-                var resource = fieldOrProperty.Kind == SymbolKind.Field
-                    ? FeaturesResources.Initialize_field_0
-                    : FeaturesResources.Initialize_property_0;
+            return await HandleNoExistingFieldOrPropertyAsync(
+                document, parameter, functionDeclaration, method,
+                blockStatementOpt, rules, parameterNameParts, cancellationToken).ConfigureAwait(false);
+        }
 
-                var title = string.Format(resource, fieldOrProperty.Name);
+        private async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
+            Document document,
+            IParameterSymbol parameter,
+            SyntaxNode functionDeclaration,
+            IMethodSymbol method,
+            IBlockOperation? blockStatementOpt,
+            ImmutableArray<NamingRule> rules,
+            CancellationToken cancellationToken)
+        {
+            // Didn't find a field/prop that this parameter could be assigned to.
+            // Offer to create new one and assign to that.
+            var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
-                return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                    title,
-                    c => AddSymbolInitializationAsync(
-                        document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty, c)));
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var (field, property) = CreateFieldAndProperty(parameter, options, rules);
+
+            var fieldAction = new MyCodeAction(
+                string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
+                c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, field, c));
+            var propertyAction = new MyCodeAction(
+                string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
+                c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c));
+
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
+
+            // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
+            // make this parameter into a field as well.  Otherwise, default to generating a property
+            var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatementOpt);
+            if (siblingFieldOrProperty is IFieldSymbol)
+            {
+                allActions.Add(fieldAction);
+                allActions.Add(propertyAction);
             }
             else
             {
-                // Didn't find a field/prop that this parameter could be assigned to.
-                // Offer to create new one and assign to that.
-                var codeGenService = document.GetLanguageService<ICodeGenerationService>();
+                allActions.Add(propertyAction);
+                allActions.Add(fieldAction);
+            }
 
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+            var siblingParameters = await GetSiblingParameterWithoutAssociatedMembers(
+                document, blockStatementOpt, rules, parameter, cancellationToken).ConfigureAwait(false);
+
+            if (siblingParameters.Length > 0)
+            {
+                if (siblingFieldOrProperty is IFieldSymbol)
+                {
+
+                }
+                else
+                {
+                }
+            }
+
+            return allActions.ToImmutable();
+        }
+
+        private (IFieldSymbol, IPropertySymbol) CreateFieldAndProperty(
+            IParameterSymbol parameter,
+            DocumentOptionSet options,
+            ImmutableArray<NamingRule> rules)
+        {
+            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+
+            var nameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
+            var field = CreateField(requireAccessibilityModifiers, parameter, rules, nameParts.BaseNameParts);
+            var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, nameParts.BaseNameParts);
+
+            return (field, property);
+        }
+
+        private async Task<ImmutableArray<(IParameterSymbol, IFieldSymbol, IPropertySymbol)>> GetSiblingParameterWithoutAssociatedMembers(
+            Document document,
+            IBlockOperation? blockStatementOpt,
+            ImmutableArray<NamingRule> rules,
+            IParameterSymbol parameter,
+            CancellationToken cancellationToken)
+        {
+            var siblingParameters = GetSiblingParameters(parameter);
+
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var matches);
+
+            foreach (var (sibling, _) in siblingParameters)
+            {
+                var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
+                if (parameterNameParts.BaseName == "")
+                    continue;
+
+                var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
+                    document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
+                if (fieldOrProperty != null)
+                    continue;
 
                 var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
                 var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
 
-                var fieldAction = new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
-                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, field, c));
-                var propertyAction = new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
-                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c));
-
-                // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
-                // make this parameter into a field as well.  Otherwise, default to generating a property
-                var siblingFieldOrProperty = TryFindSiblingFieldOrProperty(parameter, blockStatementOpt);
-                return siblingFieldOrProperty is IFieldSymbol
-                    ? ImmutableArray.Create<CodeAction>(fieldAction, propertyAction)
-                    : ImmutableArray.Create<CodeAction>(propertyAction, fieldAction);
+                matches.Add(sibling);
             }
+
+            return matches.ToImmutable();
+        }
+
+        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
+        {
+            // Found a field/property that this parameter should be assigned to.
+            // Just offer the simple assignment to it.
+
+            var resource = fieldOrProperty.Kind == SymbolKind.Field
+                ? FeaturesResources.Initialize_field_0
+                : FeaturesResources.Initialize_property_0;
+
+            var title = string.Format(resource, fieldOrProperty.Name);
+
+            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                title,
+                c => AddSymbolInitializationAsync(
+                    document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty, c)));
         }
 
         private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
