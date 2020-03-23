@@ -165,7 +165,7 @@ namespace Roslyn.Utilities
 
         #endregion
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T result)
+        public override bool TryGetValue([MaybeNullWhen(false)] out T result)
         {
             // No need to lock here since this is only a fast check to 
             // see if the result is already computed.
@@ -175,8 +175,7 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
-            result = default!;
+            result = default;
             return false;
         }
 

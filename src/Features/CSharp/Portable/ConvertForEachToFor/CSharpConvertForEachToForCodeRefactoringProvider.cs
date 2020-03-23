@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                            argumentList: default,
+                            argumentList: null,
                             SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0))))),
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(

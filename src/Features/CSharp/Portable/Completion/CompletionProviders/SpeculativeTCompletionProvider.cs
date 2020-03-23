@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SpeculativeTCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
     [Shared]
-    internal class SpeculativeTCompletionProvider : CommonCompletionProvider
+    internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
         public SpeculativeTCompletionProvider()
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
