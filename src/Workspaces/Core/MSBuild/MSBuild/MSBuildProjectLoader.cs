@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+# nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         internal MSBuildProjectLoader(
             HostWorkspaceServices workspaceServices,
             DiagnosticReporter diagnosticReporter,
-            ProjectFileLoaderRegistry projectFileLoaderRegistry,
-            ImmutableDictionary<string, string> properties)
+            ProjectFileLoaderRegistry? projectFileLoaderRegistry,
+            ImmutableDictionary<string, string>? properties)
         {
             _workspaceServices = workspaceServices;
             _diagnosticReporter = diagnosticReporter;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="workspace">The workspace whose services this <see cref="MSBuildProjectLoader"/> should use.</param>
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
-        public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
+        public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
             : this(workspace.Services, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
         }
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
         }
 
-        private void SetSolutionProperties(string solutionFilePath)
+        private void SetSolutionProperties(string? solutionFilePath)
         {
             const string SolutionDirProperty = "SolutionDir";
 
@@ -144,8 +146,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
-            IProgress<ProjectLoadProgress> progress = null,
-            ILogger msbuildLogger = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (!_pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
             {
                 // TryGetAbsoluteSolutionPath should throw before we get here.
-                return null;
+                return null!;
             }
 
             using (_dataGuard.DisposableWait(cancellationToken))
@@ -194,7 +196,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _projectFileLoaderRegistry,
                 buildManager,
                 projectPaths.ToImmutable(),
-                baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
+                // TryGetAbsoluteSolutionPath should not return an invalid path
+                baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
                 _properties,
                 projectMap: null,
                 progress,
@@ -226,9 +229,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
-            ProjectMap projectMap = null,
-            IProgress<ProjectLoadProgress> progress = null,
-            ILogger msbuildLogger = null,
+            ProjectMap? projectMap = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
