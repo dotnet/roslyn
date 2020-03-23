@@ -2270,16 +2270,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Zgłoszone dane diagnostyczne „{0}” mają lokalizację źródłową „{1}” w pliku „{2}”, który jest spoza podanego pliku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Wykryto nieosiągalny kod</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Usuń nieosiągalny kod</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">w {0} (projekt {1})</target>
