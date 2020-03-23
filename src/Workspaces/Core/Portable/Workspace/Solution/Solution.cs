@@ -1540,11 +1540,11 @@ namespace Microsoft.CodeAnalysis
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create<DocumentId>(documentId);
+                return ImmutableArray.Create(documentId);
             }
 
-            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
         internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)

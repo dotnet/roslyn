@@ -1445,12 +1445,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray.Create<DocumentId>();
+                return ImmutableArray<DocumentId>.Empty;
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray.Create<DocumentId>();
+                : ImmutableArray<DocumentId>.Empty;
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
