@@ -145,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
+                    Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, previousToken:=token),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
@@ -999,35 +1000,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInCollectionInitializerExpression(
                 collectionInitializer As CollectionInitializerSyntax,
                 Optional expression As ExpressionSyntax = Nothing,
-                Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
 
                 ' New List(Of T) From { x }
                 If expression IsNot Nothing Then
-                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
-                    Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
-                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = 1) _
-                        .Select(Function(a) New TypeInferenceInfo(DirectCast(a, IMethodSymbol).Parameters(0).Type))
+                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols().OfType(Of IMethodSymbol)
+                    Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols.
+                        Where(Function(m) m.Parameters.Length = 1).
+                        Select(Function(m) New TypeInferenceInfo(m.Parameters(0).Type))
 
                     If expressionAddMethodParameterTypes.Any() Then
                         Return expressionAddMethodParameterTypes
                     End If
+
+                    ' New Dictionary<K,V> From { { x, ... } }
+                    Dim parameterIndex = collectionInitializer.Initializers.IndexOf(expression)
+
+                    Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols().OfType(Of IMethodSymbol)
+                    Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols.
+                        Where(Function(m) m.Parameters.Length = collectionInitializer.Initializers.Count).
+                        Select(Function(m) m.Parameters.ElementAtOrDefault(parameterIndex)?.Type).
+                        WhereNotNull().
+                        Select(Function(m) New TypeInferenceInfo(m))
+
+                    If initializerAddMethodParameterTypes.Any() Then
+                        Return initializerAddMethodParameterTypes
+                    End If
                 End If
 
-                ' New Dictionary<K,V> From { { x, ... } }
-                Dim parameterIndex = If(previousToken.HasValue,
-                        collectionInitializer.Initializers.GetSeparators().ToList().IndexOf(previousToken.Value) + 1,
-                        collectionInitializer.Initializers.IndexOf(expression))
+                ' New List(of T) From { $$
+                If previousToken.Kind() = SyntaxKind.OpenBraceToken OrElse
+                   previousToken.Kind() = SyntaxKind.CommaToken Then
 
-                Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
-                Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
-                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = collectionInitializer.Initializers.Count) _
-                    .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type) _
-                    .WhereNotNull() _
-                    .Select(Function(a) New TypeInferenceInfo(a))
-
-
-                If initializerAddMethodParameterTypes.Any() Then
-                    Return initializerAddMethodParameterTypes
+                    Dim objectInitializer = TryCast(collectionInitializer.Parent, ObjectCollectionInitializerSyntax)
+                    Dim objectCreation = TryCast(objectInitializer?.Parent, ObjectCreationExpressionSyntax)
+                    If objectCreation IsNot Nothing Then
+                        Dim types = GetTypes(objectCreation).Select(Function(t) t.InferredType)
+                        Return types.OfType(Of INamedTypeSymbol)().SelectMany(Function(t) GetCollectionElementType(t))
+                    End If
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
