@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
+            SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
             SyntaxNode? statementToAddAfterOpt, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

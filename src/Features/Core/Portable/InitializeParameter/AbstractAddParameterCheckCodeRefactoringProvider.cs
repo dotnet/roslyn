@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
-            InsertStatement(editor, functionDeclaration, method, statementToAddAfter, nullCheckStatement);
+            InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
