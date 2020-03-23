@@ -62,15 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
         End Function
 
-        Friend Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
-            Dim xmlElement = TryCast(node, XmlElementSyntax)
-            If xmlElement IsNot Nothing Then
-                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
-            End If
-
-            Return False
-        End Function
-
         Friend Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode()
             Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
             If documentationCommentTrivia IsNot Nothing Then

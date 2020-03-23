@@ -4,6 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
+    /// <summary>
+    /// Base type for Parameter information, whether the parameter
+    /// is preexisting or new.
+    /// </summary>
     internal abstract class Parameter
     {
         public abstract bool HasDefaultValue { get; }

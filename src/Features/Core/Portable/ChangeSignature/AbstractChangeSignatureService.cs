@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -514,30 +515,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 expectedIndex++;
             }
 
-            // TODO: I don't think this does anything.
-            //// 5. Add added arguments (only at end for the moment)
-            //var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().OfType<AddedParameter>();
-
-            //foreach (var brandNewParameter in brandNewParameters)
-            //{
-            //    if (brandNewParameter.IsCallsiteOmitted)
-            //    {
-            //        seenNamedArgument = true;
-            //        continue;
-            //    }
-
-            //    var callSiteValue = brandNewParameter.IsCallsiteError
-            //        ? "TODO"
-            //        : brandNewParameter.CallSiteValue;
-
-            //    newArguments.Add(createIUnifiedArgument(callSiteValue).WithName(brandNewParameter.Name));
-            //}
-
-            // 6. Add the params argument with the first value:
+            // 5. Add the params argument with the first value:
             if (paramsArrayArgument != default)
             {
                 var param = argumentToParameterMap[paramsArrayArgument];
-                var actualIndex = updatedSignature.GetUpdatedIndex(declarationParameters.IndexOf(param));
                 if (seenNamedArgument && !paramsArrayArgument.IsNamed)
                 {
                     newArguments.Add(paramsArrayArgument.WithName(param.Name).WithAdditionalAnnotations(Formatter.Annotation));
@@ -549,7 +530,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            // 7. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
+            // 6. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
             var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
             for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
             {
@@ -677,21 +658,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             int numAddedParameters = 0;
 
+            // Iterate through the list of new parameters and combine any
+            // preexisting parameters with added parameters to construct
+            // the full updated list.
             var newParameters = ImmutableArray.CreateBuilder<T>();
             for (var index = 0; index < reorderedParameters.Length; index++)
             {
                 var newParam = reorderedParameters[index];
                 if (newParam is ExistingParameter existingParameter)
                 {
-                    var pos = originalParameters.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
-                    if (pos >= 0)
-                    {
-                        var param = list[pos];
+                    var pos = originalParameters.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
+                    var param = list[pos];
 
-                        // copy whitespace trivia from original position
-                        param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
-                        newParameters.Add(param);
-                    }
+                    // copy whitespace trivia from original position
+                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
+                    newParameters.Add(param);
                 }
                 else
                 {
@@ -702,18 +683,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            int numSeparatorsToSkip;
+            // (a,b,c)
+            // Adding X parameters, need to add X separators.
+            var numSeparatorsToSkip = originalParameters.Length - reorderedParameters.Length;
+
             if (originalParameters.Length == 0)
             {
                 // () 
                 // Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = originalParameters.Length - reorderedParameters.Length + 1;
-            }
-            else
-            {
-                // (a,b,c)
-                // Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = originalParameters.Length - reorderedParameters.Length;
+                numSeparatorsToSkip++;
             }
 
             return (newParameters.ToImmutable(), GetSeparators(list, numSeparatorsToSkip));
@@ -743,16 +721,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded)
         {
-            List<SyntaxNode> fullList = new List<SyntaxNode>();
-            List<SyntaxToken> separators = new List<SyntaxToken>();
+            var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
+            var separators = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
 
-            int indexInExistingList = 0;
+            var indexInListOfPreexistingArguments = 0;
 
-            bool seenNamedArguments = false;
-            bool seenOmitted = false;
-            bool paramsHandled = false;
+            var seenNamedArguments = false;
+            var seenOmitted = false;
+            var paramsHandled = false;
 
             for (int i = 0; i < updatedParameters.Length; i++)
             {
@@ -778,48 +756,48 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                     else
                     {
-                        if (indexInExistingList == (declarationSymbol as IMethodSymbol).Parameters.Length - 1 &&
-                            (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].IsParams)
+                        if (indexInListOfPreexistingArguments == (declarationSymbol as IMethodSymbol).Parameters.Length - 1 &&
+                            (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].IsParams)
                         {
                             if (seenOmitted)
                             {
                                 if (isParamsArrayExpanded)
                                 {
-                                    var newArgument = CreateArray(newArguments, indexInExistingList, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList]);
-                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                                    var newArgument = CreateArray(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
+                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
                                 else
                                 {
-                                    var newArgument = newArguments[indexInExistingList];
-                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                                    var newArgument = newArguments[indexInListOfPreexistingArguments];
+                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
 
                                 paramsHandled = true;
                             }
                         }
-                        else if (indexInExistingList < newArguments.Count)
+                        else if (indexInListOfPreexistingArguments < newArguments.Count)
                         {
-                            if (SyntaxFacts.IsNamedParameter(newArguments[indexInExistingList]))
+                            if (SyntaxFacts.IsNamedParameter(newArguments[indexInListOfPreexistingArguments]))
                             {
                                 seenNamedArguments = true;
                             }
 
-                            if (indexInExistingList < newArguments.SeparatorCount)
+                            if (indexInListOfPreexistingArguments < newArguments.SeparatorCount)
                             {
-                                separators.Add(newArguments.GetSeparator(indexInExistingList));
+                                separators.Add(newArguments.GetSeparator(indexInListOfPreexistingArguments));
                             }
 
-                            var newArgument = newArguments[indexInExistingList];
+                            var newArgument = newArguments[indexInListOfPreexistingArguments];
 
                             if (seenNamedArguments && !SyntaxFacts.IsNamedParameter(newArgument))
                             {
-                                newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInExistingList].Name);
+                                newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                             }
 
                             fullList.Add(newArgument);
-                            indexInExistingList++;
+                            indexInListOfPreexistingArguments++;
                         }
                     }
                 }
@@ -828,14 +806,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (!paramsHandled)
             {
                 // Add the rest of existing parameters, e.g. from the params argument.
-                while (indexInExistingList < newArguments.Count)
+                while (indexInListOfPreexistingArguments < newArguments.Count)
                 {
-                    if (indexInExistingList < newArguments.SeparatorCount)
+                    if (indexInListOfPreexistingArguments < newArguments.SeparatorCount)
                     {
-                        separators.Add(newArguments.GetSeparator(indexInExistingList));
+                        separators.Add(newArguments.GetSeparator(indexInListOfPreexistingArguments));
                     }
 
-                    fullList.Add(newArguments[indexInExistingList++]);
+                    fullList.Add(newArguments[indexInListOfPreexistingArguments++]);
                 }
             }
 
@@ -844,7 +822,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 separators.Remove(separators.Last());
             }
 
-            return Generator.SeparatedList(fullList, separators);
+            return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
         }
 
         internal abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
@@ -883,7 +861,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 for (var i = 0; i < structuredContent.Length; i++)
                 {
                     var content = structuredContent[i];
-                    if (!Generator.IsParameterNameXmlElementSyntax(content))
+                    if (!syntaxFacts.IsParameterNameXmlElementSyntax(content))
                     {
                         updatedNodeList.Add(content);
                         continue;
