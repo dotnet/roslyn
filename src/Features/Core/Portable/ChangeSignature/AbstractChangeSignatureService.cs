@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var currentSolution = context.Solution;
             var declaredSymbol = context.Symbol;
 
-            var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
+            var nodesToUpdate = new Dictionary<DocumentId, ImmutableArray<SyntaxNode>>();
             var definitionToUse = new Dictionary<SyntaxNode, ISymbol>();
 
             var hasLocationsInMetadata = false;
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (!nodesToUpdate.ContainsKey(documentId))
                         {
-                            nodesToUpdate.Add(documentId, new List<SyntaxNode>());
+                            nodesToUpdate.Add(documentId, ImmutableArray<SyntaxNode>.Empty);
                         }
 
                         AddUpdatableNodeToDictionaries(nodesToUpdate, documentId, nodeToUpdate, definitionToUse, symbolWithSemanticParameters);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                     if (!nodesToUpdate.ContainsKey(documentId2))
                     {
-                        nodesToUpdate.Add(documentId2, new List<SyntaxNode>());
+                        nodesToUpdate.Add(documentId2, ImmutableArray<SyntaxNode>.Empty);
                     }
 
                     AddUpdatableNodeToDictionaries(nodesToUpdate, documentId2, nodeToUpdate2, definitionToUse, symbolWithSemanticParameters);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
 #nullable restore
 
-        private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
+        private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, ImmutableArray<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
             if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
@@ -447,20 +447,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
             ISymbol declarationSymbol,
-            List<IUnifiedArgumentSyntax> arguments,
+            ImmutableArray<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
             // 1. Determine which parameters are permutable
-            var declarationParameters = declarationSymbol.GetParameters().ToList();
+            var declarationParameters = declarationSymbol.GetParameters();
             var declarationParametersToPermute = GetParametersToPermute(arguments, declarationParameters, isReducedExtensionMethod);
-            var argumentsToPermute = arguments.Take(declarationParametersToPermute.Count).ToList();
+            var argumentsToPermute = arguments.Take(declarationParametersToPermute.Length).ToList();
 
             // 2. Create an argument to parameter map, and a parameter to index map for the sort.
             var argumentToParameterMap = new Dictionary<IUnifiedArgumentSyntax, IParameterSymbol>();
             var parameterToIndexMap = new Dictionary<IParameterSymbol, int>();
 
-            for (var i = 0; i < declarationParametersToPermute.Count; i++)
+            for (var i = 0; i < declarationParametersToPermute.Length; i++)
             {
                 var decl = declarationParametersToPermute[i];
                 var arg = argumentsToPermute[i];
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // 6. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
             var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
-            for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
+            for (var i = declarationParametersToPermute.Length; i < arguments.Length; i++)
             {
                 if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Length)
                 {
@@ -573,13 +573,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return updatedSignature;
         }
 
-        private static List<IParameterSymbol> GetParametersToPermute(
-            List<IUnifiedArgumentSyntax> arguments,
-            List<IParameterSymbol> originalParameters,
+        private static ImmutableArray<IParameterSymbol> GetParametersToPermute(
+            ImmutableArray<IUnifiedArgumentSyntax> arguments,
+            ImmutableArray<IParameterSymbol> originalParameters,
             bool isReducedExtensionMethod)
         {
             var position = -1 + (isReducedExtensionMethod ? 1 : 0);
-            var parametersToPermute = new List<IParameterSymbol>();
+            var parametersToPermute = ArrayBuilder<IParameterSymbol>.GetInstance();
 
             foreach (var argument in arguments)
             {
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     position++;
 
-                    if (position >= originalParameters.Count)
+                    if (position >= originalParameters.Length)
                     {
                         break;
                     }
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return parametersToPermute;
+            return parametersToPermute.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         internal abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
         internal abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
 
-        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, List<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     continue;
                 }
 
-                var updatedNodeList = new List<SyntaxNode>();
+                var updatedNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
                 var structuredContent = Generator.GetContentFromDocumentationCommentTriviaSyntax(trivia);
                 for (var i = 0; i < structuredContent.Length; i++)
                 {
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
 
                     // Found a param tag, so insert the next one from the reordered list
-                    if (index < permutedParamNodes.Count)
+                    if (index < permutedParamNodes.Length)
                     {
                         updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia<SyntaxNode>(content.GetLeadingTrivia()).WithTrailingTrivia<SyntaxNode>(content.GetTrailingTrivia()));
                         index++;
@@ -882,14 +882,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                 }
 
-                var newDocComments = Generator.DocumentationCommentTriviaWithUpdatedContent(trivia, updatedNodeList.AsEnumerable());
-                newDocComments = newDocComments.WithLeadingTrivia<SyntaxNode>(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia<SyntaxNode>(structuredTrivia.GetTrailingTrivia());
+                var newDocComments = Generator.DocumentationCommentTriviaWithUpdatedContent(trivia, updatedNodeList.ToImmutableAndFree());
+                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
                 var newTrivia = Generator.Trivia(newDocComments);
                 updatedLeadingTrivia.Add(newTrivia);
             }
 
-            var extraNodeList = new List<SyntaxNode>();
-            while (index < permutedParamNodes.Count)
+            var extraNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
+            while (index < permutedParamNodes.Length)
             {
                 extraNodeList.Add(permutedParamNodes[index]);
                 index++;
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (extraNodeList.Any())
             {
                 var extraDocComments = Generator.DocumentationCommentTrivia(
-                    extraNodeList.AsEnumerable(),
+                    extraNodeList,
                     node.GetTrailingTrivia(),
                     lastWhiteSpaceTrivia,
                     document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
@@ -907,6 +907,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 updatedLeadingTrivia.Add(newTrivia);
             }
+
+            extraNodeList.Free();
 
             return updatedLeadingTrivia.ToImmutable();
         }

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             SignatureChange updatedSignature)
         {
-            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
+            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
                 updatedSignature);
             var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
@@ -524,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(
                 declarationSymbol,
-                arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
+                arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
                 updatedSignature,
                 isReducedExtensionMethod);
 
@@ -544,14 +545,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var index = 0;
             foreach (var newArgument in newArguments)
             {
-                if (index < oldArguments.Count)
-                {
-                    result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
-                }
-                else
-                {
-                    result.Add(newArgument);
-                }
+                result.Add(index < oldArguments.Count
+                    ? TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index])
+                    : newArgument);
 
                 index++;
             }
@@ -580,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
-        private List<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
@@ -589,12 +585,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var declaredParameters = declarationSymbol.GetParameters();
             if (paramNodes.Count() != declaredParameters.Length)
             {
-                return null;
+                return ImmutableArray<SyntaxNode>.Empty;
             }
 
+            // No parameters originally, so no param nodes to permute.
             if (declaredParameters.Length == 0)
             {
-                return null;
+                return ImmutableArray<SyntaxNode>.Empty;
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
@@ -604,13 +601,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));
                 if (nameAttribute == null)
                 {
-                    return null;
+                    return ImmutableArray<SyntaxNode>.Empty;
                 }
 
                 var identifier = nameAttribute.DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().FirstOrDefault();
                 if (identifier == null || identifier.ToString() != declaredParameters.ElementAt(i).Name)
                 {
-                    return null;
+                    return ImmutableArray<SyntaxNode>.Empty;
                 }
 
                 dictionary.Add(originalParameters[i].Name.ToString(), paramNode);
@@ -618,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Everything lines up, so permute them.
-            var permutedParams = new List<SyntaxNode>();
+            var permutedParams = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var parameter in reorderedParameters)
             {
                 if (dictionary.TryGetValue(parameter.Name, out var permutedParam))
@@ -635,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
             }
 
-            return permutedParams;
+            return permutedParams.ToImmutableAndFree();
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(

@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
             Dim newArguments As ImmutableArray(Of IUnifiedArgumentSyntax) = PermuteArguments(
-                declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
+                declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToImmutableArray(), permutedSignature,
                 isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip As Integer
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
             Return SyntaxFactory.Parameter(
-                attributeLists:=List(Of AttributeListSyntax)(),
+                attributeLists:=New SyntaxList(Of AttributeListSyntax)(),
                 modifiers:=TokenList(),
                 identifier:=ModifiedIdentifier(addedParameter.Name),
                 asClause:=SimpleAsClause(
@@ -489,25 +489,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim paramNodes = node _
                 .DescendantNodes(descendIntoTrivia:=True) _
                 .OfType(Of XmlElementSyntax)() _
-                .Where(Function(e) e.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName)
+                .Where(Function(e) e.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName) _
+                .ToImmutableArray()
 
-            Dim permutedParamNodes As List(Of SyntaxNode) = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
-            If permutedParamNodes Is Nothing Then
+            Dim permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
+            If permutedParamNodes.IsEmpty() Then
                 ' Something is wrong with the <param> tags, so don't change anything.
-                Return Nothing
+                Return ImmutableArray(Of SyntaxTrivia).Empty
             End If
 
             Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Function VerifyAndPermuteParamNodes(paramNodes As IEnumerable(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxNode)
+        Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim declaredParameters = declarationSymbol.GetParameters()
-            If paramNodes.Count() <> declaredParameters.Length Then
+            If paramNodes.Length <> declaredParameters.Length Then
                 Return Nothing
             End If
 
@@ -533,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             ' Everything lines up, so permute them.
-            Dim permutedParams = New List(Of SyntaxNode)()
+            Dim permutedParams = ArrayBuilder(Of SyntaxNode).GetInstance()
             For Each parameter In reorderedParameters
                 Dim permutedParam As XmlElementSyntax = Nothing
                 If dictionary.TryGetValue(parameter.Name, permutedParam) Then
@@ -547,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
             Next
 
-            Return permutedParams
+            Return permutedParams.ToImmutableAndFree()
         End Function
 
         Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
