@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = GetMembers().WhereAsArray(m => m.Name == name);
+                var result = GetMembers().WhereAsArray((m, name) => m.Name == name, name);
                 cacheResult(result);
                 return result;
             }
