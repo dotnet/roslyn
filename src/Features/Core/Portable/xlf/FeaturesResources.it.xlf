@@ -2270,16 +2270,6 @@ Questa versione è usata {2}</target>
         <target state="translated">Il percorso di origine '{1}' della diagnostica restituita '{0}' è incluso nel file '{2}', che non è presente nel file specificato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">È stato rilevato codice non raggiungibile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Rimuovi il codice non eseguibile</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">in {0} (progetto {1})</target>

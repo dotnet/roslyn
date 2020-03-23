@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Dim memberAccess = TryCast(simpleName?.Parent, MemberAccessExpressionSyntax)
             Dim conditionalMemberAccessInvocationExpression = TryCast(simpleName?.Parent?.Parent?.Parent, ConditionalAccessExpressionSyntax)
             Dim conditionalMemberAccessSimpleMemberAccess = TryCast(simpleName?.Parent?.Parent, ConditionalAccessExpressionSyntax)
-            If memberAccess?.Name Is simpleName Then
+            If memberAccess?.Name Is simpleName AndAlso memberAccess.Expression IsNot Nothing Then
                 simpleNameOrMemberAccessExpression = memberAccess
             ElseIf TryCast(TryCast(conditionalMemberAccessInvocationExpression?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name Is simpleName Then
                 simpleNameOrMemberAccessExpression = conditionalMemberAccessInvocationExpression
