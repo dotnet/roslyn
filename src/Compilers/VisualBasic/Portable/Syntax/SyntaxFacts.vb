@@ -1186,14 +1186,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function IsReservedTupleElementName(elementName As String) As Boolean
             Return TupleTypeSymbol.IsElementNameReserved(elementName) <> -1
         End Function
-
-        Friend Shared Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
-            Dim xmlElement = TryCast(node, XmlElementSyntax)
-            If xmlElement IsNot Nothing Then
-                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
-            End If
-
-            Return False
-        End Function
     End Class
 End Namespace

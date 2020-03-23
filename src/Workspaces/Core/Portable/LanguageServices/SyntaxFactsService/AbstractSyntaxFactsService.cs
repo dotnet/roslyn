@@ -589,6 +589,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
+        public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+
         public bool IsAwaitKeyword(SyntaxToken token)
             => token.RawKind == SyntaxKinds.AwaitKeyword;
 

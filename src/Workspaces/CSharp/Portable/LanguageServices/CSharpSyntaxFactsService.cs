@@ -1957,5 +1957,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => CSharpSyntaxGenerator.GetAttributeLists(node);
+
+        public override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
+            => node.IsKind(SyntaxKind.XmlElement) &&
+            ((XmlElementSyntax)node).StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
+
     }
 }

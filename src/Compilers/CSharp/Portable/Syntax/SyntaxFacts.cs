@@ -486,9 +486,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
         }
-
-        internal static bool IsParameterNameXmlElementSyntax(SyntaxNode node)
-            => node.IsKind(XmlElement) &&
-                ((XmlElementSyntax)node).StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
     }
 }
