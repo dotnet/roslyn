@@ -402,5 +402,47 @@ class C : IComparable<C>, IComparable<int>
     }
 }", index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
+        public async Task TestInInterfaceWithDefaultImpl()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+interface C : IComparable<C>
+{
+    int IComparable<C>.CompareTo(C c) => 0;
+
+[||]
+}",
+@"
+using System;
+
+interface C : IComparable<C>
+{
+    int IComparable<C>.CompareTo(C c) => 0;
+
+    public static bool operator <(C left, C right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(C left, C right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    public static bool operator <=(C left, C right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(C left, C right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+}");
+        }
     }
 }
