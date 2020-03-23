@@ -177,6 +177,16 @@
         <target state="translated">In Tupel konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_fields">
+        <source>Create and initialize remaining fields</source>
+        <target state="new">Create and initialize remaining fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_properties">
+        <source>Create and initialize remaining properties</source>
+        <target state="new">Create and initialize remaining properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Ein Typ, der System.IDisposable implementiert, deklariert Felder, die Typen aufweisen, die ebenfalls IDisposable implementieren. Die Dispose-Methode des Felds wird nicht von der Dispose-Methode des deklarierenden Typs aufgerufen. Wenn Sie für das Zuordnen und Freigeben nicht verwalteter Ressourcen zuständig sind, die von diesem Feld belegt werden, rufen Sie zum Beheben eines Verstoßes gegen diese Regel Dispose für Felder auf, die Typen aufweisen, welche IDisposable implementieren.</target>

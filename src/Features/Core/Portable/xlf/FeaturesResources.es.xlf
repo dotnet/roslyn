@@ -177,6 +177,16 @@
         <target state="translated">Convertir a tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_fields">
+        <source>Create and initialize remaining fields</source>
+        <target state="new">Create and initialize remaining fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_properties">
+        <source>Create and initialize remaining properties</source>
+        <target state="new">Create and initialize remaining properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Un tipo que implementa System.IDisposable declara campos de tipos que también implementan IDisposable. El método Dispose del tipo declarativo no llama al método Dispose del campo. Para corregir una infracción de esta regla, llame a Dispose en campos que sean de tipos que implementan IDisposable si usted es el responsable de asignar y liberar los recursos no administrados que contiene el campo.</target>

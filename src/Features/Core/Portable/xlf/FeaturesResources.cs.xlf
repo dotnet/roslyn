@@ -177,6 +177,16 @@
         <target state="translated">Převést na řazenou kolekci členů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_fields">
+        <source>Create and initialize remaining fields</source>
+        <target state="new">Create and initialize remaining fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_properties">
+        <source>Create and initialize remaining properties</source>
+        <target state="new">Create and initialize remaining properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Typ, který implementuje System.IDisposable, deklaruje pole, která mají typ, který IDisposable implementuje taky. Metoda Dispose deklarujícího typu nevolá metodu Dispose daného pole. Pokud chcete porušení tohoto pravidla opravit a je vaší odpovědností přidělovat a uvolňovat nespravované prostředky, které pole uchovává, zavolejte Dispose pro pole s typy, které implementují IDisposable.</target>

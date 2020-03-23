@@ -177,6 +177,16 @@
         <target state="translated">Başlığa dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_fields">
+        <source>Create and initialize remaining fields</source>
+        <target state="new">Create and initialize remaining fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_remaining_properties">
+        <source>Create and initialize remaining properties</source>
+        <target state="new">Create and initialize remaining properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable uygulayan bir tür, kendileri de IDisposable uygulayan türlerde alanlar bildiriyor. Alanın Dispose metodu, bildirim türünün Dispose metodu tarafından çağrılmıyor. Bu kural ihlalini düzeltmek için, alan tarafından tutulan yönetilmeyen kaynakları ayırmak ve serbest bırakmaktan sorumluysanız, IDisposable uygulayan türlerdeki alanlarda Dispose çağrısı yapın.</target>
