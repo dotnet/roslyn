@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
             => WhereAsArrayImpl(array, predicateWithoutArg: null, predicate, arg);
 
-        private static ImmutableArray<T> WhereAsArrayImpl<T, TArg>(this ImmutableArray<T> array, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
+        private static ImmutableArray<T> WhereAsArrayImpl<T, TArg>(ImmutableArray<T> array, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
         {
             Debug.Assert(!array.IsDefault);
             Debug.Assert(predicateWithArg != null ^ predicateWithoutArg != null);
