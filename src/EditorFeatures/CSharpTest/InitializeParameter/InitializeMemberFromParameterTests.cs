@@ -1739,5 +1739,129 @@ class C
     }
 }", index: 2);
         }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]int i, int j, int k)
+    {
+    }
+}",
+@"
+class C
+{
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+    public int K { get; }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, [||]int j, int k)
+    {
+        this.i = i;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        J = j;
+        K = k;
+    }
+
+    public int J { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int j;
+
+    public C([||]int i, int j, int k)
+    {
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    private readonly int j;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        this.j = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int k;
+
+    public C([||]int i, int j, int k)
+    {
+        this.k = k;
+    }
+}",
+@"
+class C
+{
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        this.k = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+}", index: 3);
+        }
     }
 }
