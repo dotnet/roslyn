@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
             var diagnostic = context.Diagnostics[0];
 
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            // https://github.com/dotnet/roslyn/issues/42431 tracks adding a public API.
+            var codeAction = new MyCodeAction(
+                CSharpCodeFixesResources.Remove_unreachable_code,
+                c => FixAsync(context.Document, diagnostic, c));
+#else
             // Only the first reported unreacha ble line will have a squiggle.  On that line, make the
             // code action normal priority as the user is likely bringing up the lightbulb to fix the
             // squiggle.  On all the other lines make the code action low priority as it's definitely
@@ -42,10 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
-            context.RegisterCodeFix(new MyCodeAction(
-                FeaturesResources.Remove_unreachable_code,
+            var codeAction = new MyCodeAction(
+                CSharpCodeFixesResources.Remove_unreachable_code,
                 c => FixAsync(context.Document, diagnostic, c),
-                priority), diagnostic);
+                priority);
+#endif
+
+            context.RegisterCodeFix(codeAction, diagnostic);
 
             return Task.CompletedTask;
         }
@@ -84,8 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
+#if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+            // https://github.com/dotnet/roslyn/issues/42431 tracks adding a public API.
+            public MyCodeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
+#else
             public MyCodeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
@@ -96,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             }
 
             internal override CodeActionPriority Priority { get; }
+#endif
         }
     }
 }

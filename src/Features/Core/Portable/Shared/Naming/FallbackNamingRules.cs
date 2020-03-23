@@ -13,21 +13,34 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
     internal static class FallbackNamingRules
     {
         /// <summary>
-        /// Standard field/property names a refactoring look for given a named symbol that is the subject of refactoring. 
-        /// The refactoring will try to find existing matching symbol and if not found, it will generate one.
+        /// Standard symbol names if the user doesn't have any existing naming rules.
         /// </summary>
-        internal static readonly ImmutableArray<NamingRule> RefactoringMatchLookupRules = ImmutableArray.Create(
+        public static readonly ImmutableArray<NamingRule> Default = ImmutableArray.Create(
+            // Symbols that should be camel cased.
             new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "Property", ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property))),
-                new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                enforcementLevel: ReportDiagnostic.Hidden),
-            new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "Field", ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field), new SymbolKindOrTypeKind(SymbolKind.Parameter))),
+                new SymbolSpecification(
+                    Guid.NewGuid(),
+                    nameof(Capitalization.CamelCase),
+                    ImmutableArray.Create(
+                        new SymbolKindOrTypeKind(SymbolKind.Field),
+                        new SymbolKindOrTypeKind(SymbolKind.Local),
+                        new SymbolKindOrTypeKind(SymbolKind.Parameter),
+                        new SymbolKindOrTypeKind(SymbolKind.RangeVariable))),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
+            // Include an entry for _ prefixed fields (.Net style).  That way features that are looking to see if
+            // there's a potential matching field for a particular name will find these as well.
             new NamingRule(
-                new SymbolSpecification(Guid.NewGuid(), "FieldWithUnderscore", ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field))),
+                new SymbolSpecification(
+                    Guid.NewGuid(),
+                    "CamelCaseWithUnderscore",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field))),
                 new NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
+                enforcementLevel: ReportDiagnostic.Hidden),
+            // Everything else should be pascal cased.
+            new NamingRule(
+                CreateDefaultSymbolSpecification(),
+                new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
                 enforcementLevel: ReportDiagnostic.Hidden));
 
         /// <summary>
