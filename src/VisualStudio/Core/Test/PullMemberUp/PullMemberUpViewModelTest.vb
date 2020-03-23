@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.MoveMembers
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -369,9 +370,14 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim moveToAncestorViewModel = CType(viewModel.SelectDestinationViewModel, MoveToAncestorTypeControlViewModel)
             moveToAncestorViewModel.SelectedDestination = baseTypeTree(1)
 
-            Dim options = New PullMembersUpOptions(viewModel.SelectedDestination, viewModel.AnalyzeCheckedMembers())
+            Dim options = New MoveMembersOptions(
+                viewModel.SelectedDestination,
+                viewModel.AnalyzeCheckedMembers(),
+                originalType:=viewModel.OriginalTypeSymbol,
+                fromTypeNode:=viewModel.OriginalTypeSymbol.DeclaringSyntaxReferences.First().GetSyntax(),
+                isNewType:=False)
             ' Make sure fields are pulled to interface
-            Assert.Empty(options.MemberAnalysisResults.WhereAsArray(Function(analysisResult) analysisResult.Member.IsKind(SymbolKind.Field)))
+            Assert.Empty(options.MembersToMove.WhereAsArray(Function(analysisResult) analysisResult.Member.IsKind(SymbolKind.Field)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Controls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Mai
     internal class MoveMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
         public ImmutableArray<MoveMembersSymbolViewModel> Members { get; set; }
+        public INamedTypeSymbol OriginalTypeSymbol { get; }
         public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
         public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
@@ -42,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.Mai
             bool suggestInterface = true,
             ImmutableArray<SymbolViewModel<INamedTypeSymbol>> destinations = default)
         {
+            OriginalTypeSymbol = targetType;
             _waitIndicator = waitIndicator;
             Members = members.OrderBy(m => m.SymbolName).ToImmutableArray();
             _symbolToDependentsMap = dependentsMap;

@@ -8,49 +8,50 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.MoveMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal class ExtractInterfaceCodeAction : CodeActionWithOptions
     {
-        private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
-        private readonly AbstractExtractInterfaceService _extractInterfaceService;
+        private readonly MoveMembersAnalysisResult _analysisResult;
+        private readonly Document _document;
         private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
 
-        public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
+        public ExtractInterfaceCodeAction(Document document, MoveMembersAnalysisResult analysisResult)
         {
-            _extractInterfaceService = extractInterfaceService;
-            _typeAnalysisResult = typeAnalysisResult;
+            _document = document;
+            _analysisResult = analysisResult;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            var containingNamespaceDisplay = _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
-                ? string.Empty
-                : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
+            var moveMembersOptionService = _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveMembersOptionService>();
 
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
-                _typeAnalysisResult.DocumentToExtractFrom,
-                _typeAnalysisResult.TypeToExtractFrom,
-                _typeAnalysisResult.ExtractableMembers).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            return moveMembersOptionService.GetMoveMembersOptions(
+                _document,
+                _analysisResult,
+                MoveMembersEntryPoint.ExtractInterface);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
             var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
-            if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
+            if (options is MoveMembersOptions moveMembersOptions)
             {
-                var extractInterfaceResult = await _extractInterfaceService
-                        .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+                var moveMembersService = _document.GetRequiredLanguageService<AbstractMoveMembersService>();
+                var result = await moveMembersService
+                        .MoveMembersAsync(_document, moveMembersOptions, cancellationToken).ConfigureAwait(false);
 
-                if (extractInterfaceResult.Succeeded)
+                if (result.Success)
                 {
                     operations = new CodeActionOperation[]
                     {
-                        new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                        new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
+                        new ApplyChangesOperation(result.Solution!),
+                        new DocumentNavigationOperation(result.NavigationDocumentId!, position: 0)
                     };
                 }
             }

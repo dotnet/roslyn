@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,10 +28,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         public static CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
+            SyntaxNode selectedNode,
             INamedTypeSymbol destination)
         {
-            var result = new PullMembersUpOptions(destination, ImmutableArray.Create(new MemberAnalysisResult(member: selectedMember)));
-            if (result.PullUpOperationNeedsToDoExtraChanges ||
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var fromTypeNode = selectedNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+
+            var result = new MoveMembersOptions(
+                destination,
+                ImmutableArray.Create(new MemberAnalysisResult(member: selectedMember)),
+                isNewType: false,
+                fromTypeNode: fromTypeNode,
+                originalType: selectedMember.ContainingType);
+
+            if (result.OperationNeedsToDoExtraChanges ||
                 IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
             {
                 return null;
@@ -44,23 +55,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Return the changed solution if all changes in pullMembersUpOptions are applied.
         /// </summary>
-        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
+        /// <param name="moveMembersOptions">Contains the members to pull up and all the fix operations</param>>
         public static Task<Solution> PullMembersUpAsync(
             Document document,
-            PullMembersUpOptions pullMembersUpOptions,
+            MoveMembersOptions moveMembersOptions,
             CancellationToken cancellationToken)
         {
-            if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
+            if (moveMembersOptions.Destination.TypeKind == TypeKind.Interface)
             {
-                return PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
+                return PullMembersIntoInterfaceAsync(document, moveMembersOptions, document.Project.Solution, cancellationToken);
             }
-            else if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Class)
+            else if (moveMembersOptions.Destination.TypeKind == TypeKind.Class)
             {
-                return PullMembersIntoClassAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
+                return PullMembersIntoClassAsync(document, moveMembersOptions, document.Project.Solution, cancellationToken);
             }
             else
             {
-                throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination);
+                throw ExceptionUtilities.UnexpectedValue(moveMembersOptions.Destination);
             }
         }
 
@@ -84,16 +95,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static async Task<Solution> PullMembersIntoInterfaceAsync(
             Document document,
-            PullMembersUpOptions pullMemberUpOptions,
+            MoveMembersOptions options,
             Solution solution,
             CancellationToken cancellationToken)
         {
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                solution, pullMemberUpOptions.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
-            var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
+                solution, options.Destination, options: null, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(options, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolsToPullUp = options.MembersToMove.
                 SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
 
             // Add members to interface
@@ -105,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
 
             // Change original members
-            foreach (var analysisResult in pullMemberUpOptions.MemberAnalysisResults)
+            foreach (var analysisResult in options.MembersToMove)
             {
                 foreach (var declaration in symbolToDeclarationsMap[analysisResult.Member])
                 {
@@ -230,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static async Task<Solution> PullMembersIntoClassAsync(
             Document document,
-            PullMembersUpOptions result,
+            MoveMembersOptions result,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -240,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
             // Add members to destination
-            var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
+            var pullUpMembersSymbols = result.MembersToMove.SelectAsArray(
                 memberResult =>
                 {
                     if (memberResult.MakeMemberDeclarationAbstract && !memberResult.Member.IsKind(SymbolKind.Field))
@@ -260,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
             // and it will pull an abstract declaration up to the destination.
             // But if the member is abstract itself, it will still be removed.
-            foreach (var analysisResult in result.MemberAnalysisResults)
+            foreach (var analysisResult in result.MembersToMove)
             {
                 foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                 {
@@ -285,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
                 cancellationToken).ConfigureAwait(false);
             if (!result.Destination.IsAbstract &&
-                result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
+                result.MembersToMove.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
                 var modifiers = DeclarationModifiers.From(result.Destination).WithIsAbstract(true);
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);
@@ -322,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         }
 
         private static async Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
-            PullMembersUpOptions result,
+            MoveMembersOptions result,
             Solution solution,
             SolutionEditor solutionEditor,
             SyntaxNode destinationSyntaxNode,
@@ -332,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // Create a map from ISymbol to SyntaxNode find them more easily.
             var symbolToDeclarationsBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<SyntaxNode>>();
 
-            foreach (var memberAnalysisResult in result.MemberAnalysisResults)
+            foreach (var memberAnalysisResult in result.MembersToMove)
             {
                 var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);

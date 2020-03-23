@@ -7,13 +7,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
+using Microsoft.CodeAnalysis.CSharp.MoveMembers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
+using Microsoft.CodeAnalysis.Test.Utilities.MoveMembers;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic.MoveMembers;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         private TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document ExtractFromDocument { get; }
-        public AbstractExtractInterfaceService ExtractInterfaceService { get; }
+        public AbstractMoveMembersService MoveMembersService { get; }
         public Solution OriginalSolution { get; }
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
@@ -50,43 +53,48 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             }
 
             ExtractFromDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
-            ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
+            MoveMembersService = ExtractFromDocument.GetRequiredLanguageService<AbstractMoveMembersService>();
         }
 
         public static readonly IExportProviderFactory ExportProviderFactory =
             ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestExtractInterfaceOptionsService))
-                    .WithPart(typeof(CSharpExtractInterfaceService))
-                    .WithPart(typeof(VisualBasicExtractInterfaceService)));
+                    .WithPart(typeof(TestMoveMembersOptionService))
+                    .WithPart(typeof(CSharpMoveMembersService))
+                    .WithPart(typeof(VisualBasicMoveMembersService))
+                    .WithPart(typeof(TestMoveMembersOptionService)));
 
-        public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
+        public TestMoveMembersOptionService TestMoveMembersOptionsService
         {
             get
             {
-                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
+                return (TestMoveMembersOptionService)ExtractFromDocument.Project.Solution.Workspace.Services.GetRequiredService<IMoveMembersOptionService>();
             }
         }
 
-        public Task<ExtractInterfaceTypeAnalysisResult> GetTypeAnalysisResultAsync(TypeDiscoveryRule typeDiscoveryRule)
+        public Task<MoveMembersAnalysisResult> GetTypeAnalysisResultAsync(TypeDiscoveryRule typeDiscoveryRule)
         {
-            return ExtractInterfaceService.AnalyzeTypeAtPositionAsync(
+            return MoveMembersService.AnalyzeAsync(
                 ExtractFromDocument,
-                _testDocument.CursorPosition.Value,
-                typeDiscoveryRule,
+                new TextSpan(_testDocument.CursorPosition.Value, 0),
                 CancellationToken.None);
         }
 
-        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
+        public async Task<MoveMembersResult> ExtractViaCommandAsync()
         {
-            return ExtractInterfaceService.ExtractInterfaceAsync(
+            var analysis = await MoveMembersService.AnalyzeAsync(
                 ExtractFromDocument,
-                _testDocument.CursorPosition.Value,
-                (errorMessage, severity) =>
-                {
-                    this.ErrorMessage = errorMessage;
-                    this.ErrorSeverity = severity;
-                },
+                new TextSpan(_testDocument.CursorPosition.Value, 0),
+                CancellationToken.None);
+
+            if (analysis == null)
+            {
+                return new MoveMembersResult("Null analysis");
+            }
+
+            return await MoveMembersService.MoveMembersAsync(
+                ExtractFromDocument,
+                this.TestMoveMembersOptionsService.GetMoveMembersOptions(ExtractFromDocument, analysis, MoveMembersEntryPoint.ExtractInterface),
                 CancellationToken.None);
         }
 

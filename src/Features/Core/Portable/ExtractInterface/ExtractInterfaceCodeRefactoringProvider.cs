@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
@@ -24,9 +25,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var service = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
+            var service = document.GetLanguageService<AbstractMoveMembersService>();
+            var analysis = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+
+            if (analysis is object)
+            {
+                context.RegisterRefactoring(new ExtractInterfaceCodeAction(document, analysis));
+            }
         }
     }
 }

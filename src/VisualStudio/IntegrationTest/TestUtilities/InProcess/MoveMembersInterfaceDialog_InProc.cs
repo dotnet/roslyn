@@ -5,19 +5,18 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class ExtractInterfaceDialog_InProc : AbstractCodeRefactorDialog_InProc<MoveMembersDialog, MoveMembersDialog.TestAccessor>
+    internal class MoveMembersInterfaceDialog_InProc : AbstractCodeRefactorDialog_InProc<MoveMembersDialog, MoveMembersDialog.TestAccessor>
     {
-        private ExtractInterfaceDialog_InProc()
+        private MoveMembersInterfaceDialog_InProc()
         {
         }
 
-        public static ExtractInterfaceDialog_InProc Create()
-            => new ExtractInterfaceDialog_InProc();
+        public static MoveMembersInterfaceDialog_InProc Create()
+            => new MoveMembersInterfaceDialog_InProc();
 
         public override void VerifyOpen()
         {

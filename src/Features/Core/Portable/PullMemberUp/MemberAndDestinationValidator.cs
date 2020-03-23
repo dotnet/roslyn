@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,11 +24,11 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // Don't provide any refactoring option if the destination is not in source.
             // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
             var isDestinationInSourceAndNotGeneratedCode =
-                destination.Locations.Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+                destination.Locations.Any(location => location.IsInSource && solution.GetDocument(location.SourceTree)?.IsGeneratedCode(cancellationToken) == false);
             return isDestinationInSourceAndNotGeneratedCode;
         }
 
-        public static bool IsMemberValid(ISymbol member)
+        public static bool IsMemberValid([NotNullWhen(returnValue: true)] ISymbol? member)
         {
             // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
             // two refactoring options provided for pull members up,
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // 2. Dialog box (Allow modifers may cause error and will provide fixing)
             return member switch
             {
+                null => false,
                 IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
                 IFieldSymbol fieldSymbol => !fieldSymbol.IsImplicitlyDeclared,
                 _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event),

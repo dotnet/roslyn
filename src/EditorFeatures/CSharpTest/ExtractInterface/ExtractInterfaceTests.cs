@@ -1014,7 +1014,15 @@ class Program $$: ISomeInterface<object>
         {
             using var testState = ExtractInterfaceTestState.Create(markup, LanguageNames.CSharp, compilationOptions: null);
             var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
-            Assert.Equal(expectedExtractable, result.CanExtractInterface);
+
+            if (expectedExtractable)
+            {
+                Assert.NotNull(result);
+            }
+            else
+            {
+                Assert.Null(result);
+            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]

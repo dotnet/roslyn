@@ -11,7 +11,6 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembers.MainDialog"
     xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
-    xmlns:dest="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
     Height="498"

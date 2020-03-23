@@ -1189,13 +1189,13 @@ End Class</text>.NormalizedValue()
             Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProviderFactory.CreateExportProvider())
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = Await testState.ExtractViaCommandAsync()
-                Assert.True(result.Succeeded)
+                Assert.NotNull(result.solution)
 
                 Dim part1Id = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).Id
                 Dim part2Id = workspace.Documents.Single(Function(d) Not d.CursorPosition.HasValue).Id
 
-                Assert.Equal(expectedDoc1Text, (Await result.UpdatedSolution.GetDocument(part1Id).GetTextAsync()).ToString())
-                Assert.Equal(expectedDoc2Text, (Await result.UpdatedSolution.GetDocument(part2Id).GetTextAsync()).ToString())
+                Assert.Equal(expectedDoc1Text, (Await result.solution.GetDocument(part1Id).GetTextAsync()).ToString())
+                Assert.Equal(expectedDoc2Text, (Await result.solution.GetDocument(part2Id).GetTextAsync()).ToString())
             End Using
         End Function
 
@@ -1384,7 +1384,11 @@ End Interface
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
             Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
                 Dim result = Await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule)
-                Assert.Equal(expectedExtractable, result.CanExtractInterface)
+                If (expectedExtractable) Then
+                    Assert.True(result.)
+                Else
+                    Assert.Null(result)
+                End If
             End Using
         End Function
     End Class

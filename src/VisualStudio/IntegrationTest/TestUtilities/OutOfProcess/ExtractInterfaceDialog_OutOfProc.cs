@@ -12,12 +12,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// </summary>
     public class ExtractInterfaceDialog_OutOfProc : OutOfProcComponent
     {
-        private readonly ExtractInterfaceDialog_InProc _inProc;
+        private readonly MoveMembersInterfaceDialog_InProc _inProc;
 
         public ExtractInterfaceDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _inProc = CreateInProcComponent<ExtractInterfaceDialog_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<MoveMembersInterfaceDialog_InProc>(visualStudioInstance);
         }
 
         /// <summary>

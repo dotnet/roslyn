@@ -118,4 +118,8 @@
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
+  <ItemGroup>
+    <ExpectedCompile Remove="MoveMembers\MoveMembersResult.cs" />
+    <ExpectedCompile Remove="PullMemberUp\PullMemberUpRefactoringProvider.cs" />
+  </ItemGroup>
 </Project>

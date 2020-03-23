@@ -5,56 +5,52 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.MoveMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract partial class AbstractPullMemberUpRefactoringProvider
+    internal partial class PullMemberUpRefactoringProvider
     {
         private class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
-            /// <summary>
-            /// Member which user initially selects. It will be selected initially when the dialog pops up.
-            /// </summary>
-            private readonly ISymbol _selectedMember;
+            private readonly MoveMembersAnalysisResult _analysisResult;
             private readonly Document _document;
-            private readonly IPullMemberUpOptionsService _service;
+            private readonly IMoveMembersOptionService? _service;
 
             public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
             public PullMemberUpWithDialogCodeAction(
                 Document document,
-                ISymbol selectedMember,
-                IPullMemberUpOptionsService service)
+                MoveMembersAnalysisResult analysisResult,
+                IMoveMembersOptionService? service)
             {
                 _document = document;
-                _selectedMember = selectedMember;
+                _analysisResult = analysisResult;
                 _service = service;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-
-                if (!(_selectedMember is INamedTypeSymbol namedTypeSymbol))
-                {
-                    namedTypeSymbol = _selectedMember.ContainingType;
-                }
-
-                return pullMemberUpOptionService.GetPullMemberUpOptions(_document, namedTypeSymbol);
+                var moveMembersOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IMoveMembersOptionService>();
+                return moveMembersOptionService.GetMoveMembersOptions(_document, _analysisResult, MoveMembersEntryPoint.PullMembersUp);
             }
 
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                if (options is PullMembersUpOptions pullMemberUpOptions)
+                if (options is MoveMembersOptions pullMemberUpOptions)
                 {
-                    var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
-                    return new[] { new ApplyChangesOperation(changedSolution) };
+                    var moveMembersService = _document.GetRequiredLanguageService<AbstractMoveMembersService>();
+                    var result = await moveMembersService.MoveMembersAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
+
+                    Debug.Assert(result.Success);
+
+                    return new[] { new ApplyChangesOperation(result.Solution!) };
                 }
                 else
                 {

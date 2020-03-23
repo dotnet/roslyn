@@ -6,9 +6,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.MoveMembers;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -55,20 +57,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
-                var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-                var result = _threadingContext.JoinableTaskFactory.Run(() =>
-                    extractInterfaceService.ExtractInterfaceAsync(
-                        document,
-                        caretPoint.Value.Position,
-                        (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                        CancellationToken.None));
 
-                if (result == null || !result.Succeeded)
+                var moveMembersService = document.GetRequiredLanguageService<AbstractMoveMembersService>();
+
+                var moveMembersOptions = _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var analysis = await moveMembersService.AnalyzeAsync(document, new TextSpan(caretPoint.Value.Position, 0), context.OperationContext.UserCancellationToken).ConfigureAwait(false);
+                    var moveMembersOptionService = document.Project.Solution.Workspace.Services.GetRequiredService<IMoveMembersOptionService>();
+
+                    return moveMembersOptionService.GetMoveMembersOptions(document, analysis, MoveMembersEntryPoint.ExtractInterface);
+                });
+
+                if (moveMembersOptions?.Destination is null)
                 {
                     return true;
                 }
 
-                if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
+                var result = moveMembersService.MoveMembersAsync(document, moveMembersOptions, context.OperationContext.UserCancellationToken).WaitAndGetResult_CanCallOnBackground(context.OperationContext.UserCancellationToken);
+
+                if (result.Success == false || !document.Project.Solution.Workspace.TryApplyChanges(result.Solution))
                 {
                     // TODO: handle failure
                     return true;
