@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.IgnoreAccessibility);
                         var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                         if (imported.Kind == SymbolKind.Namespace)
                         {

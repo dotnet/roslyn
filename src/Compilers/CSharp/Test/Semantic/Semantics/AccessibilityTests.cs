@@ -295,5 +295,118 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
 );
         }
+
+        [WorkItem(42567, "https://github.com/dotnet/roslyn/issues/42567")]
+        [Fact]
+        public void UsingStaticCanAccessPrivateType()
+        {
+            var comp = CreateCompilation(@"
+using static Outer.Inner;
+using System;
+
+public class Outer
+{
+    public static void Main()
+    {
+        Console.Write(Prop);
+    }
+    private static class Inner
+    {
+        public static int Prop => 42;
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(42567, "https://github.com/dotnet/roslyn/issues/42567")]
+        [Fact]
+        public void CannotUsePrivateTypeImportedByUsingStaticWhenNotAccessible()
+        {
+            CreateCompilation(@"
+using static Outer.Inner;
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(Prop);
+    }
+}
+
+public class Outer
+{
+
+    private static class Inner
+    {
+        public static int Prop => 42;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using static Outer.Inner;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Outer.Inner;").WithLocation(2, 1),
+                    // (9,23): error CS0122: 'Outer.Inner.Prop' is inaccessible due to its protection level
+                    //         Console.Write(Prop);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "Prop").WithArguments("Outer.Inner.Prop").WithLocation(9, 23)
+                );
+        }
+
+        [WorkItem(42568, "https://github.com/dotnet/roslyn/issues/42568")]
+        [Fact]
+        public void UsingAliasCanAccessPrivateType()
+        {
+            var comp = CreateCompilation(@"
+using In = Outer.Inner;
+using System;
+
+public class Outer
+{
+    public static void Main()
+    {
+        Console.Write(In.Prop);
+    }
+    private static class Inner
+    {
+        public static int Prop => 42;
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(42567, "https://github.com/dotnet/roslyn/issues/42567")]
+        [Fact]
+        public void CannotUsePrivateTypeImportedByAliasWhenNotAccessible()
+        {
+            CreateCompilation(@"
+using In = Outer.Inner;
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(In.Prop);
+    }
+}
+
+public class Outer
+{
+    private static class Inner
+    {
+        public static int Prop => 42;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using In = Outer.Inner;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using In = Outer.Inner;").WithLocation(2, 1),
+                    // (9,23): error CS0122: 'Outer.Inner' is inaccessible due to its protection level
+                    //         Console.Write(In.Prop);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "In").WithArguments("Outer.Inner").WithLocation(9, 23)
+                );
+        }
     }
 }

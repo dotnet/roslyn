@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax? syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks | BinderFlags.IgnoreAccessibility);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
