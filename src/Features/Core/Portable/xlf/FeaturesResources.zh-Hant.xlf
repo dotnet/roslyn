@@ -177,14 +177,24 @@
         <target state="translated">轉換為元組</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_and_initialize_remaining_fields">
-        <source>Create and initialize remaining fields</source>
-        <target state="new">Create and initialize remaining fields</target>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_and_initialize_remaining_properties">
-        <source>Create and initialize remaining properties</source>
-        <target state="new">Create and initialize remaining properties</target>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
         <note />
       </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
@@ -2213,16 +2223,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
         <target state="translated">新增 'string.IsNullOrWhiteSpace' 檢查</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">建立並初始化欄位 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">建立並初始化屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">
