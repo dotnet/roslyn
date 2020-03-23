@@ -26,12 +26,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
+        TTypeDeclarationSyntax,
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TTypeDeclarationSyntax,
             TParameterSyntax,
             TStatementSyntax,
             TExpressionSyntax>
+        where TTypeDeclarationSyntax : SyntaxNode
         where TParameterSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
@@ -55,9 +58,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)
-            {
                 return ImmutableArray<CodeAction>.Empty;
-            }
+
+            var typeDeclaration = functionDeclaration.GetAncestor<TTypeDeclarationSyntax>();
+            if (typeDeclaration == null)
+                return ImmutableArray<CodeAction>.Empty;
 
             var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(
                 parameter, blockStatementOpt);
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                     title,
                     c => AddSymbolInitializationAsync(
-                        document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty, c)));
+                        document, parameter, functionDeclaration, blockStatementOpt, fieldOrProperty, c)));
             }
             else
             {
@@ -111,9 +116,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
 
                 var fieldAction = new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
-                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, field, c));
+                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, field, c));
                 var propertyAction = new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
-                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c));
+                    c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, property, c));
 
                 // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
                 // make this parameter into a field as well.  Otherwise, default to generating a property
@@ -231,7 +236,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
             IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
@@ -246,10 +251,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // First, look for the right containing type (As a type may be partial). 
                 // We want the type-block that this constructor is contained within.
-                var typeDeclaration =
-                    parameter.ContainingType.DeclaringSyntaxReferences
-                                            .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
-                                            .Single(d => functionDeclaration.Ancestors().Contains(d));
+                var typeDeclaration = functionDeclaration.GetAncestor<TTypeDeclarationSyntax>()!;
 
                 // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
                 // so that nodes will be appropriate tracked and so we can then update the constructor
@@ -296,7 +298,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
 
-            InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, functionDeclaration, returnsVoid: true, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
