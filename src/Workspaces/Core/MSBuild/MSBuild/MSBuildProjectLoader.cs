@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildManager = new ProjectBuildManager(_properties);
+            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,
@@ -203,8 +203,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 progress,
                 requestedProjectOptions: reportingOptions,
                 discoveredProjectOptions: reportingOptions,
-                preferMetadataForReferencesOfDiscoveredProjects: false,
-                msbuildLogger: msbuildLogger);
+                preferMetadataForReferencesOfDiscoveredProjects: false);
 
             var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(_properties);
+            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,
@@ -262,8 +261,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 progress,
                 requestedProjectOptions,
                 discoveredProjectOptions,
-                this.LoadMetadataForReferencedProjects,
-                msbuildLogger: msbuildLogger);
+                this.LoadMetadataForReferencedProjects);
 
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }

@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// because it was requested.
             /// </summary>
             private readonly bool _preferMetadataForReferencesOfDiscoveredProjects;
-            private readonly ILogger? _msbuildLogger;
             private readonly Dictionary<ProjectId, ProjectFileInfo> _projectIdToFileInfoMap;
             private readonly Dictionary<ProjectId, List<ProjectReference>> _projectIdToProjectReferencesMap;
             private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
@@ -88,8 +87,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 IProgress<ProjectLoadProgress>? progress,
                 DiagnosticReportingOptions requestedProjectOptions,
                 DiagnosticReportingOptions discoveredProjectOptions,
-                bool preferMetadataForReferencesOfDiscoveredProjects,
-                ILogger? msbuildLogger)
+                bool preferMetadataForReferencesOfDiscoveredProjects)
             {
                 _workspaceServices = services;
                 _diagnosticReporter = diagnosticReporter;
@@ -104,7 +102,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
-                _msbuildLogger = msbuildLogger;
                 _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
@@ -138,7 +135,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                _buildManager.StartBatchBuild(_globalProperties, _msbuildLogger);
+                _buildManager.StartBatchBuild(_globalProperties);
                 try
                 {
                     foreach (var projectPath in _requestedProjectPaths)

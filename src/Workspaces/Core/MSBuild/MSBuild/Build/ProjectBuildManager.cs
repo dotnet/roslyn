@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         }.ToImmutableDictionary();
 
         private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
-
+        private readonly ILogger? _msbuildLogger;
         private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
         private MSBuildDiagnosticLogger? _batchBuildLogger;
         private bool _batchBuildStarted;
@@ -73,9 +74,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties)
+        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
         {
             _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+            _msbuildLogger = msbuildLogger;
         }
 
         private ImmutableDictionary<string, string> AllGlobalProperties
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         public bool BatchBuildStarted => _batchBuildStarted;
 
-        public void StartBatchBuild(IDictionary<string, string>? globalProperties = null, MSB.Framework.ILogger? msbuildLogger = null)
+        public void StartBatchBuild(IDictionary<string, string>? globalProperties = null)
         {
             if (_batchBuildStarted)
             {
@@ -170,9 +172,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = msbuildLogger is null
+                Loggers = _msbuildLogger is null
                     ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
-                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, msbuildLogger })
+                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
