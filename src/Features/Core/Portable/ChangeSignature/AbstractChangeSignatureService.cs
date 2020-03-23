@@ -480,6 +480,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var newArguments = ImmutableArray.CreateBuilder<IUnifiedArgumentSyntax>();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
+
+            // Holds the params array argument so it can be
+            // added at the end.
             IUnifiedArgumentSyntax paramsArrayArgument = null;
 
             foreach (var argument in argumentsToPermute)
@@ -497,7 +500,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     // If seen a named argument before, add names for subsequent ones.
                     if ((seenNamedArgument || actualIndex != expectedIndex) && !argument.IsNamed)
                     {
-
                         newArguments.Add(argument.WithName(param.Name).WithAdditionalAnnotations(Formatter.Annotation));
                         seenNamedArgument = true;
                     }
