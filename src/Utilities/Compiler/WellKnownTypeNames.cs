@@ -488,5 +488,6 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
         public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
+        public const string SystemSecurityPermissionsSecurityPermissionAttribute = "System.Security.Permissions.SecurityPermissionAttribute";
     }
 }
