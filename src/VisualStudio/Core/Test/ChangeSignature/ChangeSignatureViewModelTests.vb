@@ -436,7 +436,7 @@ class Test
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
                 Dim viewModel = New ChangeSignatureDialogViewModel(
-                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)), symbol.IsExtensionMethod(), selectedIndex:=0),
+                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToImmutableArray(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
                     insertPosition:=0,

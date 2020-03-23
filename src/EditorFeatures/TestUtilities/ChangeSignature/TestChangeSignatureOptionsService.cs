@@ -5,11 +5,13 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -30,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
-            IEnumerable<Parameter> updateParameters = UpdatedSignature != null
-                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document))
-                : new Parameter?[0]!;
+            var updateParameters = UpdatedSignature != null
+                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document)).ToImmutableArray()
+                : new ImmutableArray<Parameter>();
             return new ChangeSignatureOptionsResult(new SignatureChange(
                     parameters,
                     UpdatedSignature == null
