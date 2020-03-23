@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.ChangeSignature)>
     Friend Class VisualBasicAddParameterCheckCodeRefactoringProvider
         Inherits AbstractAddParameterCheckCodeRefactoringProvider(Of
+            TypeBlockSyntax,
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax,
@@ -25,10 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
-        End Function
-
-        Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
-            Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode

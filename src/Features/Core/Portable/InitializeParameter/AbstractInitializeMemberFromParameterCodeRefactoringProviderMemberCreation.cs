@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TTypeDeclarationSyntax,
             TParameterSyntax,
             TStatementSyntax,
             TExpressionSyntax>
@@ -61,8 +62,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (method.MethodKind != MethodKind.Constructor)
                 return ImmutableArray<CodeAction>.Empty;
 
-            var containingType = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>();
-            if (containingType == null)
+            var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>();
+            if (typeDeclaration == null)
                 return ImmutableArray<CodeAction>.Empty;
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
@@ -475,6 +476,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(parameter, blockStatementOpt);
+
             InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());

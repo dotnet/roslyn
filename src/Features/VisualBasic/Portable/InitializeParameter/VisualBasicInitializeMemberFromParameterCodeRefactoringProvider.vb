@@ -28,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
-        Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
-            Return DirectCast(node, TypeStatementSyntax).Parent
-        End Function
-
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function

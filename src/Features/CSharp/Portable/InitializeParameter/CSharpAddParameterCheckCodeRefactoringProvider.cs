@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
     internal class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
+            BaseTypeDeclarationSyntax,
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax,
@@ -28,9 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
-
-        protected override SyntaxNode GetTypeBlock(SyntaxNode node)
-            => node;
 
         protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);

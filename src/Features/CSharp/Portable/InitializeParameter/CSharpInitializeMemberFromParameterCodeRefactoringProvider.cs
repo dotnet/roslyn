@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
-        protected override SyntaxNode GetTypeBlock(SyntaxNode node)
-            => node;
-
         protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
