@@ -2239,22 +2239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return CreateResult(SpecialType.System_Boolean);
             }
-
-            private IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
-            {
-                if (type != null)
-                {
-                    var parameters = type.TypeArguments;
-
-                    var elementType = parameters.ElementAtOrDefault(0);
-                    if (elementType != null)
-                    {
-                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
         }
     }
 }
