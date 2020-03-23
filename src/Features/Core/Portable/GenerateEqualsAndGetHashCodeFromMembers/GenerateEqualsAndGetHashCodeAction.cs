@@ -86,19 +86,19 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var newType = CodeGenerator.AddMemberDeclarations(
+                var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
                     _typeDeclaration, methods, _document.Project.Solution.Workspace);
 
                 if (constructedTypeToImplement is object)
                 {
                     var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
-                    newType = generator.AddInterfaceType(newType,
+                    newTypeDeclaration = generator.AddInterfaceType(newTypeDeclaration,
                         generator.TypeExpression(constructedTypeToImplement));
                 }
 
                 var newDocument = await UpdateDocumentAndAddImportsAsync(
-                    _typeDeclaration, newType, cancellationToken).ConfigureAwait(false);
+                    _typeDeclaration, newTypeDeclaration, cancellationToken).ConfigureAwait(false);
 
                 var service = _document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 var formattedDocument = await service.FormatDocumentAsync(
