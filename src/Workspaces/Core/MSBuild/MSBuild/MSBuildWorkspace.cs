@@ -169,6 +169,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="solutionFilePath">The path to the solution file to be opened. This may be an absolute path or a path relative to the
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is opened.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+        // 3.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public Task<Solution> OpenSolutionAsync(
+            string solutionFilePath,
+            IProgress<ProjectLoadProgress> progress,
+            CancellationToken cancellationToken)
+            => OpenSolutionAsync(solutionFilePath, progress, msbuildLogger: null, cancellationToken);
+
+        /// <summary>
+        /// Open a solution file and all referenced projects.
+        /// </summary>
+        /// <param name="solutionFilePath">The path to the solution file to be opened. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is opened.</param>
         /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<Solution> OpenSolutionAsync(
@@ -193,6 +207,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return this.CurrentSolution;
         }
+
+        /// <summary>
+        /// Open a project file and all referenced projects.
+        /// </summary>
+        /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+        // 3.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public Task<Project> OpenProjectAsync(
+            string projectFilePath,
+            IProgress<ProjectLoadProgress> progress,
+            CancellationToken cancellationToken)
+            => OpenProjectAsync(projectFilePath, progress, msbuildLogger: null, cancellationToken);
 
         /// <summary>
         /// Open a project file and all referenced projects.
