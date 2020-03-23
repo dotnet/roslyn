@@ -33,28 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-            return GenerateFieldName(propertySymbol, rules);
-        }
+            var rule = await document.GetApplicableNamingRuleAsync(
+                new SymbolKindOrTypeKind(SymbolKind.Field),
+                property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
+                Accessibility.Private,
+                cancellationToken).ConfigureAwait(false);
 
-        private string GenerateFieldName(IPropertySymbol property, ImmutableArray<NamingRule> rules)
-        {
-            var propertyName = property.Name;
-            var fieldName = "";
-            foreach (var rule in rules)
-            {
-                if (rule.SymbolSpecification.AppliesTo(
-                    new SymbolKindOrTypeKind(SymbolKind.Field),
-                    property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
-                    Accessibility.Private))
-                {
-                    fieldName = rule.NamingStyle.MakeCompliant(propertyName).First();
-                    break;
-                }
-            }
-
+            var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
             return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
         }
 
