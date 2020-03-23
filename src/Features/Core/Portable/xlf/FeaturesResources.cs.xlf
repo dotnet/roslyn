@@ -2280,16 +2280,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Zdroj vykazované diagnostiky {0} má umístění {1} v souboru {2}, což je mimo daný soubor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Byl zjištěn nedosažitelný kód.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Odebrat nedosažitelný kód</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">v {0} (projekt {1})</target>

@@ -12,6 +12,11 @@
         <target state="new">Remove Unnecessary Usings</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unreachable_code">
+        <source>Remove unreachable code</source>
+        <target state="new">Remove unreachable code</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
