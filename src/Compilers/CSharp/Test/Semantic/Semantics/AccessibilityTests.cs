@@ -408,5 +408,33 @@ public class Outer
                     Diagnostic(ErrorCode.ERR_BadAccess, "In").WithArguments("Outer.Inner").WithLocation(9, 23)
                 );
         }
+
+        [Fact]
+        public void ImportNamespaceWithSameNameAsType()
+        {
+            var comp1 = CreateCompilation("internal class A {}");
+
+            var comp = CreateCompilation(@"
+using A;
+using System;
+
+namespace A
+{
+    public class PrintUtils
+    {
+        public static void Print(string str) => Console.Write(str);
+    }
+}
+
+public class C
+{
+    public static void Main()
+    {
+        PrintUtils.Print(""Hello World"");
+    }
+}", options: TestOptions.ReleaseExe, references: new[] { comp1.ToMetadataReference() }).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "Hello World");
+        }
     }
 }

@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     compilation.RecordImport(usingDirective);
 
+                    var isStatic = usingDirective.StaticKeyword != default;
+
                     if (usingDirective.Alias != null)
                     {
                         if (usingDirective.Alias.Name.Identifier.ContextualKind() == SyntaxKind.GlobalKeyword)
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.WRN_GlobalAliasDefn, usingDirective.Alias.Name.Location);
                         }
 
-                        if (usingDirective.StaticKeyword != default(SyntaxToken))
+                        if (isStatic)
                         {
                             diagnostics.Add(ErrorCode.ERR_NoAliasHere, usingDirective.Alias.Name.Location);
                         }
@@ -192,11 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.IgnoreAccessibility);
+                        var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | (isStatic ? BinderFlags.IgnoreAccessibility : default));
                         var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                         if (imported.Kind == SymbolKind.Namespace)
                         {
-                            if (usingDirective.StaticKeyword != default(SyntaxToken))
+                            if (isStatic)
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadUsingType, usingDirective.Name.Location, imported);
                             }
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (imported.Kind == SymbolKind.NamedType)
                         {
-                            if (usingDirective.StaticKeyword == default(SyntaxToken))
+                            if (!isStatic)
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadUsingNamespace, usingDirective.Name.Location, imported);
                             }
