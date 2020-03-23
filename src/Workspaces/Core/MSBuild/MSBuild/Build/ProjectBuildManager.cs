@@ -11,11 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-
 using Microsoft.CodeAnalysis.MSBuild.Logging;
-
 using Roslyn.Utilities;
-
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild.Build
