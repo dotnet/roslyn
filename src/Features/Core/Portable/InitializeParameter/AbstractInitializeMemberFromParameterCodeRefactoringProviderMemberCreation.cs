@@ -316,23 +316,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (statement != null &&
                     fieldOrProperty is TSymbol symbol)
                 {
-                    if (before)
+                    var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                    if (symbolSyntax.Ancestors().Contains(typeDeclaration))
                     {
-                        var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                        if (symbolSyntax.Ancestors().Contains(typeDeclaration))
+                        if (before)
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
                             return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
                         }
-                    }
-                    else
-                    {
-                        // Found an existing field/property that corresponds to a following parameter.
-                        // Place ourselves directly before it.
-                        var symbolSyntax = symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                        if (symbolSyntax.Ancestors().Contains(typeDeclaration))
+                        else
                         {
+                            // Found an existing field/property that corresponds to a following parameter.
+                            // Place ourselves directly before it.
                             return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation());
                         }
                     }
