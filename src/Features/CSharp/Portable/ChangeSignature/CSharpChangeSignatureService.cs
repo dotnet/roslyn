@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 {
@@ -336,21 +337,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = UpdateDeclaration(SyntaxFactory.SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
-                    return SyntaxFactory.ParenthesizedLambdaExpression(
+                    var updatedParameters = UpdateDeclaration(SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    return ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
-                        SyntaxFactory.ParameterList(updatedParameters),
+                        ParameterList(updatedParameters),
                         lambda.ArrowToken,
                         lambda.Body);
                 }
                 else
                 {
                     // No parameters. Change to a parenthesized lambda expression
-                    var emptyParameterList = SyntaxFactory.ParameterList()
+                    var emptyParameterList = ParameterList()
                         .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
                         .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
 
-                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
+                    return ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
                 }
             }
 
@@ -456,23 +457,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter, bool skipParameterType)
         {
             var equalsValueClause = addedParameter.HasDefaultValue
-                ? SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(addedParameter.DefaultValue))
+                ? EqualsValueClause(ParseExpression(addedParameter.DefaultValue))
                 : default;
 
-            return SyntaxFactory.Parameter(
+            return Parameter(
                 attributeLists: default,
                 modifiers: default,
                 type: skipParameterType
                     ? default
                     : addedParameter.Type.GenerateTypeSyntax()
-                        .WithTrailingTrivia(SyntaxFactory.ElasticSpace),
-                SyntaxFactory.Identifier(addedParameter.Name),
+                        .WithTrailingTrivia(ElasticSpace),
+                Identifier(addedParameter.Name),
                 @default: equalsValueClause);
         }
 
         private static CrefParameterSyntax CreateNewCrefParameterSyntax(AddedParameter addedParameter)
-            => SyntaxFactory.CrefParameter(type: addedParameter.Type.GenerateTypeSyntax())
-                .WithLeadingTrivia(SyntaxFactory.ElasticSpace);
+            => CrefParameter(type: addedParameter.Type.GenerateTypeSyntax())
+                .WithLeadingTrivia(ElasticSpace);
 
         private SeparatedSyntaxList<T> UpdateDeclaration<T>(
             SeparatedSyntaxList<T> list,
@@ -480,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
         {
             var updatedDeclaration = base.UpdateDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
-            return SyntaxFactory.SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators);
+            return SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators);
         }
 
         protected override T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument)
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
                 newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
 
-            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
+            return SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
         private SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
@@ -532,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
 
             var numSeparatorsToSkip = arguments.Count - newArguments.Length;
-            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
+            return SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
         private ImmutableArray<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
@@ -626,11 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
                 else
                 {
-                    permutedParams.Add(SyntaxFactory.XmlElement(
-                        SyntaxFactory.XmlElementStartTag(
-                            SyntaxFactory.XmlName("param"),
-                            SyntaxFactory.List<XmlAttributeSyntax>(new[] { SyntaxFactory.XmlNameAttribute(parameter.Name) })),
-                        SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName("param"))));
+                    permutedParams.Add(XmlElement(
+                        XmlElementStartTag(
+                            XmlName("param"),
+                            List<XmlAttributeSyntax>(new[] { XmlNameAttribute(parameter.Name) })),
+                        XmlElementEndTag(XmlName("param"))));
                 }
             }
 
@@ -681,15 +682,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         internal override SyntaxNode AddName(SyntaxNode newArgument, string name)
         {
-            return (newArgument as ArgumentSyntax).WithNameColon(SyntaxFactory.NameColon(name));
+            return (newArgument as ArgumentSyntax).WithNameColon(NameColon(name));
         }
 
         internal override SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
-            var listOfArguments = SyntaxFactory.SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
-            var initializerExpression = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
-            var objectCreation = SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
-            return SyntaxFactory.Argument(objectCreation);
+            var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
+            var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
+            var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
+            return Argument(objectCreation);
         }
     }
 }

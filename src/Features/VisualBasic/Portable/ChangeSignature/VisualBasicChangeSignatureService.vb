@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -436,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
-            Dim newArguments As ImmutableArray(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
+            Dim newArguments As ImmutableArray(Of IUnifiedArgumentSyntax) = PermuteArguments(
                 declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
                 isReducedExtensionMethod)
 
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 numSeparatorsToSkip = arguments.Count - newArguments.Length
             End If
 
-            Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
+            Return SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 
         Private Function UpdateDeclaration(Of T As SyntaxNode)(
@@ -459,23 +460,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 updatedSignature As SignatureChange,
                 createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
             Dim updatedDeclaration = UpdateDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
-            Return SyntaxFactory.SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators)
+            Return SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
             Return SyntaxFactory.Parameter(
-                attributeLists:=SyntaxFactory.List(Of AttributeListSyntax)(),
-                modifiers:=SyntaxFactory.TokenList(),
-                identifier:=SyntaxFactory.ModifiedIdentifier(addedParameter.Name),
-                asClause:=SyntaxFactory.SimpleAsClause(
+                attributeLists:=List(Of AttributeListSyntax)(),
+                modifiers:=TokenList(),
+                identifier:=ModifiedIdentifier(addedParameter.Name),
+                asClause:=SimpleAsClause(
                     addedParameter.Type.GenerateTypeSyntax() _
-                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace)) _
-                    .WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace),
+                    .WithPrependedLeadingTrivia(ElasticSpace)) _
+                    .WithPrependedLeadingTrivia(ElasticSpace),
                 [default]:=Nothing)
         End Function
 
         Private Shared Function CreateNewCrefParameterSyntax(addedParameter As AddedParameter) As CrefSignaturePartSyntax
-            Return SyntaxFactory.CrefSignaturePart(
+            Return CrefSignaturePart(
                 modifier:=Nothing,
                 type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
@@ -538,11 +539,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 If dictionary.TryGetValue(parameter.Name, permutedParam) Then
                     permutedParams.Add(permutedParam)
                 Else
-                    permutedParams.Add(SyntaxFactory.XmlElement(
-                        SyntaxFactory.XmlElementStartTag(
-                            SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)),
-                            SyntaxFactory.List(Of XmlNodeSyntax)({SyntaxFactory.XmlNameAttribute(parameter.Name)})),
-                        SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)))))
+                    permutedParams.Add(XmlElement(
+                        XmlElementStartTag(
+                            XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)),
+                            List(Of XmlNodeSyntax)({XmlNameAttribute(parameter.Name)})),
+                        XmlElementEndTag(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ParameterElementName, SyntaxKind.XmlNameToken)))))
                 End If
             Next
 
