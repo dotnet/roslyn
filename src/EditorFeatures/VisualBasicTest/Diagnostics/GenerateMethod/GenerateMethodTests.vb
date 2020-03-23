@@ -3755,6 +3755,29 @@ End Class",
 index:=1)
         End Function
 
+        <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodConditionalAccess5() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?[|.B|]()
+    End Sub
+End Structure",
+"Imports System
+
+Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?.B()
+    End Sub
+
+    Private Function B() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Structure")
+        End Function
+
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(

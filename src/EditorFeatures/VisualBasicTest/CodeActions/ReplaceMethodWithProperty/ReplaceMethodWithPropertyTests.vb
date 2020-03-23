@@ -816,5 +816,100 @@ End class",
     End Property
 End class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestAtStartOfMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [||]Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_OnSameLine() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+[||]    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_OnPreviousLine() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [||]
+    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotMultipleLinesPrior() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    [||]
+
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotBeforeAttributes() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    [||]<A>
+    Function GetGoo() As Integer
+    End Function
+end class",
+"class C
+    <A>
+    ReadOnly Property Goo As Integer
+        Get
+        End Get
+    End Property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotBeforeComments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    [||] ''' <summary/>
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestBeforeStartOfMethod_NotInComment() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    ''' [||]<summary/>
+    Function GetGoo() As Integer
+    End Function
+end class")
+        End Function
     End Class
 End Namespace

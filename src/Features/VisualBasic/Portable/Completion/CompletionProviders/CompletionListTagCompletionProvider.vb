@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return (text, "", text)
         End Function
 
-        Protected Overrides Function CreateItem(
+        Protected Overrides Function CreateItem(completionContext As CompletionContext,
                 displayText As String, displayTextSuffix As String, insertionText As String,
                 symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.CreateWithSymbolId(

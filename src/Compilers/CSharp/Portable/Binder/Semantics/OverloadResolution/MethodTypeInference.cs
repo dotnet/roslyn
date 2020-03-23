@@ -2624,7 +2624,7 @@ OuterBreak:
                     else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything))
                     {
                         // Not unique. Bail out.
-                        return default;
+                        return null;
                     }
                 }
             }

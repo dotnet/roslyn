@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         { }
     }
 
