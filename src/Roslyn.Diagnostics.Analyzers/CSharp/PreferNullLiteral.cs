@@ -45,7 +45,16 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
 
             var type = context.Operation.Type;
-            if (type.IsValueType)
+            if (type is null)
+            {
+                return;
+            }
+
+            if (type.TypeKind == TypeKind.Pointer)
+            {
+                // Pointers can use 'null'
+            }
+            else if (type.IsValueType)
             {
                 if (!(type is INamedTypeSymbol namedType)
                     || namedType.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T)
