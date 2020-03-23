@@ -9,6 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\RemoveUnusedMembersTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.vb" />
   </ItemGroup>
 </Project>

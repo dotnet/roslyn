@@ -3637,6 +3637,27 @@ class C
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WpfFact>
+        <WorkItem(5872, "https://github.com/dotnet/roslyn/issues/5872")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameToVar()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class $${|Conflict:X|} {
+    {|Conflict:X|}() {
+        var a = 2;
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="var")
+
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
 

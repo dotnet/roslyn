@@ -13,6 +13,6 @@
     <None Include="$(MSBuildThisFileDirectory)VisualBasicCodeFixesResources.resx" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.vb" />
   </ItemGroup>
 </Project>

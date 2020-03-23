@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return service;
             }
 
-            return default;
+            return null;
         }
 
         private class TestDocumentOperationService : IDocumentOperationService

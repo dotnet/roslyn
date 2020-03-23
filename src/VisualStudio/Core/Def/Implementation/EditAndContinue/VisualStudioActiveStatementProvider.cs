@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 // https://github.com/dotnet/roslyn/issues/24325
 
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
-                var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
+                var builders = (ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>)null;
                 var pendingRuntimes = 0;
                 var runtimeCount = 0;
 

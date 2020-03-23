@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpIntelliSenseCommandHandlerTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -17,13 +17,13 @@ class C
         $$
     }
 }
-                              </Document>)
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Go")
                 Await state.AssertCompletionSession()
                 Await state.AssertNoSignatureHelpSession()
                 state.SendTypeChars("(")
-                Await state.AssertNoCompletionSession()
+                ' Await state.AssertNoCompletionSession() TODO: Split into 2 tests
                 Await state.AssertSignatureHelpSession()
                 Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
                 Assert.Contains("Goo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -31,8 +31,8 @@ class C
         End Function
 
         <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestEscapeDismissesCompletionFirst() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapeDismissesCompletionFirst(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -42,7 +42,7 @@ class C
         $$
     }
 }
-                              </Document>)
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()
@@ -57,8 +57,8 @@ class C
         End Function
 
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCutDismissesCompletion() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCutDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -68,7 +68,7 @@ class C
         $$
     }
 }
-                              </Document>)
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()
                 Await state.AssertSignatureHelpSession()
@@ -79,8 +79,8 @@ class C
         End Function
 
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestPasteDismissesCompletion() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPasteDismissesCompletion(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 class C
@@ -90,7 +90,7 @@ class C
         $$
     }
 }
-                              </Document>)
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()

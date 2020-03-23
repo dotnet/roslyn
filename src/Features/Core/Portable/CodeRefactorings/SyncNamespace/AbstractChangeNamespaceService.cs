@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
             await SymbolFinder.FindReferencesAsync(
                 symbolAndProjectId: SymbolAndProjectId.Create(symbol, document.Project.Id),
                 solution: document.Project.Solution,

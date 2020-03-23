@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         matchedSpansInReverse: matchedSpansInReverse);
                 }
 
-                var bestResult = default(CamelCaseResult?);
+                var bestResult = (CamelCaseResult?)null;
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             private CamelCaseResult? TryConsumePatternOrMatchNextHump(
                 int patternIndex, int humpIndex, bool contiguous)
             {
-                var bestResult = default(CamelCaseResult?);
+                var bestResult = (CamelCaseResult?)null;
 
                 var candidateHump = _candidateHumps[humpIndex];
 

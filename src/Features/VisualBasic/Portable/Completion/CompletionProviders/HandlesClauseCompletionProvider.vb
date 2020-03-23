@@ -54,6 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+
         Private Function GetTopLevelIdentifiersAsync(
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,

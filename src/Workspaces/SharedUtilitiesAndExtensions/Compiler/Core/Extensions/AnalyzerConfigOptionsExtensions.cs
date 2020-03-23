@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,6 +29,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
+                // There are couple of reasons this assert might fire:
+                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
+                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
             }
@@ -38,6 +43,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!TryGetEditorConfigOptionOrDefault(analyzerConfigOptions, option, out T value))
             {
+                // There are couple of reasons this assert might fire:
+                //  1. Attempting to access an option which does not have an IEditorConfigStorageLocation.
+                //  2. Attempting to access an option which is not exposed from any option provider, i.e. IOptionProvider.Options.
                 Debug.Fail("Failed to find a .editorconfig key for the option.");
                 value = option.DefaultValue;
             }
