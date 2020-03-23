@@ -59,21 +59,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool UseNamedArguments { get; set; }
 
+        private string _verbatimTypeName = string.Empty;
+
         internal void UpdateTypeSymbol(string typeName)
         {
+            _verbatimTypeName = typeName;
             var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
             TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
         }
 
         internal bool TrySubmit(Document document)
         {
-            if (string.IsNullOrEmpty(TypeName) || string.IsNullOrEmpty(ParameterName))
+            if (string.IsNullOrEmpty(_verbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
                 SendFailureNotification(ServicesVSResources.A_type_and_name_must_be_provided);
                 return false;
             }
 
-            if (!IsParameterTypeValid(TypeName!, document))
+            if (!IsParameterTypeValid(_verbatimTypeName, document))
             {
                 SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
                 return false;
