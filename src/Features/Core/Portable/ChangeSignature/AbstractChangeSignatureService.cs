@@ -177,8 +177,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
-                var streamingProgress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var streamingProgress = new StreamingProgressCollector();
 
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(

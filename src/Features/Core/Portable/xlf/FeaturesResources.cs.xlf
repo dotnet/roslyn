@@ -2240,16 +2240,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Implementovat {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">Zjednodušit výraz default</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'Výraz default se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">Formátovací řetězec obsahuje neplatný zástupný symbol.</target>
@@ -2278,16 +2268,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">Zdroj vykazované diagnostiky {0} má umístění {1} v souboru {2}, což je mimo daný soubor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Byl zjištěn nedosažitelný kód.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Odebrat nedosažitelný kód</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">
