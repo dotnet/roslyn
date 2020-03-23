@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
+        protected abstract int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
+
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -134,6 +136,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
+            if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
+            {
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+            }
+
             if (symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
@@ -150,23 +157,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            if (declarationChangeSignatureService == null)
-            {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
-            }
+            // TODO: Remove if unneeded
+            //if (declarationChangeSignatureService == null)
+            //{
+            //    return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
+            //}
 
-            int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
+            int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
 
             // TODO: Remove if unneeded
             //if (insertPosition == null)
             //{
             //    return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
             //}
-
-            if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
-            {
-                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
-            }
 
             var parameterConfiguration = ParameterConfiguration.Create(
                 symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
@@ -187,19 +190,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return ChangeSignatureWithContext(context, options, cancellationToken);
         }
 
-        protected abstract int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
-
         internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
             var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
+        /// <returns>Returns <c>null</c> if the operation is cancelled.</returns>
         internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalysisSucceededContext context)
         {
-            var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
+            var changeSignatureOptionsService = context.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
-            return changeSignatureOptionsService?.GetChangeSignatureOptions(
+            return changeSignatureOptionsService.GetChangeSignatureOptions(
                 context.Document, context.InsertPosition, context.Symbol, context.ParameterConfiguration);
         }
 
@@ -447,7 +449,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             ISymbol declarationSymbol,
             List<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
-            Func<string, IUnifiedArgumentSyntax> createIUnifiedArgument,
             bool isReducedExtensionMethod = false)
         {
             // 1. Determine which parameters are permutable

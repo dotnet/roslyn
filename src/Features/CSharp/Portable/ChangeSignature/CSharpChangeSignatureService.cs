@@ -505,8 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature)
         {
             var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
-                updatedSignature,
-                callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callSiteValue))));
+                updatedSignature);
             var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
             // copy whitespace trivia from original position
@@ -526,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 declarationSymbol,
                 arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
                 updatedSignature,
-                callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callSiteValue))),
                 isReducedExtensionMethod);
 
             // copy whitespace trivia from original position
@@ -679,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-            => SpecializedCollections.SingletonEnumerable<AbstractFormattingRule>(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
+            => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
 
         internal override SyntaxNode AddName(SyntaxNode newArgument, string name)
         {
