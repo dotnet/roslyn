@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Options
                 this.Group == other.Group &&
                 this.IsPerLanguage == other.IsPerLanguage;
 
+            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
+            // So, we skip these fields for equality checks of code style options.
             if (equals && !(this.DefaultValue is ICodeStyleOption))
             {
                 equals = Equals(this.DefaultValue, other.DefaultValue) && this.Type == other.Type;
@@ -92,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Options
             hash = unchecked((hash * (int)0xA5555529) + this.Name.GetHashCode());
             hash = unchecked((hash * (int)0xA5555529) + this.IsPerLanguage.GetHashCode());
 
+            // DefaultValue and Type can differ between different but equivalent implementations of "ICodeStyleOption".
+            // So, we skip these fields for hash computation of code style options.
             if (!(this.DefaultValue is ICodeStyleOption))
             {
                 hash = unchecked((hash * (int)0xA5555529) + this.DefaultValue?.GetHashCode() ?? 0);
