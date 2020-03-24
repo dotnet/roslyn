@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// True if this workspace supports manually changing the active context document of a text buffer by calling <see cref="SetDocumentContext(DocumentId)" />.
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
-
-        private protected void ClearOpenDocuments()
+        internal void ClearOpenDocuments()
         {
             List<DocumentId> docIds;
             using (_stateLock.DisposableWait())
@@ -413,7 +412,9 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution != result.Solution)
             {
+#pragma warning disable CS0612 // Type or member is obsolete
                 OnDocumentTextChanged(result.Solution.GetDocument(documentId));
+#pragma warning restore
             }
 
             SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
@@ -558,7 +559,10 @@ namespace Microsoft.CodeAnalysis
         {
             // forget any open document info
             ClearOpenDocumentImpl(documentId, throwIfAlreadyClosed: true);
+
+#pragma warning disable CS0612 // Type or member is obsolete
             OnDocumentClosing(documentId);
+#pragma warning restore
 
             var (oldSolution, result) = SetCurrentSolution(oldSolution =>
             {
@@ -570,7 +574,9 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution != result.Solution)
             {
+#pragma warning disable CS0612 // Type or member is obsolete
                 OnDocumentTextChanged(result.Solution.GetDocument(documentId));
+#pragma warning restore
             }
         }
 

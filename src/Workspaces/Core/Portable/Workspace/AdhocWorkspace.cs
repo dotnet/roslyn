@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        internal sealed override bool LegacySemanticsEnabled => false;
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             // all kinds supported.
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// Clears all projects and documents from the workspace.
         /// </summary>
         public new void ClearSolution()
-            => base.ClearSolution();
+            => ClearSolutionInternal();
 
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.

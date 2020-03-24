@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace
     {
+<<<<<<< HEAD
         internal static XElement CreateWorkspaceElement(
             string language,
             CompilationOptions compilationOptions = null,

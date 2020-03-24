@@ -80,6 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
         }
 
+        internal override bool LegacySemanticsEnabled => false;
+
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);

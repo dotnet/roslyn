@@ -16,16 +16,19 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     [Export(typeof(Workspace))]
-    internal class MefTestWorkspace : Workspace
+    internal sealed class MefTestWorkspace : Workspace
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MefTestWorkspace()
-            : base(Microsoft.CodeAnalysis.Host.Mef.MefHostServices.DefaultHost, "MefTest")
+            : base(MefHostServices.DefaultHost, "MefTest")
         {
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
             => true;
+
+        internal override bool LegacySemanticsEnabled
+            => false;
     }
 }

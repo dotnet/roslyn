@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties);
         }
 
+        internal sealed override bool LegacySemanticsEnabled => false;
+
         /// <summary>
         /// Create a new instance of a workspace that can be populated by opening solution and project files.
         /// </summary>
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             using (_serializationLock.DisposableWait())
             {
-                this.ClearSolution();
+                ClearSolutionInternal();
             }
         }
 
@@ -199,16 +201,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(solutionFilePath));
             }
 
-            this.ClearSolution();
-
             var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
+            ClearSolutionInternal();
+
             // construct workspace from loaded project infos
-            this.OnSolutionAdded(solutionInfo);
+            OnSolutionAdded(solutionInfo);
 
-            this.UpdateReferencesAfterAdd();
+            UpdateReferencesAfterAdd();
 
-            return this.CurrentSolution;
+            return CurrentSolution;
         }
 
         /// <summary>

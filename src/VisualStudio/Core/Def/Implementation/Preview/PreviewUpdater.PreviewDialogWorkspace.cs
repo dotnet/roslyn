@@ -13,12 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class PreviewUpdater
     {
         // internal for testing
-        internal class PreviewDialogWorkspace : PreviewWorkspace
+        internal sealed class PreviewDialogWorkspace : PreviewWorkspace
         {
             public PreviewDialogWorkspace(Solution solution) : base(solution)
             {

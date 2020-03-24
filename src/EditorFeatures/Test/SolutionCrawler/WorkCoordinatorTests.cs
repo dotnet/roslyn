@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [Obsolete]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = await ExecuteOperation(workspace, w => w.ClearSolution());
+            var worker = await ExecuteOperation(workspace, w => w.ClearSolutionInternal());
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 

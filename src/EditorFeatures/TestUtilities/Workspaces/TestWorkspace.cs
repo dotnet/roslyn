@@ -112,9 +112,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
+        internal override bool LegacySemanticsEnabled => false;
+
+        protected internal override bool PartialSemanticsEnabled => _backgroundCompiler != null;
+
         public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
+        [Obsolete]
         protected override void OnDocumentTextChanged(Document document)
         {
             if (_backgroundParser != null)
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
+        [Obsolete]
         protected override void OnDocumentClosing(DocumentId documentId)
         {
             if (_backgroundParser != null)
@@ -138,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
-            this.ClearSolutionData();
+            this.ClearOpenDocuments();
 
             foreach (var document in Documents)
             {
@@ -704,9 +710,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
-
-        public new void ClearSolution()
-            => base.ClearSolution();
 
         public void ChangeSolution(Solution solution)
         {

@@ -43,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             _backgroundParser.Start();
         }
 
+        internal sealed override bool LegacySemanticsEnabled => false;
+
         private void OnCacheFlushRequested(object sender, EventArgs e)
         {
             if (_backgroundCompiler != null)
@@ -64,9 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             get { return _backgroundCompiler != null; }
         }
 
+        [Obsolete]
         protected override void OnDocumentTextChanged(Document document)
             => _backgroundParser.Parse(document);
 
+        [Obsolete]
         protected override void OnDocumentClosing(DocumentId documentId)
             => _backgroundParser.CancelParse(documentId);
 

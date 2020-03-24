@@ -100,6 +100,13 @@ namespace Microsoft.CodeAnalysis
             _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create());
         }
 
+        /// <summary>
+        /// True for custom <see cref="Workspace"/> implementations that might rely on a behavior that
+        /// is not desirable for our own implementations, but needs to be preserved for backwards compatibility until
+        /// we can make the breaking change.
+        /// </summary>
+        internal virtual bool LegacySemanticsEnabled => true;
+
         internal void LogTestMessage(string message)
             => _testMessageLogger?.Invoke(message);
 
@@ -312,6 +319,7 @@ namespace Microsoft.CodeAnalysis
         /// Override this method to act immediately when the text of a document has changed, as opposed
         /// to waiting for the corresponding workspace changed event to fire asynchronously.
         /// </summary>
+        [Obsolete]
         protected virtual void OnDocumentTextChanged(Document document)
         {
         }
@@ -320,6 +328,7 @@ namespace Microsoft.CodeAnalysis
         /// Override this method to act immediately when a document is closing, as opposed
         /// to waiting for the corresponding workspace changed event to fire asynchronously.
         /// </summary>
+        [Obsolete]
         protected virtual void OnDocumentClosing(DocumentId documentId)
         {
         }
@@ -327,10 +336,31 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Clears all solution data and empties the current solution.
         /// </summary>
+        [Obsolete]
         protected void ClearSolution()
         {
-            ClearSolutionData();
-            SetCurrentSolution(solution => TransformationResult(CreateSolution(solution.Id), WorkspaceChangeKind.SolutionCleared));
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearSolutionData();
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+            }
+        }
+
+        internal void ClearSolutionInternal()
+        {
+            if (LegacySemanticsEnabled)
+            {
+#pragma warning disable CS0612 // Type or member is obsolete
+                ClearSolution();
+                return;
+#pragma warning restore
+            }
+
+            ClearSolutionDataInternal();
+            SetCurrentSolution(oldSolution => TransformationResult(CreateSolution(CurrentSolution.Id), WorkspaceChangeKind.SolutionCleared));
         }
 
         /// <summary>
@@ -339,10 +369,26 @@ namespace Microsoft.CodeAnalysis
         /// Override this method if you want to do additional work when a solution is cleared.
         /// Call the base method at the end of your method.
         /// </summary>
+        [Obsolete]
         protected virtual void ClearSolutionData()
         {
             // clear any open documents
-            this.ClearOpenDocuments();
+            ClearOpenDocuments();
+
+            this.SetCurrentSolution(this.CreateSolution(this.CurrentSolution.Id));
+        }
+
+        internal void ClearSolutionDataInternal()
+        {
+            if (LegacySemanticsEnabled)
+            {
+#pragma warning disable CS0612 // Type or member is obsolete
+                ClearSolutionData();
+                return;
+#pragma warning restore
+            }
+
+            ClearOpenDocuments();
         }
 
         /// <summary>
@@ -379,9 +425,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
-                this.ClearSolutionData();
+                ClearSolutionDataInternal();
 
-                this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
+                Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
@@ -437,11 +483,20 @@ namespace Microsoft.CodeAnalysis
         /// Call the base method at the end of your method.
         /// Call this method to respond to a solution being removed/cleared/closed in the host environment.
         /// </summary>
+        [Obsolete]
         protected internal void OnSolutionRemoved()
         {
-            var newSolution = CreateSolution(SolutionId.CreateNewId());
-            ClearSolutionData();
-            SetCurrentSolution(_ => TransformationResult(newSolution, WorkspaceChangeKind.SolutionRemoved));
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+
+                ClearSolutionData();
+
+                // reset to new empty solution
+                this.SetCurrentSolution(this.CreateSolution(SolutionId.CreateNewId()));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionRemoved, oldSolution, this.CurrentSolution);
+            }
         }
 
         /// <summary>
@@ -479,12 +534,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
+            ClearProjectData(projectId);
+
             SetCurrentSolution(oldSolution =>
             {
                 CheckProjectIsInSolution(oldSolution, projectId);
                 CheckProjectCanBeRemoved(projectId);
-
-                ClearProjectData(projectId);
 
                 return TransformationResult(oldSolution.RemoveProject(projectId), WorkspaceChangeKind.ProjectRemoved, projectId);
             });
@@ -734,7 +789,9 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution != result.Solution)
             {
+#pragma warning disable CS0612 // Type or member is obsolete
                 OnDocumentTextChanged(result.Solution.GetRequiredDocument(documentId));
+#pragma warning restore
             }
         }
 
@@ -872,7 +929,7 @@ namespace Microsoft.CodeAnalysis
                 checkIsInSolution(oldSolution, documentId);
 
                 var linkedDocuments = getRelatedDocuments(oldSolution, documentId);
-                using var _ = ArrayBuilder<DocumentId>.GetInstance(out var updatedDocumentIdsBuilder);
+                using var _ = ArrayBuilder<DocumentId>.GetInstance(out var updatedDocumentIds);
 
                 var newSolution = oldSolution;
                 foreach (var linkedDocument in linkedDocuments)
@@ -881,11 +938,11 @@ namespace Microsoft.CodeAnalysis
                     newSolution = updateSolutionWithText(newSolution, linkedDocument, newText, mode);
                     if (previousSolution != newSolution)
                     {
-                        updatedDocumentIdsBuilder.Add(linkedDocument);
+                        updatedDocumentIds.Add(linkedDocument);
                     }
                 }
 
-                return TransformationResult(newSolution, changeKind, updatedDocumentIdsBuilder.ToImmutable());
+                return TransformationResult(newSolution, changeKind, updatedDocumentIds.ToImmutable());
             });
 
             // Prior to the unification of the callers of this method, the
@@ -895,7 +952,9 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var updatedDocumentId in result.UpdatedDocumentIds!.Value)
                 {
+#pragma warning disable CS0612 // Type or member is obsolete
                     OnDocumentTextChanged(result.Solution.GetRequiredDocument(updatedDocumentId));
+#pragma warning restore
                 }
             }
         }
@@ -914,7 +973,9 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution != result.Solution)
             {
+#pragma warning disable CS0612 // Type or member is obsolete
                 OnDocumentTextChanged(result.Solution.GetRequiredDocument(documentId));
+#pragma warning restore
             }
         }
 

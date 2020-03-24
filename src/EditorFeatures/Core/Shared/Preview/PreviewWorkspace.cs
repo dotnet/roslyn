@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
+        internal sealed override bool LegacySemanticsEnabled => false;
+
         public void EnableDiagnostic()
         {
             _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
@@ -119,8 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 _registrationService.Unregister(this);
                 _registrationService = null;
             }
-
-            this.ClearSolution();
         }
     }
 }

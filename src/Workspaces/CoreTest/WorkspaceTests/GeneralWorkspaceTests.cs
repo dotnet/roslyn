@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(WorkspacesResources.Changing_document_property_is_not_supported, e.Message);
         }
 
-        private class NoChangesAllowedWorkspace : Workspace
+        private sealed class NoChangesAllowedWorkspace : Workspace
         {
             public NoChangesAllowedWorkspace(HostServices services, string workspaceKind = "Custom")
                 : base(services, workspaceKind)
@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 : this(Host.Mef.MefHostServices.DefaultHost)
             {
             }
+
+            internal sealed override bool LegacySemanticsEnabled => false;
 
             public override bool CanApplyChange(ApplyChangesKind feature)
                 => false;
