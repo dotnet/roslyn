@@ -5,17 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
         where TDeclaration : SyntaxNode
     {
-        public override Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
+        public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
         public override string DiagnosticId { get; }
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             string diagnosticId,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
-            Option<CodeStyleOption<ExpressionBodyPreference>> option,
+            Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
             DiagnosticId = diagnosticId;
@@ -60,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             return null;
         }
-
 
         protected static BlockSyntax GetBodyFromSingleGetAccessor(AccessorListSyntax accessorList)
             => GetSingleGetAccessor(accessorList)?.Body;

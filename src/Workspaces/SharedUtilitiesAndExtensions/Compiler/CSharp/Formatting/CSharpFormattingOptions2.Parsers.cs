@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    public static partial class CSharpFormattingOptions
+    internal static partial class CSharpFormattingOptions2
     {
         internal static bool DetermineIfSpaceOptionIsSet(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
             => (from v in value.Split(',').Select(v => v.Trim())

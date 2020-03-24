@@ -2966,5 +2966,177 @@ chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: CSharpLatestImplicit);
         }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+    [||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
     }
 }
