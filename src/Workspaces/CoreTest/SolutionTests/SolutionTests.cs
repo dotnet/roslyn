@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static IEnumerable<T> OnceEnumerableImpl<T>(StrongBox<int> counter, T[] items)
         {
-            Assert.True(counter.Value == 0);
+            Assert.Equal(0, counter.Value);
+            counter.Value++;
 
             foreach (var item in items)
             {
                 yield return item;
             }
 
-            counter.Value++;
         }
 
         [Fact]
@@ -514,13 +514,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // any character is allowed
             var path = "\0<>a/b/*.dll";
 
-            var newSolution = solution.WithProjectOutputFilePath(projectId, path);
-            Assert.Equal(path, newSolution.GetProject(projectId)!.OutputFilePath);
-
-            Assert.Same(newSolution, newSolution.WithProjectOutputFilePath(projectId, path));
-
-            var newSolution2 = solution.WithProjectOutputFilePath(projectId, null);
-            Assert.Null(newSolution2.GetProject(projectId)!.OutputFilePath);
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectOutputFilePath(projectId, value),
+                s => s.GetProject(projectId)!.OutputFilePath,
+                (string?)path,
+                defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputFilePath(ProjectId.CreateNewId(), "x.dll"));
@@ -537,13 +536,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // any character is allowed
             var path = "\0<>a/b/*.dll";
 
-            var newSolution = solution.WithProjectOutputRefFilePath(projectId, path);
-            Assert.Equal(path, newSolution.GetProject(projectId)!.OutputRefFilePath);
-
-            Assert.Same(newSolution, newSolution.WithProjectOutputRefFilePath(projectId, path));
-
-            var newSolution2 = solution.WithProjectOutputRefFilePath(projectId, null);
-            Assert.Null(newSolution2.GetProject(projectId)!.OutputRefFilePath);
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectOutputRefFilePath(projectId, value),
+                s => s.GetProject(projectId)!.OutputRefFilePath,
+                (string?)path,
+                defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputRefFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputRefFilePath(ProjectId.CreateNewId(), "x.dll"));
@@ -560,13 +558,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // any character is allowed
             var defaultNamespace = "\0<>a/b/*";
 
-            var newSolution = solution.WithProjectDefaultNamespace(projectId, defaultNamespace);
-            Assert.Equal(defaultNamespace, newSolution.GetProject(projectId)!.DefaultNamespace);
-
-            Assert.Same(newSolution, newSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
-
-            var newSolution2 = solution.WithProjectDefaultNamespace(projectId, null);
-            Assert.Null(newSolution2.GetProject(projectId)!.DefaultNamespace);
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectDefaultNamespace(projectId, value),
+                s => s.GetProject(projectId)!.DefaultNamespace,
+                (string?)defaultNamespace,
+                defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectDefaultNamespace(null!, "x"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectDefaultNamespace(ProjectId.CreateNewId(), "x"));
@@ -583,12 +580,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // any character is allowed
             var projectName = "\0<>a/b/*";
 
-            var newSolution = solution.WithProjectName(projectId, projectName);
-            Assert.Equal(projectName, newSolution.GetProject(projectId)!.Name);
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectName(projectId, value),
+                s => s.GetProject(projectId)!.Name,
+                projectName,
+                defaultThrows: true);
 
-            Assert.Same(newSolution, newSolution.WithProjectName(projectId, projectName));
-
-            Assert.Throws<ArgumentNullException>("name", () => solution.WithProjectName(projectId, null!));
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectName(null!, "x"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectName(ProjectId.CreateNewId(), "x"));
         }
@@ -604,13 +602,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // any character is allowed
             var path = "\0<>a/b/*.csproj";
 
-            var newSolution = solution.WithProjectFilePath(projectId, path);
-            Assert.Equal(path, newSolution.GetProject(projectId)!.FilePath);
-
-            Assert.Same(newSolution, newSolution.WithProjectFilePath(projectId, path));
-
-            var newSolution2 = solution.WithProjectFilePath(projectId, null);
-            Assert.Null(newSolution2.GetProject(projectId)!.DefaultNamespace);
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectFilePath(projectId, value),
+                s => s.GetProject(projectId)!.FilePath,
+                (string?)path,
+                defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectFilePath(null!, "x"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectFilePath(ProjectId.CreateNewId(), "x"));
@@ -626,13 +623,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var options = new CSharpCompilationOptions(OutputKind.NetModule);
 
-            var newSolution = solution.WithProjectCompilationOptions(projectId, options);
-            Assert.Same(options, newSolution.GetProject(projectId)!.CompilationOptions);
-
-            Assert.Same(newSolution, newSolution.WithProjectCompilationOptions(projectId, options));
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectCompilationOptions(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOptions!,
+                (CompilationOptions)options,
+                defaultThrows: true);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOptions(null!, options));
-            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectCompilationOptions(projectId, null!));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
@@ -646,13 +644,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var options = new CSharpParseOptions(CS.LanguageVersion.CSharp1);
 
-            var newSolution = solution.WithProjectParseOptions(projectId, options);
-            Assert.Same(options, newSolution.GetProject(projectId)!.ParseOptions);
-
-            Assert.Same(newSolution, newSolution.WithProjectParseOptions(projectId, options));
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectParseOptions(projectId, value),
+                s => s.GetProject(projectId)!.ParseOptions!,
+                (ParseOptions)options,
+                defaultThrows: true);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectParseOptions(null!, options));
-            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectParseOptions(projectId, null!));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectParseOptions(ProjectId.CreateNewId(), options));
         }
 

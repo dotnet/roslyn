@@ -496,8 +496,10 @@ namespace Microsoft.CodeAnalysis
         /// the specified project reference.
         /// </summary>
         public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
-            => AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(
+        {
+            return AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(
                 projectReference ?? throw new ArgumentNullException(nameof(projectReference))));
+        }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include
@@ -600,8 +602,10 @@ namespace Microsoft.CodeAnalysis
         /// specified metadata reference.
         /// </summary>
         public Solution AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
-            => AddMetadataReferences(projectId, SpecializedCollections.SingletonEnumerable(
+        {
+            return AddMetadataReferences(projectId, SpecializedCollections.SingletonEnumerable(
                 metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))));
+        }
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to include the
