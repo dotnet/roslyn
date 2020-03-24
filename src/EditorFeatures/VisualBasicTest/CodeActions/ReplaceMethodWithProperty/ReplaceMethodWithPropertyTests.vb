@@ -912,7 +912,8 @@ end class")
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty), WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
         Public Async Function TestSameNameMemberAsProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
