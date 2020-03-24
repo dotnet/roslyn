@@ -182,6 +182,26 @@
         <target state="translated">Converti in tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Un tipo che implementa System.IDisposable dichiara i campi di tipi che implementano anch'essi IDisposable. Il metodo Dispose del campo non viene chiamato dal metodo Dispose del tipo dichiarante. Per correggere una violazione di questa regola, chiamare Dispose su campi di tipi che implementano IDisposable se si è responsabile dell'allocazione e del rilascio delle risorse non gestite utilizzate dal campo.</target>
@@ -2208,16 +2228,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
         <target state="translated">Aggiungi il controllo 'string.IsNullOrWhiteSpace'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">Crea e inizializza il campo '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">Crea e inizializza la proprietà '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

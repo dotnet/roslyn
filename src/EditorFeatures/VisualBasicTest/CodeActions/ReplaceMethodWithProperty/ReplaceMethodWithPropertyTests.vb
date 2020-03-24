@@ -911,5 +911,41 @@ end class")
     End Function
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        Public Async Function TestSameNameMemberAsProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    Public Goo as integer
+    function [||]GetGoo() as integer
+    End function
+End class",
+"class C
+    Public Goo as integer
+    ReadOnly Property Goo1 as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        <WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")>
+        Public Async Function TestSameNameMemberAsPropertyDifferentCase() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    Public goo as integer
+    function [||]GetGoo() as integer
+    End function
+End class",
+"class C
+    Public goo as integer
+    ReadOnly Property Goo1 as integer
+        Get
+        End Get
+    End Property
+End class")
+        End Function
     End Class
 End Namespace

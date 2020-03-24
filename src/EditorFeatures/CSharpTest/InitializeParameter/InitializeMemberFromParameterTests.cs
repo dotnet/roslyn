@@ -1560,5 +1560,308 @@ class C
     public string S { get; }
 }", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
         }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C(string s, [||]int i)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        this.s = s;
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C([||]int i, string s)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+
+    public C(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]int i, int j, int k)
+    {
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, [||]int j, int k)
+    {
+        this.i = i;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int j;
+
+    public C([||]int i, int j, int k)
+    {
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int k;
+
+    public C([||]int i, int j, int k)
+    {
+        this.k = k;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]int i, int j, int k)
+    {
+    }
+}",
+@"
+class C
+{
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+    public int K { get; }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, [||]int j, int k)
+    {
+        this.i = i;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        J = j;
+        K = k;
+    }
+
+    public int J { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int j;
+
+    public C([||]int i, int j, int k)
+    {
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    private readonly int j;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        this.j = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int k;
+
+    public C([||]int i, int j, int k)
+    {
+        this.k = k;
+    }
+}",
+@"
+class C
+{
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        this.k = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+}", index: 3);
+        }
     }
 }
