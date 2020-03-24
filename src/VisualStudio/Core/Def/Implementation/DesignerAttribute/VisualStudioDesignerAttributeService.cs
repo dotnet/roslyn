@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
@@ -316,7 +317,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(data);
+
+            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var temp);
+            temp.AddRange(data);
+            _workQueue.AddWork(temp);
             return Task.CompletedTask;
         }
 

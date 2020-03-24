@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // we appear semantically unclassified for a very short amount of time.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
 

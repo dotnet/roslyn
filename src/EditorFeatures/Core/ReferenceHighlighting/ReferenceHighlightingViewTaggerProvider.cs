@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 

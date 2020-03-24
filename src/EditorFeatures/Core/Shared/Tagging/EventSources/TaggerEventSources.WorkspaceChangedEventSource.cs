@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -14,18 +16,30 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            private readonly IAsynchronousOperationListener _listener;
+            private readonly AsyncBatchingWorkQueue<bool> _workQueue;
 
             public WorkspaceChangedEventSource(
                 ITextBuffer subjectBuffer,
                 TaggerDelay delay,
-                IAsynchronousOperationListener listener)
+                IAsynchronousOperationListener asyncListener)
                 : base(subjectBuffer, delay)
             {
-                _listener = listener;
+                // Batch items so that if we get a flurry of notifications, we'll only process them all once every short while.
                 _workQueue = new AsyncBatchingWorkQueue<bool>(
                     TimeSpan.FromMilliseconds(250),
-                    )
+                    addItemsToBatch: (batch, _) =>
+                    {
+                        // We only need to keep track of a single item since we don't care what type of event it was.
+                        batch.Clear();
+                        batch.Add(true);
+                    },
+                    processBatchAsync: (_1, _2) =>
+                    {
+                        RaiseChanged();
+                        return Task.CompletedTask;
+                    },
+                    asyncListener,
+                    CancellationToken.None);
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)
@@ -41,9 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs eventArgs)
-            {
-                RaiseChanged();
-            }
+                => _workQueue.AddWork(true);
         }
     }
 }

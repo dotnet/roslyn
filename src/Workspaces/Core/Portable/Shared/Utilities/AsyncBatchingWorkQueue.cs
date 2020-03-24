@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
 {
@@ -21,15 +23,23 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class AsyncBatchingWorkQueue<TItem>
     {
+        public delegate void AddItemsToBatch(ArrayBuilder<TItem> batch, ArrayBuilder<TItem> newItems);
+
         /// <summary>
         /// Delay we wait after finishing the processing of one batch and starting up on then.
         /// </summary>
         private readonly TimeSpan _delay;
 
         /// <summary>
+        /// Callback that actually adds items to the current batch.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<TItem>.AddItemsToBatch _addItemsToBatch;
+
+        /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
         /// </summary>
         private readonly Func<ImmutableArray<TItem>, CancellationToken, Task> _processBatchAsync;
+        private readonly IAsynchronousOperationListener? _asyncListener;
         private readonly CancellationToken _cancellationToken;
 
         #region protected by lock
@@ -45,7 +55,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Data added that we want to process in our next update task.
         /// </summary>
-        private readonly List<TItem> _nextBatch = new List<TItem>();
+        private readonly ArrayBuilder<TItem> _nextBatch = ArrayBuilder<TItem>.GetInstance();
 
         /// <summary>
         /// Task kicked off to do the next batch of processing of <see cref="_nextBatch"/>. These
@@ -66,9 +76,27 @@ namespace Roslyn.Utilities
             TimeSpan delay,
             Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
             CancellationToken cancellationToken)
+            : this(delay,
+                   (batch, items) => batch.AddRange(items),
+                   processBatchAsync,
+                   asyncListener: null,
+                   cancellationToken)
+        {
+        }
+
+        /// <param name="processBatchAsync">Callback to add the new items to the current batch.  It is legal to mutate
+        /// the current batch (for example, clearing the batch or deduplicating)</param>
+        public AsyncBatchingWorkQueue(
+            TimeSpan delay,
+            AddItemsToBatch addItemsToBatch,
+            Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            IAsynchronousOperationListener? asyncListener,
+            CancellationToken cancellationToken)
         {
             _delay = delay;
+            _addItemsToBatch = addItemsToBatch;
             _processBatchAsync = processBatchAsync;
+            _asyncListener = asyncListener;
             _cancellationToken = cancellationToken;
         }
 
@@ -80,7 +108,7 @@ namespace Roslyn.Utilities
             AddWork(items);
         }
 
-        public void AddWork(IEnumerable<TItem> items)
+        public void AddWork(ArrayBuilder<TItem> items)
         {
             // Don't do any more work if we've been asked to shutdown.
             if (_cancellationToken.IsCancellationRequested)
@@ -89,21 +117,7 @@ namespace Roslyn.Utilities
             lock (_gate)
             {
                 // add our work to the set we'll process in the next batch.
-                _nextBatch.AddRange(items);
-                TryKickOffNextBatchTask();
-            }
-        }
-
-        public void AddWork(ImmutableArray<TItem> items)
-        {
-            // Don't do any more work if we've been asked to shutdown.
-            if (_cancellationToken.IsCancellationRequested)
-                return;
-
-            lock (_gate)
-            {
-                // add our work to the set we'll process in the next batch.
-                _nextBatch.AddRange(items);
+                _addItemsToBatch(batch: _nextBatch, newItems: items);
                 TryKickOffNextBatchTask();
             }
         }
@@ -115,12 +129,15 @@ namespace Roslyn.Utilities
                 // No in-flight task.  Kick one off to process these messages a second from now.
                 // We always attach the task to the previous one so that notifications to the ui
                 // follow the same order as the notification the OOP server sent to us.
+                var token = _asyncListener?.BeginAsyncOperation(nameof(TryKickOffNextBatchTask));
+
                 _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                     _ => ProcessNextBatchAsync(_cancellationToken),
                     _cancellationToken,
                     (int)_delay.TotalMilliseconds,
                     TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.Default);
+                    TaskScheduler.Default).CompletesAsyncOperation(token);
+
                 _taskInFlight = true;
             }
         }

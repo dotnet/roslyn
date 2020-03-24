@@ -28,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
     {
         private readonly object _uniqueKey = new object();
-        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IForegroundNotificationService _notificationService;
+
+        protected readonly IAsynchronousOperationListener AsyncListener;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IForegroundNotificationService notificationService)
             : base(threadingContext)
         {
-            _asyncListener = asyncListener;
+            AsyncListener = asyncListener;
             _notificationService = notificationService;
 
 #if DEBUG
@@ -110,14 +111,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(ThreadingContext, _asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            return new Tagger(ThreadingContext, AsyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener, _notificationService);
 
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
                 tagSource.Disposed += (s, e) => this.RemoveTagSource(textViewOpt, subjectBuffer);

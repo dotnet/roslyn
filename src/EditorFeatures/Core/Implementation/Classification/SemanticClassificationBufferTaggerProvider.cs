@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
-            return new Tagger(this, buffer) as IAccurateTagger<T>;
+            return new Tagger(this, buffer, _asyncListener) as IAccurateTagger<T>;
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
