@@ -3,15 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseThrowExpression;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-#else
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
 {

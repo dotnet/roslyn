@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-            CodeStyleOption<bool> option = null;
+            CodeStyleOption2<bool> option = null;
             if (analyzerOptionsOpt != null)
             {
                 // Check if we're at least on C# 8, and that the user wants these operators.

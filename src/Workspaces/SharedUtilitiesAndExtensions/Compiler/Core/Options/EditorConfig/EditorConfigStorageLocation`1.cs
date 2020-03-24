@@ -15,16 +15,12 @@ using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     /// <summary>
     /// Specifies that an option should be read from an .editorconfig file.
     /// </summary>
-    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation, IEditorConfigStorageLocation2
+    internal sealed class EditorConfigStorageLocation<T> : OptionStorageLocation2, IEditorConfigStorageLocation2
     {
         public string KeyName { get; }
 

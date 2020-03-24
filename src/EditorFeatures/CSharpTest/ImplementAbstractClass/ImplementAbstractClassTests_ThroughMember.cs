@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
+        private IDictionary<OptionKey2, object> AllOptionsOff =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         internal Task TestAllOptionsOffAsync(
             string initialMarkup,
             string expectedMarkup,
-            IDictionary<OptionKey, object> options = null,
+            IDictionary<OptionKey2, object> options = null,
             ParseOptions parseOptions = null)
         {
-            options ??= new Dictionary<OptionKey, object>();
+            options ??= new Dictionary<OptionKey2, object>();
             foreach (var kvp in AllOptionsOff)
             {
                 options.Add(kvp);

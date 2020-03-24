@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    option: null,
-                   new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    configurable: false)
         {
         }
@@ -38,12 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            if (!(context.Options is WorkspaceAnalyzerOptions options))
-            {
-                return;
-            }
-
-            var fadeCode = options.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
             var tree = context.SemanticModel.SyntaxTree;
             var semanticModel = context.SemanticModel;

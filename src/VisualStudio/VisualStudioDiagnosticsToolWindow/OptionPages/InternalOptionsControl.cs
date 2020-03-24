@@ -187,22 +187,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (languageName == null)
             {
-                BindToOption(checkBox, (Option<bool>)option);
+                BindToOption(checkBox, (Option2<bool>)option);
                 return;
             }
 
-            BindToOption(checkBox, (PerLanguageOption<bool>)option, languageName);
+            BindToOption(checkBox, (PerLanguageOption2<bool>)option, languageName);
         }
 
         private void BindToTextBox(TextBox textBox, IOption option, string languageName = null)
         {
             if (languageName == null)
             {
-                BindToOption(textBox, (Option<int>)option);
+                BindToOption(textBox, (Option2<int>)option);
                 return;
             }
 
-            BindToOption(textBox, (PerLanguageOption<int>)option, languageName);
+            BindToOption(textBox, (PerLanguageOption2<int>)option, languageName);
         }
     }
 }

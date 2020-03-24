@@ -186,6 +186,9 @@
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unreachable_code_detected" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>

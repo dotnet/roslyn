@@ -22,6 +22,11 @@
         <target state="new">Simplify 'default' expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="new">Unreachable code detected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
         <target state="new">Use block body for accessors</target>
