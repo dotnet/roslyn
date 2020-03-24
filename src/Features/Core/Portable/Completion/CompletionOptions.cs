@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Completion
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
         public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new PerLanguageOption2<bool>(
-            nameof(CompletionOptions), nameof(BlockForCompletionItems2), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{BlockForCompletionItems2}"));
+            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
 
 #pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
         public static readonly PerLanguageOption<bool> BlockForCompletionItems = (PerLanguageOption<bool>)BlockForCompletionItems2!;
