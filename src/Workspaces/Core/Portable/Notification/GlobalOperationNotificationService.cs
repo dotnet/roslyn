@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Notification
             var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
             if (ev.HasHandlers)
             {
-                return _eventQueue.ScheduleTask("GlobalOperationStarted", () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+                return _eventQueue.ScheduleTask(GlobalOperationStartedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
             }
 
             return Task.CompletedTask;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Notification
             if (ev.HasHandlers)
             {
                 var args = new GlobalOperationEventArgs(operations, cancelled);
-                return _eventQueue.ScheduleTask("GlobalOperationStopped", () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
+                return _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
             }
 
             return Task.CompletedTask;

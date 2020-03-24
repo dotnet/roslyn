@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        internal class OptionService : IWorkspaceOptionService
+        internal sealed class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
             private readonly TaskQueue _taskQueue;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                _taskQueue.ScheduleTask("OptionsService.OnGlobalOptionServiceOptionChanged", () =>
+                _taskQueue.ScheduleTask(nameof(OptionService) + "." + nameof(OnGlobalOptionServiceOptionChanged), () =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread

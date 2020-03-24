@@ -166,7 +166,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public void StopWatching(string fileName, string directoryPath)
             {
-                _taskQueue.ScheduleTask("StopWatching", () => _fileWatcher.StopWatching(fileName, directoryPath), CancellationToken.None);
+                _taskQueue.ScheduleTask(nameof(DeferredFileWatcher) + "." + nameof(StopWatching),
+                    () => _fileWatcher.StopWatching(fileName, directoryPath),
+                    CancellationToken.None);
             }
         }
     }

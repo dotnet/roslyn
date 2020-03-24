@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // capture state if it exists
             var state = BuildInprogressState;
 
-            _taskQueue.ScheduleTask("ClearErrors", () =>
+            _taskQueue.ScheduleTask(nameof(ClearErrors), () =>
             {
                 // this will get called if the project is actually built by "build" command.
                 // we track what project has been built, so that later we can clear any stale live errors

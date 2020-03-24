@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 // get off from option changed event handler since it runs on UI thread
                 // getting analyzer can be slow for the very first time since it is lazily initialized
-                _eventProcessingQueue.ScheduleTask("ReanalyzeOnOptionChange", () =>
+                _eventProcessingQueue.ScheduleTask(nameof(ReanalyzeOnOptionChange), () =>
                 {
                     // Force analyze all analyzers if background analysis scope has changed.
                     var forceAnalyze = e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption;
