@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsSquiggleTaggerProvider(

@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Xunit;
-using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
+using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
         InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.Expressions),
         InlineData(",  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements)]
-        static void TestParseParenthesesSpaceOptionsTrue(string value, CSharpFormattingOptions.SpacingWithinParenthesesOption parenthesesSpacingOption)
+        static void TestParseParenthesesSpaceOptionsTrue(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
         {
             Assert.True(DetermineIfSpaceOptionIsSet(value, parenthesesSpacingOption),
                         $"Expected option {value} to be parsed as set.");

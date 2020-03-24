@@ -6,16 +6,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -262,6 +256,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 currentToken.Kind() == SyntaxKind.OmittedTypeArgumentToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            if (previousToken.IsKind(SyntaxKind.CloseBracketToken) &&
+                previousToken.Parent.IsKind(SyntaxKind.AttributeList) &&
+                previousToken.Parent.IsParentKind(SyntaxKind.Parameter))
+            {
+                if (currentToken.IsKind(SyntaxKind.OpenBracketToken))
+                {
+                    // multiple attribute on parameter stick together
+                    // void M([...][...]
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+                else
+                {
+                    // attribute is spaced from parameter type
+                    // void M([...] int
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // extension method on tuple type

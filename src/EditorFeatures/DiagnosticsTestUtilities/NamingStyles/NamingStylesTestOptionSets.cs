@@ -3,35 +3,36 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 {
-    public sealed class NamingStylesTestOptionSets
+#if !CODE_STYLE
+    using IOptionsCollection = IDictionary<OptionKey2, object>;
+#endif
+
+    internal sealed class NamingStylesTestOptionSets
     {
-        private readonly OptionKey _optionKey;
+        private readonly string _languageName;
+        private readonly OptionKey2 _optionKey;
 
         public NamingStylesTestOptionSets(string languageName)
         {
+            _languageName = languageName;
             _optionKey = NamingStyleOptions.GetNamingPreferencesOptionKey(languageName);
         }
 
-        public OptionKey OptionKey => _optionKey;
+        public OptionKey2 OptionKey => _optionKey;
 
-        public IDictionary<OptionKey, object> MergeStyles(IDictionary<OptionKey, object> first, IDictionary<OptionKey, object> second, string languageName)
+        internal IOptionsCollection MergeStyles(IOptionsCollection first, IOptionsCollection second, string languageName)
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
@@ -41,70 +42,70 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)));
         }
 
-        public IDictionary<OptionKey, object> ClassNamesArePascalCase =>
+        internal IOptionsCollection ClassNamesArePascalCase =>
             Options(_optionKey, ClassNamesArePascalCaseOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCase =>
+        internal IOptionsCollection FieldNamesAreCamelCase =>
             Options(_optionKey, FieldNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscorePrefix =>
+        internal IOptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithUnderscorePrefixOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
+        internal IOptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
 
-        public IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
+        internal IOptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
 
-        public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
+        internal IOptionsCollection MethodNamesArePascalCase =>
             Options(_optionKey, MethodNamesArePascalCaseOption());
 
-        public IDictionary<OptionKey, object> MethodNamesAreCamelCase =>
+        internal IOptionsCollection MethodNamesAreCamelCase =>
             Options(_optionKey, MethodNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
+        internal IOptionsCollection ParameterNamesAreCamelCase =>
             Options(_optionKey, ParameterNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
+        internal IOptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
             Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
-        public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
+        internal IOptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
             Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
 
-        public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
+        internal IOptionsCollection LocalNamesAreCamelCase =>
             Options(_optionKey, LocalNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> LocalFunctionNamesAreCamelCase =>
+        internal IOptionsCollection LocalFunctionNamesAreCamelCase =>
             Options(_optionKey, LocalFunctionNamesAreCamelCaseOption());
 
-        public IDictionary<OptionKey, object> PropertyNamesArePascalCase =>
+        internal IOptionsCollection PropertyNamesArePascalCase =>
             Options(_optionKey, PropertyNamesArePascalCaseOption());
 
-        public IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
+        internal IOptionsCollection InterfaceNamesStartWithI =>
             Options(_optionKey, InterfaceNamesStartWithIOption());
 
-        public IDictionary<OptionKey, object> TypeParameterNamesStartWithT =>
+        internal IOptionsCollection TypeParameterNamesStartWithT =>
             Options(_optionKey, TypeParameterNamesStartWithTOption());
 
-        public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
+        internal IOptionsCollection ConstantsAreUpperCase =>
             Options(_optionKey, ConstantsAreUpperCaseOption());
 
-        public IDictionary<OptionKey, object> LocalsAreCamelCaseConstantsAreUpperCase =>
+        internal IOptionsCollection LocalsAreCamelCaseConstantsAreUpperCase =>
             Options(_optionKey, LocalsAreCamelCaseConstantsAreUpperCaseOption());
 
-        public IDictionary<OptionKey, object> AsyncFunctionNamesEndWithAsync =>
+        internal IOptionsCollection AsyncFunctionNamesEndWithAsync =>
             Options(_optionKey, AsyncFunctionNamesEndWithAsyncOption());
 
-        public IDictionary<OptionKey, object> MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
+        internal IOptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
             Options(_optionKey, MethodNamesArePascalCaseOption(accessibilities));
 
-        internal IDictionary<OptionKey, object> SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
+        internal IOptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
             Options(_optionKey, SymbolKindsArePascalCaseOption(symbolKinds));
 
-        internal IDictionary<OptionKey, object> SymbolKindsArePascalCaseEmpty() =>
+        internal IOptionsCollection SymbolKindsArePascalCaseEmpty() =>
             Options(_optionKey, SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty));
 
-        internal IDictionary<OptionKey, object> SymbolKindsArePascalCase(object symbolOrTypeKind) =>
+        internal IOptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind) =>
             SymbolKindsArePascalCase(ImmutableArray.Create(ToSymbolKindOrTypeKind(symbolOrTypeKind)));
 
         internal static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
@@ -125,16 +126,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             }
         }
 
-        internal IDictionary<OptionKey, object> AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
+        internal IOptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
             Options(_optionKey, AccessibilitiesArePascalCaseOption(accessibilities));
 
-        private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
+#if CODE_STYLE
+        private IOptionsCollection Options(OptionKey2 option, object value)
+            => Options(new[] { (option, value) });
+
+        private IOptionsCollection Options(params (OptionKey2 key, object value)[] options)
+            => new OptionsCollection(_languageName, options);
+
+#else
+        private static IOptionsCollection Options(OptionKey2 option, object value)
         {
-            return new Dictionary<OptionKey, object>
+            return new Dictionary<OptionKey2, object>
             {
                 { option, value }
             };
         }
+#endif
 
         private static NamingStylePreferences ClassNamesArePascalCaseOption()
         {

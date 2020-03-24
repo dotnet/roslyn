@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var position = hostDocument.CursorPosition.Value;
                 var text = hostDocument.GetTextBuffer().CurrentSnapshot.AsText();
                 var options = workspace.Options
-                    .WithChangedOption(CompletionOptions.TriggerOnTypingLetters, hostDocument.Project.Language, triggerOnLetter)
+                    .WithChangedOption(CompletionOptions.TriggerOnTypingLetters2, hostDocument.Project.Language, triggerOnLetter)
                     .WithChangedOption(CompletionOptions.TriggerInArgumentLists, hostDocument.Project.Language, showCompletionInArgumentLists);
                 var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);
 

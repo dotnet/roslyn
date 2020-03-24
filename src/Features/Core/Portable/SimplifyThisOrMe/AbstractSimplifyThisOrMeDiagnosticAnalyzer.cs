@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
+                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             // used so we can provide a link in the preview to the options page. This value is
             // hard-coded there to be the one that will go to the code-style page.
-            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
+            builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(

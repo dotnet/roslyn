@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
-                   CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod,
+                   CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpFeaturesResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var option = context.Options.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
+            var option = context.Options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;
