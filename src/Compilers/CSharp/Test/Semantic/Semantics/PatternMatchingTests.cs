@@ -5012,7 +5012,7 @@ class Derived : Base
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
@@ -5038,7 +5038,7 @@ public class Program
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
@@ -5127,7 +5127,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
             CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
@@ -5576,10 +5576,10 @@ namespace System
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 2:     // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
-                // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int _:  // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );

@@ -266,7 +266,7 @@ class Program
                 var source = string.Format(sourceTemplate, s1, s2, s3);
                 var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
-                    // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case (_, _): // error - subsumed
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
@@ -864,7 +864,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (20,18): error CS8120: The switch case has already been handled by a previous case.
+                // (20,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var _: return 4;
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
@@ -930,7 +930,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                // (6,61): error CS8410: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         string s2 = s switch { null => null, string t => t, "foo" => null };
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
                 );
@@ -2454,16 +2454,16 @@ public class C
 }
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
-                    // (7,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (7,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case < int.MinValue: break; // 1
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< int.MinValue").WithLocation(7, 18),
-                    // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case > int.MaxValue: break; // 2
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> int.MaxValue").WithLocation(9, 18),
-                    // (17,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case < 0: break; // 3
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< 0").WithLocation(17, 18),
-                    // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case > uint.MaxValue: break; // 4
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> uint.MaxValue").WithLocation(19, 18)
                 );

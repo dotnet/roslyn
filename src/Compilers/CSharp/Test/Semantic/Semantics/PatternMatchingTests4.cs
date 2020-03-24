@@ -1854,7 +1854,7 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (13,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
