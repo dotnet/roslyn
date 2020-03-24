@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -100,7 +101,10 @@ namespace Microsoft.Cci
         /// Compares calling conventions, ignoring calling convention attributes.
         /// </summary>
         internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
-            => ((original & (CallingConvention)SignatureMask)) == compare;
+        {
+            Debug.Assert((compare & (CallingConvention)SignatureMask) == 0);
+            return ((original & (CallingConvention)SignatureMask)) == compare;
+        }
 
         internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
             => (convention & ~((CallingConvention)SignatureMask)) switch

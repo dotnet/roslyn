@@ -2994,7 +2994,7 @@ public unsafe class C : I1, I2 {
         }
 
         [Fact]
-        public void UnconstrainedGenericNotAllowed()
+        public void TypeArgumentNotSpecifiedNotInferred()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
@@ -3020,7 +3020,7 @@ unsafe class C
         }
 
         [Fact]
-        public void ConstrainedGenericAllowed()
+        public void TypeArgumentSpecifiedOrInferred()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
@@ -3068,14 +3068,18 @@ unsafe class C
 {
     static void M(C c)
     {
-        delegate*<C, void> ptr = &c.M1;
+        delegate*<C, void> ptr1 = &c.M1;
+        delegate*<void> ptr2 = &c.M1;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (10,34): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
-                //         delegate*<C, void> ptr = &c.M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 34)
+                // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
+                //         delegate*<C, void> ptr1 = &c.M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 35),
+                // (11,32): error CS8757: No overload for 'M1' matches function pointer 'delegate*<void>'
+                //         delegate*<void> ptr2 = &c.M1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<void>").WithLocation(11, 32)
             );
         }
 
@@ -3123,7 +3127,7 @@ unsafe class C
         }
 
         [Fact]
-        public void BadScenariosDontCrash()
+        public void BadScenariosDontCrash_01()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
@@ -3133,17 +3137,8 @@ unsafe class C
     {
         &delegate*<void> ptr = &M1;
     }
-    static void M3(C c)
-    {
-        // Wrong accessiblity, can't reference reduced extension method
-        delegate*<C, void> ptr = c.H1;
-    }
 }
-static class CHelper
-{
-    // Wrong accessiblity
-    public static void H1(this C c) {}
-}");
+");
 
             comp.VerifyDiagnostics(
                 // (7,18): error CS1514: { expected
@@ -3157,10 +3152,32 @@ static class CHelper
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(7, 20),
                 // (7,26): error CS0103: The name 'ptr' does not exist in the current context
                 //         &delegate*<void> ptr = &M1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "ptr").WithArguments("ptr").WithLocation(7, 26),
-                // (12,36): error CS8757: No overload for 'H1' matches function pointer 'delegate*<C,void>'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ptr").WithArguments("ptr").WithLocation(7, 26)
+            );
+        }
+
+        [Fact]
+        public void BadScenariosDontCrash_02()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M1(C c)
+    {
+        // Wrong accessiblity, can't reference reduced extension method
+        delegate*<C, void> ptr = c.H1;
+    }
+}
+static class CHelper
+{
+    // Wrong accessiblity
+    static void H1(this C c) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,36): error CS1061: 'C' does not contain a definition for 'H1' and no accessible extension method 'H1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         delegate*<C, void> ptr = c.H1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "H1").WithArguments("H1", "delegate*<C,void>").WithLocation(12, 36)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "H1").WithArguments("C", "H1").WithLocation(7, 36)
             );
         }
 
