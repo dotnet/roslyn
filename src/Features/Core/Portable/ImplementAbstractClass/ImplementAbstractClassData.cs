@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_classNode);
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(_classNode);
 
             return GenerateMember(compilation, member, throughMember, addUnsafe, propertyGenerationBehavior);
         }

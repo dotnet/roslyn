@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         [DebuggerHidden]
         public static void FailFast(Exception exception)
         {
+            Microsoft.CodeAnalysis.FailFast.DumpStackTrace(exception);
+
             RaiseFailFastException(IntPtr.Zero, IntPtr.Zero, 0);
 
             // the RaiseFailFastException above may have not actually killed the process if a

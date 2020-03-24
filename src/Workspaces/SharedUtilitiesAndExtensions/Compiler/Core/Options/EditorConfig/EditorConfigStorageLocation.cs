@@ -7,11 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     internal static class EditorConfigStorageLocation
     {
@@ -24,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
             => new EditorConfigStorageLocation<string>(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
 
-        public static EditorConfigStorageLocation<CodeStyleOption<bool>> ForBoolCodeStyleOption(string keyName)
-            => new EditorConfigStorageLocation<CodeStyleOption<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
+        public static EditorConfigStorageLocation<CodeStyleOption2<bool>> ForBoolCodeStyleOption(string keyName)
+            => new EditorConfigStorageLocation<CodeStyleOption2<bool>>(keyName, s_parseBoolCodeStyleOption, s_getBoolCodeStyleOptionEditorConfigStringForValue);
 
-        public static EditorConfigStorageLocation<CodeStyleOption<string>> ForStringCodeStyleOption(string keyName)
-            => new EditorConfigStorageLocation<CodeStyleOption<string>>(keyName, s_parseStringCodeStyleOption, s_getStringCodeStyleOptionEditorConfigStringForValue);
+        public static EditorConfigStorageLocation<CodeStyleOption2<string>> ForStringCodeStyleOption(string keyName)
+            => new EditorConfigStorageLocation<CodeStyleOption2<string>>(keyName, s_parseStringCodeStyleOption, s_getStringCodeStyleOptionEditorConfigStringForValue);
 
         private static readonly Func<string, Optional<bool>> s_parseBool = ParseBool;
         private static Optional<bool> ParseBool(string str)
@@ -58,18 +54,18 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<string, string> s_getStringEditorConfigStringForValue = GetStringEditorConfigStringForValue;
         private static string GetStringEditorConfigStringForValue(string value) => value.ToString().Replace("\r", "\\r").Replace("\n", "\\n");
 
-        private static readonly Func<string, Optional<CodeStyleOption<bool>>> s_parseBoolCodeStyleOption = ParseBoolCodeStyleOption;
-        private static Optional<CodeStyleOption<bool>> ParseBoolCodeStyleOption(string str)
-            => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
-        private static readonly Func<CodeStyleOption<bool>, string> s_getBoolCodeStyleOptionEditorConfigStringForValue = GetBoolCodeStyleOptionEditorConfigStringForValue;
-        private static string GetBoolCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<bool> value)
+        private static readonly Func<string, Optional<CodeStyleOption2<bool>>> s_parseBoolCodeStyleOption = ParseBoolCodeStyleOption;
+        private static Optional<CodeStyleOption2<bool>> ParseBoolCodeStyleOption(string str)
+            => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption2<bool>>();
+        private static readonly Func<CodeStyleOption2<bool>, string> s_getBoolCodeStyleOptionEditorConfigStringForValue = GetBoolCodeStyleOptionEditorConfigStringForValue;
+        private static string GetBoolCodeStyleOptionEditorConfigStringForValue(CodeStyleOption2<bool> value)
             => $"{(value.Value ? "true" : "false")}:{value.Notification.ToEditorConfigString()}";
 
-        private static readonly Func<string, Optional<CodeStyleOption<string>>> s_parseStringCodeStyleOption = ParseStringCodeStyleOption;
-        private static Optional<CodeStyleOption<string>> ParseStringCodeStyleOption(string str)
-            => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<string>>();
-        private static readonly Func<CodeStyleOption<string>, string> s_getStringCodeStyleOptionEditorConfigStringForValue = GetStringCodeStyleOptionEditorConfigStringForValue;
-        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value)
+        private static readonly Func<string, Optional<CodeStyleOption2<string>>> s_parseStringCodeStyleOption = ParseStringCodeStyleOption;
+        private static Optional<CodeStyleOption2<string>> ParseStringCodeStyleOption(string str)
+            => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption2<string>>();
+        private static readonly Func<CodeStyleOption2<string>, string> s_getStringCodeStyleOptionEditorConfigStringForValue = GetStringCodeStyleOptionEditorConfigStringForValue;
+        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption2<string> value)
             => $"{value.Value.ToLowerInvariant()}:{value.Notification.ToEditorConfigString()}";
     }
 }

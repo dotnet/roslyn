@@ -4,11 +4,7 @@
 
 using System;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle
-#else
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
-#endif
 {
     [Flags]
     internal enum UseVarPreference

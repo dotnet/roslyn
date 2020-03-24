@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        protected static Dictionary<OptionKey, object> GetIndentionColumn(int column)
-            => new Dictionary<OptionKey, object>
+        private protected static Dictionary<OptionKey2, object> GetIndentionColumn(int column)
+            => new Dictionary<OptionKey2, object>
                {
-                   { FormattingOptions.PreferredWrappingColumn, column }
+                   { FormattingOptions2.PreferredWrappingColumn, column }
                };
 
         protected Task TestAllWrappingCasesAsync(
@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             return TestAllWrappingCasesAsync(input, options: null, outputs);
         }
 
-        protected Task TestAllWrappingCasesAsync(
+        private protected Task TestAllWrappingCasesAsync(
             string input,
-            IDictionary<OptionKey, object> options,
+            IDictionary<OptionKey2, object> options,
             params string[] outputs)
         {
             var parameters = new TestParameters(options: options);

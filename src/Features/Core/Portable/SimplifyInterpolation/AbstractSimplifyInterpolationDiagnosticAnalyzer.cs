@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
-                  CodeStyleOptions.PreferSimplifiedInterpolation,
+                  CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                   new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             var language = interpolation.Language;
-            var option = optionSet.GetOption(CodeStyleOptions.PreferSimplifiedInterpolation, language);
+            var option = optionSet.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
                 // No point in analyzing if the option is off.
