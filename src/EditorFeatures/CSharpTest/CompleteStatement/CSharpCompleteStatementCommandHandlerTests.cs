@@ -1894,8 +1894,18 @@ public class SaleItem
       set => name = value;
    }
 }";
+            var expected = @"
+public class SaleItem
+{
+   string name;
+   public string Name 
+   {
+      get => name.ToUpper();$$
+      set => name = value;
+   }
+}";
 
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]

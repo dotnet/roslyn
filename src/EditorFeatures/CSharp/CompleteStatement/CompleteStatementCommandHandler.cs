@@ -187,7 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 }
                 return;
             }
-            else if (syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration))
+            else if (syntaxFacts.IsStatement(currentNode)
+                || currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
             {
                 MoveCaretToFinalPositionInStatement(currentNode, args, caret, isInsideDelimiters);
                 return;
@@ -255,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.ArrowExpressionClause:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
