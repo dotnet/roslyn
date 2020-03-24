@@ -9,6 +9,13 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
+    /// <summary>
+    /// Internal base option type that is available in both the Workspaces layer and CodeStyle layer.
+    /// Its definition in Workspaces layer sub-types "IOption" and its definition in CodeStyle layer
+    /// explicitly defines all the members from "IOption" type as "IOption" is not available in CodeStyle layer.
+    /// This ensures that all the sub-types of <see cref="IOption2"/> in either layer see an identical
+    /// set of interface members.
+    /// </summary>
     internal interface IOption2 : IEquatable<IOption2?>
 #if !CODE_STYLE
         , IOption

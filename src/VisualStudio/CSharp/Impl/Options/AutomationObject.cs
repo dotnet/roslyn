@@ -59,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int BringUpOnIdentifier
         {
-            get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters); }
-            set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
+            get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters2); }
+            set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters2, value); }
         }
 
         public int HighlightMatchingPortionsOfCompletionListItems
