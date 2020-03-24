@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
-            var typeParameterList = default(TypeParameterListSyntax);
+            var typeParameterList = (TypeParameterListSyntax)null;
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 

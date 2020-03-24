@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default;
+                return null;
             }
 
             return _items[index];

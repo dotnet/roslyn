@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            AnalyzerConfigSet analyzerConfigSet = default;
+            AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)

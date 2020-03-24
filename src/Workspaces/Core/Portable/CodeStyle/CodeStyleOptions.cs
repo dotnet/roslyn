@@ -131,15 +131,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedBooleanExpressions = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedBooleanExpressions),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_boolean_expressions"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSimplifiedBooleanExpressions")});
+
         internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
-            new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
-                nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
-                defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-                storageLocations:
-                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
-                        "dotnet_style_operator_placement_when_wrapping",
-                        OperatorPlacementUtilities.Parse,
-                        OperatorPlacementUtilities.GetEditorConfigString));
+            CreateOption(CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(OperatorPlacementWhenWrapping),
+            defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+            storageLocations:
+                new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                    "dotnet_style_operator_placement_when_wrapping",
+                    OperatorPlacementUtilities.Parse,
+                    OperatorPlacementUtilities.GetEditorConfigString));
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),

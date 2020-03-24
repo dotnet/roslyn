@@ -186,4 +186,13 @@
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Use_pattern_matching" xml:space="preserve">
+    <value>Use pattern matching</value>
+  </data>
+  <data name="Simplify_default_expression" xml:space="preserve">
+    <value>Simplify 'default' expression</value>
+  </data>
+  <data name="default_expression_can_be_simplified" xml:space="preserve">
+    <value>'default' expression can be simplified</value>
+  </data>
 </root>

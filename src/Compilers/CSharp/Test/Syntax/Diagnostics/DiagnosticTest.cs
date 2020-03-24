@@ -310,12 +310,15 @@ class X
                         case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                         case ErrorCode.WRN_ShouldNotReturn:
                         case ErrorCode.WRN_DoesNotReturnMismatch:
-                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
-                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
-                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
-                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
-                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
-                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_MemberNotNull:
+                        case ErrorCode.WRN_MemberNotNullWhen:
+                        case ErrorCode.WRN_MemberNotNullBadMember:
                         case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                         case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));

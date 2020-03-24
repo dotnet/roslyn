@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var usingDirective = _syntaxFactory.UsingDirective(usingToken, staticToken, alias, name, semicolon);
-            if (staticToken != default(SyntaxToken))
+            if (staticToken != null)
             {
                 usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingStatic);
             }
@@ -1373,13 +1373,13 @@ tryAgain:
             Debug.Assert(!IsInAsync);
 
             var classOrStructOrInterface = this.EatToken();
+
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
-
-            _termState = saveTerm;
             var baseList = this.ParseBaseList();
+            _termState = saveTerm;
 
             // Parse class body
             bool parseMembers = true;
@@ -2212,7 +2212,7 @@ parse_member_name:;
                     {
                         this.Reset(ref afterTypeResetPoint);
                         explicitInterfaceOpt = null;
-                        identifierOrThisOpt = default;
+                        identifierOrThisOpt = null;
                         typeParameterListOpt = null;
                         type = ParseReturnType();
                         goto parse_member_name;
@@ -2957,7 +2957,7 @@ parse_member_name:;
 
         private ExpressionSyntax ParsePossibleRefExpression()
         {
-            var refKeyword = default(SyntaxToken);
+            var refKeyword = (SyntaxToken)null;
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 refKeyword = this.EatToken();
@@ -2965,7 +2965,7 @@ parse_member_name:;
             }
 
             var expression = this.ParseExpressionCore();
-            if (refKeyword != default(SyntaxToken))
+            if (refKeyword != null)
             {
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
             }
@@ -4319,7 +4319,7 @@ tryAgain:
                                     expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
                                 }
 
-                                args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression));
+                                args.Add(_syntaxFactory.Argument(null, refKindKeyword: null, expression));
                             }
                             else
                             {
@@ -4839,7 +4839,7 @@ tryAgain:
             {
                 return _syntaxFactory.TypeParameter(
                     default(SyntaxList<AttributeListSyntax>),
-                    default(SyntaxToken),
+                    varianceKeyword: null,
                     this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
@@ -5304,9 +5304,7 @@ tryAgain:
         }
 
         private bool IsEndOfTypeArgumentList()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
-        }
+            => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
         private bool IsOpenName()
         {
@@ -6336,7 +6334,7 @@ done:;
                     case SyntaxKind.ForKeyword:
                         return this.ParseForOrForEachStatement(attributes);
                     case SyntaxKind.ForEachKeyword:
-                        return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
+                        return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
                     case SyntaxKind.GotoKeyword:
                         return this.ParseGotoStatement(attributes);
                     case SyntaxKind.IfKeyword:
@@ -7448,7 +7446,7 @@ done:;
                 {
                     // Looks like a foreach statement.  Parse it that way instead
                     this.Reset(ref resetPoint);
-                    return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
+                    return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
                 }
                 else
                 {
@@ -7835,7 +7833,7 @@ tryAgain:
                 // As a special case, when a tuple literal is the governing expression of
                 // a switch statement we permit the switch statement's own parentheses to be omitted.
                 // LDM 2018-04-04.
-                openParen = closeParen = default;
+                openParen = closeParen = null;
             }
             else
             {
@@ -7969,7 +7967,7 @@ tryAgain:
             return _syntaxFactory.UnsafeStatement(attributes, @unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = default)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = null)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -8121,12 +8119,12 @@ tryAgain:
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
             {
-                awaitKeyword = default;
+                awaitKeyword = null;
                 usingKeyword = EatToken();
             }
             else
             {
-                awaitKeyword = default;
+                awaitKeyword = null;
                 usingKeyword = null;
                 canParseAsLocalFunction = true;
             }
@@ -10109,7 +10107,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -10119,7 +10117,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -10152,11 +10150,11 @@ tryAgain:
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
                     }
 
                     list.Add(arg);
@@ -10166,7 +10164,7 @@ tryAgain:
                 {
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
                     var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: missing));
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: missing));
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -10978,8 +10976,8 @@ tryAgain:
 
         private (BlockSyntax, ExpressionSyntax) ParseLambdaBody()
             => CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? (ParseBlock(attributes: default), default(ExpressionSyntax))
-                : (default(BlockSyntax), ParsePossibleRefExpression());
+                ? (ParseBlock(attributes: default), (ExpressionSyntax)null)
+                : ((BlockSyntax)null, ParsePossibleRefExpression());
 
         private ParameterListSyntax ParseLambdaParameterList()
         {

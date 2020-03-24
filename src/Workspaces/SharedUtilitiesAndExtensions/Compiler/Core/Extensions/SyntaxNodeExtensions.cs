@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default;
+            return null;
         }
 
         /// <summary>

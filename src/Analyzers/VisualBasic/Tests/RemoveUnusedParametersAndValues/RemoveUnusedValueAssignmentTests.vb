@@ -300,7 +300,6 @@ Class C
         Try
         Catch unused As Exception
             Dim ex As Exception = Nothing
-
             Dim x = ex
         End Try
     End Sub
@@ -425,10 +424,10 @@ End Class")
 End Class",
 $"Class C
     Private Function M() As Integer
+
         'Preceding comment.'
         Dim x As Integer
         Dim y As Integer
-
         If True Then
             x = 2
             y = 2

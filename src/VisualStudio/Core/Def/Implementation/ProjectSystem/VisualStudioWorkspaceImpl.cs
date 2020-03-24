@@ -423,10 +423,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => !IsCPSProject(project);
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
+            => IsCPSProject(project.Id);
+
+        internal bool IsCPSProject(ProjectId projectId)
         {
             _foregroundObject.AssertIsForeground();
 
-            if (this.TryGetHierarchy(project.Id, out var hierarchy))
+            if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
@@ -1487,6 +1490,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 action(this);
+            }
+        }
+
+        /// <summary>
+        /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
+        /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
+        /// </summary>
+        public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
+        {
+            lock (_gate)
+            {
+                SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
             }
         }
 

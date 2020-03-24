@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var descendents = root.DescendantNodes();
-                var semanticModel = default(SemanticModel);
+                var semanticModel = (SemanticModel)null;
 
                 foreach (var type in descendents.OfType<IdentifierNameSyntax>())
                 {

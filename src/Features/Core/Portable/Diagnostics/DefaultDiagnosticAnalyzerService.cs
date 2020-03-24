@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                        document, kind, compilationWithAnalyzers, getSkippedAnalyzersInfo: null, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // a file is removed from a solution
                 //
@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // both of them at the end generates semantic errors
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Syntax, documentId);
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Semantic, documentId);
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
@@ -229,8 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate

@@ -1478,8 +1478,8 @@ index: 1);
     static void Main(string[] args)
     {
         int[] a = null;
-        var {|Rename:v|} = a = new[] { 1, 2, 3 };
-        int[] temp = checked(v);
+        var {|Rename:vs|} = a = new[] { 1, 2, 3 };
+        int[] temp = checked(vs);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -3463,8 +3463,8 @@ public class Test
         {
             int {|Rename:arg|} = x.Resolve();
             return factory(
-     arg
- );
+                        arg
+                    );
         });
 }";
 
@@ -5980,8 +5980,8 @@ class C
     byte[] getArray() => null;
     void test()
     {
-        byte[] {|Rename:v|} = getArray();
-        var goo = v[0];
+        byte[] {|Rename:vs|} = getArray();
+        var goo = vs[0];
     }
 }");
         }
@@ -7397,6 +7397,73 @@ class Bug
     {
     }
 }");
+        }
+
+        [WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestGenerateNameForForeachExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var num in [|GetNumbers()|])
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IEnumerable<int> {|Rename:nums|} = GetNumbers();
+        foreach (var num in nums)
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}");
+        }
+
+        [WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepReplacementIndentation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class D
+{
+    void C(int a)
+    {
+        C(
+            [|1 + 2|]);
+    }
+}",
+@"class D
+{
+    void C(int a)
+    {
+        const int {|Rename:A|} = 1 + 2;
+        C(
+            A);
+    }
+}",
+                index: 3);
         }
     }
 }
