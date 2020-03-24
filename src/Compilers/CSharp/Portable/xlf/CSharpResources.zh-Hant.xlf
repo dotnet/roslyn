@@ -473,13 +473,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="translated">模式已由 switch 運算式的前一個標籤處理。</target>
+        <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
+        <target state="needs-review-translation">模式已由 switch 運算式的前一個標籤處理。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">先前的案例已處理切換案例。</target>
+        <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
+        <target state="needs-review-translation">先前的案例已處理切換案例。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">

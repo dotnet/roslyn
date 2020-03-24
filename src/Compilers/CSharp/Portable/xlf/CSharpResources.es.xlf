@@ -473,13 +473,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="translated">El patrón ya se ha controlado con una parte anterior de la expresión switch.</target>
+        <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
+        <target state="needs-review-translation">El patrón ya se ha controlado con una parte anterior de la expresión switch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">El caso del modificador ya se ha gestionado en un caso anterior.</target>
+        <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
+        <target state="needs-review-translation">El caso del modificador ya se ha gestionado en un caso anterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
