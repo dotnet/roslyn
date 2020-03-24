@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable restore
 
-        internal readonly SimpleProgramBodySemanticModelMergedBoundNodeCache MergedBoundNodeCache;
-
         private MethodBodySemanticModel(
             Symbol owner,
             Binder rootBinder,
@@ -57,16 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
-
-            if (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                Debug.Assert(syntax.Kind() == SyntaxKind.CompilationUnit);
-                MergedBoundNodeCache = entryPoint.GetSemanticModelMergedBoundNodeCache(rootBinder);
-            }
-            else
-            {
-                Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
-            }
+            Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
         }
 
         /// <summary>
@@ -79,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initialState.Body != null)
             {
-                // PROTOTYPE(SimplePrograms): At the moment this code path is not reachable for Simple Programs.
-                //                            However, once/if we adjust MethodCompiler.CompileMethod to change that, we should also make sure we adjust
-                //                            content of SimpleProgramBodySemanticModelMergedBoundNodeCache as appropriate. See what
-                //                            MemberSemanticModel.EnsureNullabilityAnalysisPerformedIfNecessary and IncrementalBinder are doing.
-                Debug.Assert(!(owner is SynthesizedSimpleProgramEntryPointSymbol));
                 result.UnguardedAddBoundTreeForStandaloneSyntax(initialState.Syntax, initialState.Body, initialState.SnapshotManager, initialState.RemappedSymbols);
             }
 

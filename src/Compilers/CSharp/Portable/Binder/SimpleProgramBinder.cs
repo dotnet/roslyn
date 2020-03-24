@@ -28,18 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            // All compilation units contribute top level declarations to this scope
-            foreach (var unit in _entryPoint.GetUnits())
+            foreach (var statement in _entryPoint.CompilationUnit.Members)
             {
-                var enclosing = GetBinder(unit);
-                var scopeBinder = (SimpleProgramUnitBinder)enclosing!.Next!;
-
-                foreach (var statement in unit.Members)
+                if (statement is GlobalStatementSyntax topLevelStatement)
                 {
-                    if (statement is GlobalStatementSyntax topLevelStatement)
-                    {
-                        scopeBinder.BuildLocals(enclosing, topLevelStatement.Statement, locals);
-                    }
+                    this.BuildLocals(this, topLevelStatement.Statement, locals);
                 }
             }
 
@@ -49,17 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
             ArrayBuilder<LocalFunctionSymbol>? locals = null;
-            // All compilation units contribute top level declarations to this scope
-            foreach (var unit in _entryPoint.GetUnits())
-            {
-                var enclosing = (SimpleProgramUnitBinder)GetBinder(unit)!.Next!;
 
-                foreach (var statement in unit.Members)
+            foreach (var statement in _entryPoint.CompilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
                 {
-                    if (statement is GlobalStatementSyntax topLevelStatement)
-                    {
-                        enclosing.BuildLocalFunctions(topLevelStatement.Statement, ref locals);
-                    }
+                    this.BuildLocalFunctions(topLevelStatement.Statement, ref locals);
                 }
             }
 
@@ -78,15 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<LabelSymbol>? labels = null;
 
-            // All compilation units contribute top level declarations to this scope
-            foreach (var unit in _entryPoint.GetUnits())
+            foreach (var statement in _entryPoint.CompilationUnit.Members)
             {
-                foreach (var statement in unit.Members)
+                if (statement is GlobalStatementSyntax topLevelStatement)
                 {
-                    if (statement is GlobalStatementSyntax topLevelStatement)
-                    {
-                        BuildLabels(_entryPoint, topLevelStatement.Statement, ref labels);
-                    }
+                    BuildLabels(_entryPoint, topLevelStatement.Statement, ref labels);
                 }
             }
 

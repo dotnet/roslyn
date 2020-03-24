@@ -37,7 +37,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
         {
-            return (SynthesizedSimpleProgramEntryPointSymbol?)compilation.SourceModule.GlobalNamespace.GetTypeMembers(UnspeakableName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault()?.GetMembersUnordered().Single();
+            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeNonIndexerMembers[0];
+        }
+
+        private static SimpleProgramNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
+        {
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(UnspeakableName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault();
+        }
+
+        internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
+        {
+            var type = GetSimpleProgramNamedTypeSymbol(compilation);
+
+            if (type is null)
+            {
+                return null;
+            }
+
+            ImmutableArray<Symbol> entryPoints = type.GetMembersAndInitializers().NonTypeNonIndexerMembers;
+
+            foreach (SynthesizedSimpleProgramEntryPointSymbol entryPoint in entryPoints)
+            {
+                if (entryPoint.SyntaxTree == compilationUnit.SyntaxTree && entryPoint.SyntaxNode == compilationUnit)
+                {
+                    return entryPoint;
+                }
+            }
+
+            return fallbackToMainEntryPoint ? (SynthesizedSimpleProgramEntryPointSymbol)entryPoints[0] : null;
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
@@ -176,7 +203,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
         {
-            return new MembersAndInitializers(nonTypeNonIndexerMembers: ImmutableArray.Create<Symbol>(new SynthesizedSimpleProgramEntryPointSymbol(this, declaration, diagnostics)),
+            bool reportAnError = false;
+            foreach (var singleDecl in declaration.Declarations)
+            {
+                if (reportAnError)
+                {
+                    Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.SyntaxReference.GetSyntax().GetFirstToken());
+                }
+                else
+                {
+                    reportAnError = true;
+                }
+            }
+
+            return new MembersAndInitializers(nonTypeNonIndexerMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
                                               staticInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
@@ -188,30 +228,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
-            foreach (var singleDecl in MergedDeclaration.Declarations)
+            foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (singleDecl.SyntaxReference.SyntaxTree == tree)
+                if (member.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken))
                 {
-                    if (!definedWithinSpan.HasValue)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        var span = definedWithinSpan.GetValueOrDefault();
-
-                        foreach (var global in ((CompilationUnitSyntax)tree.GetRoot()).Members.OfType<GlobalStatementSyntax>())
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            if (global.Span.IntersectsWith(span))
-                            {
-                                return true;
-                            }
-                        }
-                    }
+                    return true;
                 }
             }
 

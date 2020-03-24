@@ -128,34 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool HasAwaitExpressions
-        {
-            get
-            {
-                foreach (var decl in this.Declarations)
-                {
-                    if (decl.HasAwaitExpressions)
-                        return true;
-                }
-
-                return false;
-            }
-        }
-
-        public bool IsIterator
-        {
-            get
-            {
-                foreach (var decl in this.Declarations)
-                {
-                    if (decl.IsIterator)
-                        return true;
-                }
-
-                return false;
-            }
-        }
-
         public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
         {
             LexicalSortKey sortKey = new LexicalSortKey(Declarations[0].NameLocation, compilation);

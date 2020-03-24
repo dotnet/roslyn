@@ -71,20 +71,20 @@ System.Console.WriteLine();
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (3,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (3,1): error CS9001: Only one compilation unit can have top-level statements.
                 // System.Console.Write("2");
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(3, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(3, 1)
                 );
 
             comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (3,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (3,1): error CS9001: Only one compilation unit can have top-level statements.
                 // System.Console.Write("2");
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(3, 1),
-                // (4,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(3, 1),
+                // (4,1): error CS9001: Only one compilation unit can have top-level statements.
                 // System.Console.Write("3");
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "System").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(4, 1)
                 );
         }
 
@@ -132,20 +132,136 @@ static class Type
         }
 
         [Fact]
-        public void Simple_06()
+        public void Simple_06_01()
+        {
+            var text1 =
+@"
+local();
+void local() => System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            verifyModel(comp, comp.SyntaxTrees[0]);
+
+            comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
+            verifyModel(comp, comp.SyntaxTrees[0], nullableEnabled: true);
+
+            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, bool nullableEnabled = false)
+            {
+                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                var model1 = comp.GetSemanticModel(tree1);
+
+                verifyModelForGlobalStatements(tree1, model1);
+
+                var unit1 = (CompilationUnitSyntax)tree1.GetRoot();
+                var localRef = unit1.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+                var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                Assert.Equal("void local()", refSymbol.ToTestDisplayString());
+                Assert.Contains(refSymbol.Name, model1.LookupNames(localRef.SpanStart));
+                Assert.Contains(refSymbol, model1.LookupSymbols(localRef.SpanStart));
+                Assert.Same(refSymbol, model1.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                var operation1 = model1.GetOperation(localRef.Parent);
+                Assert.NotNull(operation1);
+                Assert.IsAssignableFrom<IInvocationOperation>(operation1);
+
+                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation1.Parent.Parent));
+
+                model1.VerifyOperationTree(unit1,
+@"
+IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local(); ... iteLine(2);')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
+    Expression: 
+      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+        Expression: 
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+            Instance Receiver: 
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
+        ReturnedValue: 
+          null
+");
+                var localDecl = unit1.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+                var declSymbol = model1.GetDeclaredSymbol(localDecl);
+                Assert.Same(refSymbol, declSymbol);
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localDecl.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localDecl.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
+                var operation2 = model1.GetOperation(localDecl);
+                Assert.NotNull(operation2);
+                Assert.IsAssignableFrom<ILocalFunctionOperation>(operation2);
+
+                static void verifyModelForGlobalStatements(SyntaxTree tree1, SemanticModel model1)
+                {
+                    var symbolInfo = model1.GetSymbolInfo(tree1.GetRoot());
+                    Assert.Null(symbolInfo.Symbol);
+                    Assert.Empty(symbolInfo.CandidateSymbols);
+                    Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                    var typeInfo = model1.GetTypeInfo(tree1.GetRoot());
+                    Assert.Null(typeInfo.Type);
+                    Assert.Null(typeInfo.ConvertedType);
+
+                    foreach (var globalStatement in tree1.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>())
+                    {
+                        symbolInfo = model1.GetSymbolInfo(globalStatement);
+                        Assert.Null(model1.GetOperation(globalStatement));
+                        Assert.Null(symbolInfo.Symbol);
+                        Assert.Empty(symbolInfo.CandidateSymbols);
+                        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                        typeInfo = model1.GetTypeInfo(globalStatement);
+                        Assert.Null(typeInfo.Type);
+                        Assert.Null(typeInfo.ConvertedType);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void Simple_06_02()
         {
             var text1 = @"local();";
             var text2 = @"void local() => System.Console.WriteLine(2);";
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "2");
+            comp.VerifyDiagnostics(
+                // (1,1): error CS9001: Only one compilation unit can have top-level statements.
+                // void local() => System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(1, 1),
+                // (1,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(1, 1),
+                // (1,6): warning CS8321: The local function 'local' is declared but never used
+                // void local() => System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(1, 6)
+                );
 
             verifyModel(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1]);
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "2");
+            comp.VerifyDiagnostics(
+                // (1,1): error CS9001: Only one compilation unit can have top-level statements.
+                // local();
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "local").WithLocation(1, 1),
+                // (1,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(1, 1),
+                // (1,6): warning CS8321: The local function 'local' is declared but never used
+                // void local() => System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(1, 6)
+                );
 
             verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
 
@@ -162,50 +278,30 @@ static class Type
                 var unit1 = (CompilationUnitSyntax)tree1.GetRoot();
                 var localRef = unit1.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
                 var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
-                Assert.Equal("void local()", refSymbol.ToTestDisplayString());
-                Assert.Contains(refSymbol.Name, model1.LookupNames(localRef.SpanStart));
-                Assert.Contains(refSymbol, model1.LookupSymbols(localRef.SpanStart));
-                Assert.Same(refSymbol, model1.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                Assert.Null(refSymbol);
+                var name = localRef.Identifier.ValueText;
+                Assert.DoesNotContain(name, model1.LookupNames(localRef.SpanStart));
+                Assert.Empty(model1.LookupSymbols(localRef.SpanStart).Where(s => s.Name == name));
+                Assert.Empty(model1.LookupSymbols(localRef.SpanStart, name: name));
                 var operation1 = model1.GetOperation(localRef.Parent);
                 Assert.NotNull(operation1);
-                Assert.IsAssignableFrom<IInvocationOperation>(operation1);
+                Assert.IsAssignableFrom<IInvalidOperation>(operation1);
 
                 Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation1.Parent.Parent));
 
-                // PROTOTYPE(SimplePrograms): Asking IOperation for one compilation unit returns a node
-                //                            for complete method body, with statements from other compilation units.
-                //                            Is this going to be confusing?
                 model1.VerifyOperationTree(unit1,
 @"
-IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local();')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'local();')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'local();')
     Expression: 
-      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
-        Instance Receiver: 
-          null
-        Arguments(0)
-  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
-        Expression: 
-          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
-            Instance Receiver: 
-              null
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
-        ReturnedValue: 
-          null
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local()')
+        Children(1):
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local')
+              Children(0)
 ");
 
                 SyntaxTreeSemanticModel syntaxTreeModel = ((SyntaxTreeSemanticModel)model1);
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit1];
-
-                var root1 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit1).Single();
-                var stmt1 = mm.TestOnlyTryGetBoundNodesFromMap(unit1.Members.OfType<GlobalStatementSyntax>().Single().Statement).Single();
 
                 var model2 = comp.GetSemanticModel(tree2);
 
@@ -214,7 +310,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local
                 var unit2 = (CompilationUnitSyntax)tree2.GetRoot();
                 var localDecl = unit2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
                 var declSymbol = model2.GetDeclaredSymbol(localDecl);
-                Assert.Same(refSymbol, declSymbol);
+                Assert.Equal("void local()", declSymbol.ToTestDisplayString());
                 Assert.Contains(declSymbol.Name, model2.LookupNames(localDecl.SpanStart));
                 Assert.Contains(declSymbol, model2.LookupSymbols(localDecl.SpanStart));
                 Assert.Same(declSymbol, model2.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
@@ -224,21 +320,12 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local
 
                 Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation2.Parent));
 
-                // PROTOTYPE(SimplePrograms): Asking IOperation for one compilation unit returns a node
-                //                            for complete method body, with statements from other compilation units.
-                //                            Is this going to be confusing?
-                //                            Note that IBlockOperation for the following tree uses different syntax
-                //                            by comparison to the tree above. This is the only difference between them.
+                var isInvalid = comp.SyntaxTrees[1] == tree2 ? ", IsInvalid" : "";
+
                 model2.VerifyOperationTree(unit2,
 @"
-IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'void local( ... iteLine(2);')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
-    Expression: 
-      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
-        Instance Receiver: 
-          null
-        Arguments(0)
-  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
+IBlockOperation (1 statements) (OperationKind.Block, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
+  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
         Expression: 
@@ -254,39 +341,6 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'void 
         ReturnedValue: 
           null
 ");
-
-                Assert.True(mm.TestOnlyTryGetBoundNodesFromMap(unit2.Members.OfType<GlobalStatementSyntax>().Single().Statement).IsDefault);
-
-                syntaxTreeModel = ((SyntaxTreeSemanticModel)model2);
-                mm = syntaxTreeModel.TestOnlyMemberModels[unit2];
-
-                var root2 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit2).Single();
-                var stmt2 = mm.TestOnlyTryGetBoundNodesFromMap(unit2.Members.OfType<GlobalStatementSyntax>().Single().Statement).Single();
-
-                Assert.NotEqual(root1, root2);
-                Assert.True(root1.Locals.Equals(root2.Locals));
-                Assert.True(root1.LocalFunctions.Equals(root2.LocalFunctions));
-                Assert.True(root1.Statements.Equals(root2.Statements));
-                Assert.Same(stmt1, root1.Statements[0]);
-                Assert.Same(stmt2, root1.Statements[1]);
-
-                Assert.True(mm.TestOnlyTryGetBoundNodesFromMap(unit1.Members.OfType<GlobalStatementSyntax>().Single().Statement).IsDefault);
-
-                var model3 = comp.GetSemanticModel(tree1);
-                model3.GetOperation(unit1);
-
-                syntaxTreeModel = ((SyntaxTreeSemanticModel)model3);
-                mm = syntaxTreeModel.TestOnlyMemberModels[unit1];
-                var root3 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit1).Single();
-                Assert.Same(root1, root3);
-
-                var model4 = comp.GetSemanticModel(tree2);
-                model4.GetOperation(unit2);
-
-                syntaxTreeModel = ((SyntaxTreeSemanticModel)model4);
-                mm = syntaxTreeModel.TestOnlyMemberModels[unit2];
-                var root4 = (BoundBlock)mm.TestOnlyTryGetBoundNodesFromMap(unit2).Single();
-                Assert.Same(root2, root4);
 
                 static void verifyModelForGlobalStatements(SyntaxTree tree1, SemanticModel model1)
                 {
@@ -325,14 +379,44 @@ void local() => System.Console.WriteLine(i);
 ";
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
+                // (2,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // var i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 5),
+                // (2,6): warning CS8321: The local function 'local' is declared but never used
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(2, 6),
+                // (2,42): error CS0103: The name 'i' does not exist in the current context
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(2, 42),
+                // (3,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(3, 1)
+                );
 
             verifyModel(comp, comp.SyntaxTrees[0], comp.SyntaxTrees[1]);
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "1");
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
+                // var i = 1;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,5): warning CS0219: The variable 'i' is assigned but its value is never used
+                // var i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 5),
+                // (2,6): warning CS8321: The local function 'local' is declared but never used
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(2, 6),
+                // (2,42): error CS0103: The name 'i' does not exist in the current context
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(2, 42),
+                // (3,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(3, 1)
+                );
 
             verifyModel(comp, comp.SyntaxTrees[1], comp.SyntaxTrees[0]);
 
@@ -357,22 +441,22 @@ void local() => System.Console.WriteLine(i);
                 Assert.Contains(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart));
                 Assert.Same(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart, name: declSymbol.Name).Single());
 
-                Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localDecl.Ancestors().OfType<StatementSyntax>().First()).DataFlowsOut);
+                Assert.DoesNotContain(declSymbol, model1.AnalyzeDataFlow(localDecl.Ancestors().OfType<StatementSyntax>().First()).DataFlowsOut);
 
                 var model2 = comp.GetSemanticModel(tree2);
                 var localRef = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "i").Single();
                 var refSymbol = model2.GetSymbolInfo(localRef).Symbol;
-                Assert.Same(declSymbol, refSymbol);
-                Assert.Contains(refSymbol.Name, model2.LookupNames(localRef.SpanStart));
-                Assert.Contains(refSymbol, model2.LookupSymbols(localRef.SpanStart));
-                Assert.Same(refSymbol, model2.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                Assert.Null(refSymbol);
+                var name = localRef.Identifier.ValueText;
+                Assert.DoesNotContain(name, model2.LookupNames(localRef.SpanStart));
+                Assert.Empty(model2.LookupSymbols(localRef.SpanStart).Where(s => s.Name == name));
+                Assert.Empty(model2.LookupSymbols(localRef.SpanStart, name: name));
                 Assert.NotNull(model2.GetOperation(tree2.GetRoot()));
                 var operation2 = model2.GetOperation(localRef);
                 Assert.NotNull(operation2);
-                Assert.IsAssignableFrom<ILocalReferenceOperation>(operation2);
+                Assert.IsAssignableFrom<IInvalidOperation>(operation2);
 
-                // PROTOTYPE(SimplePrograms): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
-                //Assert.Contains(declSymbol, model2.AnalyzeDataFlow(localRef).DataFlowsIn);
+                Assert.DoesNotContain(declSymbol, model2.AnalyzeDataFlow(localRef).DataFlowsIn);
             }
         }
 
@@ -410,6 +494,59 @@ System.Console.Write(i);
                 Assert.Contains(declSymbol.Name, model1.LookupNames(localRef.SpanStart));
                 Assert.Contains(declSymbol, model1.LookupSymbols(localRef.SpanStart));
                 Assert.Same(declSymbol, model1.LookupSymbols(localRef.SpanStart, name: declSymbol.Name).Single());
+            }
+        }
+
+        [Fact]
+        public void Simple_09()
+        {
+            var text1 = @"
+var i = 1;
+local();
+void local() => System.Console.WriteLine(i);
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+
+            verifyModel(comp, comp.SyntaxTrees[0]);
+
+            static void verifyModel(CSharpCompilation comp, SyntaxTree tree1)
+            {
+                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+                var model1 = comp.GetSemanticModel(tree1);
+                var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+                var declSymbol = model1.GetDeclaredSymbol(localDecl);
+                Assert.Equal("System.Int32 i", declSymbol.ToTestDisplayString());
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localDecl.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localDecl.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
+                Assert.NotNull(model1.GetOperation(tree1.GetRoot()));
+                var operation1 = model1.GetOperation(localDecl);
+                Assert.NotNull(operation1);
+                Assert.IsAssignableFrom<IVariableDeclaratorOperation>(operation1);
+
+                var localFuncRef = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local").Single();
+                Assert.Contains(declSymbol.Name, model1.LookupNames(localFuncRef.SpanStart));
+                Assert.Contains(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart));
+                Assert.Same(declSymbol, model1.LookupSymbols(localFuncRef.SpanStart, name: declSymbol.Name).Single());
+
+                Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localDecl.Ancestors().OfType<StatementSyntax>().First()).DataFlowsOut);
+
+                var localRef = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "i").Single();
+                var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(declSymbol, refSymbol);
+                Assert.Contains(refSymbol.Name, model1.LookupNames(localRef.SpanStart));
+                Assert.Contains(refSymbol, model1.LookupSymbols(localRef.SpanStart));
+                Assert.Same(refSymbol, model1.LookupSymbols(localRef.SpanStart, name: refSymbol.Name).Single());
+                var operation2 = model1.GetOperation(localRef);
+                Assert.NotNull(operation2);
+                Assert.IsAssignableFrom<ILocalReferenceOperation>(operation2);
+
+                // PROTOTYPE(SimplePrograms): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
+                //Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localRef).DataFlowsIn);
             }
         }
 
@@ -668,15 +805,9 @@ System.Console.Write(x);
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // int x = 1;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "int").WithLocation(2, 1),
-                // (2,5): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                // int x = 1;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(2, 5),
-                // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
-                // int x = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 5)
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "int").WithLocation(2, 1)
                 );
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
@@ -691,7 +822,7 @@ System.Console.Write(x);
             var model2 = comp.GetSemanticModel(tree2);
             var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single());
             Assert.Equal("System.Int32 x", symbol2.ToTestDisplayString());
-            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single()).Symbol);
+            Assert.Same(symbol2, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single()).Symbol);
         }
 
         [Fact]
@@ -770,6 +901,40 @@ class C : System.IAsyncDisposable, System.IDisposable
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_11()
+        {
+            var text1 = @"
+string x = ""1"";
+System.Console.Write(x);
+int x = 1;
+System.Console.Write(x);
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0128: A local variable or function named 'x' is already defined in this scope
+                // int x = 1;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(4, 5),
+                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First());
+            Assert.Equal("System.String x", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").First()).Symbol);
+
+            var symbol2 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Skip(1).Single());
+            Assert.Equal("System.Int32 x", symbol2.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Skip(1).Single()).Symbol);
         }
 
         [Fact]
@@ -884,26 +1049,32 @@ System.Console.Write(y);
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // const string y = x;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
-                // (2,18): error CS0841: Cannot use local variable 'y' before it is declared
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
+                // (2,18): error CS0103: The name 'y' does not exist in the current context
                 // const string x = y;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 18)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(2, 18),
+                // (2,18): error CS0103: The name 'x' does not exist in the current context
+                // const string y = x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(2, 18)
                 );
 
             comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // const string x = y;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // const string y = x;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "const").WithLocation(2, 1),
-                // (2,18): error CS0841: Cannot use local variable 'y' before it is declared
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
+                // (2,18): error CS0103: The name 'y' does not exist in the current context
                 // const string x = y;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 18)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(2, 18),
+                // (2,18): error CS0103: The name 'x' does not exist in the current context
+                // const string y = x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(2, 18)
                 );
         }
 
@@ -922,26 +1093,32 @@ System.Console.Write(y);
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // var y = x;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
-                // (2,9): error CS0841: Cannot use local variable 'y' before it is declared
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,9): error CS0103: The name 'y' does not exist in the current context
                 // var x = y;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 9)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(2, 9),
+                // (2,9): error CS0103: The name 'x' does not exist in the current context
+                // var y = x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(2, 9)
                 );
 
             comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // var x = y;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // var y = x;
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "var").WithLocation(2, 1),
-                // (2,9): error CS0841: Cannot use local variable 'y' before it is declared
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,9): error CS0103: The name 'y' does not exist in the current context
                 // var x = y;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(2, 9)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(2, 9),
+                // (2,9): error CS0103: The name 'x' does not exist in the current context
+                // var y = x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(2, 9)
                 );
         }
 
@@ -1014,12 +1191,42 @@ void local()
 ";
 
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "x");
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
+                // void local()
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
+                // (2,6): warning CS8321: The local function 'local' is declared but never used
+                // void local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(2, 6),
+                // (2,8): warning CS0219: The variable 'x' is assigned but its value is never used
+                // string x = "x";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 8),
+                // (3,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(3, 1),
+                // (4,26): error CS0103: The name 'x' does not exist in the current context
+                //     System.Console.Write(x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(4, 26)
+                );
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "x");
+            comp.VerifyDiagnostics(
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
+                // string x = "x";
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "string").WithLocation(2, 1),
+                // (2,6): warning CS8321: The local function 'local' is declared but never used
+                // void local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(2, 6),
+                // (2,8): warning CS0219: The variable 'x' is assigned but its value is never used
+                // string x = "x";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 8),
+                // (3,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(3, 1),
+                // (4,26): error CS0103: The name 'x' does not exist in the current context
+                //     System.Console.Write(x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(4, 26)
+                );
         }
 
         [Fact]
@@ -1099,7 +1306,6 @@ void local2()
 ";
 
             var comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree);
@@ -2402,12 +2608,21 @@ void local()
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (3,1): error CS9001: Only one compilation unit can have top-level statements.
+                // void local()
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(3, 1),
+                // (3,6): warning CS8321: The local function 'local' is declared but never used
+                // void local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(3, 6),
                 // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
                 // alias2 y = "1";
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1),
                 // (5,5): error CS0246: The type or namespace name 'alias1' could not be found (are you missing a using directive or an assembly reference?)
                 //     alias1 a = "2";
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5),
+                // (7,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(7, 1)
                 );
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
@@ -2429,7 +2644,10 @@ void local()
             model1.GetDiagnostics().Verify(
                 // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
                 // alias2 y = "1";
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1),
+                // (7,1): error CS0103: The name 'local' does not exist in the current context
+                // local();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(7, 1)
                 );
 
             var tree2 = comp.SyntaxTrees[1];
@@ -2446,6 +2664,12 @@ void local()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
                 );
             model2.GetDiagnostics().Verify(
+                // (3,1): error CS9001: Only one compilation unit can have top-level statements.
+                // void local()
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(3, 1),
+                // (3,6): warning CS8321: The local function 'local' is declared but never used
+                // void local()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(3, 6),
                 // (5,5): error CS0246: The type or namespace name 'alias1' could not be found (are you missing a using directive or an assembly reference?)
                 //     alias1 a = "2";
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias1").WithArguments("alias1").WithLocation(5, 5)
@@ -2690,12 +2914,15 @@ void local2()
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,6): error CS0136: A local or parameter named 'local1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // void local1(byte y)
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "local1").WithArguments("local1").WithLocation(2, 6),
-                // (2,6): warning CS8321: The local function 'local1' is declared but never used
-                // void local1(byte y)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(2, 6)
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
+                // (5,1): error CS0103: The name 'local2' does not exist in the current context
+                // local2();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "local2").WithArguments("local2").WithLocation(5, 1),
+                // (5,6): warning CS8321: The local function 'local2' is declared but never used
+                // void local2()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(5, 6)
                 );
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
@@ -2710,7 +2937,7 @@ void local2()
             var model2 = comp.GetSemanticModel(tree2);
             var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First());
             Assert.Equal("void local1(System.Byte y)", symbol2.ToTestDisplayString());
-            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Single()).Symbol);
+            Assert.Same(symbol2, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Single()).Symbol);
         }
 
         [Fact]
@@ -2731,6 +2958,48 @@ void local()
                 );
 
             CompileAndVerify(comp, expectedOutput: "");
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_09()
+        {
+            var text1 = @"
+local1(1);
+void local1(int x)
+{}
+local2();
+
+void local1(byte y)
+{}
+
+void local2()
+{
+    local1(2);
+}
+";
+
+            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (7,6): error CS0128: A local variable or function named 'local1' is already defined in this scope
+                // void local1(byte y)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local1").WithArguments("local1").WithLocation(7, 6),
+                // (7,6): warning CS8321: The local function 'local1' is declared but never used
+                // void local1(byte y)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(7, 6)
+                );
+
+            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+
+            var tree1 = comp.SyntaxTrees[0];
+            var model1 = comp.GetSemanticModel(tree1);
+            var symbol1 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First());
+            Assert.Equal("void local1(System.Int32 x)", symbol1.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").First()).Symbol);
+
+            var symbol2 = model1.GetDeclaredSymbol(tree1.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Skip(1).First());
+            Assert.Equal("void local1(System.Byte y)", symbol2.ToTestDisplayString());
+            Assert.Same(symbol1, model1.GetSymbolInfo(tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "local1").Skip(1).Single()).Symbol);
         }
 
         [Fact]
@@ -2906,12 +3175,9 @@ goto label1;
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS9001: In all but one compilation unit the top-level statements must all be local function declarations.
+                // (2,1): error CS9001: Only one compilation unit can have top-level statements.
                 // label1: System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithExecutableStatements, "label1").WithLocation(2, 1),
-                // (2,1): error CS0140: The label 'label1' is a duplicate
-                // label1: System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "label1").WithLocation(2, 1)
                 );
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
@@ -2927,7 +3193,7 @@ goto label1;
             var symbol2 = model2.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single());
             Assert.Equal("label1", symbol2.ToTestDisplayString());
             Assert.NotEqual(symbol1, symbol2);
-            Assert.Same(symbol1, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "label1").Single()).Symbol);
+            Assert.Same(symbol2, model2.GetSymbolInfo(tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "label1").Single()).Symbol);
         }
 
         [Fact]
@@ -3198,18 +3464,6 @@ namespace N1
         }
     }
 }";
-            var text2 = @"
-void local1()
-{
-    System.Console.WriteLine(""local1 - "" + s);
-}
-";
-            var text3 = @"
-void local2()
-{
-    System.Console.WriteLine(""local2 - "" + s);
-}
-";
             var text4 = @"
 using System.Threading.Tasks;
 
@@ -3222,15 +3476,9 @@ class Helpers
 }
 ";
 
-            var comp = CreateCompilation(new[] { text2, text1, text3, text4 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(new[] { text1, text4 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyEmitDiagnostics(
-                // (2,6): warning CS8321: The local function 'local1' is declared but never used
-                // void local1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(2, 6),
-                // (2,6): warning CS8321: The local function 'local2' is declared but never used
-                // void local2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(2, 6),
                 // (19,21): warning CS7022: The entry point of the program is global code; ignoring 'Helpers.Main()' entry point.
                 //         static void Main()
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("N1.Helpers.Main()").WithLocation(19, 21)

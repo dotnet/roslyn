@@ -65,30 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_memberSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _root == entryPoint.SyntaxNode)
             {
-                map = new SmallDictionary<SyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
                 var scopeOwner = new SimpleProgramBinder(this, entryPoint);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, scopeOwner, _binderUpdatedHandler);
                 map.Add(_root, scopeOwner);
-
-                Binder buckStopsHereBinder = Next;
-                while (buckStopsHereBinder.Next is object)
-                {
-                    buckStopsHereBinder = buckStopsHereBinder.Next;
-                }
-
-                Debug.Assert(buckStopsHereBinder is BuckStopsHereBinder);
-
-                // Due to different usings in each compilation unit with top level statements, each of the units
-                // gets dedicated binder to bind top level statements within it.
-                foreach (CompilationUnitSyntax unit in entryPoint.GetUnits())
-                {
-                    Binder result = new InContainerBinder(Compilation.GlobalNamespace, buckStopsHereBinder, unit, inUsing: false);
-                    result = new InContainerBinder(entryPoint.ContainingType, result);
-                    result = new InMethodBinder(entryPoint, result);
-                    result = new SimpleProgramUnitBinder(result, scopeOwner);
-
-                    // We create another ExecutableCodeBinder to deal with nested scopes within top level statements within this particular unit.
-                    map.Add(unit, new ExecutableCodeBinder(unit, entryPoint, result));
-                }
             }
             else
             {
