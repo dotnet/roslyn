@@ -2587,7 +2587,7 @@ expectedOutput:=<![CDATA[
 {
   // Code size       15 (0xf)
   .maxstack  1
-  IL_0000:  ldc.r8     ∞
+  IL_0000:  ldc.r8     Infinity
   IL_0009:  box        "Double"
   IL_000e:  ret
 }
