@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch == '[' ||
                 ch == '(' ||
                 ch == '~' ||
-                (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
+                (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
