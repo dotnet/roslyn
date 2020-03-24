@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
-
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
@@ -48,11 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
@@ -61,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.OnIdle, _semanticChangeNotificationService),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 

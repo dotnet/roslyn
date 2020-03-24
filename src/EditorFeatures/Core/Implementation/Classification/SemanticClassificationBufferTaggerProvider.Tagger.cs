@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 const TaggerDelay Delay = TaggerDelay.Short;
                 _eventSource = TaggerEventSources.Compose(
-                    TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _owner._semanticChangeNotificationService),
+                    TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay),
                     TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
 
                 ConnectToEventSource();
