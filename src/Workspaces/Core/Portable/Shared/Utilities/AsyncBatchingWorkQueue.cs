@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Callback that actually adds items to the current batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<TItem>.AddItemsToBatch _addItemsToBatch;
+        private readonly AddItemsToBatch _addItemsToBatch;
 
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
