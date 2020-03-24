@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             RegisterNotification(action, 0, asyncToken, cancellationToken);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete (ScheduleTaskInProgress: https://github.com/dotnet/roslyn/issues/42742)
         public void RegisterNotification(Func<bool> action, int delayInMS, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Task task;
@@ -63,5 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             task.Wait(cancellationToken);
         }
+#pragma warning restore
     }
 }

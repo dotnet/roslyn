@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
                 var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
+                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }

@@ -17,11 +17,12 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class TaskSchedulerProvider : ITaskSchedulerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskSchedulerProvider()
         {
         }
 
-        public TaskScheduler GetCurrentContextScheduler()
+        public TaskScheduler CurrentContextScheduler
             => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
     }
 }

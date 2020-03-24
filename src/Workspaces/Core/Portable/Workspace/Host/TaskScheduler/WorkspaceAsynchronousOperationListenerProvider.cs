@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System;
 using System.Composition;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceAsynchronousOperationListenerProvider(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);

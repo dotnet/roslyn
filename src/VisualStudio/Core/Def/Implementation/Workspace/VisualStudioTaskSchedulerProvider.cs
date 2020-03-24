@@ -16,17 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioTaskSchedulerProvider : ITaskSchedulerProvider
     {
-        private readonly IThreadingContext _threadingContext;
+        public TaskScheduler CurrentContextScheduler { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTaskSchedulerProvider(IThreadingContext threadingContext)
         {
-            _threadingContext = threadingContext;
+            CurrentContextScheduler = new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory);
         }
-
-        public TaskScheduler GetCurrentContextScheduler()
-            => new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory);
 
         private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {

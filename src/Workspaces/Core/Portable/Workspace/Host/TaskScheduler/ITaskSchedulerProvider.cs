@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ITaskSchedulerProvider : IWorkspaceService
     {
-        TaskScheduler GetCurrentContextScheduler();
+        TaskScheduler CurrentContextScheduler { get; }
     }
 }
