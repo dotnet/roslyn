@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -94,20 +95,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            // When progress reporting is supported, report incrementally per document and return an empty result at the end.
-            // Otherwise aggregate and return the results for all documents at the end.
-            if (args.Progress != null)
-            {
-                var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-                return ImmutableArray<SymbolInformation>.Empty;
-            }
-            else
-            {
-                var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAsync(d, args.Query, cancellationToken));
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.SelectMany(a => a).ToImmutableArray();
-            }
+            Contract.ThrowIfNull(args.Progress);
+
+            var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            return ImmutableArray<SymbolInformation>.Empty;
         }
 
         private static async Task<ImmutableArray<SymbolInformation>> SearchDocumentAsync(Document document, string query, CancellationToken cancellationToken)
