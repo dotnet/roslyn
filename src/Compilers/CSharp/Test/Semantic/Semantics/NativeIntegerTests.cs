@@ -2507,8 +2507,8 @@ False
         F4 = w;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
+            var diagnostics = new[]
+            {
                 // (9,18): error CS0266: Cannot implicitly convert type 'System.IntPtr' to 'long'. An explicit conversion exists (are you missing a cast?)
                 //         long x = F1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F1").WithArguments("System.IntPtr", "long").WithLocation(9, 18),
@@ -2532,7 +2532,16 @@ False
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("int?", "System.IntPtr?").WithLocation(18, 14),
                 // (19,14): error CS0266: Cannot implicitly convert type 'uint?' to 'System.UIntPtr?'. An explicit conversion exists (are you missing a cast?)
                 //         F4 = w;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("uint?", "System.UIntPtr?").WithLocation(19, 14));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("uint?", "System.UIntPtr?").WithLocation(19, 14),
+            };
+
+            // Referencing standard corlib.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
+
+            // Referencing custom corlib with user-defined conversions between underlying types and native integers.
+            comp = CreateEmptyCompilation(source, references: new[] { CreateCorlibWithUserDefinedConversions() }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
@@ -2549,45 +2558,181 @@ class A
     static System.UIntPtr? F4;
     static void Main()
     {
-        M(-F1);
-        M(+F2);
-        M(-F3);
-        M(+F4);
-        M(F1 * F1);
-        M(F2 / F2);
-        M(F3 * F1);
-        M(F4 / F2);
-    }
-    static void M<T>(T t)
-    {
+        F1 = -F1;
+        F2 = +F2;
+        F3 = -F3;
+        F4 = +F4;
+        F1 = F1 * F1;
+        F2 = F2 / F2;
+        F3 = F3 * F1;
+        F4 = F4 / F2;
     }
 }";
+
+            // Referencing standard corlib.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,11): error CS0023: Operator '-' cannot be applied to operand of type 'IntPtr'
-                //         M(-F1);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F1").WithArguments("-", "System.IntPtr").WithLocation(10, 11),
-                // (11,11): error CS0023: Operator '+' cannot be applied to operand of type 'UIntPtr'
-                //         M(+F2);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F2").WithArguments("+", "System.UIntPtr").WithLocation(11, 11),
-                // (12,11): error CS0023: Operator '-' cannot be applied to operand of type 'IntPtr?'
-                //         M(-F3);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F3").WithArguments("-", "System.IntPtr?").WithLocation(12, 11),
-                // (13,11): error CS0023: Operator '+' cannot be applied to operand of type 'UIntPtr?'
-                //         M(+F4);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F4").WithArguments("+", "System.UIntPtr?").WithLocation(13, 11),
-                // (14,11): error CS0019: Operator '*' cannot be applied to operands of type 'IntPtr' and 'IntPtr'
-                //         M(F1 * F1);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F1 * F1").WithArguments("*", "System.IntPtr", "System.IntPtr").WithLocation(14, 11),
-                // (15,11): error CS0019: Operator '/' cannot be applied to operands of type 'UIntPtr' and 'UIntPtr'
-                //         M(F2 / F2);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F2 / F2").WithArguments("/", "System.UIntPtr", "System.UIntPtr").WithLocation(15, 11),
-                // (16,11): error CS0019: Operator '*' cannot be applied to operands of type 'IntPtr?' and 'IntPtr'
-                //         M(F3 * F1);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F3 * F1").WithArguments("*", "System.IntPtr?", "System.IntPtr").WithLocation(16, 11),
-                // (17,11): error CS0019: Operator '/' cannot be applied to operands of type 'UIntPtr?' and 'UIntPtr'
-                //         M(F4 / F2);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F4 / F2").WithArguments("/", "System.UIntPtr?", "System.UIntPtr").WithLocation(17, 11));
+                // (10,14): error CS0023: Operator '-' cannot be applied to operand of type 'IntPtr'
+                //         F1 = -F1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F1").WithArguments("-", "System.IntPtr").WithLocation(10, 14),
+                // (11,14): error CS0023: Operator '+' cannot be applied to operand of type 'UIntPtr'
+                //         F2 = +F2;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F2").WithArguments("+", "System.UIntPtr").WithLocation(11, 14),
+                // (12,14): error CS0023: Operator '-' cannot be applied to operand of type 'IntPtr?'
+                //         F3 = -F3;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F3").WithArguments("-", "System.IntPtr?").WithLocation(12, 14),
+                // (13,14): error CS0023: Operator '+' cannot be applied to operand of type 'UIntPtr?'
+                //         F4 = +F4;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+F4").WithArguments("+", "System.UIntPtr?").WithLocation(13, 14),
+                // (14,14): error CS0019: Operator '*' cannot be applied to operands of type 'IntPtr' and 'IntPtr'
+                //         F1 = F1 * F1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F1 * F1").WithArguments("*", "System.IntPtr", "System.IntPtr").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '/' cannot be applied to operands of type 'UIntPtr' and 'UIntPtr'
+                //         F2 = F2 / F2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F2 / F2").WithArguments("/", "System.UIntPtr", "System.UIntPtr").WithLocation(15, 14),
+                // (16,14): error CS0019: Operator '*' cannot be applied to operands of type 'IntPtr?' and 'IntPtr'
+                //         F3 = F3 * F1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F3 * F1").WithArguments("*", "System.IntPtr?", "System.IntPtr").WithLocation(16, 14),
+                // (17,14): error CS0019: Operator '/' cannot be applied to operands of type 'UIntPtr?' and 'UIntPtr'
+                //         F4 = F4 / F2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F4 / F2").WithArguments("/", "System.UIntPtr?", "System.UIntPtr").WithLocation(17, 14));
+
+            // Referencing custom corlib with user-defined conversions between underlying types and native integers.
+            comp = CreateEmptyCompilation(source, references: new[] { CreateCorlibWithUserDefinedConversions() }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("A.Main",
+@"{
+  // Code size      417 (0x1a1)
+  .maxstack  2
+  .locals init (System.IntPtr? V_0,
+                System.IntPtr? V_1,
+                System.UIntPtr? V_2,
+                System.UIntPtr? V_3,
+                nint? V_4,
+                System.IntPtr V_5,
+                nint? V_6,
+                nuint? V_7,
+                System.UIntPtr V_8,
+                nuint? V_9)
+  IL_0000:  ldsfld     ""System.IntPtr A.F1""
+  IL_0005:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_000a:  neg
+  IL_000b:  call       ""System.IntPtr System.IntPtr.op_Implicit(nint)""
+  IL_0010:  stsfld     ""System.IntPtr A.F1""
+  IL_0015:  ldsfld     ""System.UIntPtr A.F2""
+  IL_001a:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_001f:  call       ""System.UIntPtr System.UIntPtr.op_Implicit(nuint)""
+  IL_0024:  stsfld     ""System.UIntPtr A.F2""
+  IL_0029:  ldsfld     ""System.IntPtr? A.F3""
+  IL_002e:  stloc.0
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_0036:  brtrue.s   IL_0043
+  IL_0038:  ldloca.s   V_1
+  IL_003a:  initobj    ""System.IntPtr?""
+  IL_0040:  ldloc.1
+  IL_0041:  br.s       IL_005a
+  IL_0043:  ldloca.s   V_0
+  IL_0045:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_004a:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_004f:  neg
+  IL_0050:  call       ""System.IntPtr System.IntPtr.op_Implicit(nint)""
+  IL_0055:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_005a:  stsfld     ""System.IntPtr? A.F3""
+  IL_005f:  ldsfld     ""System.UIntPtr? A.F4""
+  IL_0064:  stloc.2
+  IL_0065:  ldloca.s   V_2
+  IL_0067:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_006c:  brtrue.s   IL_0079
+  IL_006e:  ldloca.s   V_3
+  IL_0070:  initobj    ""System.UIntPtr?""
+  IL_0076:  ldloc.3
+  IL_0077:  br.s       IL_008f
+  IL_0079:  ldloca.s   V_2
+  IL_007b:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_0080:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_0085:  call       ""System.UIntPtr System.UIntPtr.op_Implicit(nuint)""
+  IL_008a:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
+  IL_008f:  stsfld     ""System.UIntPtr? A.F4""
+  IL_0094:  ldsfld     ""System.IntPtr A.F1""
+  IL_0099:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_009e:  ldsfld     ""System.IntPtr A.F1""
+  IL_00a3:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_00a8:  mul
+  IL_00a9:  call       ""System.IntPtr System.IntPtr.op_Implicit(nint)""
+  IL_00ae:  stsfld     ""System.IntPtr A.F1""
+  IL_00b3:  ldsfld     ""System.UIntPtr A.F2""
+  IL_00b8:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_00bd:  ldsfld     ""System.UIntPtr A.F2""
+  IL_00c2:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_00c7:  div.un
+  IL_00c8:  call       ""System.UIntPtr System.UIntPtr.op_Implicit(nuint)""
+  IL_00cd:  stsfld     ""System.UIntPtr A.F2""
+  IL_00d2:  ldsfld     ""System.IntPtr? A.F3""
+  IL_00d7:  stloc.0
+  IL_00d8:  ldloca.s   V_0
+  IL_00da:  call       ""bool System.IntPtr?.HasValue.get""
+  IL_00df:  brtrue.s   IL_00ed
+  IL_00e1:  ldloca.s   V_6
+  IL_00e3:  initobj    ""nint?""
+  IL_00e9:  ldloc.s    V_6
+  IL_00eb:  br.s       IL_00fe
+  IL_00ed:  ldloca.s   V_0
+  IL_00ef:  call       ""System.IntPtr System.IntPtr?.GetValueOrDefault()""
+  IL_00f4:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_00f9:  newobj     ""nint?..ctor(nint)""
+  IL_00fe:  stloc.s    V_4
+  IL_0100:  ldsfld     ""System.IntPtr A.F1""
+  IL_0105:  call       ""nint System.IntPtr.op_Implicit(System.IntPtr)""
+  IL_010a:  stloc.s    V_5
+  IL_010c:  ldloca.s   V_4
+  IL_010e:  call       ""bool nint?.HasValue.get""
+  IL_0113:  brtrue.s   IL_0120
+  IL_0115:  ldloca.s   V_0
+  IL_0117:  initobj    ""System.IntPtr?""
+  IL_011d:  ldloc.0
+  IL_011e:  br.s       IL_0134
+  IL_0120:  ldloca.s   V_4
+  IL_0122:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0127:  ldloc.s    V_5
+  IL_0129:  mul
+  IL_012a:  call       ""System.IntPtr System.IntPtr.op_Implicit(nint)""
+  IL_012f:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_0134:  stsfld     ""System.IntPtr? A.F3""
+  IL_0139:  ldsfld     ""System.UIntPtr? A.F4""
+  IL_013e:  stloc.2
+  IL_013f:  ldloca.s   V_2
+  IL_0141:  call       ""bool System.UIntPtr?.HasValue.get""
+  IL_0146:  brtrue.s   IL_0154
+  IL_0148:  ldloca.s   V_9
+  IL_014a:  initobj    ""nuint?""
+  IL_0150:  ldloc.s    V_9
+  IL_0152:  br.s       IL_0165
+  IL_0154:  ldloca.s   V_2
+  IL_0156:  call       ""System.UIntPtr System.UIntPtr?.GetValueOrDefault()""
+  IL_015b:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_0160:  newobj     ""nuint?..ctor(nuint)""
+  IL_0165:  stloc.s    V_7
+  IL_0167:  ldsfld     ""System.UIntPtr A.F2""
+  IL_016c:  call       ""nuint System.UIntPtr.op_Implicit(System.UIntPtr)""
+  IL_0171:  stloc.s    V_8
+  IL_0173:  ldloca.s   V_7
+  IL_0175:  call       ""bool nuint?.HasValue.get""
+  IL_017a:  brtrue.s   IL_0187
+  IL_017c:  ldloca.s   V_2
+  IL_017e:  initobj    ""System.UIntPtr?""
+  IL_0184:  ldloc.2
+  IL_0185:  br.s       IL_019b
+  IL_0187:  ldloca.s   V_7
+  IL_0189:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_018e:  ldloc.s    V_8
+  IL_0190:  div.un
+  IL_0191:  call       ""System.UIntPtr System.UIntPtr.op_Implicit(nuint)""
+  IL_0196:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
+  IL_019b:  stsfld     ""System.UIntPtr? A.F4""
+  IL_01a0:  ret
+}");
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
@@ -2604,6 +2749,9 @@ class A
     public static nint? F3;
     public static nuint? F4;
 }";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
             var sourceB =
 @"class B : A
 {
@@ -2622,9 +2770,6 @@ class A
         F4 = w;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-
             comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
@@ -2716,27 +2861,24 @@ class A
     public static nint? F3;
     public static nuint? F4;
 }";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
             var sourceB =
 @"class B : A
 {
     static void Main()
     {
-        M(-F1);
-        M(+F2);
-        M(-F3);
-        M(+F4);
-        M(F1 * F1);
-        M(F2 / F2);
-        M(F3 * F1);
-        M(F4 / F2);
-    }
-    static void M<T>(T t)
-    {
+        F1 = -F1;
+        F2 = +F2;
+        F3 = -F3;
+        F4 = +F4;
+        F1 = F1 * F1;
+        F2 = F2 / F2;
+        F3 = F3 * F1;
+        F4 = F4 / F2;
     }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-
             comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
@@ -2752,9 +2894,9 @@ class A
                 System.UIntPtr V_5)
   IL_0000:  ldsfld     ""nint A.F1""
   IL_0005:  neg
-  IL_0006:  call       ""void B.M<nint>(nint)""
+  IL_0006:  stsfld     ""nint A.F1""
   IL_000b:  ldsfld     ""nuint A.F2""
-  IL_0010:  call       ""void B.M<nuint>(nuint)""
+  IL_0010:  stsfld     ""nuint A.F2""
   IL_0015:  ldsfld     ""nint? A.F3""
   IL_001a:  stloc.0
   IL_001b:  ldloca.s   V_0
@@ -2768,7 +2910,7 @@ class A
   IL_0031:  call       ""nint nint?.GetValueOrDefault()""
   IL_0036:  neg
   IL_0037:  newobj     ""nint?..ctor(nint)""
-  IL_003c:  call       ""void B.M<nint?>(nint?)""
+  IL_003c:  stsfld     ""nint? A.F3""
   IL_0041:  ldsfld     ""nuint? A.F4""
   IL_0046:  stloc.2
   IL_0047:  ldloca.s   V_2
@@ -2781,15 +2923,15 @@ class A
   IL_005b:  ldloca.s   V_2
   IL_005d:  call       ""nuint nuint?.GetValueOrDefault()""
   IL_0062:  newobj     ""nuint?..ctor(nuint)""
-  IL_0067:  call       ""void B.M<nuint?>(nuint?)""
+  IL_0067:  stsfld     ""nuint? A.F4""
   IL_006c:  ldsfld     ""nint A.F1""
   IL_0071:  ldsfld     ""nint A.F1""
   IL_0076:  mul
-  IL_0077:  call       ""void B.M<nint>(nint)""
+  IL_0077:  stsfld     ""nint A.F1""
   IL_007c:  ldsfld     ""nuint A.F2""
   IL_0081:  ldsfld     ""nuint A.F2""
   IL_0086:  div.un
-  IL_0087:  call       ""void B.M<nuint>(nuint)""
+  IL_0087:  stsfld     ""nuint A.F2""
   IL_008c:  ldsfld     ""nint? A.F3""
   IL_0091:  stloc.0
   IL_0092:  ldsfld     ""nint A.F1""
@@ -2806,7 +2948,7 @@ class A
   IL_00b4:  ldloc.s    V_4
   IL_00b6:  mul
   IL_00b7:  newobj     ""nint?..ctor(nint)""
-  IL_00bc:  call       ""void B.M<nint?>(nint?)""
+  IL_00bc:  stsfld     ""nint? A.F3""
   IL_00c1:  ldsfld     ""nuint? A.F4""
   IL_00c6:  stloc.2
   IL_00c7:  ldsfld     ""nuint A.F2""
@@ -2823,7 +2965,7 @@ class A
   IL_00e9:  ldloc.s    V_5
   IL_00eb:  div.un
   IL_00ec:  newobj     ""nuint?..ctor(nuint)""
-  IL_00f1:  call       ""void B.M<nuint?>(nuint?)""
+  IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
         }
@@ -2831,6 +2973,54 @@ class A
         private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
         {
             return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+        }
+
+        /// <summary>
+        /// Custom corlib with user-defined conversions between underlying types and native integers.
+        /// </summary>
+        private static MetadataReference CreateCorlibWithUserDefinedConversions()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct UInt32 { }
+    public struct Int64 { }
+    public struct UInt64 { }
+    public struct Enum { }
+    public struct IntPtr
+    {
+        public static implicit operator nint(IntPtr i) => (nint)i;
+        public static implicit operator IntPtr(nint i) => (IntPtr)i;
+    }
+    public struct UIntPtr
+    {
+        public static implicit operator nuint(UIntPtr i) => (nuint)i;
+        public static implicit operator UIntPtr(nuint i) => (UIntPtr)i;
+    }
+    public struct Nullable<T>
+    {
+        public Nullable(T t) { }
+        public bool HasValue => false;
+        public T Value => default;
+        public T GetValueOrDefault() => default;
+    }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+}";
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.RegularPreview);
+            return comp.EmitToImageReference();
         }
 
         [Theory]
