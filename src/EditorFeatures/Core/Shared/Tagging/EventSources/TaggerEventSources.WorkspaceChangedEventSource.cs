@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
@@ -11,9 +14,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public WorkspaceChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
+            private readonly IAsynchronousOperationListener _listener;
+
+            public WorkspaceChangedEventSource(
+                ITextBuffer subjectBuffer,
+                TaggerDelay delay,
+                IAsynchronousOperationListener listener)
                 : base(subjectBuffer, delay)
             {
+                _listener = listener;
+                _workQueue = new AsyncBatchingWorkQueue<bool>(
+                    TimeSpan.FromMilliseconds(250),
+                    )
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)

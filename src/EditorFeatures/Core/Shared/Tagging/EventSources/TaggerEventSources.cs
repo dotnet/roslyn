@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -52,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Reports an event any time the workspace changes.
         /// </summary>
-        public static ITaggerEventSource OnWorkspaceChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
+        public static ITaggerEventSource OnWorkspaceChanged(
+            ITextBuffer subjectBuffer, TaggerDelay delay, IAsynchronousOperationListener listener)
         {
-            return new WorkspaceChangedEventSource(subjectBuffer, delay);
+            return new WorkspaceChangedEventSource(subjectBuffer, delay, listener);
         }
 
         public static ITaggerEventSource OnDocumentActiveContextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
