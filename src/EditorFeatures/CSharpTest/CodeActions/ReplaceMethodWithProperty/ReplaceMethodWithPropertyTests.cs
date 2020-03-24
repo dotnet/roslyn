@@ -2335,7 +2335,8 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty), WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
         public async Task TestSameNameMemberAsProperty()
         {
             await TestInRegularAndScript1Async(
