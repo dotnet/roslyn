@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Indicates if the completion is trigger by toggle the expander.
         /// </summary>
-        public static readonly Option<bool> IsExpandedCompletion
-            = new Option<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
+        public static readonly Option2<bool> IsExpandedCompletion
+            = new Option2<bool>(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
     }
 }

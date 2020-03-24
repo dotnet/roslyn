@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(TupleNameCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(XmlDocCommentCompletionProvider))]
     [Shared]
-    internal class TupleNameCompletionProvider : CommonCompletionProvider
+    internal class TupleNameCompletionProvider : LSPCompletionProvider
     {
         private const string ColonString = ":";
 
@@ -118,5 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.Span,
                 selectedItem.DisplayText));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

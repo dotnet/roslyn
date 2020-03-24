@@ -475,5 +475,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         LanguageServer_ActivateFailed = 382,
         LanguageServer_OnLoadedFailed = 383,
+
+        CodeFixes_AddExplicitCast = 384,
     }
 }

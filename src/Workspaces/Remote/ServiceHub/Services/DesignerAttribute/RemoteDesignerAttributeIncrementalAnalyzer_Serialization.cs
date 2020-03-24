@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static void PersistInfoTo(ObjectWriter writer, DesignerInfo info, VersionStamp projectVersion)
+        private static void PersistInfoTo(ObjectWriter writer, DesignerAttributeData data, VersionStamp projectVersion)
         {
             writer.WriteString(SerializationFormat);
-            writer.WriteString(info.Category);
+            writer.WriteString(data.Category);
             projectVersion.WriteTo(writer);
         }
     }

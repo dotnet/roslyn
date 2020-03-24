@@ -3,21 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal abstract class UseExpressionBodyHelper
     {
-        public abstract Option<CodeStyleOption<ExpressionBodyPreference>> Option { get; }
+        public abstract Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public abstract LocalizableString UseExpressionBodyTitle { get; }
         public abstract LocalizableString UseBlockBodyTitle { get; }
         public abstract string DiagnosticId { get; }

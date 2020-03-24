@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             protected override void ExtractLineAndSpace(string text, out int lines, out int spaces)
             {
-                text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions.TabSize), out lines, out spaces);
+                text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.GetOption(FormattingOptions2.TabSize), out lines, out spaces);
             }
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 Debug.Assert(this.SecondTokenIsFirstTokenOnLine);
 
-                if (this.Options.GetOption(FormattingOptions.UseTabs))
+                if (this.Options.GetOption(FormattingOptions2.UseTabs))
                 {
                     return true;
                 }
