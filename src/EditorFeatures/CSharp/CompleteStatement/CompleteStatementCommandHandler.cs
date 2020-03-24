@@ -112,11 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             startingNode = token.Parent;
 
-            // If the caret is right before an opening delimiter or right after a closing delimeter,
+            // If the caret is before an opening delimiter or after a closing delimeter,
             // start analysis with node outside of delimiters.
+            //
             // Examples, 
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
             //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
+            //    `defa$$ult(object)` where `token` references `default` but the caret isn't inside the parentheses.
             var (openingDelimeter, closingDelimiter) = GetDelimiters(startingNode);
             if (!openingDelimeter.IsKind(SyntaxKind.None) && openingDelimeter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
@@ -149,7 +151,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.ArrayRankSpecifier,
                 SyntaxKind.BracketedArgumentList,
                 SyntaxKind.ParenthesizedExpression,
-                SyntaxKind.ParameterList))
+                SyntaxKind.ParameterList,
+                SyntaxKind.DefaultExpression,
+                SyntaxKind.CheckedExpression,
+                SyntaxKind.UncheckedExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -471,6 +476,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ParameterList:
                     var parameterList = (ParameterListSyntax)currentNode;
                     return (parameterList.OpenParenToken, parameterList.CloseParenToken);
+
+                case SyntaxKind.DefaultExpression:
+                    var defaultExpressionSyntax = (DefaultExpressionSyntax)currentNode;
+                    return (defaultExpressionSyntax.OpenParenToken, defaultExpressionSyntax.CloseParenToken);
+
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
+                    var checkedExpressionSyntax = (CheckedExpressionSyntax)currentNode;
+                    return (checkedExpressionSyntax.OpenParenToken, checkedExpressionSyntax.CloseParenToken);
 
                 default:
                     // Type of node does not have delimiters used by this feature

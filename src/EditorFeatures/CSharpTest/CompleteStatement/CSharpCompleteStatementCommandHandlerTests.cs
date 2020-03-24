@@ -2316,6 +2316,102 @@ class Program
 
         #endregion
 
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default(object$$)", "default(object)")]
+        [InlineData("default($$object)", "default(object)")]
+        public void DefaultExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("default$$(object)")]
+        [InlineData("def$$ault(object)")]
+        [InlineData("default(object$$")]
+        [InlineData("default($$object")]
+        public void DefaultExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked(3 + 3$$)", "checked(3 + 3)")]
+        [InlineData("checked($$3 + 3)", "checked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$)", "unchecked(3 + 3)")]
+        [InlineData("unchecked($$3 + 3)", "unchecked(3 + 3)")]
+        public void CheckedExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("checked$$(3 + 3)")]
+        [InlineData("che$$cked(3 + 3)")]
+        [InlineData("checked(3 + 3$$")]
+        [InlineData("checked($$3 + 3")]
+        [InlineData("unchecked$$(3 + 3)")]
+        [InlineData("unche$$cked(3 + 3)")]
+        [InlineData("unchecked(3 + 3$$")]
+        [InlineData("unchecked($$3 + 3")]
+        public void CheckedExpression_NotHandled(string expression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        int i = {expression}
+    }}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
         {
