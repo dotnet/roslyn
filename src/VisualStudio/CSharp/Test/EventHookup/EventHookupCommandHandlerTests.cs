@@ -886,7 +886,7 @@ class C
         MyEvent +$$
     }
 }";
-            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Error));
+            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption2.Error));
             testState.SendTypeChar('=');
             testState.SendTab();
             await testState.WaitForAsynchronousOperationsAsync();
@@ -976,7 +976,7 @@ class C
         MyEvent +$$
     }
 }";
-            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent));
+            using var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption2.Silent));
             testState.SendTypeChar('=');
             testState.SendTab();
             await testState.WaitForAsynchronousOperationsAsync();
@@ -998,7 +998,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        private IDictionary<OptionKey, object> QualifyMethodAccessWithNotification(NotificationOption notification)
-            => new Dictionary<OptionKey, object>() { { new OptionKey(CodeStyleOptions.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption<bool>(true, notification) } };
+        private IDictionary<OptionKey2, object> QualifyMethodAccessWithNotification(NotificationOption2 notification)
+            => new Dictionary<OptionKey2, object>() { { new OptionKey2(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.CSharp), new CodeStyleOption2<bool>(true, notification) } };
     }
 }

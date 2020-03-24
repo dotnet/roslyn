@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
-        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
+        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
         [ImportingConstructor]
         public BraceHighlightingViewTaggerProvider(
