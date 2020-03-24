@@ -4,16 +4,12 @@
 
 #nullable enable
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     /// <summary>
-    /// Group/sub-feature associated with an <see cref="IOption"/>.
+    /// Group/sub-feature associated with an <see cref="IOption2"/>.
     /// </summary>
-    internal interface IOptionWithGroup : IOption
+    internal interface IOptionWithGroup : IOption2
     {
         /// <summary>
         /// Group/sub-feature for this option.

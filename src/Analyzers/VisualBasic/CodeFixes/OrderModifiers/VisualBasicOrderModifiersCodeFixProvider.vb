@@ -6,13 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.OrderModifiers
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>

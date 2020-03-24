@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
             var placement = codeStyleOption.Value;
-            var preferPreservation = codeStyleOption.Notification == NotificationOption.None;
+            var preferPreservation = codeStyleOption.Notification == NotificationOption2.None;
 
             if (preferPreservation || placement == AddImportPlacement.OutsideNamespace)
             {

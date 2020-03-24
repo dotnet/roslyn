@@ -1453,7 +1453,7 @@ public class Class1
         {
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"
@@ -1477,7 +1477,7 @@ class Configuration
         {
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"

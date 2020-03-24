@@ -883,7 +883,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true)));
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, true)));
                 });
         }
 
@@ -924,7 +924,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false)));
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, false)));
                 });
         }
 

@@ -8,15 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
-    internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
+    internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation2, IEditorConfigStorageLocation
     {
         public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object result)
         {

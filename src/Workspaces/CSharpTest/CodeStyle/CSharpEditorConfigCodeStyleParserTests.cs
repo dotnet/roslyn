@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" before_and_after ", BinaryOperatorSpacingOptions.Single)]
         public void TestParseSpacingAroundBinaryOperator(string rawValue, BinaryOperatorSpacingOptions parsedValue)
         {
-            Assert.Equal(parsedValue, CSharpFormattingOptions.ParseEditorConfigSpacingAroundBinaryOperator(rawValue));
+            Assert.Equal(parsedValue, CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(rawValue));
         }
 
         [Theory]
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" one_less_than_current ", LabelPositionOptions.OneLess)]
         public void TestParseLabelPositioning(string rawValue, LabelPositionOptions parsedValue)
         {
-            Assert.Equal(parsedValue, CSharpFormattingOptions.ParseEditorConfigLabelPositioning(rawValue));
+            Assert.Equal(parsedValue, CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(rawValue));
         }
 
         [Theory]
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData("when_on_single_line : error", (int)ExpressionBodyPreference.WhenOnSingleLine, ReportDiagnostic.Error)]
         public void TestParseExpressionBodyPreference(string optionString, int parsedValue, ReportDiagnostic severity)
         {
-            var defaultValue = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Error);
+            var defaultValue = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Error);
             var codeStyleOption = CSharpCodeStyleOptions.ParseExpressionBodyPreference(optionString, defaultValue);
 
             Assert.NotSame(defaultValue, codeStyleOption);

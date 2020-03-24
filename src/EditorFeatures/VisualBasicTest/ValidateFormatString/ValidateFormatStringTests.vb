@@ -18,21 +18,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey, Object)
-            Dim optionsSet = New Dictionary(Of OptionKey, Object) From
+        Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey2, Object)
+            Dim optionsSet = New Dictionary(Of OptionKey2, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False},
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True}
+                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False},
+                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True}
             }
 
             Return optionsSet
         End Function
 
-        Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey, Object)
-            Dim optionsSet = New Dictionary(Of OptionKey, Object) From
+        Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey2, Object)
+            Dim optionsSet = New Dictionary(Of OptionKey2, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True},
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False}
+                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True},
+                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False}
             }
 
             Return optionsSet

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     {
         public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
-                   CodeStyleOptions.PreferCompoundAssignment,
+                   CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var semanticModel = context.SemanticModel;
             var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
-            var option = context.GetOption(CodeStyleOptions.PreferCompoundAssignment, coalesceExpression.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, coalesceExpression.Language);
 
             // Bail immediately if the user has disabled this feature.
             if (!option.Value)
