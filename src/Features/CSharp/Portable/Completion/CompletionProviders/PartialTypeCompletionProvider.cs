@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var ch = text[characterPosition];
             return ch == ' ' ||
                 (CompletionUtilities.IsStartingNewWord(text, characterPosition) &&
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;

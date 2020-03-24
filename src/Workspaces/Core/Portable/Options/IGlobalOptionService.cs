@@ -31,7 +31,19 @@ namespace Microsoft.CodeAnalysis.Options
         /// Gets the current value of the specific option.
         /// </summary>
         [return: MaybeNull]
+        T GetOption<T>(Option2<T> option);
+
+        /// <summary>
+        /// Gets the current value of the specific option.
+        /// </summary>
+        [return: MaybeNull]
         T GetOption<T>(PerLanguageOption<T> option, string? languageName);
+
+        /// <summary>
+        /// Gets the current value of the specific option.
+        /// </summary>
+        [return: MaybeNull]
+        T GetOption<T>(PerLanguageOption2<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.

@@ -4,17 +4,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseExplicitTupleName;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
 {
@@ -215,7 +210,7 @@ class C
         (int i, string s) v1 = default((int, string));
         var v2 = v1.[|Item1|];
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferExplicitTupleNames, false, NotificationOption.Warning)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
@@ -230,7 +225,7 @@ class C
         (int i, string s) v1 = default((int, string));
         var v2 = v1.[|i|];
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferExplicitTupleNames, false, NotificationOption.Warning)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]

@@ -2260,16 +2260,6 @@ This version used in: {2}</source>
         <target state="translated">報告された診断 '{0}' のソースの場所はファイル '{2}' 内の '{1}' ですが、これは指定されたファイルの外です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">到達できないコードが検出されました</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">到達できないコードを削除します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">{0} (プロジェクト{1})</target>

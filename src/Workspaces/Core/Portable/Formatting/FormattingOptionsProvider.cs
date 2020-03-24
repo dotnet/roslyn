@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = FormattingOptions.AllOptions;
+        public ImmutableArray<IOption> Options { get; } = FormattingOptions2.AllOptions.As<IOption>();
     }
 }

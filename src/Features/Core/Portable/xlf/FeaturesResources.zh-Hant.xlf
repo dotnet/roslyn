@@ -2260,16 +2260,6 @@ This version used in: {2}</source>
         <target state="translated">回報之診斷 '{0}' 中的來源位置 '{1}' 位於檔案 '{2}' 內，而該檔案不在指定的檔案內。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">偵測到執行不到的程式碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">移除執行不到的程式碼</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">在 {0} 中 (專案 {1})</target>

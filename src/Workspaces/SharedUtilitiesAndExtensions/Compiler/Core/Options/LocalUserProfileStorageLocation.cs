@@ -4,16 +4,14 @@
 
 #nullable enable
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
+using Microsoft.CodeAnalysis.Options;
+
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     /// <summary>
     /// Specifies that the option should be stored into the user's local registry hive.
     /// </summary>
-    internal sealed class LocalUserProfileStorageLocation : OptionStorageLocation
+    internal sealed class LocalUserProfileStorageLocation : OptionStorageLocation2
     {
         public string KeyName { get; }
 
