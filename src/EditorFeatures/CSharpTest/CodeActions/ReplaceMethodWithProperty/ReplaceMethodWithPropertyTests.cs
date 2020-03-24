@@ -2335,6 +2335,29 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty), WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        public async Task TestSameNameMemberAsProperty()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Goo;
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo;
+    int Goo1
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
