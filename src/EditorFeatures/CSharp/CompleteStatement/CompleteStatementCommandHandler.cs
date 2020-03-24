@@ -143,7 +143,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.ParenthesizedExpression, SyntaxKind.ParameterList))
+            if (currentNode.IsKind(
+                SyntaxKind.ArgumentList,
+                SyntaxKind.ArrayRankSpecifier,
+                SyntaxKind.BracketedArgumentList,
+                SyntaxKind.ParenthesizedExpression,
+                SyntaxKind.ParameterList))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
