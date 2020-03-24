@@ -39,7 +39,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             return Task.CompletedTask;
         }
 
-        private async Task<Document> ReplaceWithNullLiteralAsync(Document document, Location location, CancellationToken cancellationToken)
+        private static async Task<Document> ReplaceWithNullLiteralAsync(Document document, Location location, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntax = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
