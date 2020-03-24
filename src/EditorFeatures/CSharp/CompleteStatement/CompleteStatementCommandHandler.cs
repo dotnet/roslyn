@@ -117,8 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // Examples, 
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
             //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
-            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken) && token.Span.Start >= caretPosition
-                || token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken) && token.Span.End <= caretPosition)
+            var (openingDelimeter, closingDelimiter) = GetDelimiters(startingNode);
+            if (!openingDelimeter.IsKind(SyntaxKind.None) && openingDelimeter.Span.Start >= caretPosition
+                || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
             {
                 startingNode = startingNode.Parent;
             }
@@ -440,31 +441,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
+            return GetDelimiters(currentNode).closingDelimiter.IsMissing;
+        }
+
+        private static (SyntaxToken openingDelimeter, SyntaxToken closingDelimiter) GetDelimiters(SyntaxNode currentNode)
+        {
             switch (currentNode.Kind())
             {
                 case SyntaxKind.ArgumentList:
                     var argumentList = (ArgumentListSyntax)currentNode;
-                    return argumentList.CloseParenToken.IsMissing;
+                    return (argumentList.OpenParenToken, argumentList.CloseParenToken);
 
                 case SyntaxKind.ParenthesizedExpression:
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    return parenthesizedExpression.CloseParenToken.IsMissing;
+                    return (parenthesizedExpression.OpenParenToken, parenthesizedExpression.CloseParenToken);
 
                 case SyntaxKind.BracketedArgumentList:
                     var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    return bracketedArgumentList.CloseBracketToken.IsMissing;
+                    return (bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken);
 
                 case SyntaxKind.ObjectInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    return initializerExpressionSyntax.CloseBraceToken.IsMissing;
+                    return (initializerExpressionSyntax.OpenBraceToken, initializerExpressionSyntax.CloseBraceToken);
 
                 case SyntaxKind.ArrayRankSpecifier:
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
-                    return arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
+                    return (arrayRankSpecifierSyntax.OpenBracketToken, arrayRankSpecifierSyntax.CloseBracketToken);
+
+                case SyntaxKind.ParameterList:
+                    var parameterList = (ParameterListSyntax)currentNode;
+                    return (parameterList.OpenParenToken, parameterList.CloseParenToken);
 
                 default:
-                    // Type of node does not require a closing delimiter
-                    return false;
+                    // Type of node does not have delimiters used by this feature
+                    return default;
             }
         }
     }
