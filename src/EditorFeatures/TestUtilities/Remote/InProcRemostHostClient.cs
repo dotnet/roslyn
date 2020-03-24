@@ -25,7 +25,7 @@ namespace Roslyn.Test.Utilities.Remote
     internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
-        private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataRpc;
+        private ReferenceCountedDisposable<RemotableDataProvider> _remotableDataRpc;
         private readonly RemoteEndPoint _endPoint;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
@@ -66,12 +66,12 @@ namespace Roslyn.Test.Utilities.Remote
             Stream stream)
             : base(workspace)
         {
-            Contract.ThrowIfNull(remotableDataRpc);
+            Contract.ThrowIfTrue(remotableDataRpc.IsDefault);
 
             ClientId = clientId;
 
             _inprocServices = inprocServices;
-            _remotableDataRpc = remotableDataRpc;
+            _remotableDataRpc = remotableDataRpc.Move();
 
             _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
             _endPoint.Disconnected += OnDisconnected;
@@ -100,7 +100,11 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference() ?? throw new ObjectDisposedException(GetType().FullName));
+            var remotableDataRpc = _remotableDataRpc.TryAddReference();
+            if (remotableDataRpc.IsDefault)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream, remotableDataRpc.Move());
         }
 
         protected override void OnStarted()

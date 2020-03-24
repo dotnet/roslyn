@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly HostGroup _hostGroup;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
-            private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataProvider;
+            private ReferenceCountedDisposable<RemotableDataProvider> _remotableDataProvider;
 
             private readonly int _maxPoolConnections;
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
 
-                _remotableDataProvider = remotableDataProvider;
+                _remotableDataProvider = remotableDataProvider.Move();
                 _maxPoolConnections = maxPoolConnection;
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task<Connection?> TryCreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 var dataProvider = _remotableDataProvider.TryAddReference();
-                if (dataProvider == null)
+                if (dataProvider.IsDefault)
                 {
                     // TODO: If we used multiplex stream we wouldn't get to this state and we could always assume to have a connection
                     // unless the service process stops working, in which case we should report an error and ask user to restart VS
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // this is what consumer actually use to communicate information
                 var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataProvider);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataProvider.Move());
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)

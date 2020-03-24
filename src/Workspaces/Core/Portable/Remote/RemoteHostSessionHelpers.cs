@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly object? _callbackTarget;
 
         private RemoteHostClient? _client;
-        private ReferenceCountedDisposable<RemoteHostClient.Connection>? _lazyConnection;
+        private ReferenceCountedDisposable<RemoteHostClient.Connection>/*??*/ _lazyConnection;
 
         public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object? callbackTarget)
         {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void Shutdown()
         {
-            ReferenceCountedDisposable<RemoteHostClient.Connection>? connection;
+            ReferenceCountedDisposable<RemoteHostClient.Connection>/*??*/ connection;
 
             lock (_gate)
             {
@@ -113,19 +113,20 @@ namespace Microsoft.CodeAnalysis.Remote
                     _client.StatusChanged -= OnStatusChanged;
                 }
 
-                connection = _lazyConnection;
+                connection = _lazyConnection.Move();
 
                 _client = null;
-                _lazyConnection = null;
+                _lazyConnection = default;
             }
 
-            connection?.Dispose();
+            if (!connection.IsDefault)
+                connection.Dispose();
         }
 
         public async Task<bool> TryInvokeAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            if (connection.IsDefault)
             {
                 return false;
             }
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<Optional<T>> TryInvokeAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             using var connection = await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            if (connection.IsDefault)
             {
                 return default;
             }
@@ -145,11 +146,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return await RemoteHostClient.RunRemoteAsync<T>(connection.Target, _remotableDataService, targetName, solution, arguments, dataReader: null, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>?> TryGetConnectionAsync(CancellationToken cancellationToken)
+        private async Task<ReferenceCountedDisposable<RemoteHostClient.Connection>/*??*/> TryGetConnectionAsync(CancellationToken cancellationToken)
         {
             lock (_gate)
             {
-                if (_lazyConnection != null)
+                if (!_lazyConnection.IsDefault)
                 {
                     return _lazyConnection.TryAddReference();
                 }
@@ -158,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                return null;
+                return default;
             }
 
             var connection = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
             {
-                return null;
+                return default;
             }
 
             Initialize(client, connection);
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_client != null)
                 {
-                    Contract.ThrowIfNull(_lazyConnection);
+                    Contract.ThrowIfTrue(_lazyConnection.IsDefault);
 
                     // someone else beat us and set the connection. 
                     // let this connection closed.

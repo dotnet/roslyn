@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = new ReferenceCountedDisposable<DisposableObject>(target);
             reference.Dispose();
 
-            Assert.Null(reference.TryAddReference());
+            Assert.True(reference.TryAddReference().IsDefault);
         }
 
         [Fact]
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // TryAddReference succeeds before dispose
             var reference2 = reference.TryAddReference();
-            Assert.NotNull(reference2);
+            Assert.False(reference2.IsDefault);
 
             reference.Dispose();
 
             // TryAddReference fails after dispose, even if another instance is alive
-            Assert.Null(reference.TryAddReference());
+            Assert.True(reference.TryAddReference().IsDefault);
             Assert.NotNull(reference2.Target);
             Assert.False(target.IsDisposed);
         }
@@ -101,21 +101,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var target = new DisposableObject();
 
             var reference = new ReferenceCountedDisposable<DisposableObject>(target);
-            var weakReference = new ReferenceCountedDisposable<DisposableObject>.WeakReference(reference);
+            var weakReference = new ReferenceCountedDisposable<DisposableObject>.WeakReference(in reference);
 
             var reference2 = reference.TryAddReference();
-            Assert.NotNull(reference2);
+            Assert.False(reference2.IsDefault);
 
             reference.Dispose();
 
             // TryAddReference fails after dispose for a counted reference
-            Assert.Null(reference.TryAddReference());
+            Assert.True(reference.TryAddReference().IsDefault);
             Assert.NotNull(reference2.Target);
             Assert.False(target.IsDisposed);
 
             // However, a WeakReference created from the disposed reference can still add a reference
             var reference3 = weakReference.TryAddReference();
-            Assert.NotNull(reference3);
+            Assert.False(reference3.IsDefault);
 
             reference2.Dispose();
             Assert.False(target.IsDisposed);
@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWeakReferenceArgumentValidation()
         {
-            Assert.Throws<ArgumentNullException>("reference", () => new ReferenceCountedDisposable<IDisposable>.WeakReference(null));
+            Assert.Throws<ArgumentNullException>("reference", () => new ReferenceCountedDisposable<IDisposable>.WeakReference(default));
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestDefaultWeakReference()
         {
-            Assert.Null(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference());
+            Assert.True(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference().IsDefault);
         }
 
         private sealed class DisposableObject : IDisposable

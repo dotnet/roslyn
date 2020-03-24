@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// This lock guards all mutable fields in this type.
         /// </summary>
         private readonly object _lock = new object();
-        private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
+        private ReferenceCountedDisposable<IChecksummedPersistentStorage>/*??*/ _currentPersistentStorage;
         private SolutionId? _currentPersistentStorageSolutionId;
 
         protected AbstractPersistentStorageService(IPersistentStorageLocationService locationService)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 {
                     // We do, great. Increment our ref count for our caller.  They'll decrement it
                     // when done with it.
-                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
+                    return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(in _currentPersistentStorage!);
                 }
 
                 var workingFolder = _locationService.TryGetStorageLocation(solution);
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Storage
                 }
 
                 // If we already had some previous cached service, let's let it start cleaning up
-                if (_currentPersistentStorage != null)
+                if (!_currentPersistentStorage.IsDefault)
                 {
-                    var storageToDispose = _currentPersistentStorage;
+                    var storageToDispose = _currentPersistentStorage.Move();
 
                     // Kick off a task to actually go dispose the previous cached storage instance.
                     // This will remove the single ref count we ourselves added when we cached the
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // instance let go, it will finally get truly disposed.
                     Task.Run(() => storageToDispose.Dispose());
 
-                    _currentPersistentStorage = null;
+                    _currentPersistentStorage = default;
                     _currentPersistentStorageSolutionId = null;
                 }
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 // Now increment the reference count and return to our caller.  The current ref
                 // count for this instance will be 2.  Until all the callers *and* us decrement
                 // the refcounts, this instance will not be actually disposed.
-                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
+                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(in _currentPersistentStorage);
             }
         }
 
@@ -164,17 +164,17 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private void Shutdown()
         {
-            ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage = null;
+            ReferenceCountedDisposable<IChecksummedPersistentStorage>/*??*/ storage = default;
 
             lock (_lock)
             {
                 // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
-                storage = _currentPersistentStorage;
-                _currentPersistentStorage = null;
+                storage = _currentPersistentStorage.Move();
+                _currentPersistentStorage = default;
                 _currentPersistentStorageSolutionId = null;
             }
 
-            if (storage != null)
+            if (!storage.IsDefault)
             {
                 // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
                 // using this will still be holding a reference count.
@@ -202,18 +202,20 @@ namespace Microsoft.CodeAnalysis.Storage
         /// </summary>
         private sealed class PersistentStorageReferenceCountedDisposableWrapper : IChecksummedPersistentStorage
         {
-            private readonly ReferenceCountedDisposable<IChecksummedPersistentStorage> _storage;
+            private ReferenceCountedDisposable<IChecksummedPersistentStorage> _storage;
 
             private PersistentStorageReferenceCountedDisposableWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
-                _storage = storage;
+                _storage = storage.Move();
             }
 
-            public static IChecksummedPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
+            public static IChecksummedPersistentStorage AddReferenceCountToAndCreateWrapper(in ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
                 // This should only be called from a caller that has a non-null storage that it
                 // already has a reference on.  So .TryAddReference cannot fail.
-                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+                var storage2 = storage.TryAddReference();
+                RoslynDebug.Assert(!storage2.IsDefault);
+                return new PersistentStorageReferenceCountedDisposableWrapper(storage2.Move());
             }
 
             public void Dispose()

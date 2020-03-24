@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
         {
             lock (_gate)
             {
-                ReferenceCountedDisposable<Entry> disposable = null;
+                ReferenceCountedDisposable<Entry>/*??*/ disposable = default;
 
                 // If we already have one in the map to hand out, great
                 if (_cache.TryGetValue(key, out var weakReference))
@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
                     disposable = weakReference.TryAddReference();
                 }
 
-                if (disposable == null)
+                if (disposable.IsDefault)
                 {
                     // We didn't easily get a disposable, so one of two things is the case:
                     //
@@ -45,7 +45,7 @@ namespace Roslyn.Utilities
                     _cache[key] = new ReferenceCountedDisposable<Entry>.WeakReference(disposable);
                 }
 
-                return disposable;
+                return disposable.Move();
             }
         }
 

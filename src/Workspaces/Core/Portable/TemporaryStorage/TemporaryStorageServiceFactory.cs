@@ -154,23 +154,23 @@ namespace Microsoft.CodeAnalysis.Host
                     // handle to a memory mapped file is obtained in this section, it must either be disposed before
                     // returning or returned to the caller who will own it through the MemoryMappedInfo.
                     var reference = _weakFileReference.TryAddReference();
-                    if (reference == null || _offset + size > _fileSize)
+                    if (reference.IsDefault || _offset + size > _fileSize)
                     {
                         var mapName = CreateUniqueName(MultiFileBlockSize);
                         var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
 
                         reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
-                        _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
+                        _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(in reference);
                         _name = mapName;
                         _fileSize = MultiFileBlockSize;
                         _offset = size;
-                        return new MemoryMappedInfo(reference, _name, offset: 0, size: size);
+                        return new MemoryMappedInfo(reference.Move(), _name, offset: 0, size: size);
                     }
                     else
                     {
                         // Reserve additional space in the existing storage location
                         _offset += size;
-                        return new MemoryMappedInfo(reference, _name, _offset - size, size);
+                        return new MemoryMappedInfo(reference.Move(), _name, _offset - size, size);
                     }
                 }
             }

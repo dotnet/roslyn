@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// However, the operating system does not actually close the views which are in use until the file handles
             /// are closed as well, even if the file is disposed first.</para>
             /// </remarks>
-            private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
+            private ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
             /// <summary>
             /// A weak reference to a read-only view for the memory mapped file.
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
             {
-                _memoryMappedFile = memoryMappedFile;
+                _memoryMappedFile = memoryMappedFile.Move();
                 Name = name;
                 Offset = offset;
                 Size = size;
@@ -106,15 +106,15 @@ namespace Microsoft.CodeAnalysis.Host
                     // disposed. If it returns non-null, then the object will not be disposed before the returned
                     // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
                     var streamAccessor = _weakReadAccessor.TryAddReference();
-                    if (streamAccessor == null)
+                    if (streamAccessor.IsDefault)
                     {
                         var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
                         streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
-                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
+                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(in streamAccessor);
                     }
 
                     Debug.Assert(streamAccessor.Target.CanRead);
-                    return new SharedReadableStream(streamAccessor, Size);
+                    return new SharedReadableStream(streamAccessor.Move(), Size);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
-                private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
+                private ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 
                 private byte* _start;
                 private byte* _current;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 public SharedReadableStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
                 {
-                    _accessor = accessor;
+                    _accessor = accessor.Move();
                     _current = _start = (byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset;
                     _end = checked(_start + length);
                 }
