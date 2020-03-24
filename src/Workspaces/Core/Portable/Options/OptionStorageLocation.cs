@@ -4,11 +4,7 @@
 
 #nullable enable
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     /// <summary>
     /// The base type of all types that specify where options are stored.

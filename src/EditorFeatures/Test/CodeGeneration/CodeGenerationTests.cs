@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = null,
-            IDictionary<OptionKey, object> options = null)
+            IDictionary<OptionKey2, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
             if (getStatements != null)
