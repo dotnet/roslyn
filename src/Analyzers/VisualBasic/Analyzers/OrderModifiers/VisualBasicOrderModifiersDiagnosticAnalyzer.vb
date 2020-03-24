@@ -4,14 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

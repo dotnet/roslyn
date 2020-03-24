@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = CodeStyleOptions.AllOptions;
+        public ImmutableArray<IOption> Options { get; } = CodeStyleOptions2.AllOptions.As<IOption>();
     }
 }

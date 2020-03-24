@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private readonly EventHookupCommandHandler _commandHandler;
         private readonly Mutex _testSessionHookupMutex;
 
-        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
+        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey2, object> options)
             : base(workspaceElement, GetExtraParts())
         {
             _commandHandler = new EventHookupCommandHandler(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             return ExportProviderCache.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupSessionManager) });
         }
 
-        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
+        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey2, object> options = null)
         {
             var workspaceXml = string.Format(@"
 <Workspace>

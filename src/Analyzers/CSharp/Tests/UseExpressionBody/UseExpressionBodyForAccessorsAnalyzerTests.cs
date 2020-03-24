@@ -5,22 +5,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
@@ -29,19 +23,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
-        private IDictionary<OptionKey, object> UseExpressionBody =>
+        private IOptionsCollection UseExpressionBody =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey, object> UseExpressionBodyIncludingPropertiesAndIndexers =>
+        private IOptionsCollection UseExpressionBodyIncludingPropertiesAndIndexers =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey, object> UseBlockBodyIncludingPropertiesAndIndexers =>
+        private IOptionsCollection UseBlockBodyIncludingPropertiesAndIndexers =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement),
@@ -311,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody5()
         {
-            var whenOnSingleLineWithNoneEnforcement = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            var whenOnSingleLineWithNoneEnforcement = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None);
             var options = OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, whenOnSingleLineWithNoneEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, whenOnSingleLineWithNoneEnforcement),

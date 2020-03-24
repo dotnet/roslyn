@@ -4,23 +4,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ISymbolExtensions
     {
-        private class IsUnsafeVisitor : SymbolVisitor<bool>
+        /// <summary>
+        /// Visits types or members that have signatures (i.e. methods, fields, etc.) and determines
+        /// if any of them reference a pointer type and should thus have the <see
+        /// langword="unsafe"/> modifier on them.
+        /// </summary>
+        private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
         {
             private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
 
-            public IsUnsafeVisitor()
-            {
-            }
-
             public override bool DefaultVisit(ISymbol node)
             {
-                throw new NotImplementedException();
+                Debug.Fail("Unhandled symbol kind in RequiresUnsafeModifierVisitor: " + node.Kind);
+                return false;
             }
 
             public override bool VisitArrayType(IArrayTypeSymbol symbol)

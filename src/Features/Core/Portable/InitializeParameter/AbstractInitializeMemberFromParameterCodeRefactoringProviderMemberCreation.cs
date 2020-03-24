@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             DocumentOptionSet options,
             ImmutableArray<NamingRule> rules)
         {
-            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
             foreach (var rule in rules)
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             DocumentOptionSet options,
             ImmutableArray<NamingRule> rules)
         {
-            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+            var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules).BaseNameParts;
 
             foreach (var rule in rules)

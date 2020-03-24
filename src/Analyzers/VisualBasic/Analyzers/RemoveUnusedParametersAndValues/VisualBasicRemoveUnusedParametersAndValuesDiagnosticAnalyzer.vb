@@ -5,13 +5,8 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 

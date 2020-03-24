@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(

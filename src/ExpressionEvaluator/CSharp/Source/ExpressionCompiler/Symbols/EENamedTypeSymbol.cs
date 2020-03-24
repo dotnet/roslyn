@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Should not be requesting generated members
             // by name other than constructors.
             Debug.Assert((name == WellKnownMemberNames.InstanceConstructorName) || (name == WellKnownMemberNames.StaticConstructorName));
-            return this.GetMembers().WhereAsArray(m => m.Name == name);
+            return this.GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()

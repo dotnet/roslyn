@@ -66,7 +66,7 @@ End Class")
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticInfoAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                options:=OptionsSet(SingleOption(CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Error)),
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
@@ -345,8 +345,8 @@ End Class]]>
 </Workspace>.ToString()
 
             Dim options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
+                SingleOption(CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Suggestion),
+                SingleOption(CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Suggestion))
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
