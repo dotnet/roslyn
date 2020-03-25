@@ -2,7 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../FeaturesResources.resx">
     <body>
-<<<<<<< HEAD
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="new">AM/PM (abbreviated)</target>
@@ -30,12 +29,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
 
 Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</target>
         <note />
-=======
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="new">Add 'DebuggerDisplay' attribute</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
->>>>>>> upstream/release/dev16.7-preview1
       </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
