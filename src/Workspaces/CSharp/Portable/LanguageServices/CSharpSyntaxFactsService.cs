@@ -1962,5 +1962,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.IsKind(SyntaxKind.XmlElement) &&
             ((XmlElementSyntax)node).StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
 
+        public override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
+        {
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
+            {
+                return documentationCommentTrivia.Content.ToArray();
+            }
+
+            throw new ArgumentException("Expected 'trivia' to be of type DocumentationCommentTriviaSyntax", nameof(trivia));
+        }
     }
 }

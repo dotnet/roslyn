@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return SyntaxFactory.Trivia(structuredTrivia)
             End If
 
-            Return Nothing
+            Throw New ArgumentException("Expected 'node' to be a StructuredTriviaSyntax", NameOf(node))
         End Function
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode
@@ -60,15 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia()).
                     WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
-        End Function
-
-        Friend Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode()
-            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
-            If documentationCommentTrivia IsNot Nothing Then
-                Return documentationCommentTrivia.Content.ToArray()
-            End If
-
-            Return Nothing
         End Function
 
         Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Trivia(structuredTriviaSyntax);
             }
 
-            return default;
+            throw new ArgumentException("Expected 'node' to be a StructuredTriviaSyntax", nameof(node));
         }
 
         internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
@@ -70,16 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 .WithTrailingTrivia(
                 SyntaxFactory.EndOfLine(endOfLineString),
                 lastWhitespaceTrivia);
-        }
-
-        internal override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
-        {
-            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
-            {
-                return documentationCommentTrivia.Content.ToArray();
-            }
-
-            return new SyntaxNode[0];
         }
 
         internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)

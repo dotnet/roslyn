@@ -2109,5 +2109,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
+
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode() Implements ISyntaxFactsService.GetContentFromDocumentationCommentTriviaSyntax
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return documentationCommentTrivia.Content.ToArray()
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace

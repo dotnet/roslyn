@@ -591,6 +591,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
 
+        public abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+
         public bool IsAwaitKeyword(SyntaxToken token)
             => token.RawKind == SyntaxKinds.AwaitKeyword;
 

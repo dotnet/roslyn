@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
 
                 var updatedNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
-                var structuredContent = Generator.GetContentFromDocumentationCommentTriviaSyntax(trivia);
+                var structuredContent = syntaxFacts.GetContentFromDocumentationCommentTriviaSyntax(trivia);
                 for (var i = 0; i < structuredContent.Length; i++)
                 {
                     var content = structuredContent[i];
