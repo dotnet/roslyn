@@ -17,7 +17,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1066,15 +1065,10 @@ namespace Microsoft.CodeAnalysis
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
 
-        internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol>(
+        internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
-            MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> decoder,
+            IAttributeNamedArgumentDecoder decoder,
             bool ignoreByRefLikeMarker)
-                where ModuleSymbol : class, IModuleSymbolInternal
-                where TypeSymbol : class, Symbol, ITypeSymbolInternal
-                where MethodSymbol : class, Symbol, IMethodSymbolInternal
-                where FieldSymbol : class, Symbol, IFieldSymbolInternal
-                where Symbol : class, ISymbolInternal
         {
             AttributeInfo info;
 
@@ -1085,9 +1079,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             info = FindTargetAttribute(token, AttributeDescription.ObsoleteAttribute);
-            if (info.HasValue && decoder.GetCustomAttribute(info.Handle, out TypedConstant[] positionalArgs, out KeyValuePair<string, TypedConstant>[] namedArgs, out bool[] namedArgIsProperty))
+            if (info.HasValue)
             {
-                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(positionalArgs, namedArgs, namedArgIsProperty);
+                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info, decoder);
                 switch (obsoleteData?.Message)
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
@@ -1320,161 +1314,77 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(TypedConstant[] positionalArgs, KeyValuePair<string, TypedConstant>[] namedArgs, bool[] namedArgIsProperty)
+        private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
         {
-            var (diagnosticId, urlFormat) = ExtractObsoleteProperties(namedArgs, namedArgIsProperty);
-            switch (positionalArgs.Length)
+            Debug.Assert(attributeInfo.HasValue);
+            if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
+            {
+                return null;
+            }
+
+            string? message = null;
+            bool isError = false;
+            switch (attributeInfo.SignatureIndex)
             {
                 case 0:
                     // ObsoleteAttribute()
-                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId, urlFormat);
+                    break;
                 case 1:
                     // ObsoleteAttribute(string)
-                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, positionalArgs[0].ValueInternal as string, isError: false, diagnosticId, urlFormat);
-                case 2 when positionalArgs[1].ValueInternal is bool isError:
-                    // ObsoleteAttribute(string, bool)
-                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, positionalArgs[0].ValueInternal as string, isError, diagnosticId, urlFormat);
-                default:
+                    if (sig.RemainingBytes > 0 && CrackStringInAttributeValue(out message, ref sig))
+                    {
+                        break;
+                    }
+
                     return null;
-            }
-        }
-
-        /// <summary>
-        /// Decodes attribute argument type from attribute blob (called FieldOrPropType in the spec).
-        /// </summary>
-        /// <exception cref="UnsupportedSignatureContent">If the encoded argument type is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static (SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) DecodeCustomAttributeFieldOrPropTypeOrThrow(ref BlobReader argReader)
-        {
-            var typeCode = argReader.ReadSerializationTypeCode();
-
-            // Spec:
-            // The FieldOrPropType (typeCode) shall be exactly one of: ELEMENT_TYPE_BOOLEAN,
-            // ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2,
-            // ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, ELEMENT_TYPE_U4, ELEMENT_TYPE_I8,
-            // ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
-            // 
-            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed
-            // by the FieldOrPropType of the element type. (See §II.23.1.16) An enum is
-            // specified as a single byte 0x55 followed by a SerString.
-            // 
-
-            // todo: this could be simplified for the "skip" case.
-            if (typeCode == SerializationTypeCode.SZArray)
-            {
-                var elementTypeCode = argReader.ReadSerializationTypeCode();
-                if (elementTypeCode == SerializationTypeCode.SZArray)
-                {
-                    // nested array not allowed:
-                    throw new UnsupportedSignatureContent();
-                }
-
-                return (typeCode, elementTypeCode);
-            }
-
-            switch (typeCode)
-            {
-                case SerializationTypeCode.Enum:
-                    if (!CrackStringInAttributeValue(out _, ref argReader))
+                case 2:
+                    // ObsoleteAttribute(string, bool)
+                    if (sig.RemainingBytes > 0 && CrackStringInAttributeValue(out message, ref sig) &&
+                        sig.RemainingBytes > 0 && CrackBooleanInAttributeValue(out isError, ref sig))
                     {
-                        throw new UnsupportedSignatureContent();
+                        break;
                     }
 
-                    return (typeCode, elementTypeCode: SerializationTypeCode.Invalid);
-
-                case SerializationTypeCode.TaggedObject:
-                case SerializationTypeCode.Type:
-                case SerializationTypeCode.String:
-                case SerializationTypeCode.Boolean:
-                case SerializationTypeCode.Char:
-                case SerializationTypeCode.SByte:
-                case SerializationTypeCode.Byte:
-                case SerializationTypeCode.Int16:
-                case SerializationTypeCode.UInt16:
-                case SerializationTypeCode.Int32:
-                case SerializationTypeCode.UInt32:
-                case SerializationTypeCode.Int64:
-                case SerializationTypeCode.UInt64:
-                case SerializationTypeCode.Single:
-                case SerializationTypeCode.Double:
-                    return (typeCode, elementTypeCode: SerializationTypeCode.Invalid);
-            }
-
-            throw new UnsupportedSignatureContent();
-        }
-
-        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static void SkipCustomAttributeElementOrThrow(ref BlobReader argReader, SerializationTypeCode typeCode)
-        {
-            if (typeCode == SerializationTypeCode.TaggedObject)
-            {
-                // Spec: If the parameter kind is System.Object, the value stored represents the "boxed" instance of that value-type.
-                var (argTypeCode, elementTypeCode) = DecodeCustomAttributeFieldOrPropTypeOrThrow(ref argReader);
-
-                if (argTypeCode == SerializationTypeCode.SZArray)
-                {
-                    SkipCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode);
-                    return;
-                }
-            }
-
-            SkipCustomAttributePrimitiveElementOrThrow(ref argReader, typeCode);
-        }
-
-        /// <exception cref="UnsupportedSignatureContent">If the given <paramref name="typeCode"/> is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static void SkipCustomAttributePrimitiveElementOrThrow(ref BlobReader argReader, SerializationTypeCode typeCode)
-        {
-            switch (typeCode)
-            {
-                case SerializationTypeCode.Boolean:
-                case SerializationTypeCode.SByte:
-                case SerializationTypeCode.Byte:
-                    argReader.ReadByte();
-                    break;
-
-                case SerializationTypeCode.Int16:
-                case SerializationTypeCode.UInt16:
-                case SerializationTypeCode.Char:
-                    argReader.ReadInt16();
-                    break;
-
-                case SerializationTypeCode.Int32:
-                case SerializationTypeCode.UInt32:
-                case SerializationTypeCode.Single:
-                    argReader.ReadInt32();
-                    break;
-
-                case SerializationTypeCode.Int64:
-                case SerializationTypeCode.UInt64:
-                case SerializationTypeCode.Double:
-                    argReader.ReadInt64();
-                    break;
-
-                case SerializationTypeCode.String:
-                case SerializationTypeCode.Type:
-                    if (!CrackStringInAttributeValue(out _, ref argReader))
-                    {
-                        throw new UnsupportedSignatureContent();
-                    }
-
-                    break;
-
+                    return null;
                 default:
-                    throw new UnsupportedSignatureContent();
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+
+            try
+            {
+                (string? diagnosticId, string? urlFormat) = sig.RemainingBytes > 0 ? CrackObsoleteProperties(ref sig, decoder) : default;
+                return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is UnsupportedSignatureContent)
+            {
+                return null;
             }
         }
 
-        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private static void SkipCustomAttributeElementArrayOrThrow(ref BlobReader argReader, SerializationTypeCode elementTypeCode)
+        private bool TryGetAttributeReader(CustomAttributeHandle handle, out BlobReader blobReader)
         {
-            int count = argReader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            Debug.Assert(!handle.IsNil);
+            try
             {
-                SkipCustomAttributeElementOrThrow(ref argReader, elementTypeCode);
+                var valueBlob = GetCustomAttributeValueOrThrow(handle);
+                if (!valueBlob.IsNil)
+                {
+                    blobReader = MetadataReader.GetBlobReader(valueBlob);
+                    if (blobReader.Length >= 4)
+                    {
+                        // check prolog
+                        if (blobReader.ReadInt16() == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
             }
+            catch (BadImageFormatException)
+            { }
+
+            blobReader = default;
+            return false;
         }
 #nullable restore
 
@@ -1759,29 +1669,33 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-
         /// <summary>
         /// Gets the well-known optional named properties on ObsoleteAttribute, if present.
         /// Both 'diagnosticId' and 'urlFormat' may be present, or only one, or neither.
         /// </summary>
-        private static (string? diagnosticId, string? urlFormat) ExtractObsoleteProperties(KeyValuePair<string, TypedConstant>[] namedArgs, bool[] namedArgIsProperty)
+        /// <remarks>
+        /// Failure to find any of these properties does not imply failure to decode the ObsoleteAttribute,
+        /// so we don't return a value indicating success or failure.
+        /// </remarks>
+        private static (string? diagnosticId, string? urlFormat) CrackObsoleteProperties(ref BlobReader sig, IAttributeNamedArgumentDecoder decoder)
         {
             string? diagnosticId = null;
             string? urlFormat = null;
 
-            for (var i = 0; i < namedArgs.Length && (diagnosticId is null || urlFormat is null); i++)
+            // See CIL spec section II.23.3 Custom attributes
+
+            // Next is a description of the optional “named” fields and properties.
+            // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
+            var numNamed = sig.ReadUInt16();
+            for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
             {
-                var (name, value) = namedArgs[i];
-                if (namedArgIsProperty[i])
+                var ((name, value), isProperty) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                if (value.Type?.SpecialType == SpecialType.System_String && isProperty)
                 {
                     if (diagnosticId is null && name == "DiagnosticId")
-                    {
-                        diagnosticId = value.ValueInternal as string;
-                    }
+                        diagnosticId = (string?)value.ValueInternal;
                     else if (urlFormat is null && name == "UrlFormat")
-                    {
-                        urlFormat = value.ValueInternal as string;
-                    }
+                        urlFormat = (string?)value.ValueInternal;
                 }
             }
 

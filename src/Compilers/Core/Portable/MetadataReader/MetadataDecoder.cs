@@ -70,9 +70,15 @@ namespace Microsoft.CodeAnalysis
         public bool IsPinned => (Constraints & LocalSlotConstraints.Pinned) != 0;
     }
 
+    internal interface IAttributeNamedArgumentDecoder
+    {
+        (KeyValuePair<string, TypedConstant>, bool isProperty) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader);
+    }
+
 #nullable enable
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
-        TypeNameDecoder<ModuleSymbol, TypeSymbol>
+        TypeNameDecoder<ModuleSymbol, TypeSymbol>,
+        IAttributeNamedArgumentDecoder
         where ModuleSymbol : class, IModuleSymbolInternal
         where TypeSymbol : class, Symbol, ITypeSymbolInternal
         where MethodSymbol : class, Symbol, IMethodSymbolInternal
@@ -1602,7 +1608,7 @@ tryAgain:
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded named argument is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private (KeyValuePair<string, TypedConstant>, bool isProperty) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
+        public (KeyValuePair<string, TypedConstant>, bool isProperty) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
         {
             // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
             // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
@@ -1672,21 +1678,10 @@ tryAgain:
             out TypedConstant[] positionalArgs,
             out KeyValuePair<string, TypedConstant>[] namedArgs)
         {
-            return GetCustomAttribute(handle, out positionalArgs, out namedArgs, out _);
-        }
-
-
-        internal bool GetCustomAttribute(
-            CustomAttributeHandle handle,
-            out TypedConstant[] positionalArgs,
-            out KeyValuePair<string, TypedConstant>[] namedArgs,
-            out bool[] namedArgIsProperty)
-        {
             try
             {
                 positionalArgs = Array.Empty<TypedConstant>();
                 namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
-                namedArgIsProperty = Array.Empty<bool>();
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1738,11 +1733,10 @@ tryAgain:
                     if (namedParamCount > 0)
                     {
                         namedArgs = new KeyValuePair<string, TypedConstant>[namedParamCount];
-                        namedArgIsProperty = new bool[namedParamCount];
 
                         for (int i = 0; i < namedArgs.Length; i++)
                         {
-                            (namedArgs[i], namedArgIsProperty[i]) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
+                            (namedArgs[i], _) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
                         }
                     }
 
@@ -1753,7 +1747,6 @@ tryAgain:
             {
                 positionalArgs = Array.Empty<TypedConstant>();
                 namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
-                namedArgIsProperty = Array.Empty<bool>();
             }
 
             return false;
