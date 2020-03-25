@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -38,14 +39,14 @@ namespace Microsoft.CodeAnalysis.Rename
             /// Same as calling <see cref="GetSolutionAsync(ImmutableArray{RenameDocumentAction})"/> with 
             /// <see cref="ApplicableActions"/> as the argument
             /// </summary>
-            public Task<Solution> GetSolutionAsync()
-            => GetSolutionAsync(ApplicableActions);
+            public Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
+            => GetSolutionAsync(ApplicableActions, cancellationToken);
 
             /// <summary>
             /// Applies each <see cref="RenameDocumentAction"/> in order and returns the final solution. 
             /// All actions must be contained in <see cref="ApplicableActions" />
             /// </summary>
-            public async Task<Solution> GetSolutionAsync(ImmutableArray<RenameDocumentAction> actions)
+            public async Task<Solution> GetSolutionAsync(ImmutableArray<RenameDocumentAction> actions, CancellationToken cancellationToken)
             {
                 var solution = Solution;
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 foreach (var action in actions)
                 {
-                    solution = await action.GetModifiedSolutionAsync(solution).ConfigureAwait(false);
+                    solution = await action.GetModifiedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

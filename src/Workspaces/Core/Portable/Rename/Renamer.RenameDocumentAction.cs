@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public abstract class RenameDocumentAction
         {
             public ImmutableArray<string> Errors { get; }
-            internal abstract Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken = default);
+            internal abstract Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken);
             public abstract string GetDescription(CultureInfo? culture = null);
 
             protected DocumentId DocumentId { get; }
