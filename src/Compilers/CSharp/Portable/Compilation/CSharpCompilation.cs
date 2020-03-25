@@ -2060,15 +2060,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         // most convenient.  We store them using weak references so that GC pressure will cause them
         // to be recycled.
         private WeakReference<BinderFactory>[]? _binderFactories;
+        private WeakReference<BinderFactory>[]? _ignoreAccessibilityBinderFactories;
 
-        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree)
+        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
+            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            {
+                return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
+            }
+
+            return GetBinderFactory(syntaxTree, ignoreAccessibility: false, ref _binderFactories);
+        }
+
+        private BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, ref WeakReference<BinderFactory>[]? cachedBinderFactories)
+        {
+            Debug.Assert(System.Runtime.CompilerServices.Unsafe.AreSame(ref cachedBinderFactories, ref ignoreAccessibility ? ref _ignoreAccessibilityBinderFactories : ref _binderFactories));
+
             var treeNum = GetSyntaxTreeOrdinal(syntaxTree);
-            WeakReference<BinderFactory>[]? binderFactories = _binderFactories;
+            WeakReference<BinderFactory>[]? binderFactories = cachedBinderFactories;
             if (binderFactories == null)
             {
                 binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Length];
-                binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
+                binderFactories = Interlocked.CompareExchange(ref cachedBinderFactories, binderFactories, null) ?? binderFactories;
             }
 
             BinderFactory? previousFactory;
@@ -2078,12 +2091,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return previousFactory;
             }
 
-            return AddNewFactory(syntaxTree, ref binderFactories[treeNum]);
+            return AddNewFactory(syntaxTree, ignoreAccessibility, ref binderFactories[treeNum]);
         }
 
-        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, [NotNull] ref WeakReference<BinderFactory>? slot)
+        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, [NotNull] ref WeakReference<BinderFactory>? slot)
         {
-            var newFactory = new BinderFactory(this, syntaxTree);
+            var newFactory = new BinderFactory(this, syntaxTree, ignoreAccessibility);
             var newWeakReference = new WeakReference<BinderFactory>(newFactory);
 
             while (true)

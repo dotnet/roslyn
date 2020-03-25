@@ -5470,7 +5470,7 @@ class C<T>
 
             Func<Symbol> lookupSymbol = () =>
             {
-                var factory = new BinderFactory(compilation, tree);
+                var factory = new BinderFactory(compilation, tree, ignoreAccessibility: false);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
