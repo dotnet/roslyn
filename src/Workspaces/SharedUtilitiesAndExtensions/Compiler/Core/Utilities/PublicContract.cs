@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         /// Use to validate public API input for properties that are exposed as <see cref="IReadOnlyList{T}"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithNonNullItems<T>(this IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithNonNullItems<T>(IEnumerable<T>? sequence, string argumentName) where T : class
         {
             var list = sequence.ToBoxedImmutableArray();
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         /// whose items should be unique.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithDistinctNonNullItems<T>(this IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithDistinctNonNullItems<T>(IEnumerable<T>? sequence, string argumentName) where T : class
         {
             var list = sequence.ToBoxedImmutableArray();
 

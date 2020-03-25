@@ -161,10 +161,15 @@ namespace Microsoft.CodeAnalysis
         // [Conditional("DEBUG")]
         private void CheckInvariants()
         {
-            Contract.ThrowIfTrue(ProjectIds.Count != _projectIdToProjectStateMap.Count);
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
+
+            // project ids must be the same:
+            Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(ProjectIds));
+            Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
         }
 
         private SolutionState Branch(
@@ -197,7 +202,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
-
 
             return new SolutionState(
                 branchId,
@@ -424,14 +428,14 @@ namespace Microsoft.CodeAnalysis
         private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
         {
             // changed project list so, increment version.
-            var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
+            var newSolutionAttributes = _solutionAttributes.WithVersion(Version.GetNewerVersion());
 
             var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
+
             var newDependencyGraph = _dependencyGraph
-                                        .WithAdditionalProjects(SpecializedCollections.SingletonEnumerable(projectId))
-                                        .WithAdditionalProjectReferences(projectId,
-                                            projectState.ProjectReferences.Where(r => _projectIdToProjectStateMap.ContainsKey(r.ProjectId)).Select(r => r.ProjectId).ToList());
+                .WithAdditionalProject(projectId)
+                .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences);
 
             // It's possible that another project already in newStateMap has a reference to this project that we're adding, since we allow
             // dangling references like that. If so, we'll need to link those in too.
@@ -441,7 +445,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (projectReference.ProjectId == projectId)
                     {
-                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(
+                            newState.Key,
+                            SpecializedCollections.SingletonReadOnlyList(projectReference));
+
                         break;
                     }
                 }
@@ -450,7 +457,7 @@ namespace Microsoft.CodeAnalysis
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedProject(newStateMap[projectId]);
 
-            return this.Branch(
+            return Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
@@ -793,7 +800,7 @@ namespace Microsoft.CodeAnalysis
             var newReferences = oldReferences.AddRange(projectReferences);
 
             var newProject = oldProject.WithProjectReferences(newReferences);
-            var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences.Select(r => r.ProjectId).ToList());
+            var newDependencyGraph = _dependencyGraph.WithAdditionalProjectReferences(projectId, projectReferences);
 
             return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
@@ -818,12 +825,16 @@ namespace Microsoft.CodeAnalysis
             var newProject = oldProject.WithProjectReferences(newReferences);
 
             ProjectDependencyGraph newDependencyGraph;
-            if (newProject.ContainsReferenceToProject(projectReference.ProjectId))
+            if (newProject.ContainsReferenceToProject(projectReference.ProjectId) ||
+                !_projectIdToProjectStateMap.ContainsKey(projectReference.ProjectId))
             {
-                // The project contained multiple non-equivalent references to the project, 
+                // Two cases:
+                // 1) The project contained multiple non-equivalent references to the project, 
                 // and not all of them were removed. The dependency graph doesn't change.
                 // Note that there might be two references to the same project, one with 
                 // extern alias and the other without. These are not considered duplicates.
+                // 2) The referenced project is not part of the solution and hence not included
+                // in the dependency graph.
                 newDependencyGraph = _dependencyGraph;
             }
             else

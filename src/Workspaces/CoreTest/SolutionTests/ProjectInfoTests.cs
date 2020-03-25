@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class ProjectInfoTests
     {
         [Fact]
-        public void Create_Errors()
+        public void Create_Errors_NullReferences()
         {
             var pid = ProjectId.CreateNewId();
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(id: null, version: VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#"));
@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 documents: new DocumentInfo[] { null }));
+        }
+
+        [Fact]
+        public void Create_Errors_DuplicateItems()
+        {
+            var pid = ProjectId.CreateNewId();
 
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "doc");
             Assert.Throws<ArgumentException>("documents[1]",

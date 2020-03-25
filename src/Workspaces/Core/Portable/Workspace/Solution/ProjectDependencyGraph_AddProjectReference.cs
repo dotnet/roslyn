@@ -14,9 +14,20 @@ namespace Microsoft.CodeAnalysis
 {
     partial class ProjectDependencyGraph
     {
-        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (projectReferences.Count == 0)
+            {
+                return this;
+            }
+
+            // only add references to projects that are contained in the solution/graph
+            var referencedProjectIds = projectReferences
+                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Select(r => r.ProjectId)
+                .ToList();
 
             if (referencedProjectIds.Count == 0)
             {
@@ -34,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             // Note: rather than updating our dependency sets and topologically sorted data, we'll throw that away since incremental update is
             // tricky, and those are rarely used. If somebody needs them, it'll be lazily computed.
             return new ProjectDependencyGraph(
-                _projectIds.Union(referencedProjectIds),
+                _projectIds,
                 referencesMap: newReferencesMap,
                 reverseReferencesMap: newReverseReferencesMap,
                 transitiveReferencesMap: newTransitiveReferencesMap,

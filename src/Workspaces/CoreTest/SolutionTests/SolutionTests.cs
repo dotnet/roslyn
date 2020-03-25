@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>("metadataReference", () => solution.RemoveMetadataReference(projectId, null!));
 
             // removing a reference that's not in the list:
-            Assert.Throws<ArgumentException>("metadataReference", () => solution.RemoveMetadataReference(projectId, new TestMetadataReference()));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveMetadataReference(projectId, new TestMetadataReference()));
 
             // project not in solution:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveMetadataReference(ProjectId.CreateNewId(), metadataRef1));
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>("analyzerReference", () => solution.RemoveAnalyzerReference(projectId, null!));
 
             // removing a reference that's not in the list:
-            Assert.Throws<ArgumentException>("analyzerReference", () => solution.RemoveAnalyzerReference(projectId, new TestAnalyzerReference()));
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(projectId, new TestAnalyzerReference()));
 
             // project not in solution:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(ProjectId.CreateNewId(), analyzerRef1));

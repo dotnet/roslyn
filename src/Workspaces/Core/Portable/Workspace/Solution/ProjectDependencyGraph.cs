@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis
             ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
         }
 
+        internal ImmutableHashSet<ProjectId> ProjectIds => _projectIds;
+
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> RemoveItemsWithEmptyValues(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> map)
         {
@@ -131,23 +133,17 @@ namespace Microsoft.CodeAnalysis
             // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything.
             // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
 
-            ImmutableHashSet<ProjectId> projectIds;
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? referencesMap;
-            if (projectReferences.IsEmpty())
-            {
-                referencesMap = _referencesMap.Remove(projectId);
-                projectIds = _projectIds;
-            }
-            else
-            {
-                var referencedProjectIds = projectReferences.Select(p => p.ProjectId).ToImmutableHashSet();
-                referencesMap = _referencesMap.SetItem(projectId, referencedProjectIds);
+            // only include projects contained in the solution:
+            var referencedProjectIds = projectReferences.IsEmpty() ? ImmutableHashSet<ProjectId>.Empty :
+                projectReferences
+                    .Where(r => _projectIds.Contains(r.ProjectId))
+                    .Select(r => r.ProjectId)
+                    .ToImmutableHashSet();
 
-                // add referenced project ids to handle referenced to projects outside of the solution:
-                projectIds = _projectIds.Union(referencedProjectIds);
-            }
+            var referencesMap = referencedProjectIds.IsEmpty ?
+                _referencesMap.Remove(projectId) : _referencesMap.SetItem(projectId, referencedProjectIds);
 
-            return new ProjectDependencyGraph(projectIds, referencesMap);
+            return new ProjectDependencyGraph(_projectIds, referencesMap);
         }
 
         /// <summary>
