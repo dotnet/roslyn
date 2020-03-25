@@ -4125,7 +4125,7 @@ class C
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys.")
                 Await state.AssertNoCompletionSession()
@@ -4147,7 +4147,7 @@ class C
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
                 Await state.AssertSelectedCompletionItem(displayText:="System")
@@ -4182,7 +4182,7 @@ class C
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
 
@@ -4261,7 +4261,7 @@ class C
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
 
                 state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
@@ -4353,7 +4353,7 @@ class C
                 ' Switch to the non-blocking mode
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, False)))
 
                 ' re-use of TestNoBlockOnCompletionItems1
                 state.SendTypeChars("Sys.")
@@ -4373,7 +4373,7 @@ class C
 
                 ' Switch to the blocking mode
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, True)))
+                    .WithChangedOption(CompletionOptions.BlockForCompletionItems2, LanguageNames.CSharp, True)))
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()

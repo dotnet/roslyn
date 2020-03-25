@@ -17,6 +17,16 @@
         <target state="new">Convert switch statement to expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_default_expression">
+        <source>Simplify 'default' expression</source>
+        <target state="new">Simplify 'default' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="new">Unreachable code detected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
         <target state="new">Use block body for accessors</target>
@@ -110,6 +120,11 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="new">Use 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default_expression_can_be_simplified">
+        <source>'default' expression can be simplified</source>
+        <target state="new">'default' expression can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

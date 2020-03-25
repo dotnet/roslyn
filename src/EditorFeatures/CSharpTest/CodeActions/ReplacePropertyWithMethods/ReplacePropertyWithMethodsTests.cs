@@ -1844,7 +1844,7 @@ class C : IGoo
 }");
         }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

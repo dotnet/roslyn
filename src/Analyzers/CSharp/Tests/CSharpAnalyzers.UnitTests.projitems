@@ -15,8 +15,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersCompilerErrorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\UseDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConstructorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConversionOperatorsAnalyzerTests.cs" />
@@ -49,6 +51,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
@@ -56,5 +59,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzerTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

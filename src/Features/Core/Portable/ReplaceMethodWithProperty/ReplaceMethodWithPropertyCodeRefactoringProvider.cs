@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
@@ -58,7 +59,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
-                ? methodName.Substring(GetPrefix.Length)
+                ? NameGenerator.GenerateUniqueName(
+                    methodName.Substring(GetPrefix.Length),
+                    n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
 

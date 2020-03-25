@@ -327,8 +327,8 @@ class C
         var {|Rename:dateTime|} = new DateTime();
     }
 }", options: OptionsSet(
-    (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSuggestionEnforcement),
-    (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement)));
+    (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSuggestionEnforcement),
+    (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]

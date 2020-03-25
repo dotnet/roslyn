@@ -3,16 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Options
-#Else
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
     Public Class AddAccessibilityModifiersTests
@@ -23,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityMo
                     New VisualBasicAddAccessibilityModifiersCodeFixProvider())
         End Function
 
-        Private ReadOnly Property OmitDefaultModifiers As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property OmitDefaultModifiers As IOptionsCollection
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Suggestion))
+                    SingleOption(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Suggestion))
             End Get
         End Property
 

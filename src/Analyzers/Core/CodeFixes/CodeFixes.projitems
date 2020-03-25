@@ -29,7 +29,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

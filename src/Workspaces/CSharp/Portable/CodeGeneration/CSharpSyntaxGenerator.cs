@@ -3060,10 +3060,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
-            => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+            => SyntaxGeneratorInternal.ConditionalAccessExpression(expression, whenNotNull);
 
         public override SyntaxNode MemberBindingExpression(SyntaxNode name)
-            => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
+            => SyntaxGeneratorInternal.MemberBindingExpression(name);
 
         public override SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementBindingExpression(

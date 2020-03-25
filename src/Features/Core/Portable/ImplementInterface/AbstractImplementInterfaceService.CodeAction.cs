@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
-                var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(State.Location);
+                var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
 
                 return GenerateMember(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,

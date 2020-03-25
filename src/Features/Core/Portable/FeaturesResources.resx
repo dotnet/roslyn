@@ -1018,9 +1018,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Use_null_propagation" xml:space="preserve">
-    <value>Use null propagation</value>
-  </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
@@ -1135,12 +1132,6 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
-  <data name="Simplify_default_expression" xml:space="preserve">
-    <value>Simplify 'default' expression</value>
-  </data>
-  <data name="default_expression_can_be_simplified" xml:space="preserve">
-    <value>'default' expression can be simplified</value>
-  </data>
   <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
     <value>Format string contains invalid placeholder</value>
   </data>
@@ -1158,12 +1149,6 @@ This version used in: {2}</value>
   </data>
   <data name="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
-  </data>
-  <data name="Unreachable_code_detected" xml:space="preserve">
-    <value>Unreachable code detected</value>
-  </data>
-  <data name="Remove_unreachable_code" xml:space="preserve">
-    <value>Remove unreachable code</value>
   </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>

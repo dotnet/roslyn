@@ -1464,9 +1464,9 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
 
-        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
-        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
-        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCreateFieldWithTopLevelNullability()
@@ -1558,7 +1558,65 @@ class C
     }
 
     public string S { get; }
-}", options: this.Option(CSharpFormattingOptions.NewLinesForBracesInMethods, false));
+}", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C(string s, [||]int i)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        this.s = s;
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C([||]int i, string s)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+
+    public C(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}");
         }
     }
 }
