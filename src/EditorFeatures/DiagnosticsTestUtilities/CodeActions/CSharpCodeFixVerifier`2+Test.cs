@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = solution.GetRequiredProject(projectId).CompilationOptions!;
+                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_nullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
-            public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
 
             public string? EditorConfig { get; set; }
 

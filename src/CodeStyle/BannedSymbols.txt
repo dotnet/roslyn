@@ -1,8 +1,7 @@
-P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'GetExtendedLanguageServices' instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
-M:Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(System.String); Use 'GetExtendedLanguageServices' or directly get the language service by invoking 'GetLanguageService' or 'GetRequiredLanguageService' in CodeStyle layer (preprocessor variable 'CODE_STYLE')
+P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'GetExtendedLanguageServices' instead
+M:Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(System.String); Use 'GetExtendedLanguageServices' or directly get the language service by invoking 'GetLanguageService' or 'GetRequiredLanguageService'
 T:Microsoft.CodeAnalysis.Options.OptionSet; 'OptionSet' is not available in CodeStyle layer. Add a using/Imports statement defining 'OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions' when preprocessor variable 'CODE_STYLE' is defined
-T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.Internal.Options.CodeStyleOption' instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
-T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions' instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
-T:Microsoft.CodeAnalysis.Options.IOption; Use 'Microsoft.CodeAnalysis.Internal.Options.IOption'  instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
-T:Microsoft.CodeAnalysis.Options.OptionKey; Use 'Microsoft.CodeAnalysis.Internal.Options.OptionKey' instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
-T:Microsoft.CodeAnalysis.CodeStyle.NotificationOption; Use 'Microsoft.CodeAnalysis.Internal.Options.NotificationOption' instead in CodeStyle layer (preprocessor variable 'CODE_STYLE')
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions2' instead
+T:Microsoft.CodeAnalysis.Options.OptionKey; Use 'Microsoft.CodeAnalysis.Options.OptionKey2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.NotificationOption; Use 'Microsoft.CodeAnalysis.CodeStyle.NotificationOption2' instead

@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
 
-        public static readonly Option<bool> Enabled = new Option<bool>(
+        public static readonly Option2<bool> Enabled = new Option2<bool>(
             nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
 
-        public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
+        public static PerLanguageOption2<bool> SuggestForTypesInReferenceAssemblies =
+            new PerLanguageOption2<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
-        public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
+        public static PerLanguageOption2<bool> SuggestForTypesInNuGetPackages =
+            new PerLanguageOption2<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }
