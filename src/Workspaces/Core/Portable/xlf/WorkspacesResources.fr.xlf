@@ -1297,6 +1297,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Spécifications de symboles</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="new">Sync namespace to folder structure</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_project_does_not_support_sync_namespace">
         <source>The project does not support sync namespace</source>
         <target state="new">The project does not support sync namespace</target>
