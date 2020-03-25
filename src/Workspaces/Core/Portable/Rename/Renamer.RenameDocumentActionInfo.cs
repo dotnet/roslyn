@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename
             /// <see cref="ApplicableActions"/> as the argument
             /// </summary>
             public Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-            => GetSolutionAsync(ApplicableActions, cancellationToken);
+                => GetSolutionAsync(ApplicableActions, cancellationToken);
 
             /// <summary>
             /// Applies each <see cref="RenameDocumentAction"/> in order and returns the final solution. 
