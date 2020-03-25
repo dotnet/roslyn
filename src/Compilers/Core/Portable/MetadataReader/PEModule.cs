@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (ai.SignatureIndex == 0)
                 {
-                    if (TryExtractStringValueFromAttribute(ai.Handle, out var extracted))
+                    if (TryExtractStringValueFromAttribute(ai.Handle, out string extracted))
                     {
                         if (extracted is object)
                         {
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                else if (TryExtractStringArrayValueFromAttribute(ai.Handle, out var extracted2))
+                else if (TryExtractStringArrayValueFromAttribute(ai.Handle, out ImmutableArray<string> extracted2))
                 {
                     foreach (var value in extracted2)
                     {
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (ai.SignatureIndex == 0)
                 {
-                    if (TryExtractValueFromAttribute(ai.Handle, out var extracted, s_attributeBoolAndStringValueExtractor))
+                    if (TryExtractValueFromAttribute(ai.Handle, out BoolAndStringData extracted, s_attributeBoolAndStringValueExtractor))
                     {
                         if (extracted.String is object)
                         {
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                else if (TryExtractValueFromAttribute(ai.Handle, out var extracted2, s_attributeBoolAndStringArrayValueExtractor))
+                else if (TryExtractValueFromAttribute(ai.Handle, out BoolAndStringArrayData extracted2, s_attributeBoolAndStringArrayValueExtractor))
                 {
                     var whenResult = extracted2.Sense ? whenTrue : whenFalse;
                     foreach (var value in extracted2.Strings)
