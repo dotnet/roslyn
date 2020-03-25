@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
             return detector != null && detector.IsDateAndTimeToken(token, cancellationToken)
-                ? token : default(SyntaxToken?);
+                ? token : (SyntaxToken?)null;
         }
     }
 }
