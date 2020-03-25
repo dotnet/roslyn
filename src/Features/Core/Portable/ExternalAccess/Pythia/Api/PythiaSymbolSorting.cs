@@ -13,10 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
     {
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             ImmutableArray<TSymbol> symbols,
-            ISymbolDisplayService symbolDisplayService,
             SemanticModel semanticModel,
             int position)
             where TSymbol : ISymbol
-            => Shared.Extensions.ISymbolExtensions2.Sort(symbols, symbolDisplayService, semanticModel, position);
+            => Shared.Extensions.ISymbolExtensions2.Sort(symbols, semanticModel, position);
     }
 }

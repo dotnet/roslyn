@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         }
 
         public override IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
         {
             var members = new List<SymbolDisplayPart>();
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
 
                 first = false;
-                members.AddRange(displayService.ToMinimalDisplayParts(semanticModel, position, property.Type).Select(p => p.MassageErrorTypeNames("?")));
+                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position).Select(p => p.MassageErrorTypeNames("?")));
                 members.AddRange(Space());
                 members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
             }

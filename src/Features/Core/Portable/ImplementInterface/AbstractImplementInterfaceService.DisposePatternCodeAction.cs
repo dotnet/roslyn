@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
 
-                var symbolDisplay = document.GetRequiredLanguageService<ISymbolDisplayService>();
-                var disposeMethodDisplayString = symbolDisplay.ToDisplayString(disposeImplMethod, s_format);
+                var disposeMethodDisplayString = disposeImplMethod.ToDisplayString(s_format);
 
                 var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
                     compilation, document, classType, disposeMethod,

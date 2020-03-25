@@ -92,12 +92,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
-                var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
                 var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
 
                 return overridableMembers.Select(m => CreateItem(
-                    m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+                    m, semanticModel, startToken, modifiers)).ToList();
             }
 
             private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
@@ -110,12 +109,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private CompletionItem CreateItem(
-                ISymbol symbol, ISymbolDisplayService symbolDisplayService,
-                SemanticModel semanticModel, SyntaxToken startToken, DeclarationModifiers modifiers)
+                ISymbol symbol, SemanticModel semanticModel,
+                SyntaxToken startToken, DeclarationModifiers modifiers)
             {
                 var position = startToken.SpanStart;
 
-                var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
+                var displayString = symbol.ToMinimalDisplayString(semanticModel, position, _overrideNameFormat);
 
                 return MemberInsertionCompletionItem.Create(
                     displayString,

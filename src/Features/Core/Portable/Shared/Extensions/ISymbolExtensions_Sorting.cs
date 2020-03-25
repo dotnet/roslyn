@@ -16,13 +16,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             this ImmutableArray<TSymbol> symbols,
-            ISymbolDisplayService symbolDisplayService,
             SemanticModel semanticModel,
             int position)
             where TSymbol : ISymbol
         {
             var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
+            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
 
             return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
                           .ToImmutableArray();
@@ -122,12 +121,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static string[] GetParameterTypeNames(
             ISymbol symbol,
-            ISymbolDisplayService symbolDisplayService,
             SemanticModel semanticModel,
             int position)
         {
             return GetMethodOrIndexerOrEventParameters(symbol)
-                         .Select(p => symbolDisplayService.ToMinimalDisplayString(semanticModel, position, p.Type))
+                         .Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))
                          .ToArray();
         }
 

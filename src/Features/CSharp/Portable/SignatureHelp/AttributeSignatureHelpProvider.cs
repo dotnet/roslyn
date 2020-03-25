@@ -83,11 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var accessibleConstructors = attributeType.InstanceConstructors
                                                       .WhereAsArray(c => c.IsAccessibleWithin(within))
                                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                                                      .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
+                                                      .Sort(semanticModel, attribute.SpanStart);
 
             if (!accessibleConstructors.Any())
             {
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
 
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-                Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
+                Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
@@ -123,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol within,
             AttributeSyntax attribute,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),
