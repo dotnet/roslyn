@@ -4917,7 +4917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
                 {
                     // MaybeNull and MaybeNullWhen
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
 
                 if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
@@ -4938,7 +4938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (maybeNullWhenTrue && !(maybeNullWhenFalse && notNullWhenTrue))
                 {
                     // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
                 else if (notNullWhenTrue)
                 {
@@ -4957,7 +4957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (maybeNullWhenFalse && !(maybeNullWhenTrue && notNullWhenFalse))
                 {
                     // [MaybeNull, NotNullWhen(false)] means [MaybeNullWhen(true)]
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
                 else if (notNullWhenFalse)
                 {
