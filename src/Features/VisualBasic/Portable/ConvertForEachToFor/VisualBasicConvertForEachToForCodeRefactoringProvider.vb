@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForEachToForCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
-        Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
+        Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of StatementSyntax, ForEachBlockSyntax)
 
         <ImportingConstructor>
         Public Sub New()
@@ -61,9 +61,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             End If
 
             ' first, see whether we need to introduce New statement to capture collection
-            IntroduceCollectionStatement(model, foreachInfo, editor, type:=Nothing, expression, collectionVariable)
+            IntroduceCollectionStatement(foreachInfo, editor, type:=Nothing, expression, collectionVariable)
 
-            ' create New index varialbe name
+            ' create New index variable name
             Dim indexVariable = If(
                 forEachBlock.Statements.Count = 0,
                 generator.Identifier("i"),
@@ -120,9 +120,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             collectionVariableName As SyntaxNode, indexVariable As SyntaxToken) As SyntaxList(Of StatementSyntax)
 
             Dim forEachBlock = foreachInfo.ForEachStatement
-            If forEachBlock.Statements.Count = 0 Then
-                Return forEachBlock.Statements
-            End If
 
             Dim foreachVariable As SyntaxNode = Nothing
             Dim type As SyntaxNode = Nothing
@@ -134,6 +131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             ' create variable statement
             Dim variableStatement = AddItemVariableDeclaration(
                 generator, type, foreachVariableToken, foreachInfo.ForEachElementType, collectionVariableName, indexVariable)
+
+            If forEachBlock.Statements.Count = 0 Then
+                ' If the block was empty, still put the new variable inside of it. This handles the case where the user
+                ' writes the foreach and immediately decides to change it to a for-loop.  Now they'll still have their
+                ' variable to use in the body instead of having to write it again.
+                Return SyntaxFactory.SingletonList(variableStatement)
+            End If
 
             ' Nested loops might not have a Next statement
             If IsForEachVariableWrittenInside Then

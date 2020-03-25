@@ -27,18 +27,18 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         protected readonly Workspace Workspace;
 
         // Option that controls if this service is enabled or not (regardless of language).
-        private readonly Option<bool> _serviceOnOffOption;
+        private readonly Option2<bool> _serviceOnOffOption;
 
         // Options that control if this service is enabled or not for a particular language.
-        private readonly ImmutableArray<PerLanguageOption<bool>> _perLanguageOptions;
+        private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
 
         private bool _enabled = false;
 
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
             Workspace workspace,
-            Option<bool> onOffOption,
-            params PerLanguageOption<bool>[] perLanguageOptions)
+            Option2<bool> onOffOption,
+            params PerLanguageOption2<bool>[] perLanguageOptions)
             : base(threadingContext)
         {
             Workspace = workspace;

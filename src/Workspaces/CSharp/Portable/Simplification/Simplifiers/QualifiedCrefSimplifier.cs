@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static TypeCrefSyntax CreateReplacement(QualifiedCrefSyntax crefSyntax, SyntaxKind keywordKind)
         {
-            var annotation = new SyntaxAnnotation(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess));
+            var annotation = new SyntaxAnnotation(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess));
             var token = Token(crefSyntax.GetLeadingTrivia(), keywordKind, crefSyntax.GetTrailingTrivia());
             return TypeCref(PredefinedType(token)).WithAdditionalAnnotations(annotation);
         }

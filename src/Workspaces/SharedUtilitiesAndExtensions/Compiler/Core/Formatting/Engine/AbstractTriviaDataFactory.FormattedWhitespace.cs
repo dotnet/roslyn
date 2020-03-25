@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.Options.GetOption(FormattingOptions.NewLine));
+                _newString = CreateString(this.Options.GetOption(FormattingOptions2.NewLine));
             }
 
             private string CreateString(string newLine)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions.UseTabs), this.Options.GetOption(FormattingOptions.TabSize));
+                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions2.UseTabs), this.Options.GetOption(FormattingOptions2.TabSize));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 

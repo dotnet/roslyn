@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         protected AbstractParenthesesDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message)
             : base(descriptorId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.ArithmeticBinaryParentheses, CodeStyleOptions.RelationalBinaryParentheses, CodeStyleOptions.OtherBinaryParentheses, CodeStyleOptions.OtherParentheses),
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses),
                    title, message)
         {
         }
@@ -25,22 +25,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
         }
 
-        protected PerLanguageOption<CodeStyleOption<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
+        protected PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
         {
             switch (precedenceKind)
             {
                 case PrecedenceKind.Arithmetic:
                 case PrecedenceKind.Shift:
                 case PrecedenceKind.Bitwise:
-                    return CodeStyleOptions.ArithmeticBinaryParentheses;
+                    return CodeStyleOptions2.ArithmeticBinaryParentheses;
                 case PrecedenceKind.Relational:
                 case PrecedenceKind.Equality:
-                    return CodeStyleOptions.RelationalBinaryParentheses;
+                    return CodeStyleOptions2.RelationalBinaryParentheses;
                 case PrecedenceKind.Logical:
                 case PrecedenceKind.Coalesce:
-                    return CodeStyleOptions.OtherBinaryParentheses;
+                    return CodeStyleOptions2.OtherBinaryParentheses;
                 case PrecedenceKind.Other:
-                    return CodeStyleOptions.OtherParentheses;
+                    return CodeStyleOptions2.OtherParentheses;
             }
 
             throw ExceptionUtilities.UnexpectedValue(precedenceKind);

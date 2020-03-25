@@ -4,47 +4,69 @@
 
 using System.Collections;
 using System.Collections.Generic;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    public sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey, object>>
+#if CODE_STYLE
+    internal interface IOptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object>>
     {
-        private readonly Dictionary<OptionKey, object> _options = new Dictionary<OptionKey, object>();
-        private readonly string _languageName;
+        string GetEditorConfigText();
+    }
+#endif
 
-        public OptionsCollection(string languageName)
+    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object>>
+#if CODE_STYLE
+        , IOptionsCollection
+#endif
+    {
+        private readonly Dictionary<OptionKey2, object> _options = new Dictionary<OptionKey2, object>();
+        private readonly string _languageName;
+        private readonly string _defaultExtension;
+
+        public OptionsCollection(string languageName, params (OptionKey2 key, object value)[] options)
         {
             _languageName = languageName;
+            _defaultExtension = languageName == LanguageNames.CSharp ? "cs" : "vb";
+
+            foreach (var (key, value) in options)
+            {
+                Add(key, value);
+            }
+
         }
 
         public int Count => _options.Count;
 
-        public void Add<T>(Option<T> option, T value)
-            => _options.Add(new OptionKey(option), value);
+        public void Add<T>(Option2<T> option, T value)
+            => _options.Add(new OptionKey2(option), value);
 
-        public void Add<T>(Option<CodeStyleOption<T>> option, T value, NotificationOption notification)
-            => _options.Add(new OptionKey(option), new CodeStyleOption<T>(value, notification));
+        public void Add<T>(Option2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
+            => _options.Add(new OptionKey2(option), new CodeStyleOption2<T>(value, notification));
 
-        public void Add<T>(PerLanguageOption<T> option, T value)
-            => _options.Add(new OptionKey(option, _languageName), value);
+        public void Add<T>(PerLanguageOption2<T> option, T value)
+            => _options.Add(new OptionKey2(option, _languageName), value);
 
-        public void Add<T>(PerLanguageOption<CodeStyleOption<T>> option, T value)
+        public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value)
             => Add(option, value, option.DefaultValue.Notification);
 
-        public void Add<T>(PerLanguageOption<CodeStyleOption<T>> option, T value, NotificationOption notification)
-            => _options.Add(new OptionKey(option, _languageName), new CodeStyleOption<T>(value, notification));
+        public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
+            => _options.Add(new OptionKey2(option, _languageName), new CodeStyleOption2<T>(value, notification));
 
-        public IEnumerator<KeyValuePair<OptionKey, object>> GetEnumerator()
+        public void Add<T>(OptionKey2 optionKey, T value)
+            => _options.Add(optionKey, value);
+
+        public IEnumerator<KeyValuePair<OptionKey2, object>> GetEnumerator()
             => _options.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
+
+        public string GetEditorConfigText()
+        {
+            var (text, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultExtension, explicitEditorConfig: string.Empty, this);
+            return text.ToString();
+        }
     }
 }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return true;
             }
 
-            if (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && IsStartingNewWord(text, characterPosition))
+            if (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && IsStartingNewWord(text, characterPosition))
             {
                 return true;
             }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Bring up on space or at the start of a word.
             var ch = text[characterPosition];
             return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
-                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
         internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');

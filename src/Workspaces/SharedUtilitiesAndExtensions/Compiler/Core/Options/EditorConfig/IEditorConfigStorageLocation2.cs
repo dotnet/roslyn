@@ -6,17 +6,13 @@
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-{
-    public interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
-#else
 namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation2 : IEditorConfigStorageLocation
-#endif
     {
         string KeyName { get; }
 
