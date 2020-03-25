@@ -172,6 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
+            var diagnostics = semanticModel.GetDiagnostics();
+
             if (conversion.Exists &&
                 !conversion.IsIdentity &&
                 !conversion.IsTupleConversion &&
