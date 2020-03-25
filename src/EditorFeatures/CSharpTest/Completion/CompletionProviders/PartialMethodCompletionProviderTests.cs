@@ -487,7 +487,7 @@ partial class Bar
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                 CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent))));
+                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
 
             var text = @"using System;
 partial class Bar

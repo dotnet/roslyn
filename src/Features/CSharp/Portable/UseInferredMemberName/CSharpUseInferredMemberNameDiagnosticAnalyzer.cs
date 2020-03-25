@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             RoslynDebug.Assert(context.Compilation is object);
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = options.GetOption(
-                CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
+                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions))
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             RoslynDebug.Assert(context.Compilation is object);
             var preference = options.GetOption(
-                CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
+                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
                 !CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
                 _exprsAndOperators = exprsAndOperators;
-                _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
+                _preference = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 

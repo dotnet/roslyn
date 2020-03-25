@@ -6,13 +6,11 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -36,15 +34,15 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         public override bool OpenFileOnly(OptionSet options)
         {
-            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
+            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, GetLanguageName()).Notification;
+            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, GetLanguageName()).Notification;
+            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, GetLanguageName()).Notification;
+            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions2.QualifyEventAccess, GetLanguageName()).Notification;
 
-            return !(qualifyFieldAccessOption == NotificationOption.Warning || qualifyFieldAccessOption == NotificationOption.Error ||
-                     qualifyPropertyAccessOption == NotificationOption.Warning || qualifyPropertyAccessOption == NotificationOption.Error ||
-                     qualifyMethodAccessOption == NotificationOption.Warning || qualifyMethodAccessOption == NotificationOption.Error ||
-                     qualifyEventAccessOption == NotificationOption.Warning || qualifyEventAccessOption == NotificationOption.Error);
+            return !(qualifyFieldAccessOption == NotificationOption2.Warning || qualifyFieldAccessOption == NotificationOption2.Error ||
+                     qualifyPropertyAccessOption == NotificationOption2.Warning || qualifyPropertyAccessOption == NotificationOption2.Error ||
+                     qualifyMethodAccessOption == NotificationOption2.Warning || qualifyMethodAccessOption == NotificationOption2.Error ||
+                     qualifyEventAccessOption == NotificationOption2.Warning || qualifyEventAccessOption == NotificationOption2.Error);
         }
 
         protected abstract string GetLanguageName();
@@ -174,24 +172,24 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
     internal static class QualifyMembersHelpers
     {
-        public static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
+        public static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
         {
             switch (symbolKind)
             {
                 case SymbolKind.Field:
-                    return CodeStyleOptions.QualifyFieldAccess;
+                    return CodeStyleOptions2.QualifyFieldAccess;
                 case SymbolKind.Property:
-                    return CodeStyleOptions.QualifyPropertyAccess;
+                    return CodeStyleOptions2.QualifyPropertyAccess;
                 case SymbolKind.Method:
-                    return CodeStyleOptions.QualifyMethodAccess;
+                    return CodeStyleOptions2.QualifyMethodAccess;
                 case SymbolKind.Event:
-                    return CodeStyleOptions.QualifyEventAccess;
+                    return CodeStyleOptions2.QualifyEventAccess;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbolKind);
             }
         }
 
-        internal static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
+        internal static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
         {
             switch (operation)
             {

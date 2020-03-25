@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 BuildAccessibility(memberSymbol);
             }
 
-            if (memberSymbol.IsUnsafe())
+            if (memberSymbol.RequiresUnsafeModifier())
             {
                 AddText("unsafe ");
             }

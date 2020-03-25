@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
                    message,
-                   CodeStyleOptions.PreferConditionalExpressionOverAssignment)
+                   CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
         {
         }
 
