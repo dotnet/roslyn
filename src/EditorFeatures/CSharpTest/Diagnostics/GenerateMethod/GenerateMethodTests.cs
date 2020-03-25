@@ -1742,7 +1742,7 @@ interface ISibling
         Goo();
     }
 
-    internal abstract void Goo();
+    protected abstract void Goo();
 }",
 index: 1);
         }

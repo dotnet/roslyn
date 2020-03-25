@@ -769,7 +769,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
