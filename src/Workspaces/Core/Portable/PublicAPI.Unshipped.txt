@@ -4,6 +4,8 @@ Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsExtern(bool isExtern) 
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsVolatile(bool isVolatile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ElementBindingExpression(params Microsoft.CodeAnalysis.SyntaxNode[] arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Project.RemoveDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction> actions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 Microsoft.CodeAnalysis.Solution.RemoveAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.RemoveDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
@@ -16,8 +18,6 @@ Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction
 Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.Errors.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo
 Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.ApplicableActions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction>
-Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync() -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
-Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.GetSolutionAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction> actions) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo.Solution.get -> Microsoft.CodeAnalysis.Solution
 abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentFoldersAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IReadOnlyList<string> newFolders, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionInfo>

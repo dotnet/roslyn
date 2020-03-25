@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new NotImplementedException();
             }
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken = default)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken)
             {
                 solution = solution.WithDocumentFolders(DocumentId, _newFolders);
 
