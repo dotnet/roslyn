@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static void InsertStatement(
             SyntaxEditor editor,
             SyntaxNode functionDeclaration,
-            IMethodSymbol method,
+            bool returnsVoid,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 var semicolonToken = TryGetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-                if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !method.ReturnsVoid, out var convertedStatement))
+                if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !returnsVoid, out var convertedStatement))
                 {
                     return;
                 }
