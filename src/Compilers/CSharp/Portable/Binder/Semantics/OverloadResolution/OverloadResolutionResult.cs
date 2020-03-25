@@ -1176,6 +1176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
                 }
+                else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.FunctionPointer)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingAddressOf, sourceLocation);
+                }
                 else if (argument.Kind == BoundKind.UnconvertedAddressOfOperator &&
                         Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, ((BoundUnconvertedAddressOfOperator)argument).Operand, parameterType, diagnostics))
                 {

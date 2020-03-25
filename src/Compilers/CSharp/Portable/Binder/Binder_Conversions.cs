@@ -886,11 +886,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (delegateType.IsFunctionPointer() && !method.IsStatic)
+            if (delegateType.IsFunctionPointer())
             {
-                Error(diagnostics, ErrorCode.ERR_FuncPtrMethMustBeStatic, errorLocation, method);
-                diagnostics.Add(errorLocation, useSiteDiagnostics);
-                return false;
+                if (method.ParameterCount != numParams)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, errorLocation);
+                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    return false;
+                }
+
+                if (!method.IsStatic)
+                {
+                    // This check is here purely for completeness of implementing the spec. It should
+                    // never be hit, as static methods should be eliminated as candidates in overload
+                    // resolution and should never make it to this point.
+                    Debug.Fail("This method should have been eliminated in overload resolution!");
+                    Error(diagnostics, ErrorCode.ERR_FuncPtrMethMustBeStatic, errorLocation, method);
+                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    return false;
+                }
             }
 
             diagnostics.Add(errorLocation, useSiteDiagnostics);

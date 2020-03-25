@@ -4,8 +4,14 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -32,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: symbolValidator, verify: Verification.Skipped);
         }
 
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, IEnumerable<MetadataReference>? references = null)
         {
-            return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, references: references, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
         }
 
         [Theory]
@@ -2331,7 +2337,7 @@ unsafe class C
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldftn      ""void C.M()""
-  IL_0006:  calli      0x2
+  IL_0006:  calli      ""delegate*<void>""
   IL_000b:  ret
 }");
         }
@@ -2361,7 +2367,7 @@ unsafe class C
   IL_0007:  ldstr      ""1""
   IL_000c:  ldc.i4.2
   IL_000d:  ldloc.0
-  IL_000e:  calli      0x4
+  IL_000e:  calli      ""delegate*<string,int,void>""
   IL_0013:  ret
 }");
         }
@@ -2408,7 +2414,7 @@ unsafe class C
   IL_0011:  ldloca.s   V_1
   IL_0013:  ldloca.s   V_2
   IL_0015:  ldloc.3
-  IL_0016:  calli      0x7
+  IL_0016:  calli      ""delegate*<ref string,in int,out object,void>""
   IL_001b:  ldloc.0
   IL_001c:  call       ""void System.Console.Write(string)""
   IL_0021:  ldloc.2
@@ -2449,7 +2455,7 @@ unsafe struct S
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      0x4
+  IL_0009:  calli      ""delegate*<int,S>""
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
   IL_0011:  call       ""void S.M()""
@@ -2488,7 +2494,7 @@ unsafe class C
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      0x5
+  IL_0009:  calli      ""delegate*<int,C>""
   IL_000e:  callvirt   ""void C.M()""
   IL_0013:  ret
 }");
@@ -2524,7 +2530,7 @@ unsafe class C
   IL_000e:  ldloca.s   V_0
   IL_0010:  conv.u
   IL_0011:  ldloc.1
-  IL_0012:  calli      0x6
+  IL_0012:  calli      ""delegate*<string,int*,void>""
   IL_0017:  ret
 }");
         }
@@ -2561,10 +2567,10 @@ public unsafe class C
   // Code size       34 (0x22)
   .maxstack  1
   IL_0000:  ldftn      ""string C.M1()""
-  IL_0006:  calli      0x3
+  IL_0006:  calli      ""delegate*<object>""
   IL_000b:  call       ""void System.Console.Write(object)""
   IL_0010:  ldftn      ""int* C.M2()""
-  IL_0016:  calli      0x6
+  IL_0016:  calli      ""delegate*<void*>""
   IL_001b:  ldind.i4
   IL_001c:  call       ""void System.Console.Write(int)""
   IL_0021:  ret
@@ -2597,7 +2603,7 @@ unsafe class C
   IL_0006:  stloc.0
   IL_0007:  ldstr      ""1""
   IL_000c:  ldloc.0
-  IL_000d:  calli      0x5
+  IL_000d:  calli      ""delegate*<string,void>""
   IL_0012:  ret
 }");
         }
@@ -2778,7 +2784,7 @@ unsafe class C
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      0x2
+  IL_0009:  calli      ""delegate*<int,string>""
   IL_000e:  call       ""void System.Console.Write(string)""
   IL_0013:  ret
 }");
@@ -2987,7 +2993,7 @@ public unsafe class C : I1, I2 {
   IL_0006:  stloc.0
   IL_0007:  newobj     ""C..ctor()""
   IL_000c:  ldloc.0
-  IL_000d:  calli      0x4
+  IL_000d:  calli      ""delegate*<C,void>""
   IL_0012:  ret
 }
 ");
@@ -3045,12 +3051,12 @@ unsafe class C
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  ldloc.0
-  IL_0009:  calli      0x3
+  IL_0009:  calli      ""delegate*<int,void>""
   IL_000e:  ldftn      ""void C.M1<int>(int)""
   IL_0014:  stloc.0
   IL_0015:  ldc.i4.2
   IL_0016:  ldloc.0
-  IL_0017:  calli      0x3
+  IL_0017:  calli      ""delegate*<int,void>""
   IL_001c:  ret
 }
 ");
@@ -3077,9 +3083,9 @@ unsafe class C
                 // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
                 //         delegate*<C, void> ptr1 = &c.M1;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 35),
-                // (11,32): error CS8757: No overload for 'M1' matches function pointer 'delegate*<void>'
+                // (11,32): error CS8788: Cannot use a reduced extension method as the target of a '&' operator.
                 //         delegate*<void> ptr2 = &c.M1;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<void>").WithLocation(11, 32)
+                Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M1").WithLocation(11, 32)
             );
         }
 
@@ -3120,14 +3126,14 @@ unsafe class C
   IL_0013:  stloc.1
   IL_0014:  ldloc.0
   IL_0015:  ldloc.1
-  IL_0016:  calli      0x5
+  IL_0016:  calli      ""delegate*<C,void>""
   IL_001b:  ret
 }
 ");
         }
 
         [Fact]
-        public void BadScenariosDontCrash_01()
+        public void BadScenariosDontCrash()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
@@ -3157,27 +3163,26 @@ unsafe class C
         }
 
         [Fact]
-        public void BadScenariosDontCrash_02()
+        public void EmptyMethodGroups()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    static void M1(C c)
+    static void M1()
     {
-        // Wrong accessiblity, can't reference reduced extension method
-        delegate*<C, void> ptr = c.H1;
+        delegate*<C, void> ptr1 = &C.NonExistent;
+        delegate*<C, void> ptr2 = &NonExistent;
     }
 }
-static class CHelper
-{
-    // Wrong accessiblity
-    static void H1(this C c) {}
-}");
+");
 
             comp.VerifyDiagnostics(
-                // (7,36): error CS1061: 'C' does not contain a definition for 'H1' and no accessible extension method 'H1' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         delegate*<C, void> ptr = c.H1;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "H1").WithArguments("C", "H1").WithLocation(7, 36)
+                // (6,38): error CS0117: 'C' does not contain a definition for 'NonExistent'
+                //         delegate*<C, void> ptr1 = &C.NonExistent;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "NonExistent").WithArguments("C", "NonExistent").WithLocation(6, 38),
+                // (7,36): error CS0103: The name 'NonExistent' does not exist in the current context
+                //         delegate*<C, void> ptr2 = &NonExistent;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "NonExistent").WithArguments("NonExistent").WithLocation(7, 36)
             );
         }
 
@@ -3205,6 +3210,67 @@ public unsafe class Program1
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program1.D(delegate*<int,void>)' and 'Program1.D(delegate*<long,void>)'
                 //         D(&Y);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "D").WithArguments("Program1.D(delegate*<int,void>)", "Program1.D(delegate*<long,void>)").WithLocation(11, 9)
+            );
+        }
+
+        [Fact]
+        public void InvalidTopAttributeErrors()
+        {
+
+            using var peStream = new MemoryStream();
+            var ilBuilder = new BlobBuilder();
+            var metadataBuilder = new MetadataBuilder();
+            // SignatureAttributes has the following values:
+            // 0x00 - default
+            // 0x10 - Generic
+            // 0x20 - Instance
+            // 0x40 - ExplicitThis
+            // There is no defined meaning for 0x80, the 8th bit here, so this signature is invalid.
+            // ldftn throws an invalid signature exception at runtime, so we error here for function
+            // pointers.
+            DefineInvalidSignatureAttributeIL(metadataBuilder, ilBuilder, headerToUseForM: new SignatureHeader(SignatureKind.Method, SignatureCallingConvention.Default, ((SignatureAttributes)0x80)));
+            WritePEImage(peStream, metadataBuilder, ilBuilder);
+            peStream.Position = 0;
+
+            var invalidAttributeReference = MetadataReference.CreateFromStream(peStream);
+            var comp = CreateCompilationWithFunctionPointers(@"
+using ConsoleApplication;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = &Program.M;
+    }
+}", references: new[] { invalidAttributeReference });
+
+            comp.VerifyEmitDiagnostics(
+                // (7,32): error CS8776: Calling convention of 'Program.M()' is not compatible with 'Default'.
+                //         delegate*<void> ptr = &Program.M;
+                Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "Program.M").WithArguments("ConsoleApplication.Program.M()", "Default").WithLocation(7, 32)
+            );
+        }
+
+        [Fact]
+        public void MissingAddressOf()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+class C
+{
+    static void M1() {}
+    static unsafe void M2(delegate*<void> b)
+    {
+        delegate*<void> a = M1;
+        M2(M1);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,29): error CS8787: Cannot convert method group to function pointer (Are you missing a '&'?)
+                //         delegate*<void> a = M1;
+                Diagnostic(ErrorCode.ERR_MissingAddressOf, "M1").WithLocation(7, 29),
+                // (8,12): error CS8787: Cannot convert method group to function pointer (Are you missing a '&'?)
+                //         M2(M1);
+                Diagnostic(ErrorCode.ERR_MissingAddressOf, "M1").WithLocation(8, 12)
             );
         }
 
@@ -3245,5 +3311,169 @@ public unsafe class Program1
 
         private static Action<TypeSymbol> IsFunctionPointerTypeSymbol(CallingConvention callingConvention, (RefKind, Action<TypeSymbol>) returnVerifier, params (RefKind, Action<TypeSymbol>)[] argumentVerifiers)
             => typeSymbol => VerifyFunctionPointerSymbol((FunctionPointerTypeSymbol)typeSymbol, callingConvention, returnVerifier, argumentVerifiers);
+
+        private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
+        private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
+
+        private static void DefineInvalidSignatureAttributeIL(MetadataBuilder metadata, BlobBuilder ilBuilder, SignatureHeader headerToUseForM)
+        {
+            metadata.AddModule(
+                0,
+                metadata.GetOrAddString("ConsoleApplication.exe"),
+                metadata.GetOrAddGuid(s_guid),
+                default(GuidHandle),
+                default(GuidHandle));
+
+            metadata.AddAssembly(
+                metadata.GetOrAddString("ConsoleApplication"),
+                version: new Version(1, 0, 0, 0),
+                culture: default(StringHandle),
+                publicKey: metadata.GetOrAddBlob(new byte[0]),
+                flags: default(AssemblyFlags),
+                hashAlgorithm: AssemblyHashAlgorithm.Sha1);
+
+            var mscorlibAssemblyRef = metadata.AddAssemblyReference(
+                name: metadata.GetOrAddString("mscorlib"),
+                version: new Version(4, 0, 0, 0),
+                culture: default(StringHandle),
+                publicKeyOrToken: metadata.GetOrAddBlob(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
+                flags: default(AssemblyFlags),
+                hashValue: default(BlobHandle));
+
+            var systemObjectTypeRef = metadata.AddTypeReference(
+                mscorlibAssemblyRef,
+                metadata.GetOrAddString("System"),
+                metadata.GetOrAddString("Object"));
+
+            var systemConsoleTypeRefHandle = metadata.AddTypeReference(
+                mscorlibAssemblyRef,
+                metadata.GetOrAddString("System"),
+                metadata.GetOrAddString("Console"));
+
+            var consoleWriteLineSignature = new BlobBuilder();
+
+            new BlobEncoder(consoleWriteLineSignature).
+                MethodSignature().
+                Parameters(1,
+                    returnType => returnType.Void(),
+                    parameters => parameters.AddParameter().Type().String());
+
+            var consoleWriteLineMemberRef = metadata.AddMemberReference(
+                systemConsoleTypeRefHandle,
+                metadata.GetOrAddString("WriteLine"),
+                metadata.GetOrAddBlob(consoleWriteLineSignature));
+
+            var parameterlessCtorSignature = new BlobBuilder();
+
+            new BlobEncoder(parameterlessCtorSignature).
+                MethodSignature(isInstanceMethod: true).
+                Parameters(0, returnType => returnType.Void(), parameters => { });
+
+            var parameterlessCtorBlobIndex = metadata.GetOrAddBlob(parameterlessCtorSignature);
+
+            var objectCtorMemberRef = metadata.AddMemberReference(
+                systemObjectTypeRef,
+                metadata.GetOrAddString(".ctor"),
+                parameterlessCtorBlobIndex);
+
+            // Signature for M() with an _invalid_ SignatureAttribute
+            var mSignature = new BlobBuilder();
+            var mBlobBuilder = new BlobEncoder(mSignature);
+            mBlobBuilder.Builder.WriteByte(headerToUseForM.RawValue);
+            var mParameterEncoder = new MethodSignatureEncoder(mBlobBuilder.Builder, hasVarArgs: false);
+            mParameterEncoder.Parameters(parameterCount: 0, returnType => returnType.Void(), parameters => { });
+
+            var methodBodyStream = new MethodBodyStreamEncoder(ilBuilder);
+
+            var codeBuilder = new BlobBuilder();
+            InstructionEncoder il;
+
+            //
+            // Program::.ctor
+            //
+            il = new InstructionEncoder(codeBuilder);
+
+            // ldarg.0
+            il.LoadArgument(0);
+
+            // call instance void [mscorlib]System.Object::.ctor()
+            il.Call(objectCtorMemberRef);
+
+            // ret
+            il.OpCode(ILOpCode.Ret);
+
+            int ctorBodyOffset = methodBodyStream.AddMethodBody(il);
+            codeBuilder.Clear();
+
+            //
+            // Program::M
+            //
+            il = new InstructionEncoder(codeBuilder);
+
+            // ldstr "M"
+            il.LoadString(metadata.GetOrAddUserString("M"));
+
+            // call void [mscorlib]System.Console::WriteLine(string)
+            il.Call(consoleWriteLineMemberRef);
+
+            // ret
+            il.OpCode(ILOpCode.Ret);
+
+            int mBodyOffset = methodBodyStream.AddMethodBody(il);
+            codeBuilder.Clear();
+
+            var mMethodDef = metadata.AddMethodDefinition(
+                MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
+                MethodImplAttributes.IL | MethodImplAttributes.Managed,
+                metadata.GetOrAddString("M"),
+                metadata.GetOrAddBlob(mSignature),
+                mBodyOffset,
+                parameterList: default(ParameterHandle));
+
+            var ctorDef = metadata.AddMethodDefinition(
+                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                MethodImplAttributes.IL | MethodImplAttributes.Managed,
+                metadata.GetOrAddString(".ctor"),
+                parameterlessCtorBlobIndex,
+                ctorBodyOffset,
+                parameterList: default(ParameterHandle));
+
+            metadata.AddTypeDefinition(
+                default(TypeAttributes),
+                default(StringHandle),
+                metadata.GetOrAddString("<Module>"),
+                baseType: default(EntityHandle),
+                fieldList: MetadataTokens.FieldDefinitionHandle(1),
+                methodList: mMethodDef);
+
+            metadata.AddTypeDefinition(
+                TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
+                metadata.GetOrAddString("ConsoleApplication"),
+                metadata.GetOrAddString("Program"),
+                systemObjectTypeRef,
+                fieldList: MetadataTokens.FieldDefinitionHandle(1),
+                methodList: mMethodDef);
+        }
+
+        private static void WritePEImage(
+            Stream peStream,
+            MetadataBuilder metadataBuilder,
+            BlobBuilder ilBuilder)
+        {
+            var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics: Characteristics.Dll);
+
+            var peBuilder = new ManagedPEBuilder(
+                peHeaderBuilder,
+                new MetadataRootBuilder(metadataBuilder),
+                ilBuilder,
+                flags: CorFlags.ILOnly,
+                deterministicIdProvider: content => s_contentId);
+
+            var peBlob = new BlobBuilder();
+
+            var contentId = peBuilder.Serialize(peBlob);
+
+            peBlob.WriteContentTo(peStream);
+        }
     }
 }

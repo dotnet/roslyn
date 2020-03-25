@@ -6073,4 +6073,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_WrongFuncPtrCallingConvention" xml:space="preserve">
     <value>Calling convention of '{0}' is not compatible with '{1}'.</value>
   </data>
+  <data name="ERR_MissingAddressOf" xml:space="preserve">
+    <value>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</value>
+  </data>
+  <data name="ERR_CannotUseReducedExtensionMethodInAddressOf" xml:space="preserve">
+    <value>Cannot use a reduced extension method as the target of a '&amp;' operator.</value>
+  </data>
 </root>

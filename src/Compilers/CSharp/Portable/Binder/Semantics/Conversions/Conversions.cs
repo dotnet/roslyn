@@ -62,14 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var signature = destination.Signature;
-            GetDelegateArguments(source.Syntax, analyzedArguments, signature.Parameters, _binder.Compilation);
-            var resolution = _binder.ResolveMethodGroupForFunctionPointer(source, analyzedArguments, signature.ReturnType, signature.RefKind, signature.CallingConvention, ref useSiteDiagnostics);
-            analyzedArguments.Free();
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, destination.Signature, isFunctionPointer: true, ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, signature.ParameterCount);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);
             resolution.Free();
             return conversion;
         }

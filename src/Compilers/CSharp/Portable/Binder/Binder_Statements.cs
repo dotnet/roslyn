@@ -2182,6 +2182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
+
+                case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);
+                        return;
+                    }
             }
 
             var sourceType = operand.Type;
@@ -2215,12 +2221,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    var errorCode = targetType.TypeKind switch
+                    ErrorCode errorCode;
+
+                    switch (targetType.TypeKind)
                     {
-                        TypeKind.Delegate => ErrorCode.ERR_MethDelegateMismatch,
-                        TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
-                        _ => ErrorCode.ERR_MethGrpToNonDel
-                    };
+                        case TypeKind.FunctionPointer:
+                            if (operand.Kind == BoundKind.MethodGroup)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MissingAddressOf, location);
+                                return;
+                            }
+                            errorCode = ErrorCode.ERR_MethFuncPtrMismatch;
+                            break;
+                        case TypeKind.Delegate:
+                            errorCode = ErrorCode.ERR_MethDelegateMismatch;
+                            break;
+                        default:
+                            errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            break;
+                    }
 
                     Error(diagnostics, errorCode, location, methodGroup.Name, targetType);
                 }

@@ -428,17 +428,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = (MethodSymbol)(Symbol)result.Member;
                 if (result.Result.IsValid)
                 {
-                    if (!member.CallingConvention.IsCallingConvention(expectedConvention))
+                    if (!member.CallingConvention.IsCallingConvention(expectedConvention)
+                        || member.CallingConvention.HasUnknownCallingConventionAttributeBits())
                     {
                         results[i] = new MemberResolutionResult<TMember>(
                             result.Member, result.LeastOverriddenMember,
                             MemberAnalysisResult.WrongCallingConvention());
-                    }
-                    else if (member.CallingConvention.HasUnknownCallingConventionAttributeBits())
-                    {
-                        results[i] = new MemberResolutionResult<TMember>(
-                            result.Member, result.LeastOverriddenMember,
-                            MemberAnalysisResult.UnsupportedMetadata());
                     }
                 }
             }

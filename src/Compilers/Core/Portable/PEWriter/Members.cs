@@ -75,7 +75,7 @@ namespace Microsoft.Cci
 
     internal static class CallingConventionUtils
     {
-        private const SignatureCallingConvention SignatureMask =
+        private const SignatureCallingConvention SignatureCallingConventionMask =
             SignatureCallingConvention.Default
             | SignatureCallingConvention.CDecl
             | SignatureCallingConvention.StdCall
@@ -83,9 +83,14 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.FastCall
             | SignatureCallingConvention.VarArgs;
 
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
         internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
         {
-            var callingConvention = (CallingConvention)(convention & SignatureMask);
+            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
             if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
             {
                 throw new UnsupportedSignatureContent();
@@ -95,26 +100,21 @@ namespace Microsoft.Cci
         }
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
-            => (SignatureCallingConvention)convention & SignatureMask;
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
 
         /// <summary>
         /// Compares calling conventions, ignoring calling convention attributes.
         /// </summary>
         internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
         {
-            Debug.Assert((compare & (CallingConvention)SignatureMask) == 0);
-            return ((original & (CallingConvention)SignatureMask)) == compare;
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
         }
 
         internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
-            => (convention & ~((CallingConvention)SignatureMask)) switch
-            {
-                CallingConvention.Generic => false,
-                CallingConvention.HasThis => false,
-                CallingConvention.ExplicitThis => false,
-                0 => false,
-                _ => true
-            };
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>

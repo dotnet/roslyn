@@ -1778,6 +1778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_AddressOfMethodGroupInExpressionTree = 8785,
         ERR_WrongFuncPtrCallingConvention = 8786,
+        ERR_MissingAddressOf = 8787,
+        ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
 
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,

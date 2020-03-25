@@ -107,6 +107,11 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
+        <source>Cannot use a reduced extension method as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use a reduced extension method as the target of a '&amp;' operator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist では、'in' や 'out' で引数を渡すことができません</target>
@@ -355,6 +360,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingAddressOf">
+        <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
+        <target state="new">Cannot convert method group to function pointer (Are you missing a '&amp;'?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
