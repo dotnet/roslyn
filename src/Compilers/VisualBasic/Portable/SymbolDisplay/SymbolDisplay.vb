@@ -146,8 +146,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), Nothing, Nothing)
-            visitor.AddConstantValue(type, value)
+            If type Is Nothing Then
+                AddConstantValue(builder, value, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
+            Else
+                Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), Nothing, Nothing)
+                visitor.AddConstantValue(type, value)
+            End If
+
             Return builder.ToImmutableAndFree()
         End Function
 
@@ -177,8 +182,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), semanticModel, position)
-            visitor.AddConstantValue(type, value)
+            If type Is Nothing Then
+                AddConstantValue(builder, value, ToObjectDisplayOptions(If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat).ConstantValueOptions))
+            Else
+                Dim visitor = New SymbolDisplayVisitor(builder, If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat), semanticModel, position)
+                visitor.AddConstantValue(type, value)
+            End If
+
             Return builder.ToImmutableAndFree()
         End Function
 

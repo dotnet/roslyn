@@ -4471,6 +4471,10 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.EnumMemberName);
 
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type: null, (int)StringComparison.InvariantCultureIgnoreCase, decimalOptions), "3", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type: null, (int)StringComparison.InvariantCultureIgnoreCase, hexadecimalCharactersOptions), "3", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type: null, (int)StringComparison.InvariantCultureIgnoreCase, hexadecimalNumbersOptions), "0x00000003", SymbolDisplayPartKind.NumericLiteral);
+
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, 'x', decimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, 'x', hexadecimalOptions), "'x'", SymbolDisplayPartKind.StringLiteral);
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, 'x', noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral);

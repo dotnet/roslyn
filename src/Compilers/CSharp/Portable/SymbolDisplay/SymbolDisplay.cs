@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <see langword="null"/>.
         /// </remarks>
-        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(ITypeSymbol type, object? value, SymbolDisplayFormat? format = null)
+        public static ImmutableArray<SymbolDisplayPart> PrimitiveToDisplayParts(ITypeSymbol? type, object? value, SymbolDisplayFormat? format = null)
         {
             if (!(value is null || value.GetType().IsPrimitive || value is string || value is decimal))
             {
@@ -311,8 +311,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt: null, positionOpt: 0);
-            visitor.AddConstantValue(type, value);
+            if (type is null)
+            {
+                AddConstantValue(builder, value, ToObjectDisplayOptions(format.ConstantValueOptions));
+            }
+            else
+            {
+                var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt: null, positionOpt: 0);
+                visitor.AddConstantValue(type, value);
+            }
             return builder.ToImmutableAndFree();
         }
 
@@ -333,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// and <see langword="null"/>.
         /// </remarks>
         public static ImmutableArray<SymbolDisplayPart> PrimitiveToMinimalDisplayParts(
-            ITypeSymbol type,
+            ITypeSymbol? type,
             object? value,
             SemanticModel semanticModel,
             int position,
@@ -347,8 +354,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
-            var visitor = new SymbolDisplayVisitor(builder, format, semanticModel, position);
-            visitor.AddConstantValue(type, value);
+            if (type is null)
+            {
+                AddConstantValue(builder, value, ToObjectDisplayOptions(format.ConstantValueOptions));
+            }
+            else
+            {
+                var visitor = new SymbolDisplayVisitor(builder, format, semanticModel, position);
+                visitor.AddConstantValue(type, value);
+            }
+
             return builder.ToImmutableAndFree();
         }
 

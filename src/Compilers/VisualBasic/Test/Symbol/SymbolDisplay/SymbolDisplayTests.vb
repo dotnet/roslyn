@@ -4851,6 +4851,10 @@ class Outer
             Verify(SymbolDisplay.PrimitiveToDisplayParts(stringComparisonSymbol, CInt(StringComparison.InvariantCultureIgnoreCase), hexadecimalCharactersOptions), "InvariantCultureIgnoreCase", SymbolDisplayPartKind.EnumMemberName)
             Verify(SymbolDisplay.PrimitiveToDisplayParts(stringComparisonSymbol, CInt(StringComparison.InvariantCultureIgnoreCase), hexadecimalNumbersOptions), "InvariantCultureIgnoreCase", SymbolDisplayPartKind.EnumMemberName)
 
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type:=Nothing, CInt(StringComparison.InvariantCultureIgnoreCase), decimalOptions), "3", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type:=Nothing, CInt(StringComparison.InvariantCultureIgnoreCase), hexadecimalCharactersOptions), "3", SymbolDisplayPartKind.NumericLiteral)
+            Verify(SymbolDisplay.PrimitiveToDisplayParts(type:=Nothing, CInt(StringComparison.InvariantCultureIgnoreCase), hexadecimalNumbersOptions), "&H00000003", SymbolDisplayPartKind.NumericLiteral)
+
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, "x"c, decimalOptions), """x""c", SymbolDisplayPartKind.StringLiteral)
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, "x"c, hexadecimalOptions), """x""c", SymbolDisplayPartKind.StringLiteral)
             Verify(SymbolDisplay.PrimitiveToDisplayParts(charSymbol, "x"c, noQuotesDecimalOptions), "x", SymbolDisplayPartKind.StringLiteral)
