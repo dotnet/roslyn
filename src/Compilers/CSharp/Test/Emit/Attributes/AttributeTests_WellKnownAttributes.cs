@@ -8821,7 +8821,7 @@ namespace System
 
 public class C1
 {
-    [Obsolete(DiagnosticId = new[] { 'A' }, UrlFormat = new[] { 'B' })]
+    [Obsolete(DiagnosticId = new[] { 'A' })]
     public void M1() { }
 }
 ";
@@ -8855,8 +8855,147 @@ class C2 : C1
             }
         }
 
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_06()
+        {
+            // In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
+            var ilSource = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void 
+          M1() cil managed
+  {
+    .custom instance void System.ObsoleteAttribute::.ctor() = ( 01 00 04 00                                         // ....
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 41  // T..DiagnosticId.A
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 42  // T..DiagnosticId.B
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 43           // T..UrlFormat.C
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 44 )         // T..UrlFormat.D
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method C1::M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi beforefieldinit System.ObsoleteAttribute
+       extends [mscorlib]System.Attribute
+{
+  .field private string '<DiagnosticId>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .field private string '<UrlFormat>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname instance string 
+          get_DiagnosticId() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_DiagnosticId
+
+  .method public hidebysig specialname instance void 
+          set_DiagnosticId(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_DiagnosticId
+
+  .method public hidebysig specialname instance string 
+          get_UrlFormat() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_UrlFormat
+
+  .method public hidebysig specialname instance void 
+          set_UrlFormat(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_UrlFormat
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::.ctor
+
+  .property instance string DiagnosticId()
+  {
+    .get instance string System.ObsoleteAttribute::get_DiagnosticId()
+    .set instance void System.ObsoleteAttribute::set_DiagnosticId(string)
+  } // end of property ObsoleteAttribute::DiagnosticId
+  .property instance string UrlFormat()
+  {
+    .get instance string System.ObsoleteAttribute::get_UrlFormat()
+    .set instance void System.ObsoleteAttribute::set_UrlFormat(string)
+  } // end of property ObsoleteAttribute::UrlFormat
+} // end of class System.ObsoleteAttribute
+";
+
+            var csSource = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var ilComp = CompileIL(ilSource);
+            var comp = CreateCompilation(csSource, references: new[] { ilComp });
+            var diags = comp.GetDiagnostics();
+            diags.Verify(
+                // (6,9): warning A: 'C1.M1()' is obsolete
+                //         M1(); // 1
+                Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+            var diag = diags.Single();
+            Assert.Equal("C", diag.Descriptor.HelpLinkUri);
+        }
+
         // Missing tests:
-        // - duplicate named arguments
         // - named argument has well-known name but bad type, non-null value
         // - named argument has well-known name but bad type, null value
         // - ??
