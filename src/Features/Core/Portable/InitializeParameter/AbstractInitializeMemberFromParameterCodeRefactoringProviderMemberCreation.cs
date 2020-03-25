@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // to an existing matching field/prop if we can find one, or add a new field/prop
             // if we can't.
 
-            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
 
                 var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
                 var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            CodeStyleOption2<AccessibilityModifiersRequired> requireAccessibilityModifiers,
             IParameterSymbol parameter,
             ImmutableArray<NamingRule> rules,
             ImmutableArray<string> parameterNameParts)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            CodeStyleOption2<AccessibilityModifiersRequired> requireAccessibilityModifiers,
             IParameterSymbol parameter,
             ImmutableArray<NamingRule> rules,
             ImmutableArray<string> parameterNameParts)

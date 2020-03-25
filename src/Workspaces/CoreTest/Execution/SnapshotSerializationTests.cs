@@ -319,31 +319,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var workspace = new AdhocWorkspace();
 
-            var newQualifyFieldAccessValue = new CodeStyleOption<bool>(false, NotificationOption.Error);
-            var newQualifyMethodAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-            var newVarWhenTypeIsApparentValue = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-            var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+            var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
+            var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
+            var newVarWhenTypeIsApparentValue = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+            var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
-                                                 .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
+                                                 .WithChangedOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
+                                                 .WithChangedOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
                                                  .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
-                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
+                                                 .WithChangedOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
 
             await VerifyOptionSetsAsync(workspace, VerifyOptions).ConfigureAwait(false);
 
             void VerifyOptions(OptionSet options)
             {
-                var actualQualifyFieldAccessValue = options.GetOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp);
+                var actualQualifyFieldAccessValue = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp);
                 Assert.Equal(newQualifyFieldAccessValue, actualQualifyFieldAccessValue);
 
-                var actualQualifyMethodAccessValue = options.GetOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic);
+                var actualQualifyMethodAccessValue = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic);
                 Assert.Equal(newQualifyMethodAccessValue, actualQualifyMethodAccessValue);
 
                 var actualVarWhenTypeIsApparentValue = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
                 Assert.Equal(newVarWhenTypeIsApparentValue, actualVarWhenTypeIsApparentValue);
 
-                var actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = options.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic);
+                var actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic);
                 Assert.Equal(newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue, actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);
             }
         }

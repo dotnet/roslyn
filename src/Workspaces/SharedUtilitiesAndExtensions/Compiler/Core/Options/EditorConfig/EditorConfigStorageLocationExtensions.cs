@@ -6,11 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
     internal static class EditorConfigStorageLocationExtensions
     {

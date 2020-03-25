@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
+            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey2, object>
                 {
-                    { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                    { new OptionKey2(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
                 });
         }
 

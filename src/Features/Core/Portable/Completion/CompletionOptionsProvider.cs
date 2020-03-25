@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             CompletionOptions.HideAdvancedMembers,
             CompletionOptions.TriggerOnTyping,
-            CompletionOptions.TriggerOnTypingLetters,
+            CompletionOptions.TriggerOnTypingLetters2,
             CompletionOptions.ShowCompletionItemFilters,
             CompletionOptions.HighlightMatchingPortionsOfCompletionListItems,
             CompletionOptions.EnterKeyBehavior,
