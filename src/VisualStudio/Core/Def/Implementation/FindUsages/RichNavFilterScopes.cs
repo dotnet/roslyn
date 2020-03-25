@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     [TableManagerIdentifier("FindResults*")]
     [Replaces(PredefinedScopeFilterNames.EntireSolutionScopeFilter)]
     [Replaces(PredefinedScopeFilterNames.AllItemsScopeFilter)]
+    [DeferCreation(OptionName = "RichNavEnabled")] // This factory will not be loaded unless this option is set to Boolean true
     [DefaultScope]
     [Name(PredefinedScopeFilterNames.LoadedSolutionScopeFilter)]
     [Order(Before = PredefinedScopeFilterNames.AllItemsScopeFilter)]
@@ -70,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     [Export(typeof(IScopeFilterFactory))]
     [TableManagerIdentifier("FindAllReferences*")]
     [TableManagerIdentifier("FindResults*")]
-    [DeferCreation(OptionName = "ResponsiveCompletion")]
+    [DeferCreation(OptionName = "RichNavEnabled")] // This factory will not be loaded unless this option is set to Boolean true
     [Name(PredefinedScopeFilterNames.EntireOrganizationScopeFilter)]
     [Order(Before = PredefinedScopeFilterNames.EntireRepositoryScopeFilter)]
     internal class EntireOragnizationFilterHandlerFactory : IScopeFilterFactory
@@ -116,6 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     [Export(typeof(IScopeFilterFactory))]
     [TableManagerIdentifier("FindAllReferences*")]
     [TableManagerIdentifier("FindResults*")]
+    [DeferCreation(OptionName = "RichNavEnabled")] // This factory will not be loaded unless this option is set to Boolean true
     [Name(PredefinedScopeFilterNames.EntireRepositoryScopeFilter)]
     [Order(Before = PredefinedScopeFilterNames.LoadedSolutionScopeFilter)]
     internal class EntireRepositoryFilterHandlerFactory : IScopeFilterFactory
