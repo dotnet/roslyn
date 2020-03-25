@@ -3998,9 +3998,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ParseExpression(string stringToParse)
             => SyntaxFactory.ParseExpression(stringToParse);
 
-        internal override SyntaxToken CommaTokenWithElasticSpace()
-            => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);
-
         #endregion
 
         #region Patterns

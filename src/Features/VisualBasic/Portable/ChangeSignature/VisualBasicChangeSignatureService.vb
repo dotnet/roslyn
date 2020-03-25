@@ -634,5 +634,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Throw New NotImplementedException()
         End Function
 
+        Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
+            Return Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace)
+        End Function
     End Class
 End Namespace

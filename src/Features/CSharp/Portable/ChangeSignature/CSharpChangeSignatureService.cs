@@ -689,5 +689,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
             return Argument(objectCreation);
         }
+
+        protected override SyntaxToken CommaTokenWithElasticSpace()
+            => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
     }
 }

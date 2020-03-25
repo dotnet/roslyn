@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
+        protected abstract SyntaxToken CommaTokenWithElasticSpace();
+
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);

@@ -732,11 +732,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
         End Function
-
-        Friend Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
-        End Function
-
 #End Region
 
 #Region "Declarations"
