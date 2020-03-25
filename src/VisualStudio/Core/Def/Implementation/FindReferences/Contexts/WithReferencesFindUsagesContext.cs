@@ -105,7 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
             {
-                // Normal references go into both sets of entries.
+                // Normal references go into both sets of entries.  We ensure an entry for the definition, and an entry
+                // for the reference itself.
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
@@ -119,7 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
             {
-                // Normal references go into both sets of entries.
+                // External references go into both sets of entries.  We ensure an entry for the definition, and an
+                // entry for the reference itself.
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => Task.FromResult<Entry>(new ExternalReferenceItemEntry(bucket, reference)),
