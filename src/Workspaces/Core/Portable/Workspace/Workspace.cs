@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             // queue used for sending events
             var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
             var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.GetCurrentContextScheduler());
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
