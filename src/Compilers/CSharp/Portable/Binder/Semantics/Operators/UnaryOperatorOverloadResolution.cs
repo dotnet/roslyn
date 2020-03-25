@@ -5,11 +5,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -263,16 +260,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operators.Add(pointerOperator.Value);
             }
 
-            CandidateOperators(operators, operand, results, ref useSiteDiagnostics);
+            CandidateOperators(operators, operand, results, ref useSiteDiagnostics, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableNativeIntegerType());
             operators.Free();
         }
 
         // Returns true if there were any applicable candidates.
-        private bool CandidateOperators(ArrayBuilder<UnaryOperatorSignature> operators, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool CandidateOperators(
+            ArrayBuilder<UnaryOperatorSignature> operators,
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> results,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool skipNativeIntegerOperators = false)
         {
             bool anyApplicable = false;
             foreach (var op in operators)
             {
+                if (skipNativeIntegerOperators &&
+                    op.Kind.OperandTypes() switch { UnaryOperatorKind.NInt => true, UnaryOperatorKind.NUInt => true, _ => false })
+                {
+                    continue;
+                }
                 var conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, ref useSiteDiagnostics);
                 if (conversion.IsImplicit)
                 {
