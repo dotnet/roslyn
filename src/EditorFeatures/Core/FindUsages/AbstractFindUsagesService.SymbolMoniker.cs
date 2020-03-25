@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 // TODO: loc this
                 var displayParts = GetDisplayParts(definition).Add(
-                    new TaggedText(TextTags.Text, " - (external)"));
+                    new TaggedText(TextTags.Text, EditorFeaturesResources.external));
 
                 var definitionItem = DefinitionItem.CreateNonNavigableItem(
                     tags: GlyphTags.GetTags(definition.GetGlyph()),
