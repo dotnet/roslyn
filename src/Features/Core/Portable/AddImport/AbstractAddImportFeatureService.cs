@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
                 AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
-                    : default(CodeAction),
+                    : null,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 

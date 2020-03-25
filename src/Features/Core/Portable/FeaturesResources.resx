@@ -246,8 +246,8 @@
   <data name="Global_Namespace" xml:space="preserve">
     <value>Global Namespace</value>
   </data>
-  <data name="Implement_interface_explicitly" xml:space="preserve">
-    <value>Implement interface explicitly</value>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
   </data>
   <data name="Implement_interface_abstractly" xml:space="preserve">
     <value>Implement interface abstractly</value>
@@ -609,9 +609,6 @@
   </data>
   <data name="Extract_method" xml:space="preserve">
     <value>Extract method</value>
-  </data>
-  <data name="Extract_method_plus_local" xml:space="preserve">
-    <value>Extract method + local</value>
   </data>
   <data name="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket" xml:space="preserve">
     <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>
@@ -1021,12 +1018,6 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
-  <data name="Use_coalesce_expression" xml:space="preserve">
-    <value>Use coalesce expression</value>
-  </data>
-  <data name="Use_null_propagation" xml:space="preserve">
-    <value>Use null propagation</value>
-  </data>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
@@ -1105,9 +1096,6 @@ This version used in: {2}</value>
   <data name="Pick_members_to_be_used_in_Equals_GetHashCode" xml:space="preserve">
     <value>Pick members to be used in Equals/GetHashCode</value>
   </data>
-  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
-    <value>Changes to expression trees may result in behavior changes at runtime</value>
-  </data>
   <data name="Generate_overrides" xml:space="preserve">
     <value>Generate overrides...</value>
   </data>
@@ -1144,12 +1132,6 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
-  <data name="Simplify_default_expression" xml:space="preserve">
-    <value>Simplify 'default' expression</value>
-  </data>
-  <data name="default_expression_can_be_simplified" xml:space="preserve">
-    <value>'default' expression can be simplified</value>
-  </data>
   <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
     <value>Format string contains invalid placeholder</value>
   </data>
@@ -1167,18 +1149,6 @@ This version used in: {2}</value>
   </data>
   <data name="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
-  </data>
-  <data name="Unreachable_code_detected" xml:space="preserve">
-    <value>Unreachable code detected</value>
-  </data>
-  <data name="Remove_unreachable_code" xml:space="preserve">
-    <value>Remove unreachable code</value>
-  </data>
-  <data name="Modifiers_are_not_ordered" xml:space="preserve">
-    <value>Modifiers are not ordered</value>
-  </data>
-  <data name="Order_modifiers" xml:space="preserve">
-    <value>Order modifiers</value>
   </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
@@ -1620,5 +1590,8 @@ This version used in: {2}</value>
   </data>
   <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
     <value>Conditional expression can be simplified</value>
+  </data>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
   </data>
 </root>

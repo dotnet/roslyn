@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
@@ -11,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class SimplificationTests
         Inherits AbstractSimplificationTests
 
-        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CSharpCodeStyleOptions.PreferBraces), New CodeStyleOption(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption.Silent)}}
+        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CSharpCodeStyleOptions.PreferBraces), New CodeStyleOption2(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption2.Silent)}}
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DoNotSimplifyIfBlock() As Task

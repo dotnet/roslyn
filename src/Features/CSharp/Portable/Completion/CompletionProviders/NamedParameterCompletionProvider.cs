@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
     [Shared]
-    internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
+    internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

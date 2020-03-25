@@ -123,4 +123,7 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
+  <data name="Remove_unreachable_code" xml:space="preserve">
+    <value>Remove unreachable code</value>
+  </data>
 </root>

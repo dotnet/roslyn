@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractKeywordCompletionProvider<TContext> : CommonCompletionProvider
+    internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 

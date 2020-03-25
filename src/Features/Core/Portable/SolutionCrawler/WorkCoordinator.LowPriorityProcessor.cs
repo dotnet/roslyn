@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
-                                    RemoveProject(projectId);
+                                    await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveProject(ProjectId projectId)
+                    private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in Analyzers)
                         {
-                            analyzer.RemoveProject(projectId);
+                            await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

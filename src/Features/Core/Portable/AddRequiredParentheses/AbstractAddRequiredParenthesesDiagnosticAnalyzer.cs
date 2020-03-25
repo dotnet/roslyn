@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var options = new[]
             {
-                CodeStyleOptions.ArithmeticBinaryParentheses, CodeStyleOptions.OtherBinaryParentheses,
-                CodeStyleOptions.OtherParentheses, CodeStyleOptions.RelationalBinaryParentheses
+                CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses,
+                CodeStyleOptions2.OtherParentheses, CodeStyleOptions2.RelationalBinaryParentheses
             };
 
             var includeArray = new[] { false, true };
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
         }
 
-        private static string GetEquivalenceKey(Options.PerLanguageOption<CodeStyleOption<ParenthesesPreference>> parentPrecedence)
+        private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
             => parentPrecedence.Name;
 
         private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)

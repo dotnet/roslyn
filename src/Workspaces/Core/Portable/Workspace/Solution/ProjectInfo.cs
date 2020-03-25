@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ProjectAttributes With(
-                VersionStamp? version = default,
+                VersionStamp? version = null,
                 string? name = null,
                 string? assemblyName = null,
                 string? language = null,

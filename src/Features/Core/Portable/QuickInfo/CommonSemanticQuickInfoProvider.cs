@@ -439,9 +439,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
             else
             {
-                left = default;
+                left = null;
                 operatorToken = default;
-                right = default;
+                right = null;
                 return false;
             }
         }
