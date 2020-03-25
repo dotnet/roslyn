@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   CancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
@@ -36,15 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 spans.AddIfNotNull(CreateBlockSpan(
                     span, span,
                     GetBannerText(regionDirective),
-                    autoCollapse:=autoCollapse,
-                    isDefaultCollapsed:=True,
+                    autoCollapse:=isMetadataAsSource OrElse autoCollapse,
+                    isDefaultCollapsed:=Not isMetadataAsSource,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If
         End Sub
-
-        Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean
-            Return kind <> WorkspaceKind.MetadataAsSource
-        End Function
     End Class
 End Namespace

@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             RegionDirectiveTriviaSyntax regionDirective,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -46,14 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     textSpan: TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
-                    autoCollapse: autoCollapse,
-                    isDefaultCollapsed: true));
+                    autoCollapse: isMetadataAsSource || autoCollapse,
+                    isDefaultCollapsed: !isMetadataAsSource));
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return kind != WorkspaceKind.MetadataAsSource;
         }
     }
 }

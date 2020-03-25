@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             BlockSyntax node,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
