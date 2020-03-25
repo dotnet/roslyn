@@ -354,15 +354,9 @@ class C
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (6,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                //         if (x is var _)
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is var _").WithArguments("object").WithLocation(6, 13),
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
-                // (17,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                //         if (x is var _)
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is var _").WithArguments("object").WithLocation(17, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
                 );
         }
 

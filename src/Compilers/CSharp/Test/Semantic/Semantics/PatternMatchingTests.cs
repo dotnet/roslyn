@@ -4280,9 +4280,6 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,28): warning CS8794: An expression of type 'int' always matches the provided pattern.
-                //         Write($"is var _: {i is var _}, ");
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is var _").WithArguments("int").WithLocation(9, 28)
                 );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
@@ -4420,9 +4417,6 @@ public class C
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 33),
-                // (9,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
-                //         if (i is var _) { Write(_); }
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is var _").WithArguments("int").WithLocation(9, 13),
                 // (9,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is var _) { Write(_); }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 33),
@@ -6345,9 +6339,6 @@ internal class Program
             var expectedOutput = @"Exception";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (19,34): warning CS8794: An expression of type 'bool' always matches the provided pattern.
-                //     private int IsVarMethod() => ThrowingMethod() is var _ ? 1 : 0;
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "ThrowingMethod() is var _").WithArguments("bool").WithLocation(19, 34)
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }

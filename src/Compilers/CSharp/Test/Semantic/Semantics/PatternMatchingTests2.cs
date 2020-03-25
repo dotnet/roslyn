@@ -2587,9 +2587,6 @@ public class C
 }
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
-                // (5,13): warning CS8794: An expression of type 'string' always matches the provided pattern.
-                //         _ = s is (_);                   // always parenthesized discard pattern
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is (_)").WithArguments("string").WithLocation(5, 13),
                 // (6,22): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
                 //         _ = s is not System.Delegate;   // always negated type pattern
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(6, 22),

@@ -1600,9 +1600,6 @@ class _
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,27): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                //             Console.Write(e is var _);
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "e is var _").WithArguments("object").WithLocation(9, 27)
                 );
             CompileAndVerify(compilation, expectedOutput: "TrueTrueTrue");
         }

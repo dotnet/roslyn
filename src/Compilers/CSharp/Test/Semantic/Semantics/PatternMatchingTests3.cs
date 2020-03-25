@@ -1231,9 +1231,6 @@ Target->Ultimate
                 // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
                 //     bool M1(int* p) => p is null; // 1
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
-                // (7,24): warning CS8794: An expression of type 'int*' always matches the provided pattern.
-                //     bool M2(int* p) => p is var _; // 2
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "p is var _").WithArguments("int*").WithLocation(7, 24),
                 // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
                 //     bool M2(int* p) => p is var _; // 2
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
@@ -1245,9 +1242,6 @@ Target->Ultimate
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
                 );
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (7,24): warning CS8794: An expression of type 'int*' always matches the provided pattern.
-                //     bool M2(int* p) => p is var _; // 2
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "p is var _").WithArguments("int*").WithLocation(7, 24)
                 );
         }
 

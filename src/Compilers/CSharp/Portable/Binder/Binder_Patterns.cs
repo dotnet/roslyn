@@ -73,8 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTypePattern _:
                     case BoundNegatedPattern _:
                     case BoundBinaryPattern _:
-                    case BoundDiscardPattern _:
                         diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                        break;
+                    case BoundDiscardPattern _:
+                        // we do not give a warning on this because it is an existing scenario, and it should
+                        // have been obvious in source that it would always match.
                         break;
                     case BoundDeclarationPattern _:
                     case BoundRecursivePattern _:
