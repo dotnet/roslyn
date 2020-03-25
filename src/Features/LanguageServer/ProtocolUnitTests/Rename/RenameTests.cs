@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {|renamed:M|}()
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
+            var (solution, ranges) = CreateTestWorkspace(markup);
             var renameLocation = ranges["caret"].First();
             var renameValue = "RENAME";
             var expectedEdits = ranges["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });

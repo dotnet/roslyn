@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         [Fact]
         public async Task TestInitializeAsync()
         {
-            var (solution, _) = CreateTestSolution(string.Empty);
+            var (solution, _) = CreateTestWorkspace(string.Empty);
             var results = await RunInitializeAsync(solution, new LSP.InitializeParams());
 
             AssertServerCapabilities(results.Capabilities);
