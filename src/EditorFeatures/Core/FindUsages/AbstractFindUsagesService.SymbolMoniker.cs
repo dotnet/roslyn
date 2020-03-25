@@ -28,41 +28,31 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (moniker == null)
                 return;
 
-            var progress = context.ProgressTracker;
-            try
+            // Let the find-refs window know we have outstanding work
+            await using var _ = await context.ProgressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
+            var displayParts = GetDisplayParts(definition).Add(
+                new TaggedText(TextTags.Text, EditorFeaturesResources.external));
+
+            var definitionItem = DefinitionItem.CreateNonNavigableItem(
+                tags: GlyphTags.GetTags(definition.GetGlyph()),
+                displayParts,
+                originationParts: DefinitionItem.GetOriginationParts(definition));
+
+            var monikers = ImmutableArray.Create(moniker);
+
+            var first = true;
+            await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(
+                definitionItem, monikers, context.ProgressTracker, cancellationToken))
             {
-                // Let the find-refs window know we have outstanding work
-                await progress.AddItemsAsync(1).ConfigureAwait(false);
-
-                // TODO: loc this
-                var displayParts = GetDisplayParts(definition).Add(
-                    new TaggedText(TextTags.Text, EditorFeaturesResources.external));
-
-                var definitionItem = DefinitionItem.CreateNonNavigableItem(
-                    tags: GlyphTags.GetTags(definition.GetGlyph()),
-                    displayParts,
-                    originationParts: DefinitionItem.GetOriginationParts(definition));
-
-                var monikers = ImmutableArray.Create(moniker);
-
-                var first = true;
-                await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(
-                    definitionItem, monikers, progress, cancellationToken))
+                if (first)
                 {
-                    if (first)
-                    {
-                        // found some results.  Add the definition item to the context.
-                        first = false;
-                        await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
-                    }
-
-                    await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
+                    // found some results.  Add the definition item to the context.
+                    first = false;
+                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                 }
-            }
-            finally
-            {
-                // Mark that our async work is done.
-                await progress.ItemCompletedAsync().ConfigureAwait(false);
+
+                await context.OnExternalReferenceFoundAsync(referenceItem).ConfigureAwait(false);
             }
         }
     }
