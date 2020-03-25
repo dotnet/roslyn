@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -13,12 +14,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using VS.IntelliNav.Contracts;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
@@ -72,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             // Let the find-refs window know we have outstanding work
             await using var _1 = await progress.AddSingleItemAsync().ConfigureAwait(false);
 
-            var results = await codeIndexProvider.FindReferencesByMonikerAsync(
-                monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var results = await FindReferencesByMonikerAsync(
+                codeIndexProvider, monikers, pageIndex, cancellationToken).ConfigureAwait(false);
 
             using var _2 = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
@@ -81,6 +84,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 referenceItems.Add(ConvertResult(definition, result));
 
             return referenceItems.ToImmutable();
+        }
+
+        private static async Task<ICollection<JObject>> FindReferencesByMonikerAsync(ICodeIndexProvider codeIndexProvider, ImmutableArray<ISymbolMoniker> monikers, int pageIndex, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await codeIndexProvider.FindReferencesByMonikerAsync(
+                    monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return SpecializedCollections.EmptyCollection<JObject>();
+            }
         }
 
         private ExternalReferenceItem ConvertResult(DefinitionItem definition, JObject obj)
@@ -115,6 +131,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 _lastNavigationCancellationSource?.Cancel();
                 _lastNavigationCancellationSource = new CancellationTokenSource();
                 return _lastNavigationCancellationSource.Token;
+            }
+        }
+
+        private bool TryNavigateTo(CodeIndexExternalReferenceItem item, bool isPreview)
+        {
+            // Cancel the navigation to any previous item the user was trying to navigate to.
+            // Then try to navigate to this. Because it's async, and we're not, just assume it
+            // will succeed.
+            var cancellationToken = this.CancelLastNavigationAndGetNavigationToken();
+            _ = NavigateToAsync(item, isPreview: false, cancellationToken);
+            return true;
+        }
+
+        private async Task NavigateToAsync(CodeIndexExternalReferenceItem item, bool isPreview, CancellationToken cancellationToken)
+        {
+            // No way to report any errors thrown by OpenNavigationResultInEditorAsync.
+            // So just catch and report through our watson system.
+            try
+            {
+                await _codeIndexProvider!.OpenNavigationResultInEditorAsync(
+                    item.ResultObject, isPreview, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
             }
         }
     }
