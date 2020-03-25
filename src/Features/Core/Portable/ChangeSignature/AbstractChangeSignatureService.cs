@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 separators.Add(i < arguments.SeparatorCount
                     ? arguments.GetSeparator(i)
-                    : Generator.CommaTokenWithElasticSpace());
+                    : CommaTokenWithElasticSpace());
             }
 
             return separators.ToImmutable();
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : default,
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
-                        separators.Add(Generator.CommaTokenWithElasticSpace());
+                        separators.Add(CommaTokenWithElasticSpace());
                     }
                     else
                     {
