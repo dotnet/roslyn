@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             public override string GetDescription(CultureInfo? culture)
-            {
-                throw new NotImplementedException();
-            }
+                => WorkspacesResources.ResourceManager.GetString("Sync_namespace", culture ?? WorkspacesResources.Culture)!;
 
             internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken)
             {

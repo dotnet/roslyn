@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             public override string GetDescription(CultureInfo? culture)
-            => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture), _analysis.OriginalDocumentName, _analysis.NewDocumentName);
+                => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
             internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken)
             {

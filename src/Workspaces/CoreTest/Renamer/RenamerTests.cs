@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
                 foreach (var action in documentRenameResult.ApplicableActions)
                 {
-                    solution = await action.GetModifiedSolutionAsync(solution).ConfigureAwait(false);
+                    solution = await action.GetModifiedSolutionAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
                     foreach (var error in action.Errors)
                     {
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
                 foreach (var action in documentFoldersRenameResult.ApplicableActions)
                 {
-                    solution = await action.GetModifiedSolutionAsync(solution).ConfigureAwait(false);
+                    solution = await action.GetModifiedSolutionAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
                     foreach (var error in action.Errors)
                     {
