@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -252,12 +254,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
+        private sealed class MockTaskSchedulerProvider : ITaskSchedulerProvider
+        {
+            public TaskScheduler CurrentContextScheduler
+                => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
+        }
+
+        private sealed class MockWorkspaceAsynchronousOperationListenerProvider : IWorkspaceAsynchronousOperationListenerProvider
+        {
+            public IAsynchronousOperationListener GetListener()
+                => AsynchronousOperationListenerProvider.NullListener;
+        }
+
         private class MockHostWorkspaceServices : HostWorkspaceServices
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
-            private static readonly ITaskSchedulerProvider s_taskSchedulerProvider = new TaskSchedulerProvider();
-            private static readonly IWorkspaceAsynchronousOperationListenerProvider s_asyncListenerProvider = new WorkspaceAsynchronousOperationListenerProvider(AsynchronousOperationListenerProvider.NullProvider);
+            private static readonly ITaskSchedulerProvider s_taskSchedulerProvider = new MockTaskSchedulerProvider();
+            private static readonly IWorkspaceAsynchronousOperationListenerProvider s_asyncListenerProvider = new MockWorkspaceAsynchronousOperationListenerProvider();
             private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
