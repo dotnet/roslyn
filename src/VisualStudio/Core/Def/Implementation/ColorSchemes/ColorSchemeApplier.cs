@@ -110,8 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             AssertIsForeground();
 
-            // Simply return if we were queued to run during shutdown or the user is in High Contrast mode.
-            if (_isDisposed || SystemParameters.HighContrast)
+            // Simply return if we were queued to run during shutdown.
+            if (_isDisposed)
             {
                 return;
             }

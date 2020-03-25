@@ -319,9 +319,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 INamedTypeSymbol containingType,
                 CancellationToken cancellationToken)
             {
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                var rule = await document.GetApplicableNamingRuleAsync(
+                    SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var requireAccessiblity = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+                var requireAccessiblity = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -329,23 +330,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 
-                foreach (var rule in rules)
-                {
-                    if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
-                    {
-                        var uniqueName = GenerateUniqueNameForDisposedValueField(containingType, rule);
+                var uniqueName = GenerateUniqueNameForDisposedValueField(containingType, rule);
 
-                        return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            default,
-                            accessibilityLevel,
-                            DeclarationModifiers.None,
-                            boolType, uniqueName);
-                    }
-                }
-
-                // We place a special rule in s_builtInRules that matches all fields.  So we should 
-                // always find a matching rule.
-                throw ExceptionUtilities.Unreachable;
+                return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                    default,
+                    accessibilityLevel,
+                    DeclarationModifiers.None,
+                    boolType, uniqueName);
             }
 
             private static string GenerateUniqueNameForDisposedValueField(INamedTypeSymbol containingType, NamingRule rule)

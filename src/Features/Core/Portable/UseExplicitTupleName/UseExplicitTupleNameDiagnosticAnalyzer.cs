@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
-                   CodeStyleOptions.PreferExplicitTupleNames,
+                   CodeStyleOptions2.PreferExplicitTupleNames,
                    title: new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             // We only create a diagnostic if the option's value is set to true.
-            var option = context.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferExplicitTupleNames, context.Compilation.Language);
             if (!option.Value)
             {
                 return;

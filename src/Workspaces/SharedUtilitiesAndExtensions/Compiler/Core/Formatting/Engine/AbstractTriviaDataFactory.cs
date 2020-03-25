@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                               useTriviaAsItIs &&
                               lineBreaks > 0 &&
                               lineBreaks <= LineBreakCacheSize &&
-                              indentation % this.Options.GetOption(FormattingOptions.IndentationSize) == 0;
+                              indentation % this.Options.GetOption(FormattingOptions2.IndentationSize) == 0;
 
             if (canUseCache)
             {
-                var indentationLevel = indentation / this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentationLevel = indentation / this.Options.GetOption(FormattingOptions2.IndentationSize);
                 if (indentationLevel < IndentationLevelCacheSize)
                 {
                     var lineIndex = lineBreaks - 1;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // set up caches
             if (_whitespaces[lineIndex, indentationLevel] == null)
             {
-                var indentation = indentationLevel * this.Options.GetOption(FormattingOptions.IndentationSize);
+                var indentation = indentationLevel * this.Options.GetOption(FormattingOptions2.IndentationSize);
                 var triviaInfo = new Whitespace(this.Options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false, language: this.TreeInfo.Root.Language);
                 Interlocked.CompareExchange(ref _whitespaces[lineIndex, indentationLevel], triviaInfo, null);
             }
