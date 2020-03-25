@@ -354,9 +354,16 @@ class C
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
+                // (6,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //         if (x is var _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is var _").WithArguments("object").WithLocation(6, 13),
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (17,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //         if (x is var _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is var _").WithArguments("object").WithLocation(17, 13)
+                );
         }
 
         [Fact]
@@ -2210,15 +2217,27 @@ class C
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(14, 9),
+                // (18,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is not null or _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is not null or _").WithArguments("C").WithLocation(18, 13),
                 // (19,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(19, 13),
+                // (24,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is null or _)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is null or _").WithArguments("C").WithLocation(24, 13),
                 // (25,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(25, 13),
+                // (30,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is _ or not null)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or not null").WithArguments("C").WithLocation(30, 13),
                 // (31,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(31, 13),
+                // (36,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
+                //         if (x is _ or null)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "x is _ or null").WithArguments("C").WithLocation(36, 13),
                 // (37,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(37, 13),

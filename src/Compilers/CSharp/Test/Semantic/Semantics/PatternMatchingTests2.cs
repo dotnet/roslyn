@@ -2544,5 +2544,59 @@ public class C
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= uint.MaxValue").WithArguments("uint").WithLocation(15, 13)
                 );
         }
+
+        [Fact]
+        public void IsImpossiblePatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (System.Delegate); // impossible parenthesized type pattern
+        _ = s is not _;             // impossible negated pattern
+        _ = s is ""a"" and ""b"";   // impossible conjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,19): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is (System.Delegate); // impossible parenthesized type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(5, 19),
+                // (6,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is not _;             // impossible negated pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not _").WithArguments("string").WithLocation(6, 13),
+                // (7,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is "a" and "b";   // impossible conjunctive pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"s is ""a"" and ""b""").WithArguments("string").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void IsAlwaysPatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (_);                   // always parenthesized discard pattern
+        _ = s is not System.Delegate;   // always negated type pattern
+        _ = s is string or null;        // always disjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,13): warning CS8794: An expression of type 'string' always matches the provided pattern.
+                //         _ = s is (_);                   // always parenthesized discard pattern
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is (_)").WithArguments("string").WithLocation(5, 13),
+                // (6,22): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is not System.Delegate;   // always negated type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(6, 22),
+                // (7,13): warning CS8794: An expression of type 'string' always matches the provided pattern.
+                //         _ = s is string or null;        // always disjunctive pattern
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
+                );
+        }
     }
 }

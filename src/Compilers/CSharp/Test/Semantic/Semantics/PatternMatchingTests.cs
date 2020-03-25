@@ -4279,7 +4279,11 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,28): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         Write($"is var _: {i is var _}, ");
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is var _").WithArguments("int").WithLocation(9, 28)
+                );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4416,6 +4420,9 @@ public class C
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 33),
+                // (9,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         if (i is var _) { Write(_); }
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is var _").WithArguments("int").WithLocation(9, 13),
                 // (9,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is var _) { Write(_); }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 33),
@@ -6337,7 +6344,11 @@ internal class Program
 ";
             var expectedOutput = @"Exception";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (19,34): warning CS8794: An expression of type 'bool' always matches the provided pattern.
+                //     private int IsVarMethod() => ThrowingMethod() is var _ ? 1 : 0;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "ThrowingMethod() is var _").WithArguments("bool").WithLocation(19, 34)
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6620,9 +6631,13 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
+                // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
+                //         if (outer is ({} and var x) and Span<int> inner)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
                 // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                );
         }
 
         [Fact]
@@ -7011,24 +7026,44 @@ public class C
     }
 }
 ").VerifyDiagnostics(
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
                 // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
                 // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
                 // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
                 // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
                 // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
                 // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { } x) return x; // error 6
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
                 // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
