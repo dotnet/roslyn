@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
-            public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
+            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
             public string? EditorConfig { get; set; }
 

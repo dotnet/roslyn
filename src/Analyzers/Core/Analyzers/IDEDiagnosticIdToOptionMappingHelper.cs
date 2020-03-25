@@ -7,12 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -23,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal static class IDEDiagnosticIdToOptionMappingHelper
     {
-        private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption>> s_diagnosticIdToOptionMap = new ConcurrentDictionary<string, ImmutableHashSet<IOption>>();
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption>>> s_diagnosticIdToLanguageSpecificOptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption>>>();
+        private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>>();
 
-        public static bool TryGetMappedOptions(string diagnosticId, string language, out ImmutableHashSet<IOption> options)
+        public static bool TryGetMappedOptions(string diagnosticId, string language, out ImmutableHashSet<IOption2> options)
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
@@ -36,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
             perLanguageOptions = perLanguageOptions ?? throw new ArgumentNullException(nameof(perLanguageOptions));
 
-            var options = perLanguageOptions.Cast<IOption>().ToImmutableHashSet();
+            var options = perLanguageOptions.Cast<IOption2>().ToImmutableHashSet();
             AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, options);
         }
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> languageSpecificOptions, string language)
@@ -45,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             languageSpecificOptions = languageSpecificOptions ?? throw new ArgumentNullException(nameof(languageSpecificOptions));
             language = language ?? throw new ArgumentNullException(nameof(language));
 
-            var map = s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption>>());
-            var options = languageSpecificOptions.Cast<IOption>().ToImmutableHashSet();
+            var map = s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>());
+            var options = languageSpecificOptions.Cast<IOption2>().ToImmutableHashSet();
             AddOptionMapping(map, diagnosticId, options);
         }
 
-        private static void AddOptionMapping(ConcurrentDictionary<string, ImmutableHashSet<IOption>> map, string diagnosticId, ImmutableHashSet<IOption> options)
+        private static void AddOptionMapping(ConcurrentDictionary<string, ImmutableHashSet<IOption2>> map, string diagnosticId, ImmutableHashSet<IOption2> options)
         {
             // Verify that the option is either being added for the first time, or the existing option is already the same.
             // Latter can happen in tests as we re-instantiate the analyzer for every test, which attempts to add the mapping every time.

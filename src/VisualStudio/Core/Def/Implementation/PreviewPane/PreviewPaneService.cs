@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     return Guid.Parse(Guids.VisualBasicOptionPageNamingStyleIdString);
                 }
             }
-            else if (optionName == nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
+            else if (optionName == nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {

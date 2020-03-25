@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = GenerationOptions.AllOptions;
+        public ImmutableArray<IOption> Options { get; } = GenerationOptions.AllOptions.As<IOption>();
     }
 }

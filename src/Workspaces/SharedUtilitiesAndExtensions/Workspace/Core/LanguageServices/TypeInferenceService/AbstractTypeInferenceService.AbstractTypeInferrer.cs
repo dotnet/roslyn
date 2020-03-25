@@ -105,6 +105,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
                 return result;
             }
+
+            protected static IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
+            {
+                if (type != null)
+                {
+                    var parameters = type.TypeArguments;
+
+                    var elementType = parameters.ElementAtOrDefault(0);
+                    if (elementType != null)
+                    {
+                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
         }
     }
 }

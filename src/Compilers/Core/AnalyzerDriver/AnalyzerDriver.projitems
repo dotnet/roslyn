@@ -14,4 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationComputer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DeclarationInfo.cs" />
   </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
 </Project>

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 if (defaultNamespaceFromProjects.Count != 1
                     || defaultNamespaceFromProjects.First() == null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return defaultNamespaceFromProjects.Single();

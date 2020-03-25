@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Options
                             continue;
                         }
 
-                        var parsedCodeStyleOption = CodeStyleOption<object>.FromXElement(XElement.Parse((string)readValue));
+                        var parsedCodeStyleOption = CodeStyleOption2<object>.FromXElement(XElement.Parse((string)readValue));
                         var value = parsedCodeStyleOption.Value;
                         var type = optionKey.Option.Type.GenericTypeArguments[0];
                         var convertedValue = type.IsEnum ? Enum.ToObject(type, value) : Convert.ChangeType(value, type);

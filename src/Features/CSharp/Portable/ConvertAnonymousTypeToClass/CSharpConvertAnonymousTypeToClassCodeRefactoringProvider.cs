@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             NameSyntax nameNode, AnonymousObjectCreationExpressionSyntax anonymousObject)
         {
             return SyntaxFactory.ObjectCreationExpression(
-                nameNode, CreateArgumentList(anonymousObject), initializer: default);
+                nameNode, CreateArgumentList(anonymousObject), initializer: null);
         }
 
         private ArgumentListSyntax CreateArgumentList(AnonymousObjectCreationExpressionSyntax anonymousObject)

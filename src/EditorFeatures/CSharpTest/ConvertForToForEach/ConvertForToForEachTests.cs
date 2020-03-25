@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
+        private IDictionary<OptionKey2, object> ImplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));

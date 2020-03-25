@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public Task ReportProgressAsync(int current, int maximum)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return _context.ReportProgressAsync(current, maximum);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public Task SetSearchTitleAsync(string title)

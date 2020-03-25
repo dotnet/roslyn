@@ -94,8 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 text(characterPosition) = "("c OrElse
                 (characterPosition > 1 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
                 SyntaxFacts.IsIdentifierStartCharacter(text(characterPosition)) AndAlso
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
+                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
         Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,

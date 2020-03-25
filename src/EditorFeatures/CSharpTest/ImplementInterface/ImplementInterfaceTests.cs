@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
+        private IDictionary<OptionKey2, object> AllOptionsOff =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AllOptionsOn =>
+        private IDictionary<OptionKey2, object> AllOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AccessorOptionsOn =>
+        private IDictionary<OptionKey2, object> AccessorOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -8330,6 +8330,103 @@ class D : B, I
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyWhenPartiallyImplemented()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplemented()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+    public void M2(){}
+}", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementRemainingExplicitlyMissingWhenAllImplementedAreExplicit()
+        {
+            await TestActionCountAsync(@"
+interface I
+{
+    void M1();
+    void M2();
+}
+
+class C : [|I|]
+{
+    void I.M1(){}
+}", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementRemainingExplicitlyNonPublicMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+}",
+@"
+interface I
+{
+    void M1();
+    internal void M2();
+}
+
+class C : [|I|]
+{
+    public void M1(){}
+
+    void I.M2()
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 1);
         }
     }
 }

@@ -90,20 +90,38 @@ namespace Roslyn.Utilities
             {
                 // add our work to the set we'll process in the next batch.
                 _nextBatch.AddRange(items);
+                TryKickOffNextBatchTask();
+            }
+        }
 
-                if (!_taskInFlight)
-                {
-                    // No in-flight task.  Kick one off to process these messages a second from now.
-                    // We always attach the task to the previous one so that notifications to the ui
-                    // follow the same order as the notification the OOP server sent to us.
-                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                        _ => ProcessNextBatchAsync(_cancellationToken),
-                        _cancellationToken,
-                        (int)_delay.TotalMilliseconds,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default);
-                    _taskInFlight = true;
-                }
+        public void AddWork(ImmutableArray<TItem> items)
+        {
+            // Don't do any more work if we've been asked to shutdown.
+            if (_cancellationToken.IsCancellationRequested)
+                return;
+
+            lock (_gate)
+            {
+                // add our work to the set we'll process in the next batch.
+                _nextBatch.AddRange(items);
+                TryKickOffNextBatchTask();
+            }
+        }
+
+        private void TryKickOffNextBatchTask()
+        {
+            if (!_taskInFlight)
+            {
+                // No in-flight task.  Kick one off to process these messages a second from now.
+                // We always attach the task to the previous one so that notifications to the ui
+                // follow the same order as the notification the OOP server sent to us.
+                _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
+                    _ => ProcessNextBatchAsync(_cancellationToken),
+                    _cancellationToken,
+                    (int)_delay.TotalMilliseconds,
+                    TaskContinuationOptions.RunContinuationsAsynchronously,
+                    TaskScheduler.Default);
+                _taskInFlight = true;
             }
         }
 

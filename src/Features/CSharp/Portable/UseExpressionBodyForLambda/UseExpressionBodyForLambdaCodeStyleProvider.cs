@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var canOffer = expressionBodyOpt.TryConvertToStatement(
-                semicolonTokenOpt: default, createReturnStatementForExpression: false, out _);
+                semicolonTokenOpt: null, createReturnStatementForExpression: false, out _);
             if (!canOffer)
             {
                 // Couldn't even convert the expression into statement form.
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
-                    semicolonTokenOpt: default,
+                    semicolonTokenOpt: null,
                     createReturnStatementForExpression,
                     out var statement))
             {
