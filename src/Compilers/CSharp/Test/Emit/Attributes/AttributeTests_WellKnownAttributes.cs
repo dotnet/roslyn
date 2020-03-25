@@ -8668,6 +8668,88 @@ class C2 : C1
             }
         }
 
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_03()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public enum E1 { A, B }
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public byte Byte { get; set; }
+        public sbyte SByte { get; set; }
+        public bool Bool { get; set; }
+        public short Short { get; set; }
+        public ushort UShort { get; set; }
+        public char Char { get; set; }
+        public int Int { get; set; }
+        public uint UInt { get; set; }
+        public float Float { get; set; }
+        public long Long { get; set; }
+        public ulong ULong { get; set; }
+        public double Double { get; set; }
+        public E1 Enum { get; set; }
+        public string DiagnosticId { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(
+        Byte = 0,
+        SByte = 0,
+        Bool = false,
+        Short = 0,
+        UShort = 0,
+        Char = '\0',
+        Int = 0,
+        UInt = 0,
+        Float = 0,
+        Long = 0,
+        ULong = 0,
+        Double = 0,
+        Enum = E1.A,
+        DiagnosticId = ""TEST1"")]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,9): warning TEST1: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic("TEST1", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        // Missing tests:
+        // - duplicate named arguments
+        // - named argument has well-known name but bad type, non-null value
+        // - named argument has well-known name but bad type, null value
+        // - ??
+
         [Fact]
         [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
         public void ConditionalLazyObsoleteDiagnostic()

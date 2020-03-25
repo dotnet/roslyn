@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -94,8 +95,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<byte>> s_attributeByteArrayValueExtractor = CrackByteArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
-        private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractorString = CrackObsoleteAttributeDataString;
-        private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractorStringBool = CrackObsoleteAttributeDataStringBool;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
 
@@ -1067,9 +1066,15 @@ namespace Microsoft.CodeAnalysis
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
 
-        internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
+        internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol>(
             EntityHandle token,
+            MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> decoder,
             bool ignoreByRefLikeMarker)
+                where ModuleSymbol : class, IModuleSymbolInternal
+                where TypeSymbol : class, Symbol, ITypeSymbolInternal
+                where MethodSymbol : class, Symbol, IMethodSymbolInternal
+                where FieldSymbol : class, Symbol, IFieldSymbolInternal
+                where Symbol : class, ISymbolInternal
         {
             AttributeInfo info;
 
@@ -1080,9 +1085,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             info = FindTargetAttribute(token, AttributeDescription.ObsoleteAttribute);
-            if (info.HasValue)
+            if (info.HasValue && decoder.GetCustomAttribute(info.Handle, out TypedConstant[] positionalArgs, out KeyValuePair<string, TypedConstant>[] namedArgs, out bool[] namedArgIsProperty))
             {
-                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info);
+                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(positionalArgs, namedArgs, namedArgIsProperty);
                 switch (obsoleteData?.Message)
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
@@ -1315,53 +1320,23 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(AttributeInfo attributeInfo)
+        private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(TypedConstant[] positionalArgs, KeyValuePair<string, TypedConstant>[] namedArgs, bool[] namedArgIsProperty)
         {
-            Debug.Assert(attributeInfo.HasValue);
-            ObsoleteAttributeData? obsoleteData;
-            switch (attributeInfo.SignatureIndex)
+            var (diagnosticId, urlFormat) = ExtractObsoleteProperties(namedArgs, namedArgIsProperty);
+            switch (positionalArgs.Length)
             {
                 case 0:
                     // ObsoleteAttribute()
-                    return TryExtractParameterlessObsoleteData(attributeInfo.Handle);
+                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId, urlFormat);
                 case 1:
                     // ObsoleteAttribute(string)
-                    TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractorString);
-                    return obsoleteData;
-                case 2:
+                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, positionalArgs[0].ValueInternal as string, isError: false, diagnosticId, urlFormat);
+                case 2 when positionalArgs[1].ValueInternal is bool isError:
                     // ObsoleteAttribute(string, bool)
-                    TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractorStringBool);
-                    return obsoleteData;
+                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, positionalArgs[0].ValueInternal as string, isError, diagnosticId, urlFormat);
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+                    return null;
             }
-        }
-
-        private ObsoleteAttributeData? TryExtractParameterlessObsoleteData(CustomAttributeHandle handle)
-        {
-            Debug.Assert(!handle.IsNil);
-            try
-            {
-                BlobHandle valueBlob = GetCustomAttributeValueOrThrow(handle);
-                if (!valueBlob.IsNil)
-                {
-                    BlobReader reader = MetadataReader.GetBlobReader(valueBlob);
-
-                    if (reader.Length >= 4)
-                    {
-                        // check prolog
-                        if (reader.ReadInt16() == 1)
-                        {
-                            var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref reader);
-                            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false, diagnosticId, urlFormat);
-                        }
-                    }
-                }
-            }
-            catch (BadImageFormatException)
-            { }
-
-            return null;
         }
 
         /// <summary>
@@ -1784,104 +1759,29 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        /// <summary>
-        /// Cracks the data on an Obsolete attribute using the Obsolete(string) constructor.
-        /// </summary>
-        private static bool CrackObsoleteAttributeDataString(out ObsoleteAttributeData? value, ref BlobReader sig)
-        {
-            string message;
-            if (CrackStringInAttributeValue(out message, ref sig))
-            {
-                var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref sig);
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false, diagnosticId: diagnosticId, urlFormat: urlFormat);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        /// <summary>
-        /// Cracks the data on an Obsolete attribute using the Obsolete(string, bool) constructor.
-        /// </summary>
-        private static bool CrackObsoleteAttributeDataStringBool(out ObsoleteAttributeData? value, ref BlobReader sig)
-        {
-            string message;
-            if (CrackStringInAttributeValue(out message, ref sig) && sig.RemainingBytes >= 1)
-            {
-                bool isError = sig.ReadBoolean();
-
-                var (diagnosticId, urlFormat) = CrackObsoleteProperties(ref sig);
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId: diagnosticId, urlFormat: urlFormat);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
 
         /// <summary>
         /// Gets the well-known optional named properties on ObsoleteAttribute, if present.
         /// Both 'diagnosticId' and 'urlFormat' may be present, or only one, or neither.
         /// </summary>
-        /// <remarks>
-        /// Failure to find any of these properties does not imply failure to decode the ObsoleteAttribute,
-        /// so we don't return a value indicating success or failure.
-        /// </remarks>
-        private static (string? diagnosticId, string? urlFormat) CrackObsoleteProperties(ref BlobReader sig)
+        private static (string? diagnosticId, string? urlFormat) ExtractObsoleteProperties(KeyValuePair<string, TypedConstant>[] namedArgs, bool[] namedArgIsProperty)
         {
             string? diagnosticId = null;
             string? urlFormat = null;
 
-            // See CIL spec section II.23.3 Custom attributes
-
-            // Next is a description of the optional “named” fields and properties.
-            // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
-            var numNamed = sig.ReadUInt16();
-            for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
+            for (var i = 0; i < namedArgs.Length && (diagnosticId is null || urlFormat is null); i++)
             {
-                // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
-                // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
-                // we require a means to disambiguate such situations. end note] FIELD is the single byte 0x53. PROPERTY is
-                // the single byte 0x54.
-
-                var kind = (CustomAttributeNamedArgumentKind)sig.ReadCompressedInteger();
-                if (kind != CustomAttributeNamedArgumentKind.Field && kind != CustomAttributeNamedArgumentKind.Property)
+                var (name, value) = namedArgs[i];
+                if (namedArgIsProperty[i])
                 {
-                    throw new UnsupportedSignatureContent();
-                }
-
-                var (typeCode, elementTypeCode) = DecodeCustomAttributeFieldOrPropTypeOrThrow(ref sig);
-
-                if (!CrackStringInAttributeValue(out var name, ref sig))
-                {
-                    throw new UnsupportedSignatureContent();
-                }
-
-                if (typeCode == SerializationTypeCode.String && kind == CustomAttributeNamedArgumentKind.Property)
-                {
-                    if (!CrackStringInAttributeValue(out var value, ref sig))
+                    if (diagnosticId is null && name == "DiagnosticId")
                     {
-                        throw new UnsupportedSignatureContent();
+                        diagnosticId = value.ValueInternal as string;
                     }
-
-                    switch (name)
+                    else if (urlFormat is null && name == "UrlFormat")
                     {
-                        case "DiagnosticId":
-                            diagnosticId = value;
-                            break;
-                        case "UrlFormat":
-                            urlFormat = value;
-                            break;
+                        urlFormat = value.ValueInternal as string;
                     }
-                }
-                else if (typeCode == SerializationTypeCode.SZArray)
-                {
-                    SkipCustomAttributeElementArrayOrThrow(ref sig, elementTypeCode);
-                }
-                else
-                {
-                    SkipCustomAttributeElementOrThrow(ref sig, typeCode);
                 }
             }
 
