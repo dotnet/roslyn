@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             // Then try to navigate to this. Because it's async, and we're not, just assume it
             // will succeed.
             var cancellationToken = this.CancelLastNavigationAndGetNavigationToken();
-            _ = NavigateToAsync(item, isPreview: false, cancellationToken);
+            _ = NavigateToAsync(item, isPreview, cancellationToken);
             return true;
         }
 
