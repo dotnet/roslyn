@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的なコンストラクター </target>
+        <target state="translated">'{0}' の暗黙的なコンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的な get アクセサー</target>
+        <target state="translated">'{0}' の暗黙的な get アクセサー</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的な set アクセサー</target>
+        <target state="translated">'{0}' の暗黙的な set アクセサー</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

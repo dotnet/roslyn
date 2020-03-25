@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity.</source>
-        <target state="needs-review-translation">Symboly by se měly porovnat podle rovnosti, ne podle identity.</target>
+        <target state="translated">Symboly by se měly porovnat podle rovnosti, ne podle identity.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -249,12 +249,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">CodeFixProvider, jehož cílem je podpora oprav všech výskytů, musí klasifikovat zaregistrované akce kódu v odpovídajících třídách tak, že jim přiřadí explicitní nenulový ekvivalentní klíč, který je jedinečný pro každý druh akce kódu vytvořené tímto nástrojem pro opravy. To nástroji FixAllProvider umožní opravit veškerou diagnostiku v požadovaném rozsahu tak, že použije akce kódu z tohoto nástroje pro opravy, které se nachází v ekvivalentní třídě akce aktivace kódu.</target>
+        <target state="translated">CodeFixProvider, jehož cílem je podpora oprav všech výskytů, musí klasifikovat zaregistrované akce kódu v odpovídajících třídách tak, že jim přiřadí explicitní nenulový ekvivalentní klíč, který je jedinečný pro každý druh akce kódu vytvořené tímto nástrojem pro opravy. To nástroji FixAllProvider umožní opravit veškerou diagnostiku v požadovaném rozsahu tak, že použije akce kódu z tohoto fixeru, které se nachází v ekvivalentní třídě akce aktivace kódu.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="translated">Zadejte explicitní argument pro volitelný parametr {0}, který není null a je jedinečný pro každý druh akce kódu vytvořené tímto nástrojem pro opravy.</target>
+        <target state="translated">Zadejte explicitní argument pro volitelný parametr {0}, který není null a je jedinečný pro každý druh akce kódu vytvořené tímto fixerem.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="translated">{0} má u vlastnosti {1} výchozí hodnotu null. Buď přepište tuto vlastnost na {0}, aby se vracela nenulová a jedinečná hodnota napříč všemi akcemi kódu pro jednotlivé opravy, nebo použijte existující akci kódu.</target>
+        <target state="translated">{0} má u vlastnosti {1} výchozí hodnotu null. Buď přepište tuto vlastnost na {0}, aby se vracela nenulová a jedinečná hodnota napříč všemi akcemi kódu pro jednotlivé fixery, nebo použijte existující akci kódu.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">

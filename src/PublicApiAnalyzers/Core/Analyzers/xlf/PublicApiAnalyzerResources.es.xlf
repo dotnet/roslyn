@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">constructor implícito para {0}</target>
+        <target state="translated">constructor implícito para "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">descriptor de acceso get implícito para {0}</target>
+        <target state="translated">descriptor de acceso get implícito para "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">descriptor de acceso set implícito para {0}</target>
+        <target state="translated">descriptor de acceso set implícito para "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

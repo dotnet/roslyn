@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">niejawny konstruktor dla {0}</target>
+        <target state="translated">niejawny konstruktor dla elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">niejawna metoda dostępu get dla elementu {0}</target>
+        <target state="translated">niejawna metoda dostępu get dla elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">niejawna metoda dostępu set dla elementu {0}</target>
+        <target state="translated">niejawna metoda dostępu set dla elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity.</source>
-        <target state="needs-review-translation">Symbole powinny być porównywane pod kątem równości, a nie tożsamości.</target>
+        <target state="translated">Symbole powinny być porównywane pod kątem równości, a nie tożsamości.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -249,12 +249,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">Dostawca CodeFixProvider, który zamierza obsługiwać poprawki dla wszystkich wystąpień, musi sklasyfikować zarejestrowane akcje kodu do klas równoważności, przypisując im jawny, inny niż null klucz równoważności, który jest unikatowy dla każdego rodzaju akcji kodu utworzonego przez ten program naprawiający. Umożliwia to dostawcy FixAllProvider naprawę całej diagnostyki w wymaganym zakresie, stosując akcje kodu z tego programu naprawiającego, które są w klasie równoważności akcji wyzwalania kodu.</target>
+        <target state="translated">Dostawca CodeFixProvider, który zamierza obsługiwać poprawki dla wszystkich wystąpień, musi sklasyfikować zarejestrowane akcje kodu do klas równoważności, przypisując im jawny, inny niż null klucz równoważności, który jest unikatowy dla każdego rodzaju akcji kodu utworzonego przez tę regułę naprawczą. Umożliwia to dostawcy FixAllProvider naprawę całej diagnostyki w wymaganym zakresie, stosując akcje kodu z tej reguły naprawczej, które są w klasie równoważności akcji wyzwalania kodu.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="translated">Podaj jawny argument dla opcjonalnego parametru „{0}”, który jest inny niż null i unikatowy dla każdego rodzaju akcji kodu utworzonego przez ten program naprawiający.</target>
+        <target state="translated">Podaj jawny argument dla opcjonalnego parametru „{0}”, który jest inny niż null i unikatowy dla każdego rodzaju akcji kodu utworzonego przez tę regułę naprawczą.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="translated">Element „{0}” ma wartość domyślną „null” dla właściwości „{1}”. Zastąp tę właściwość w elemencie „{0}”, aby zwrócić niezerową i unikatową wartość dla wszystkich akcji kodów na program naprawiający, albo użyj takiej akcji istniejącego kodu.</target>
+        <target state="translated">Element „{0}” ma wartość domyślną „null” dla właściwości „{1}”. Zastąp tę właściwość w elemencie „{0}”, aby zwrócić niezerową i unikatową wartość dla wszystkich akcji kodów na regułę naprawczą, albo użyj takiej akcji istniejącego kodu.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">

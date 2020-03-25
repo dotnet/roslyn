@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">{0}의 암시적 생성자</target>
+        <target state="translated">'{0}'의 암시적 생성자</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0}의 암시적 get 접근자</target>
+        <target state="translated">'{0}'의 암시적 get 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0}의 암시적 set 접근자</target>
+        <target state="translated">'{0}'의 암시적 set 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

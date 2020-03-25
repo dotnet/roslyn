@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">此调用站点调用带有 "params" 参数的函数。即使没有为 params 参数传入参数，也会导致数组分配</target>
+        <target state="translated">此调用站点正在调用带有 "params" 参数的函数。这会导致数组分配</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

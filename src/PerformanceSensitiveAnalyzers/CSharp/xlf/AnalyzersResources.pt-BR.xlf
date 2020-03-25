@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Este site de chamada está chamando uma função com um parâmetro 'params'. Isso resulta em uma alocação de matriz, mesmo quando não é passado nenhum parâmetro para o parâmetro params</target>
+        <target state="translated">Este site de chamada está chamando uma função com um parâmetro 'params'. Isso resulta em uma alocação de matriz</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

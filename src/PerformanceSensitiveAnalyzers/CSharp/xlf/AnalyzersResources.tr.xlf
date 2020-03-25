@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Bu çağrı sitesi 'params' parametresi ile bir işleve çağrı yapıyor. params parametresiyle geçirilen bir parametre olmasa bile bu durum bir dizi ayırmasına neden olur</target>
+        <target state="translated">Bu çağrı sitesi 'params' parametresi ile bir işleve çağrı yapıyor. Bu durum bir dizi ayırmasına neden olur</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

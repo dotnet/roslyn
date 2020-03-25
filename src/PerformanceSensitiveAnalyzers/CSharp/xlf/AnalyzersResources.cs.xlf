@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="translated">Metoda instance struct, pomocí které se deleguje vytváření. Toto způsobí instrukci zabalení.</target>
+        <target state="translated">Instanční metoda struct, pomocí které se deleguje vytváření. Toto způsobí instrukci zabalení.</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole i v případě, že se pro parametr params nepředá žádný parametr.</target>
+        <target state="translated">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

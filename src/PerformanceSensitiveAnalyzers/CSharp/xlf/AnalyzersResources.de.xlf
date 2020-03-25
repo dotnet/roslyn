@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="translated">Lambda- oder anonyme Methode in generischer Methode ordnet eine Delegatinstanz zu</target>
+        <target state="translated">Lambdafunktion oder anonyme Methode in generischer Methode ordnet eine Delegatinstanz zu</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Diese Aufrufsite ruft eine Funktion mit einem params-Parameter auf. Dies führt auch dann zu einer Arrayzuordnung, wenn für den params-Parameter kein Parameter übergeben wird.</target>
+        <target state="translated">Diese Aufrufsite ruft eine Funktion mit einem params-Parameter auf. Dies führt zu einer Arrayzuordnung.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

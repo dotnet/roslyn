@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity.</source>
-        <target state="needs-review-translation">Symbole sollten hinsichtlich Gleichheit verglichen werden, nicht hinsichtlich Identität.</target>
+        <target state="translated">Symbole sollten hinsichtlich Gleichheit verglichen werden, nicht hinsichtlich Identität.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -249,12 +249,12 @@
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="translated">Ein CodeFixProvider, der die Korrektur aller Vorkommen unterstützen soll, muss die registrierten Codeaktionen in Äquivalenzklassen einteilen, indem ein expliziter Äquivalenzschlüssel ungleich NULL zugewiesen wird, der für jede Art von durch diese Korrektur erstellten Codeaktionen eindeutig sein muss. Dadurch kann der FixAllProvider alle Diagnosen im erforderlichen Geltungsbereich korrigieren, indem er Codeaktionen von dieser Korrektur anwendet, die sich in der Äquivalenzklasse der Triggercodeaktion befinden.</target>
+        <target state="translated">Ein CodeFixProvider, der die Korrektur aller Vorkommen unterstützen soll, muss die registrierten Codeaktionen in Äquivalenzklassen einteilen, indem ein expliziter Äquivalenzschlüssel ungleich NULL zugewiesen wird, der für jede Art von durch diese Korrekturregel erstellten Codeaktionen eindeutig sein muss. Dadurch kann der FixAllProvider alle Diagnosen im erforderlichen Geltungsbereich korrigieren, indem er Codeaktionen dieser Korrekturregel anwendet, die sich in der Äquivalenzklasse der Triggercodeaktion befinden.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="translated">Geben Sie ein explizites Argument für den optionalen Parameter "{0}" an, das nicht NULL und für jede Art von durch diese Korrektur erstellten Aktionen eindeutig ist.</target>
+        <target state="translated">Geben Sie ein explizites Argument für den optionalen Parameter "{0}" an, das nicht NULL und für jede Art von durch diese Korrekturregel erstellten Aktionen eindeutig ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="translated">"{0}" besitzt den Standardwert "null" für die Eigenschaft "{1}". Setzen Sie diese Eigenschaft für "{0}" außer Kraft, um zu einem für alle Codeaktionen pro Korrektur eindeutigen Wert ungleich NULL zurückzukehren, oder verwenden Sie eine solche vorhandene Codeaktion.</target>
+        <target state="translated">"{0}" besitzt den Standardwert "null" für die Eigenschaft "{1}". Setzen Sie diese Eigenschaft für "{0}" außer Kraft, um zu einem für alle Codeaktionen pro Korrekturregel eindeutigen Wert ungleich NULL zurückzukehren, oder verwenden Sie eine solche vorhandene Codeaktion.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
