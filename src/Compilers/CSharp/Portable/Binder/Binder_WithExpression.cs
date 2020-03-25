@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Build WithMethod member list
-                var matchingMembers = ArrayBuilder<Symbol?>.GetInstance(withMethod.ParameterCount); 
+                var matchingMembers = ArrayBuilder<Symbol?>.GetInstance(withMethod.ParameterCount);
                 foreach (var p in withMethod.Parameters)
                 {
                     this.LookupMembersInType(
@@ -112,13 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         p.Name,
                         arity: 0,
                         basesBeingResolved: null,
-                        options: LookupOptions.Default,
+                        options: LookupOptions.MustBeInstance,
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
 
                     Symbol? member;
-                    if (!lookupResult.IsSingleViable)
+                    if (!lookupResult.IsSingleViable ||
+                        (lookupResult.SingleSymbolOrDefault is var symbol &&
+                         symbol.Kind != SymbolKind.Field &&
+                         symbol.Kind != SymbolKind.Property))
                     {
                         diagnostics.Add(
                             ErrorCode.ERR_WithParameterWithoutMatchingMember,
@@ -130,8 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         member = lookupResult.SingleSymbolOrDefault;
-                        Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
-
                         if (!member.GetTypeOrReturnType().Equals(
                                 p.TypeWithAnnotations,
                                 TypeCompareKind.ConsiderEverything))
@@ -165,18 +166,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propName,
                         arity: 0,
                         basesBeingResolved: null,
-                        options: LookupOptions.Default, // properties are not invocable - their accessors are
+                        options: LookupOptions.MustBeInstance, // properties are not invocable - their accessors are
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
-                    if (lookupResult.IsSingleViable)
+                    if (lookupResult.IsSingleViable &&
+                        lookupResult.SingleSymbolOrDefault is var sym &&
+                        (sym.Kind == SymbolKind.Field || sym.Kind == SymbolKind.Property))
                     {
                         member = lookupResult.SingleSymbolOrDefault;
-                        Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
                     }
-                    else
+                    if (member is null || !withMembers.Contains(member))
                     {
-                        diagnostics.Add(initializer.NameEquals!.Name, useSiteDiagnostics);
+                        diagnostics.Add(
+                            ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter,
+                            initializer.NameEquals!.Name.Location,
+                            propName);
                     }
                 }
 

@@ -6056,9 +6056,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'With' method, '{1}'.</value>
   </data>
   <data name="ERR_WithParameterWithoutMatchingMember" xml:space="preserve">
-    <value>The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</value>
+    <value>The receiver type '{0}' does not have a matching field or property to the 'With' method parameter named '{1}'.</value>
   </data>
   <data name="ERR_WithParameterTypeDoesntMatchMemberType" xml:space="preserve">
     <value>The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</value>
+  </data>
+  <data name="ERR_WithMemberArgumentDoesntMatchParameter" xml:space="preserve">
+    <value>There is no `With` method parameter which matches property '{0}'.</value>
   </data>
 </root>

@@ -599,7 +599,7 @@ class C : B
                 Diagnostic(ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType, "c").WithArguments("C", "B").WithLocation(14, 18)
             );
         }
- 
+
         [Fact]
         public void WithExpr8()
         {
@@ -650,7 +650,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c with { }").WithArguments("string", "C").WithLocation(9, 13)
             );
         }
- 
+
         [Fact]
         public void WithExpr10()
         {
@@ -674,8 +674,8 @@ class C
                 //         c = c with { };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c with { }").WithArguments("string", "C").WithLocation(9, 13)
             );
-        }   
- 
+        }
+
         [Fact]
         public void WithExpr11()
         {
@@ -914,6 +914,133 @@ class C : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr19()
+        {
+            var src = @"
+class B
+{
+    public int X { get; }
+    protected B With(int X) => null;
+}
+class C
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "With".
+                //         b = b with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "b").WithArguments("B").WithLocation(12, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr20()
+        {
+            var src = @"
+class B
+{
+    public event int X;
+    public B With(int X) => null;
+}
+class C
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS0066: 'B.X': event must be of a delegate type
+                //     public event int X;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "X").WithArguments("B.X").WithLocation(4, 22),
+                // (4,22): warning CS0067: The event 'B.X' is never used
+                //     public event int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("B.X").WithLocation(4, 22),
+                // (12,13): error CS8805: The receiver type 'B' does not have a matching field or property to the 'With' method parameter named 'X'.
+                //         b = b with { };
+                Diagnostic(ErrorCode.ERR_WithParameterWithoutMatchingMember, "b").WithArguments("B", "X").WithLocation(12, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr21()
+        {
+            var src = @"
+class B
+{
+    public class X { }
+    public B With(int X) => null;
+}
+class C
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8805: The receiver type 'B' does not have a matching field or property to the 'With' method parameter named 'X'.
+                //         b = b with { };
+                Diagnostic(ErrorCode.ERR_WithParameterWithoutMatchingMember, "b").WithArguments("B", "X").WithLocation(12, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExpr22()
+        {
+            var src = @"
+class B
+{
+    public int X = 0;
+    public B With(int X) => null;
+}
+class C
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr23()
+        {
+            var src = @"
+class B
+{
+    public int X = 0;
+    public B With(int X) => null;
+}
+class C
+{
+    public static void Main()
+    {
+        var b = new B();
+        b = b with { Y = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,22): error CS8807: There is no `With` method parameter which matches property 'Y'.
+                //         b = b with { Y = 2 };
+                Diagnostic(ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter, "Y").WithArguments("Y").WithLocation(12, 22)
+            );
         }
     }
 }

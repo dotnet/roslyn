@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ContainingTypeMustDeriveFromWithReturnType = 8804,
         ERR_WithParameterWithoutMatchingMember = 8805,
         ERR_WithParameterTypeDoesntMatchMemberType = 8806,
-
+        ERR_WithMemberArgumentDoesntMatchParameter = 8807,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

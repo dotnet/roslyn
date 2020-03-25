@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var field = (FieldSymbol)m; 
+                        var field = (FieldSymbol)m;
                         access = F.Field(receiverLocal, field);
                     }
                     methodArgs.Add(access);

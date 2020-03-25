@@ -552,14 +552,19 @@
         <target state="translated">无法在含有 "in" 或 "out" 类型参数的接口中声明枚举、类和结构。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WithMemberArgumentDoesntMatchParameter">
+        <source>There is no `With` method parameter which matches property '{0}'.</source>
+        <target state="new">There is no `With` method parameter which matches property '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WithParameterTypeDoesntMatchMemberType">
         <source>The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</source>
         <target state="new">The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WithParameterWithoutMatchingMember">
-        <source>The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</source>
-        <target state="new">The receiver type '{0}' does not have a corresponding member to the 'With' method parameter named '{1}'.</target>
+        <source>The receiver type '{0}' does not have a matching field or property to the 'With' method parameter named '{1}'.</source>
+        <target state="new">The receiver type '{0}' does not have a matching field or property to the 'With' method parameter named '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
