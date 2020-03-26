@@ -119,6 +119,7 @@ namespace Roslyn.Utilities
                 return task;
             }
         }
+
 #pragma warning restore
     }
 }
