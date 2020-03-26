@@ -301,10 +301,10 @@ namespace Microsoft.CodeAnalysis
             {
                 switch (pair.Key)
                 {
-                    case "DiagnosticId" when isProperty("DiagnosticId"):
+                    case "DiagnosticId" when IsProperty("DiagnosticId"):
                         diagnosticId = pair.Value.ValueInternal as string;
                         break;
-                    case "UrlFormat" when isProperty("UrlFormat"):
+                    case "UrlFormat" when IsProperty("UrlFormat"):
                         urlFormat = pair.Value.ValueInternal as string;
                         break;
                     default:
@@ -319,22 +319,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
-
-            // note: it is disallowed to declare a property and a field
-            // with the same name in C# or VB source, even if it is allowed in IL.
-            bool isProperty(string name)
-            {
-                foreach (var member in AttributeClass.GetMembers(name))
-                {
-                    if (member.Kind == SymbolKind.Property)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
         }
+
+        // Note: it is disallowed to declare a property and a field
+        // with the same name in C# or VB source, even if it is allowed in IL.
+        // We use an abstract method to prevent having to realize the public symbols just to decode obsolete attributes.
+        private protected abstract bool IsProperty(string memberName);
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.

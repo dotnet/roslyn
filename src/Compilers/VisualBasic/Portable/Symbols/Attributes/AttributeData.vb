@@ -488,6 +488,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
         End Function
+
+        Private Protected Overrides Function IsProperty(memberName As String) As Boolean
+            If AttributeClass IsNot Nothing Then
+                For Each member In AttributeClass.GetMembers(memberName)
+                    If member.Kind = SymbolKind.Property Then
+                        Return True
+                    End If
+                Next
+            End If
+
+            Return False
+        End Function
 #End Region
 
         ''' <summary>
