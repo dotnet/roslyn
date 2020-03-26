@@ -190,24 +190,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SwitchExpressionArm:
                     var switchArm = (SwitchExpressionArmSyntax)node;
-                    return CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+                    return createSpanForSwitchArm(switchArm);
+
+                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
+                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
 
                 case SyntaxKind.SwitchExpression when
-                    node is SwitchExpressionSyntax switchExpression &&
-                    switchExpression.Arms.Count > 0 &&
-                    position >= switchExpression.OpenBraceToken.Span.End &&
-                    position <= switchExpression.CloseBraceToken.Span.Start:
+                            node is SwitchExpressionSyntax switchExpression &&
+                            switchExpression.Arms.Count > 0 &&
+                            position >= switchExpression.OpenBraceToken.Span.End &&
+                            position <= switchExpression.CloseBraceToken.Span.Start:
                     // This can occur if the cursor is on a separator. Find the nearest switch arm.
-                    switchArm = switchExpression.Arms[0];
-                    for (int i = 1, n = switchExpression.Arms.Count; i < n; i++)
-                    {
-                        if (position >= switchExpression.Arms[i].FullSpan.Start)
-                            switchArm = switchExpression.Arms[i];
-                        else
-                            break;
-                    }
-
-                    return CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+                    switchArm = switchExpression.Arms[switchExpression.Arms.LastIndexOf(arm => position >= arm.FullSpan.Start) is int found && found >= 0 ? found : 0];
+                    return createSpanForSwitchArm(switchArm);
 
                 case SyntaxKind.WhenClause:
                     return CreateSpan(node);

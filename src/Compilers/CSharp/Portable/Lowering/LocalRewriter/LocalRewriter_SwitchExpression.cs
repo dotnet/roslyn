@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (produceDetailedSequencePoints)
                 {
                     var syntax = (SwitchExpressionSyntax)node.Syntax;
-                    result.Add(new BoundSaveSequencePoint(syntax, restorePointForEnclosingStatement));
+                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
                     // While evaluating the state machine, we highlight the `switch {...}` part.
                     var spanStart = syntax.SwitchKeyword.Span.Start;
                     var spanEnd = syntax.Span.End;
                     var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
                     result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
-                    result.Add(new BoundSaveSequencePoint(syntax, restorePointForSwitchBody));
+                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
                 }
 
                 // add the rest of the lowered dag that references that input

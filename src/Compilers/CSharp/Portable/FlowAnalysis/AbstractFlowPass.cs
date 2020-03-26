@@ -3064,7 +3064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSaveSequencePoint(BoundSaveSequencePoint node)
+        public override BoundNode VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node)
         {
             return null;
         }

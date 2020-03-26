@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FixedLocalCollectionInitializer,
         SequencePoint,
         SequencePointWithSpan,
-        SaveSequencePoint,
+        SavePreviousSequencePoint,
         RestorePreviousSequencePoint,
         StepThroughSequencePoint,
         Block,
@@ -2565,10 +2565,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSaveSequencePoint : BoundStatement
+    internal sealed partial class BoundSavePreviousSequencePoint : BoundStatement
     {
-        public BoundSaveSequencePoint(SyntaxNode syntax, object identifier, bool hasErrors)
-            : base(BoundKind.SaveSequencePoint, syntax, hasErrors)
+        public BoundSavePreviousSequencePoint(SyntaxNode syntax, object identifier, bool hasErrors)
+            : base(BoundKind.SavePreviousSequencePoint, syntax, hasErrors)
         {
 
             RoslynDebug.Assert(identifier is object, "Field 'identifier' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2576,8 +2576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Identifier = identifier;
         }
 
-        public BoundSaveSequencePoint(SyntaxNode syntax, object identifier)
-            : base(BoundKind.SaveSequencePoint, syntax)
+        public BoundSavePreviousSequencePoint(SyntaxNode syntax, object identifier)
+            : base(BoundKind.SavePreviousSequencePoint, syntax)
         {
 
             RoslynDebug.Assert(identifier is object, "Field 'identifier' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2588,13 +2588,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public object Identifier { get; }
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSaveSequencePoint(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSavePreviousSequencePoint(this);
 
-        public BoundSaveSequencePoint Update(object identifier)
+        public BoundSavePreviousSequencePoint Update(object identifier)
         {
             if (identifier != this.Identifier)
             {
-                var result = new BoundSaveSequencePoint(this.Syntax, identifier, this.HasErrors);
+                var result = new BoundSavePreviousSequencePoint(this.Syntax, identifier, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7827,8 +7827,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitSequencePoint((BoundSequencePoint)node, arg);
                 case BoundKind.SequencePointWithSpan: 
                     return VisitSequencePointWithSpan((BoundSequencePointWithSpan)node, arg);
-                case BoundKind.SaveSequencePoint: 
-                    return VisitSaveSequencePoint((BoundSaveSequencePoint)node, arg);
+                case BoundKind.SavePreviousSequencePoint: 
+                    return VisitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)node, arg);
                 case BoundKind.RestorePreviousSequencePoint: 
                     return VisitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)node, arg);
                 case BoundKind.StepThroughSequencePoint: 
@@ -8164,7 +8164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePoint(BoundSequencePoint node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointWithSpan(BoundSequencePointWithSpan node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitSaveSequencePoint(BoundSaveSequencePoint node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitBlock(BoundBlock node, A arg) => this.DefaultVisit(node, arg);
@@ -8363,7 +8363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePoint(BoundSequencePoint node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointWithSpan(BoundSequencePointWithSpan node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitSaveSequencePoint(BoundSaveSequencePoint node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitBlock(BoundBlock node) => this.DefaultVisit(node);
@@ -8748,7 +8748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.StatementOpt);
             return null;
         }
-        public override BoundNode? VisitSaveSequencePoint(BoundSaveSequencePoint node) => null;
+        public override BoundNode? VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node) => null;
         public override BoundNode? VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node) => null;
         public override BoundNode? VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node) => null;
         public override BoundNode? VisitBlock(BoundBlock node)
@@ -9742,7 +9742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement? statementOpt = (BoundStatement?)this.Visit(node.StatementOpt);
             return node.Update(statementOpt, node.Span);
         }
-        public override BoundNode? VisitSaveSequencePoint(BoundSaveSequencePoint node) => node;
+        public override BoundNode? VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node) => node;
         public override BoundNode? VisitRestorePreviousSequencePoint(BoundRestorePreviousSequencePoint node) => node;
         public override BoundNode? VisitStepThroughSequencePoint(BoundStepThroughSequencePoint node) => node;
         public override BoundNode? VisitBlock(BoundBlock node)
@@ -13360,7 +13360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitSaveSequencePoint(BoundSaveSequencePoint node, object? arg) => new TreeDumperNode("saveSequencePoint", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitSavePreviousSequencePoint(BoundSavePreviousSequencePoint node, object? arg) => new TreeDumperNode("savePreviousSequencePoint", null, new TreeDumperNode[]
         {
             new TreeDumperNode("identifier", node.Identifier, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private IndirectReturnState _indirectReturnState;
 
         /// <summary>
-        /// Used to implement <see cref="BoundSaveSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
+        /// Used to implement <see cref="BoundSavePreviousSequencePoint"/> and <see cref="BoundRestorePreviousSequencePoint"/>.
         /// </summary>
         private PooledDictionary<object, TextSpan> _savedSequencePoints;
 
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitSaveSequencePoint(BoundSaveSequencePoint statement)
+        private void EmitSavePreviousSequencePoint(BoundSavePreviousSequencePoint statement)
         {
             if (!_emitPdbSequencePoints)
                 return;
