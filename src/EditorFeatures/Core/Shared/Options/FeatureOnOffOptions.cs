@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
 
-        public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(ShowRemarksInQuickInfo), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.ShowRemarks" : "TextEditor.%LANGUAGE%.Specific.Show Remarks"));
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(AutoInsertBlockCommentStartString), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String"));
 
