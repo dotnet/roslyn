@@ -560,10 +560,6 @@
   <data name="Renaming_0_may_result_in_naming_conflicts" xml:space="preserve">
     <value>Renaming '{0}' may result in naming conflicts</value>
   </data>
-  <data name="The_project_does_not_support_sync_namespace" xml:space="preserve">
-    <value>The project does not support sync namespace</value>
-    <comment>This is an error message generated to show that the project a document is in does not currently support the feature to sync namespaces</comment>
-  </data>
   <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
     <value>Sync namespace to folder structure</value>
   </data>

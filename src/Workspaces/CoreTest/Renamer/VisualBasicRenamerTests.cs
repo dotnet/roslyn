@@ -44,7 +44,6 @@ End Interface",
             documentName: "IInterface.vb",
             newDocumentName: "IInterface2.vb");
 
-
         [Fact]
         public Task VisualBasic_RenameDocument_RenameEnum()
         => TestRenameDocument(
@@ -111,7 +110,6 @@ End Namespace",
             return TestRenameDocument(originalDocuments, expectedDocuments);
         }
 
-
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameNamespace()
         => TestEmptyActionSet(
@@ -125,18 +123,13 @@ End Namespace",
         [Fact]
         // https://github.com/dotnet/roslyn/issues/41841 tracks VB support
         public Task VisualBasic_RenameDocument_NamespaceNotSupported()
-        => TestRenameDocument(
-@"Namespace Test.Path
-    Class C
-    End Class
-End Namespace",
+        => TestEmptyActionSet(
 @"Namespace Test.Path
     Class C
     End Class
 End Namespace",
         documentPath: @"Test\Path\Document.vb",
         newDocumentPath: @"Test\New\Path\Document.vb",
-        documentName: @"Document.vb",
-        expectedErrors: new[] { "The project does not support sync namespace" });
+        documentName: @"Document.vb");
     }
 }
