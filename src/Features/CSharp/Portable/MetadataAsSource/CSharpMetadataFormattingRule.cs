@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
@@ -49,9 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             if (previousMember.Kind() == nextMember.Kind())
                 return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
 
-            // Force a blank line between the two nodes by counting the number of lines of
-            // trivia and adding one to it.
+            // We have different kinds, ensure at least one blank line.
+
+            // See what sort of trivia we have between the items already.  If we have nothing, then just force a single
+            // blank line.
             var triviaList = token1.TrailingTrivia.Concat(token2.LeadingTrivia);
+            if (triviaList.All(t => t.IsWhitespaceOrEndOfLine()))
+                return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
+
+            // We have existing non-whitespace trivia. Force a blank line between the two nodes by counting the number
+            // of lines of trivia and adding one to it.
             return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
         }
 
