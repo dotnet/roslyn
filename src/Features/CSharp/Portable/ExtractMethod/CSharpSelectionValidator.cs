@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
+        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
