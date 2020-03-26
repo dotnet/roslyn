@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_RenameDocument_NoRenameType()
-        => TestRenameDocument(
+        => TestEmptyActionSet(
             @"class C {}",
-            @"class C {}");
+            newDocumentName: "C.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType()
@@ -119,13 +119,7 @@ namespace Test
 
         [Fact]
         public Task CSharp_RenameDocument_NoRenameNamespace()
-        => TestRenameDocument(
-@"namespace Test.Path
-{
-    class C
-    {
-    }
-}",
+        => TestEmptyActionSet(
 @"namespace Test.Path
 {
     class C

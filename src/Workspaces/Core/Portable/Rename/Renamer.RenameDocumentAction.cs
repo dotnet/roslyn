@@ -17,23 +17,35 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Individual action from RenameDocument apis in <see cref="Renamer"/>.
         /// 
-        /// See <see cref="Renamer.RenameDocumentFoldersAsync(Document, System.Collections.Generic.IReadOnlyList{string}, Options.OptionSet, System.Threading.CancellationToken)" />
-        /// and <see cref="Renamer.RenameDocumentNameAsync(Document, string, Options.OptionSet, System.Threading.CancellationToken)" />
+        /// See <see cref="RenameDocumentActionSet" />
         /// </summary>
         public abstract class RenameDocumentAction
         {
-            public ImmutableArray<string> Errors { get; }
-            internal abstract Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken);
-            public abstract string GetDescription(CultureInfo? culture = null);
-
-            protected DocumentId DocumentId { get; }
+            private readonly ImmutableArray<ErrorResource> _errorStringKeys;
             protected OptionSet OptionSet { get; }
 
-            internal RenameDocumentAction(DocumentId documentId, OptionSet optionSet, ImmutableArray<string> errors)
+            public virtual ImmutableArray<string> GetErrors(CultureInfo? culture = null)
+                => _errorStringKeys.SelectAsArray(s => string.Format(WorkspacesResources.ResourceManager.GetString(s.FormatString, culture ?? WorkspacesResources.Culture)!, s.Arguments));
+
+            public abstract string GetDescription(CultureInfo? culture = null);
+            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken);
+
+            internal RenameDocumentAction(ImmutableArray<ErrorResource> errors, OptionSet optionSet)
             {
-                DocumentId = documentId;
                 OptionSet = optionSet;
-                Errors = errors;
+                _errorStringKeys = errors;
+            }
+
+            internal readonly struct ErrorResource
+            {
+                public string FormatString { get; }
+                public object?[] Arguments { get; }
+
+                public ErrorResource(string formatString, object?[] arguments)
+                {
+                    FormatString = formatString;
+                    Arguments = arguments;
+                }
             }
         }
 

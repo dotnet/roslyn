@@ -27,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly RenameSymbolDocumentActionAnalysis _analysis;
 
             private RenameSymbolDocumentAction(
-                Document document,
                 RenameSymbolDocumentActionAnalysis analysis,
                 OptionSet optionSet,
-                ImmutableArray<string> errors)
-                : base(document.Id, optionSet, errors)
+                ImmutableArray<ErrorResource> errors)
+                : base(errors, optionSet)
             {
                 _analysis = analysis;
             }
@@ -39,20 +38,10 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
             {
-                // Always make sure the document name is correctly updated
-                solution = solution.WithDocumentName(DocumentId, _analysis.NewDocumentName);
-
-                if (_analysis.Symbol == null)
-                {
-                    // If the analysis couldn't find the correct original symbol, 
-                    // shortcut anymore work and just return the solution
-                    return solution;
-                }
-
-                var document = solution.GetRequiredDocument(DocumentId);
-                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.Symbol.Name, cancellationToken).ConfigureAwait(false);
+                var solution = document.Project.Solution;
+                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName!, cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypeDeclaration is object)
                 {
@@ -74,12 +63,16 @@ namespace Microsoft.CodeAnalysis.Rename
                 return typeDeclarations.FirstOrDefault(d => syntaxFacts.GetDisplayName(d, DisplayNameOptions.None).Equals(name, StringComparison.OrdinalIgnoreCase));
             }
 
-            public static async Task<RenameSymbolDocumentAction> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+            public static async Task<RenameSymbolDocumentAction?> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var analysis = await RenameSymbolDocumentActionAnalysis.CreateAsync(document, newName, optionSet, cancellationToken).ConfigureAwait(false);
 
-                // TODO: Detect naming conflicts ahead of time
-                return new RenameSymbolDocumentAction(document, analysis, optionSet, ImmutableArray<string>.Empty);
+                if (analysis.ShouldApplyAction)
+                {
+                    return new RenameSymbolDocumentAction(analysis, optionSet, ImmutableArray<ErrorResource>.Empty);
+                }
+
+                return null;
             }
 
             private readonly struct RenameSymbolDocumentActionAnalysis
@@ -87,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 public string OriginalDocumentName { get; }
                 public string NewDocumentName { get; }
                 public string NewSymbolName { get; }
-                public ISymbol? Symbol { get; }
+                public string? OriginalSymbolName { get; }
+                public bool ShouldApplyAction => OriginalSymbolName != null && NewSymbolName != OriginalSymbolName;
                 private RenameSymbolDocumentActionAnalysis(
                     Document document,
                     string newName,
@@ -96,11 +90,12 @@ namespace Microsoft.CodeAnalysis.Rename
                     OriginalDocumentName = document.Name;
                     NewDocumentName = newName;
                     NewSymbolName = Path.GetFileNameWithoutExtension(newName);
-                    Symbol = symbol;
+                    OriginalSymbolName = symbol?.Name;
                 }
 
                 public static async Task<RenameSymbolDocumentActionAnalysis> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
                 {
+                    // TODO: Detect naming conflicts ahead of time
                     var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
                     var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
 

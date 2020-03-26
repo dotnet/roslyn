@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -28,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
         /// <summary>
         /// Similar to calling <see cref="Document.WithName(string)" /> with additional changes to the solution. 
-        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionInfo.ApplicableActions" />.
+        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionSet.ApplicableActions" />.
         /// 
         /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.Errors"/>.
         /// 
         /// Current supported actions that may be returned: 
         /// * <see cref="RenameSymbolDocumentAction"/> that will rename the type to match the document name
         /// </summary>
-        public static async Task<RenameDocumentActionInfo> RenameDocumentNameAsync(
+        public static async Task<RenameDocumentActionSet> RenameDocumentNameAsync(
             Document document,
             string newDocumentName,
             OptionSet optionSet,
@@ -56,22 +58,31 @@ namespace Microsoft.CodeAnalysis.Rename
             if (!newDocumentName.Equals(document.Name))
             {
                 var renameAction = await RenameSymbolDocumentAction.CreateAsync(document, newDocumentName, optionSet, cancellationToken).ConfigureAwait(false);
-                actions.Add(renameAction);
+
+                if (renameAction is object)
+                {
+                    actions.Add(renameAction);
+                }
             }
 
-            return new RenameDocumentActionInfo(actions.ToImmutableAndFree(), document.Project.Solution);
+            return new RenameDocumentActionSet(
+                actions.ToImmutableAndFree(),
+                document.Project.Id,
+                document.Id,
+                newDocumentName,
+                document.Folders);
         }
 
         /// <summary>
         /// Similar to calling <see cref="Document.WithFolders(IEnumerable{string})" /> with additional changes to the solution. 
-        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionInfo.ApplicableActions" />.
+        /// Each change is added as a <see cref="RenameDocumentAction"/> in the returned <see cref="RenameDocumentActionSet.ApplicableActions" />.
         /// 
         /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.Errors"/>.
         /// 
         /// Current supported actions that may be returned: 
         /// * <see cref="SyncNamespaceDocumentAction"/> that will sync the namespace(s) of the document to match the document folders
         /// </summary>
-        public static async Task<RenameDocumentActionInfo> RenameDocumentFoldersAsync(
+        public static async Task<RenameDocumentActionSet> RenameDocumentFoldersAsync(
             Document document,
             IReadOnlyList<string> newFolders,
             OptionSet optionSet,
@@ -95,7 +106,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 actions.Add(action);
             }
 
-            return new RenameDocumentActionInfo(actions.ToImmutableAndFree(), document.Project.Solution);
+            return new RenameDocumentActionSet(
+                actions.ToImmutableAndFree(),
+                document.Project.Id,
+                document.Id,
+                document.Name,
+                newFolders);
         }
 
         internal static Task<Solution> RenameSymbolAsync(

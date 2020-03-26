@@ -20,11 +20,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameType()
-        => TestRenameDocument(
+        => TestEmptyActionSet(
 @"Class C
 End Class",
-@"Class C
-End Class");
+        newDocumentName: "C.cs");
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameType()
@@ -115,11 +114,7 @@ End Namespace",
 
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameNamespace()
-        => TestRenameDocument(
-@"Namespace Test.Path
-    Class C
-    End Class
-End Namespace",
+        => TestEmptyActionSet(
 @"Namespace Test.Path
     Class C
     End Class
