@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             if (withConfigureAwait)
             {
                 withoutTrivia = syntaxGenerator.InvocationExpression(
-                    syntaxGenerator.MemberAccessExpression(withoutTrivia, "ConfigureAwait"),
+                    syntaxGenerator.MemberAccessExpression(withoutTrivia, nameof(Task.ConfigureAwait)),
                     syntaxGenerator.FalseLiteralExpression());
             }
 
