@@ -69,34 +69,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private static RegexKind GetKind(char ch)
-        {
-            switch (ch)
+            => ch switch
             {
-                case '|': return RegexKind.BarToken;
-                case '*': return RegexKind.AsteriskToken;
-                case '+': return RegexKind.PlusToken;
-                case '?': return RegexKind.QuestionToken;
-                case '{': return RegexKind.OpenBraceToken;
-                case '}': return RegexKind.CloseBraceToken;
-                case '\\': return RegexKind.BackslashToken;
-                case '[': return RegexKind.OpenBracketToken;
-                case ']': return RegexKind.CloseBracketToken;
-                case '.': return RegexKind.DotToken;
-                case '^': return RegexKind.CaretToken;
-                case '$': return RegexKind.DollarToken;
-                case '(': return RegexKind.OpenParenToken;
-                case ')': return RegexKind.CloseParenToken;
-                case ',': return RegexKind.CommaToken;
-                case ':': return RegexKind.ColonToken;
-                case '=': return RegexKind.EqualsToken;
-                case '!': return RegexKind.ExclamationToken;
-                case '<': return RegexKind.LessThanToken;
-                case '>': return RegexKind.GreaterThanToken;
-                case '-': return RegexKind.MinusToken;
-                case '\'': return RegexKind.SingleQuoteToken;
-                default: return RegexKind.TextToken;
-            }
-        }
+                '|' => RegexKind.BarToken,
+                '*' => RegexKind.AsteriskToken,
+                '+' => RegexKind.PlusToken,
+                '?' => RegexKind.QuestionToken,
+                '{' => RegexKind.OpenBraceToken,
+                '}' => RegexKind.CloseBraceToken,
+                '\\' => RegexKind.BackslashToken,
+                '[' => RegexKind.OpenBracketToken,
+                ']' => RegexKind.CloseBracketToken,
+                '.' => RegexKind.DotToken,
+                '^' => RegexKind.CaretToken,
+                '$' => RegexKind.DollarToken,
+                '(' => RegexKind.OpenParenToken,
+                ')' => RegexKind.CloseParenToken,
+                ',' => RegexKind.CommaToken,
+                ':' => RegexKind.ColonToken,
+                '=' => RegexKind.EqualsToken,
+                '!' => RegexKind.ExclamationToken,
+                '<' => RegexKind.LessThanToken,
+                '>' => RegexKind.GreaterThanToken,
+                '-' => RegexKind.MinusToken,
+                '\'' => RegexKind.SingleQuoteToken,
+                _ => RegexKind.TextToken,
+            };
 
         private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
         {
