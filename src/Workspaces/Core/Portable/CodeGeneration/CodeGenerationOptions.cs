@@ -190,16 +190,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         internal Location BestLocation
-        {
-            get
-            {
-                return this.AfterThisLocation != null
-                    ? this.AfterThisLocation
-                    : this.BeforeThisLocation != null
-                        ? this.BeforeThisLocation
-                        : this.ContextLocation;
-            }
-        }
+            => this.AfterThisLocation ?? this.BeforeThisLocation ?? this.ContextLocation;
 
         public CodeGenerationOptions With(
             Optional<Location> contextLocation = default,
