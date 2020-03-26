@@ -1622,9 +1622,10 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
-        Public Async Function TestImplicitObjectCreationExpression() As Task
+        Public Async Function TestImplicitObjectCreationExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 public class C
@@ -1636,7 +1637,7 @@ public class C
     {
         C c = new($$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview)
+}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
@@ -1645,9 +1646,10 @@ public class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
-        Public Async Function TestImplicitObjectCreationExpression_WithSpace() As Task
+        Public Async Function TestImplicitObjectCreationExpression_WithSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 public class C
@@ -1659,12 +1661,16 @@ public class C
     {
         C c = new$$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview)
+}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
                 state.SendTypeChars("(")
-                Await state.AssertNoCompletionSession()
+                If showCompletionInArgumentLists Then
+                    Await state.AssertSignatureHelpSession()
+                Else
+                    Await state.AssertNoCompletionSession()
+                End If
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 state.SendTypeChars(":")
