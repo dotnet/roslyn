@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// responsible for determining when to compute todo comments (for example, on <see
         /// cref="Workspace.WorkspaceChanged"/>).  This can be called on any thread.
         /// </summary>
+        [Obsolete("Only for legacy access", error: false)]
         Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken);
     }
 }
