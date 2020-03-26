@@ -1126,7 +1126,7 @@ end class")
 End Class",
 "Public Class Foo
 	Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions.UseTabs, True))
+End Class", options:=[Option](FormattingOptions2.UseTabs, True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -1144,7 +1144,7 @@ End Class", options:=[Option](FormattingOptions.UseTabs, True))
 End Class",
 "Public Class Foo
     Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions.UseTabs, False))
+End Class", options:=[Option](FormattingOptions2.UseTabs, False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -1221,6 +1221,22 @@ indent_style = space
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>")
+        End Function
+
+        <WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestNotOnSerializableType() As Task
+            Await TestMissingAsync(
+"
+<System.Serializable>
+class Class1
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+end class")
         End Function
     End Class
 End Namespace

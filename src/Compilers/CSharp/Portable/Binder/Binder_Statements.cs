@@ -3163,13 +3163,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
-            RefKind refKind = RefKind.None;
-            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
-            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
-            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+            return bindExpressionBodyAsBlockInternal(expressionBody, bodyBinder, diagnostics);
 
-            return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
+            // Use static local function to prevent accidentally calling instance methods on `this` instead of `bodyBinder`
+            static BoundBlock bindExpressionBodyAsBlockInternal(ArrowExpressionClauseSyntax expressionBody, Binder bodyBinder, DiagnosticBag diagnostics)
+            {
+                RefKind refKind;
+                ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
+                BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
+                BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+                expression = bodyBinder.ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+
+                return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
+            }
         }
 
         /// <summary>

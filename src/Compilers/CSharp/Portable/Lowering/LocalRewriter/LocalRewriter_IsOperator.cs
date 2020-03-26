@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenOperand.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)rewrittenOperand;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                BoundExpression? receiver = methodGroup.ReceiverOpt;
                 if (receiver != null && receiver.Kind != BoundKind.ThisReference)
                 {
                     // possible side-effect
@@ -47,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 
-            Debug.Assert((object)operandType != null || rewrittenOperand.ConstantValue.IsNull);
-            Debug.Assert((object)targetType != null);
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValue!.IsNull);
+            Debug.Assert(targetType is { });
 
             // TODO: Handle dynamic operand type and target type
 

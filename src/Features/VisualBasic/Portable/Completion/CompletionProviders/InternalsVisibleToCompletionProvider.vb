@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -42,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' https://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.internalsvisibletoattribute(v=vs.110).aspx
             ' We can assume that this is the assemblyName argument.
             Return If(arguments.Count > 0, arguments(0).GetExpression(), Nothing)
+        End Function
+
+        Protected Overrides Function ShouldTriggerAfterQuotes(text As SourceText, insertedCharacterPosition As Integer) As Boolean
+            Return CompletionUtilities.IsWordStartCharacter(text(insertedCharacterPosition))
         End Function
     End Class
 End Namespace

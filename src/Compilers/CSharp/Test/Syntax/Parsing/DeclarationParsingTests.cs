@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotEqual(default, ad.OpenBracketToken);
-            Assert.NotEqual(default, ad.Target);
+            Assert.NotNull(ad.Target);
             Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal(@"as\u0073embly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
@@ -3023,14 +3023,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Type);
+            Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ms.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[1].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[1].Type);
+            Assert.NotNull(ms.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ms.ParameterList.Parameters[1].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ms.ParameterList.Parameters[1].Identifier.ToString());
@@ -3038,7 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
-            Assert.NotEqual(default, ms.Body);
+            Assert.NotNull(ms.Body);
             Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
             Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
@@ -3049,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class a { b X(" + SyntaxFacts.GetText(mod) + " c d) { } }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3850,7 +3850,7 @@ class Class1<T>{
             var text = "class a { b c = { }; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3874,15 +3874,15 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
-            Assert.NotEqual(default, fs.Declaration.Type);
+            Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer);
+            Assert.NotNull(fs.Declaration.Variables[0].Initializer);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.Value);
+            Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{ }", fs.Declaration.Variables[0].Initializer.Value.ToString());
             Assert.NotEqual(default, fs.SemicolonToken);
@@ -3895,7 +3895,7 @@ class Class1<T>{
             var text = "class a { b c, d, e; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -7181,6 +7181,376 @@ class C<T> where T : struct? {}
                         {
                             N(SyntaxKind.StructKeyword);
                             N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList1()
+        {
+            var tree = UsingNode(@"
+class B : A<int
+{
+}
+", TestOptions.Regular7_3,
+                // (2,16): error CS1003: Syntax error, '>' expected
+                // class B : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "{").WithLocation(2, 16));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot1()
+        {
+            var text = @"namespace a..b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList2()
+        {
+            var tree = UsingNode(@"
+class B<X, Y> : A<int
+    where X : Y
+{
+}
+", TestOptions.Regular7_3,
+                // (2,22): error CS1003: Syntax error, '>' expected
+                // class B<X, Y> : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(2, 22));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void TestExtraneousColonInBaseList()
+        {
+            var tree = UsingNode(@"
+class A : B : C
+{
+}
+", TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
+                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 1),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot2()
+        {
+            var text = @"namespace a
+                    ..b { }";
+
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot3()
+        {
+            var text = @"namespace a..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot4()
+        {
+            var text = @"namespace a
+                    ..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                     }
                     N(SyntaxKind.OpenBraceToken);

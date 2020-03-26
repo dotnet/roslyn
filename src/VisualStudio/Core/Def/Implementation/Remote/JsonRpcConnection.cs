@@ -24,19 +24,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly RemoteEndPoint _serviceEndPoint;
 
         // communication channel related to snapshot information
-        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remoteDataRpc;
+        private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataProvider;
 
         public JsonRpcConnection(
             Workspace workspace,
             TraceSource logger,
             object? callbackTarget,
             Stream serviceStream,
-            ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
+            ReferenceCountedDisposable<RemotableDataProvider> remotableDataProvider)
         {
-            Contract.ThrowIfNull(dataRpc);
+            Contract.ThrowIfNull(remotableDataProvider);
 
             _workspace = workspace;
-            _remoteDataRpc = dataRpc;
+            _remotableDataProvider = remotableDataProvider;
             _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
             _serviceEndPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
             _serviceEndPoint.StartListening();
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // dispose service and snapshot channels
             _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
             _serviceEndPoint.Dispose();
-            _remoteDataRpc.Dispose();
+            _remotableDataProvider.Dispose();
 
             base.DisposeImpl();
         }

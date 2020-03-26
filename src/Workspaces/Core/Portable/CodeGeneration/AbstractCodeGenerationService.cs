@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamespaceOrTypeSymbol destination,
             Func<SyntaxNode, CodeGenerationOptions, IList<bool>, CancellationToken, SyntaxNode> declarationTransform,
             CodeGenerationOptions options,
-            IEnumerable<ISymbol> members,
             CancellationToken cancellationToken)
         {
             options ??= CodeGenerationOptions.Default;
@@ -238,13 +237,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             return options.AutoInsertionLocation
                 ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
-                : AddMembersToEndOfDestination(destination, filteredMembers, availableIndices, options, cancellationToken);
+                : AddMembersToEndOfDestination(destination, filteredMembers, options, cancellationToken);
         }
 
         private TDeclarationSyntax AddMembersToEndOfDestination<TDeclarationSyntax>(
             TDeclarationSyntax destination,
             IEnumerable<ISymbol> members,
-            IList<bool> availableIndices,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
             where TDeclarationSyntax : SyntaxNode
@@ -357,7 +355,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 destination,
                 (t, opts, ai, ct) => AddEvent(t, @event, opts, ai),
                 options,
-                new[] { @event },
                 cancellationToken);
         }
 
@@ -368,7 +365,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 destination,
                 (t, opts, ai, ct) => AddField(t, field, opts, ai),
                 options,
-                new[] { field },
                 cancellationToken);
         }
 
@@ -377,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddProperty(t, property, opts, ai),
-                options, new[] { property },
+                options,
                 cancellationToken);
         }
 
@@ -386,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
-                options, new[] { namedType },
+                options,
                 cancellationToken);
         }
 
@@ -395,7 +391,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamedType(t, namedType, opts, ai, ct),
-                options, new[] { namedType }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddNamespaceAsync(Solution solution, INamespaceSymbol destination, INamespaceSymbol @namespace, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -403,7 +400,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddNamespace(t, @namespace, opts, ai, ct),
-                options, new[] { @namespace }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddMethodAsync(Solution solution, INamedTypeSymbol destination, IMethodSymbol method, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -411,7 +409,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMethod(t, method, opts, ai),
-                options, new[] { method }, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddMembersAsync(Solution solution, INamedTypeSymbol destination, IEnumerable<ISymbol> members, CodeGenerationOptions options, CancellationToken cancellationToken)
@@ -419,7 +418,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetEditAsync(
                 solution, destination,
                 (t, opts, ai, ct) => AddMembers(t, members, ai, opts, ct),
-                options, members, cancellationToken);
+                options,
+                cancellationToken);
         }
 
         public Task<Document> AddNamespaceOrTypeAsync(Solution solution, INamespaceSymbol destination, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken)
