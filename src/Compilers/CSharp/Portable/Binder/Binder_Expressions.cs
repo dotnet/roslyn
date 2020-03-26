@@ -5308,7 +5308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (analyzedArguments.Arguments.Count > 0)
             {
-                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, node.Location, interfaceType, analyzedArguments.Arguments.Count);
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, typeNode.Location, interfaceType, analyzedArguments.Arguments.Count);
 
                 var children = BuildArgumentsForErrorRecovery(analyzedArguments).Add(creation);
                 return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, creation.Type);
