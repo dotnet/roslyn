@@ -297,19 +297,15 @@ namespace Microsoft.CodeAnalysis
 
             string? diagnosticId = null;
             string? urlFormat = null;
-            foreach (var pair in this.CommonNamedArguments)
+            foreach (var (name, value) in this.CommonNamedArguments)
             {
-                switch (pair.Key)
+                if (diagnosticId is null && name == "DiagnosticId" && IsStringProperty("DiagnosticId"))
                 {
-                    case "DiagnosticId" when IsStringProperty("DiagnosticId"):
-                        diagnosticId = pair.Value.ValueInternal as string;
-                        break;
-                    case "UrlFormat" when IsStringProperty("UrlFormat"):
-                        urlFormat = pair.Value.ValueInternal as string;
-                        break;
-                    default:
-                        // unknown property or field specified on ObsoleteAttribute
-                        break;
+                    diagnosticId = value.ValueInternal as string;
+                }
+                else if (urlFormat is null && name == "UrlFormat" && IsStringProperty("UrlFormat"))
+                {
+                    urlFormat = value.ValueInternal as string;
                 }
 
                 if (diagnosticId is object && urlFormat is object)
@@ -323,8 +319,8 @@ namespace Microsoft.CodeAnalysis
 
         // Note: it is disallowed to declare a property and a field
         // with the same name in C# or VB source, even if it is allowed in IL.
-        // We use an abstract method to prevent having to realize the public symbols just to decode obsolete attributes.
-        private protected abstract bool IsStringProperty(string memberName);
+        // We use a virtual method and override to prevent having to realize the public symbols just to decode obsolete attributes.
+        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.

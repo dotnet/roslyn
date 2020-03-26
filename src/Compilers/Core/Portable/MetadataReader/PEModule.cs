@@ -1350,15 +1350,8 @@ namespace Microsoft.CodeAnalysis
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
 
-            try
-            {
-                (string? diagnosticId, string? urlFormat) = sig.RemainingBytes > 0 ? CrackObsoleteProperties(ref sig, decoder) : default;
-                return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
-            }
-            catch (Exception e) when (e is BadImageFormatException || e is UnsupportedSignatureContent)
-            {
-                return null;
-            }
+            (string? diagnosticId, string? urlFormat) = sig.RemainingBytes > 0 ? CrackObsoleteProperties(ref sig, decoder) : default;
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
         }
 
         private bool TryGetAttributeReader(CustomAttributeHandle handle, out BlobReader blobReader)
@@ -1686,18 +1679,23 @@ namespace Microsoft.CodeAnalysis
 
             // Next is a description of the optional “named” fields and properties.
             // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
-            var numNamed = sig.ReadUInt16();
-            for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
+            try
             {
-                var ((name, value), isProperty) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
-                if (value.Type?.SpecialType == SpecialType.System_String && isProperty)
+                var numNamed = sig.ReadUInt16();
+                for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
-                    if (diagnosticId is null && name == "DiagnosticId")
-                        diagnosticId = (string?)value.ValueInternal;
-                    else if (urlFormat is null && name == "UrlFormat")
-                        urlFormat = (string?)value.ValueInternal;
+                    var ((name, value), isProperty) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    if (value.TypeInternal?.SpecialType == SpecialType.System_String && isProperty)
+                    {
+                        if (diagnosticId is null && name == "DiagnosticId")
+                            diagnosticId = (string?)value.ValueInternal;
+                        else if (urlFormat is null && name == "UrlFormat")
+                            urlFormat = (string?)value.ValueInternal;
+                    }
                 }
             }
+            catch (BadImageFormatException) { }
+            catch (UnsupportedSignatureContent) { }
 
             return (diagnosticId, urlFormat);
         }
