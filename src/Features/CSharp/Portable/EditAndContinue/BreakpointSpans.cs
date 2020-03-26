@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CreateSpan(node);
 
                 case SyntaxKind.CatchClause:
-                    return CreateSpanForCatchClause((CatchClauseSyntax)node, position);
+                    return CreateSpanForCatchClause((CatchClauseSyntax)node);
 
                 case SyntaxKind.FinallyClause:
                     return TryCreateSpanForNode(((FinallyClauseSyntax)node).Block, position);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     if (node is ExpressionSyntax expression)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : (TextSpan?)null;
                     }
 
                     if (node is StatementSyntax statement)
@@ -663,22 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return 0;
         }
 
-        private static SyntaxTokenList GetModifiers(VariableDeclarationSyntax declaration)
-        {
-            if (declaration.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
-            {
-                return fieldDeclaration.Modifiers;
-            }
-
-            if (declaration.Parent is LocalDeclarationStatementSyntax localDeclaration)
-            {
-                return localDeclaration.Modifiers;
-            }
-
-            return default;
-        }
-
-        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)
+        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause)
         {
             if (catchClause.Filter != null)
             {

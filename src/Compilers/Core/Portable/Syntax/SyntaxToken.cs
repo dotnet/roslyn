@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis
 
         internal GreenNode? Node { get; }
 
+        internal GreenNode RequiredNode
+        {
+            get
+            {
+                Debug.Assert(Node is object);
+                return Node;
+            }
+        }
+
         internal int Index { get; }
 
         internal int Position { get; }
@@ -459,15 +468,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
         /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
@@ -487,15 +496,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
             var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 

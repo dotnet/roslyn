@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -13,6 +14,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(OverrideCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(CompletionListTagCompletionProvider))>
+    <[Shared]>
     Friend Class OverrideCompletionProvider
         Inherits AbstractOverrideCompletionProvider
 
@@ -20,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _isSub As Boolean
         Private _isProperty As Boolean
 
+        <ImportingConstructor>
         Public Sub New()
         End Sub
 
@@ -53,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
 
         Public Overrides Function TryDetermineModifiers(startToken As SyntaxToken,
                                                         text As SourceText, startLine As Integer,

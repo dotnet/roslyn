@@ -5,15 +5,10 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -22,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private struct CodeShapeAnalyzer
         {
             private readonly FormattingContext _context;
-            private readonly OptionSet _optionSet;
+            private readonly AnalyzerConfigOptions _options;
             private readonly TriviaList _triviaList;
 
             private int _indentation;
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private CodeShapeAnalyzer(FormattingContext context, bool firstTriviaInTree, TriviaList triviaList)
             {
                 _context = context;
-                _optionSet = context.OptionSet;
+                _options = context.Options;
                 _triviaList = triviaList;
 
                 _indentation = 0;
@@ -139,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                _indentation += text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), _indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), _indentation, text.Length);
 
                 return false;
             }
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia))
                 {
                     return true;
                 }
@@ -211,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return false;
                 }
 
-                return Contract.FailWithReturn<bool>("This can't happen");
+                throw ExceptionUtilities.Unreachable;
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)

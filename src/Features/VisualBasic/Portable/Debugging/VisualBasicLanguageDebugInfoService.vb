@@ -4,8 +4,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Host.Mef
 

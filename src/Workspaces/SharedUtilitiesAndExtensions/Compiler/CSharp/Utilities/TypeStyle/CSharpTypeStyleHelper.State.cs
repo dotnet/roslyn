@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration)
-                     && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
+                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax varDecl)
+                     && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
                         IsPredefinedTypeInDeclaration(declaration, semanticModel)

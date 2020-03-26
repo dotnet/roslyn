@@ -2,21 +2,22 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
-    Friend Class MockCompletionProvider
+    Friend MustInherit Class MockCompletionProvider
         Inherits CommonCompletionProvider
 
         Private ReadOnly _getItems As Func(Of Document, Integer, CancellationToken, IEnumerable(Of CompletionItem))
         Private ReadOnly _isTriggerCharacter As Func(Of SourceText, Integer, Boolean)
 
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(Optional getItems As Func(Of Document, Integer, CancellationToken, IEnumerable(Of CompletionItem)) = Nothing,
                        Optional isTriggerCharacter As Func(Of SourceText, Integer, Boolean) = Nothing)
             Me._getItems = getItems

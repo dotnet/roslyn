@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                SimplificationOptions.NamingPreferences);
+                NamingStyleOptions.NamingPreferences);
     }
 }

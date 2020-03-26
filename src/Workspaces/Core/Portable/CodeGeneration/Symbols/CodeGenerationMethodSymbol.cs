@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 CodeGenerationMethodInfo.GetIsNew(this),
                 CodeGenerationMethodInfo.GetIsUnsafe(this),
                 CodeGenerationMethodInfo.GetIsPartial(this),
-                CodeGenerationMethodInfo.GetIsAsync(this),
+                CodeGenerationMethodInfo.GetIsAsyncMethod(this),
                 CodeGenerationMethodInfo.GetStatements(this),
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 

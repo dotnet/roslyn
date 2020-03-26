@@ -184,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : s1.Kind == SymbolKind.Event ? -1 : 1;
             }
 
-            return Contract.FailWithReturn<int>(
-                string.Format("Comparing unexpected symbol kinds: {0} and {1}.", s1.Kind, s2.Kind));
+            throw ExceptionUtilities.UnexpectedValue((s1.Kind, s2.Kind));
         }
     }
 }

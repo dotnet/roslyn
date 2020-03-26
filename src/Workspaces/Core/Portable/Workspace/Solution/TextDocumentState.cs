@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -169,6 +167,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+            => TextAndVersionSource.TryGetValue(out textAndVersion);
+
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
@@ -211,11 +212,6 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
-            if (newTextAndVersion == null)
-            {
-                throw new ArgumentNullException(nameof(newTextAndVersion));
-            }
-
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
@@ -225,25 +221,14 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
-            if (newText == null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
+            var newVersion = GetNewerVersion();
+            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
 
-            var newVersion = this.GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
-
-            var newState = this.UpdateText(newTextAndVersion, mode);
-            return newState;
+            return UpdateText(newTextAndVersion, mode);
         }
 
         public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
-            if (loader == null)
-            {
-                throw new ArgumentNullException(nameof(loader));
-            }
-
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(loader, Id, solutionServices)

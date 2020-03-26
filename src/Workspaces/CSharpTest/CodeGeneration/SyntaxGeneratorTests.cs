@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -991,10 +991,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
+                "x p\r\n{\r\n    get;\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: Array.Empty<SyntaxNode>()),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
+                "x p\r\n{\r\n    set;\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
                 "x p\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
@@ -1011,6 +1019,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
+                "x p\r\n{\r\n    get;\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: Array.Empty<SyntaxNode>(), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
         }
 
@@ -2207,7 +2219,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.DestructorDeclaration("c"), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.MethodDeclaration("m"), allModifiers)));
 
             Assert.Equal(
@@ -2219,11 +2231,11 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("i") }, Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
@@ -2367,9 +2379,7 @@ public class C
             var getAccessor = Generator.GetAccessor(prop, DeclarationKind.GetAccessor);
             Assert.NotNull(getAccessor);
             VerifySyntax<AccessorDeclarationSyntax>(getAccessor,
-@"get
-{
-}");
+@"get;");
 
             Assert.NotNull(getAccessor);
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(getAccessor));
@@ -3403,6 +3413,92 @@ public class C : IDisposable
 
             var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
+        #endregion
+
+        #region DeclarationModifiers
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestClassModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+[|static class C
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestMethodModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+                @"
+class C
+{
+    [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestPropertyModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+                @"
+class C
+{
+    [|public virtual int X => 0;|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFieldModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+class C
+{
+    public static int [|X|];
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestEvent1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual,
+                @"
+class C
+{
+    public virtual event System.Action [|X|];
+}");
+        }
+
+        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        {
+            MarkupTestFile.GetSpan(markup, out var code, out var span);
+
+            var compilation = Compile(code);
+            var tree = compilation.SyntaxTrees.Single();
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
+
+            var declaration = semanticModel.GetDeclaredSymbol(node);
+            Assert.NotNull(declaration);
+
+            Assert.Equal(modifiers, DeclarationModifiers.From(declaration));
         }
 
         #endregion

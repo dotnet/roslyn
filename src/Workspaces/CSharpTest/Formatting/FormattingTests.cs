@@ -4435,7 +4435,7 @@ class C
 
             var expected = @"class Program
 {
-    void AddClass(string name, [OptionalAttribute]    object position, [OptionalAttribute]    object bases)
+    void AddClass(string name, [OptionalAttribute] object position, [OptionalAttribute] object bases)
     {
     }
 }";
@@ -4599,7 +4599,7 @@ class innerClass
                 SyntaxFactory.List<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
                 SyntaxFactory.ParseTypeName("int"),
-                default,
+                null,
                 SyntaxFactory.Identifier("Prop"),
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List(
@@ -7311,6 +7311,39 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
+        [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpaceBeforeCommasInLocalFunctionParameters()
+        {
+            var code = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i, string s)
+        {
+        }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i , string s)
+        {
+        }
+    }
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBeforeComma, true },
+            };
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ArrayDeclarationShouldFollowEmptySquareBrackets()
         {
@@ -9521,6 +9554,46 @@ class C
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
     };
 }".Replace("&nbsp;", "\u00A0"));
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute()
+        {
+            var code = @"class C
+{
+    void M([My]string?[]?[] x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My] string?[]?[] x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple()
+        {
+            var code = @"class C
+{
+    void M([My][My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
         }
     }
 }

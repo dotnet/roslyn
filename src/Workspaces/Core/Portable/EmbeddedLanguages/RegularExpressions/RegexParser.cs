@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
         {
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
                 var last = builder.Count == 0 ? null : builder.Last();
@@ -271,7 +271,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, sequence);
-            builder.Free();
 
             return new RegexSequenceNode(sequence.ToImmutableAndFree());
         }
@@ -479,8 +478,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             out RegexToken? secondNumberToken, out RegexToken closeBraceToken)
         {
             firstNumberToken = default;
-            commaToken = default;
-            secondNumberToken = default;
+            commaToken = null;
+            secondNumberToken = null;
             closeBraceToken = default;
 
             var firstNumber = _lexer.TryScanNumber();
@@ -766,7 +765,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var captureToken = _lexer.TryScanNumberOrCaptureName();
             if (captureToken == null)
             {
-                return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                return ParseConditionalExpressionGrouping(openParenToken, questionToken);
             }
 
             var capture = captureToken.Value;
@@ -809,7 +808,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (!HasCapture((string)capture.Value))
                 {
                     _lexer.Position = afterInnerOpenParen;
-                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken);
                 }
 
                 // Capture name existed.  For this to be a capture grouping it exactly has to
@@ -819,7 +818,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (_currentToken.Kind != RegexKind.CloseParenToken)
                 {
                     _lexer.Position = afterInnerOpenParen;
-                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken);
                 }
 
                 innerCloseParenToken = _currentToken;
@@ -853,7 +852,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexConditionalGroupingNode ParseConditionalExpressionGrouping(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken innerOpenParenToken)
+            RegexToken openParenToken, RegexToken questionToken)
         {
             // Reproduce very specific errors the .NET regex parser looks for.  Technically,
             // we would error out in these cases no matter what.  However, it means we can
@@ -926,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
         {
             if (result is RegexAlternationNode topAlternation &&
-                topAlternation.Left is RegexAlternationNode innerAlternation)
+                topAlternation.Left is RegexAlternationNode)
             {
                 return new RegexAlternationNode(
                     topAlternation.Left,
@@ -1238,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1258,7 +1257,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // try to merge that into one single text node.
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, contents);
-            builder.Free();
 
             if (closeBracketToken.IsMissing)
             {
@@ -1488,7 +1486,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
             {
                 var backslashToken = _currentToken;
-                var afterSlash = _lexer.Position;
 
                 // trivia is not allowed anywhere in a character class, and definitely not between
                 // a \ and the following character.
@@ -2006,7 +2003,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             openBraceToken = default;
             categoryToken = default;
             closeBraceToken = default;
-            message = default;
+            message = null;
 
             if (_lexer.Text.Length - _lexer.Position < "{x}".Length)
             {

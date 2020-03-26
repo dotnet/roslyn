@@ -7,16 +7,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -24,17 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
             AddAlignmentBlockOperation(list, node);
 
-            AddBlockIndentationOperation(list, node, optionSet);
+            AddBlockIndentationOperation(list, node, options);
 
-            AddLabelIndentationOperation(list, node, optionSet);
+            AddLabelIndentationOperation(list, node, options);
 
-            AddSwitchIndentationOperation(list, node, optionSet);
+            AddSwitchIndentationOperation(list, node, options);
 
             AddEmbeddedStatementsIndentationOperation(list, node);
 
@@ -51,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
         {
             if (!(node is SwitchSectionSyntax section))
             {
@@ -65,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var indentSwitchCase = optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
-            var indentSwitchCaseWhenBlock = optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock);
+            var indentSwitchCase = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection);
+            var indentSwitchCaseWhenBlock = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock);
             if (!indentSwitchCase && !indentSwitchCaseWhenBlock)
             {
                 // Never indent
@@ -115,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, startToken, endToken, span);
         }
 
-        private void AddLabelIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        private void AddLabelIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
         {
             // label statement
             if (node is LabeledStatementSyntax labeledStatement)
             {
-                var labelPositioningOption = optionSet.GetOption(CSharpFormattingOptions.LabelPositioning);
+                var labelPositioningOption = options.GetOption(CSharpFormattingOptions2.LabelPositioning);
 
                 if (labelPositioningOption == LabelPositionOptions.OneLess)
                 {
@@ -180,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
 
-        private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        private void AddBlockIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var bracePair = node.GetBracePair();
 
@@ -202,13 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
-            if (node is BlockSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentBlock))
+            if (node is BlockSyntax && !options.GetOption(CSharpFormattingOptions2.IndentBlock))
             {
                 // do not add indent operation for block
                 return;
             }
 
-            if (node is SwitchStatementSyntax && !optionSet.GetOption(CSharpFormattingOptions.IndentSwitchSection))
+            if (node is SwitchStatementSyntax && !options.GetOption(CSharpFormattingOptions2.IndentSwitchSection))
             {
                 // do not add indent operation for switch statement
                 return;

@@ -25,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationTypeMap = classificationTypeMap;
         }
 
-        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
+        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters)
         {
-            var viewModel = new ChangeSignatureDialogViewModel(notificationService, parameters, symbol, _classificationFormatMap, _classificationTypeMap);
+            var viewModel = new ChangeSignatureDialogViewModel(parameters, symbol, _classificationFormatMap, _classificationTypeMap);
 
             var dialog = new ChangeSignatureDialog(viewModel);
             var result = dialog.ShowModal();

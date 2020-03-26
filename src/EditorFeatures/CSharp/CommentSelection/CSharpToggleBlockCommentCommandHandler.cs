@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal CSharpToggleBlockCommentCommandHandler(
+        public CSharpToggleBlockCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextStructureNavigatorSelectorService navigatorSelectorService)

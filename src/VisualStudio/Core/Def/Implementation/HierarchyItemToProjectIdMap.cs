@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (!nestedHierarchy.TryGetCanonicalName(nestedHierarchyId, out var nestedCanonicalName)
                 || !nestedHierarchy.TryGetItemName(nestedHierarchyId, out var nestedName))
             {
-                projectId = default;
+                projectId = null;
                 return false;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            projectId = default;
+            projectId = null;
             return false;
         }
     }

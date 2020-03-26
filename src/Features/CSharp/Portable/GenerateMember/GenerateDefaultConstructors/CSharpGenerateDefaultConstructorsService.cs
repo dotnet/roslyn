@@ -6,7 +6,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -43,9 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             var node = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor<TypeSyntax>();
             if (node != null)
             {
-                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList))
+                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList))
                 {
-                    var baseList = (BaseListSyntax)node.Parent.Parent;
                     if (baseList.Types.Count > 0 &&
                         baseList.Types[0].Type == node &&
                         baseList.IsParentKind(SyntaxKind.ClassDeclaration))

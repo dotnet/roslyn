@@ -108,9 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             // Don't dismiss if the user types ( to start a parenthesized expression or tuple
             // Note that the tuple initially parses as a parenthesized expression 
-            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr))
             {
-                var parenthesizedExpr = ((ParenthesizedExpressionSyntax)token.Parent).WalkUpParentheses();
+                var parenthesizedExpr = parenExpr.WalkUpParentheses();
                 if (parenthesizedExpr.Parent is ArgumentSyntax)
                 {
                     var parent = parenthesizedExpr.Parent;

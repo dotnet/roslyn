@@ -6,10 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             while (nodes.Count > 0)
             {
-                var currentNode = nodes.First.Value;
+                var currentNode = nodes.First!.Value;
                 nodes.RemoveFirst();
 
                 if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// Returns true if this node is found underneath the specified child in the given parent.
         /// </summary>
-        public static bool IsFoundUnder<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsFoundUnder<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
            where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();
@@ -189,26 +192,100 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.FullSpan.Length;
         }
 
-        public static SyntaxNode? FindInnermostCommonNode(
-            this IEnumerable<SyntaxNode> nodes,
-            Func<SyntaxNode, bool> predicate)
+        public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, bool> predicate)
+            => nodes.FindInnermostCommonNode()?.FirstAncestorOrSelf(predicate);
+
+        public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes)
         {
-            IEnumerable<SyntaxNode>? blocks = null;
+            // Two collections we use to make this operation as efficient as possible. One is a
+            // stack of the current shared ancestor chain shared by all nodes so far.  It starts
+            // with the full ancestor chain of the first node, and can only get smaller over time.
+            // It should be log(n) with the size of the tree as it's only storing a parent chain.
+            //
+            // The second is a set with the exact same contents as the array.  It's used for O(1)
+            // lookups if a node is in the ancestor chain or not.
+
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var commonAncestorsStack);
+            using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var commonAncestorsSet);
+
+            var first = true;
             foreach (var node in nodes)
             {
-                blocks = blocks == null
-                    ? node.AncestorsAndSelf().Where(predicate)
-                    : blocks.Intersect(node.AncestorsAndSelf().Where(predicate));
+                // If we're just starting, initialize the ancestors set/array with the ancestors of
+                // this node.
+                if (first)
+                {
+                    first = false;
+                    foreach (var ancestor in node.ValueAncestorsAndSelf())
+                    {
+                        commonAncestorsSet.Add(ancestor);
+                        commonAncestorsStack.Add(ancestor);
+                    }
+
+                    // Reverse the ancestors stack so that we go downwards with CompilationUnit at
+                    // the start, and then go down to this starting node.  This enables cheap
+                    // popping later on.
+                    commonAncestorsStack.ReverseContents();
+                    continue;
+                }
+
+                // On a subsequent node, walk its ancestors to find the first match
+                var commonAncestor = FindCommonAncestor(node, commonAncestorsSet);
+                if (commonAncestor == null)
+                {
+                    // So this shouldn't happen as long as the nodes are from the same tree.  And
+                    // the caller really shouldn't be calling from different trees.  However, the
+                    // previous impl supported that, so continue to have this behavior.
+                    //
+                    // If this doesn't fire, that means that all callers seem sane.  If it does
+                    // fire, we can relax this (but we should consider fixing the caller).
+                    Debug.Fail("Could not find common ancestor.");
+                    return null;
+                }
+
+                // Now remove everything in the ancestors array up to that common ancestor. This is
+                // generally quite efficient.  Either we settle on a common node quickly. and don't
+                // need to do work here, or we keep tossing data from our common-ancestor scratch
+                // pad, making further work faster.
+                while (commonAncestorsStack.Count > 0 &&
+                       commonAncestorsStack.Peek() != commonAncestor)
+                {
+                    commonAncestorsSet.Remove(commonAncestorsStack.Peek());
+                    commonAncestorsStack.Pop();
+                }
+
+                if (commonAncestorsStack.Count == 0)
+                {
+                    // So this shouldn't happen as long as the nodes are from the same tree.  And
+                    // the caller really shouldn't be calling from different trees.  However, the
+                    // previous impl supported that, so continue to have this behavior.
+                    //
+                    // If this doesn't fire, that means that all callers seem sane.  If it does
+                    // fire, we can relax this (but we should consider fixing the caller).
+                    Debug.Fail("Could not find common ancestor.");
+                    return null;
+                }
             }
 
-            return blocks?.First();
+            // The common ancestor is the one at the end of the ancestor stack.  This could be empty
+            // in the case where the caller passed in an empty enumerable of nodes.
+            return commonAncestorsStack.Count == 0 ? null : commonAncestorsStack.Peek();
+
+            // local functions
+            static SyntaxNode? FindCommonAncestor(SyntaxNode node, HashSet<SyntaxNode> commonAncestorsSet)
+            {
+                foreach (var ancestor in node.ValueAncestorsAndSelf())
+                {
+                    if (commonAncestorsSet.Contains(ancestor))
+                        return ancestor;
+                }
+
+                return null;
+            }
         }
 
-        public static TSyntaxNode? FindInnermostCommonNode<TSyntaxNode>(this IEnumerable<SyntaxNode> nodes)
-            where TSyntaxNode : SyntaxNode
-        {
-            return (TSyntaxNode?)nodes.FindInnermostCommonNode(n => n is TSyntaxNode);
-        }
+        public static TSyntaxNode? FindInnermostCommonNode<TSyntaxNode>(this IEnumerable<SyntaxNode> nodes) where TSyntaxNode : SyntaxNode
+            => (TSyntaxNode?)nodes.FindInnermostCommonNode(t => t is TSyntaxNode);
 
         /// <summary>
         /// create a new root node from the given root after adding annotations to the tokens
@@ -791,7 +868,49 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default;
+            return null;
+        }
+
+        /// <summary>
+        /// Gets a list of ancestor nodes (including this node) 
+        /// </summary>
+        public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
+            => new ValueAncestorsAndSelfEnumerable(syntaxNode, ascendOutOfTrivia);
+
+        public struct ValueAncestorsAndSelfEnumerable
+        {
+            private readonly SyntaxNode _syntaxNode;
+            private readonly bool _ascendOutOfTrivia;
+
+            public ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
+            {
+                _syntaxNode = syntaxNode;
+                _ascendOutOfTrivia = ascendOutOfTrivia;
+            }
+
+            public Enumerator GetEnumerator()
+                => new Enumerator(_syntaxNode, _ascendOutOfTrivia);
+
+            public struct Enumerator
+            {
+                private readonly SyntaxNode _start;
+                private readonly bool _ascendOutOfTrivia;
+
+                public Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
+                {
+                    _start = syntaxNode;
+                    _ascendOutOfTrivia = ascendOutOfTrivia;
+                    Current = null!;
+                }
+
+                public SyntaxNode Current { get; private set; }
+
+                public bool MoveNext()
+                {
+                    Current = Current == null ? _start : GetParent(Current, _ascendOutOfTrivia)!;
+                    return Current != null;
+                }
+            }
         }
     }
 }

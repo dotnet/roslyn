@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             root = AddImportHelpers.MoveTrivia(
-                VisualBasicSyntaxFactsService.Instance, root, root.Imports, [imports])
+                VisualBasicSyntaxFacts.Instance, root, root.Imports, [imports])
 
             Return root.WithImports(
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())

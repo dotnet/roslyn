@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             }
 
             private bool AlreadyHasLatestCompilationSet(
-                Dictionary<ProjectId, CompilationSet> versionMap, ProjectId projectId, VersionStamp version, out CompilationSet compilationSet)
+                Dictionary<ProjectId, CompilationSet> versionMap, ProjectId projectId, VersionStamp version, [NotNullWhen(true)] out CompilationSet? compilationSet)
             {
                 using (_gate.DisposableRead())
                 {
@@ -278,12 +278,12 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 return branchMap;
             }
 
-            private void OnDocumentClosed(object sender, DocumentEventArgs e)
+            private void OnDocumentClosed(object? sender, DocumentEventArgs e)
             {
                 ClearVersionMap(e.Document.Project.Solution.Workspace, e.Document.Id);
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             {
                 switch (e.Kind)
                 {
@@ -316,8 +316,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         break;
                     default:
-                        Contract.Fail("Unknown event");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
                 }
             }
 

@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -174,7 +172,18 @@ namespace Microsoft.CodeAnalysis.SQLite
                     return;
                 }
 
-                _connectionsPool.Push(connection);
+                try
+                {
+                    _connectionsPool.Push(connection);
+                }
+                catch
+                {
+                    // An exception (likely OutOfMemoryException) occurred while returning the connection to the pool.
+                    // The connection will be discarded, so make sure to close it so the finalizer doesn't crash the
+                    // process later.
+                    connection.Close_OnlyForUseBySqlPersistentStorage();
+                    throw;
+                }
             }
         }
 

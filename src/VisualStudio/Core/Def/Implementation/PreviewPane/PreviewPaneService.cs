@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
         {
-            if (optionName == nameof(SimplificationOptions.NamingPreferences))
+            if (optionName == nameof(NamingStyleOptions.NamingPreferences))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     return Guid.Parse(Guids.VisualBasicOptionPageNamingStyleIdString);
                 }
             }
-            else if (optionName == nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
+            else if (optionName == nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {

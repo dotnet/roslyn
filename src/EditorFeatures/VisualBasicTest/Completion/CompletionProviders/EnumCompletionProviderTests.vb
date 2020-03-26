@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -13,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
         End Sub
+
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(EnumCompletionProvider)
+        End Function
 
         <Fact>
         <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
@@ -481,8 +484,59 @@ End Module</Text>.Value
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New EnumCompletionProvider()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer1() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer2() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday, $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer3() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday,
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
         End Function
     End Class
 End Namespace

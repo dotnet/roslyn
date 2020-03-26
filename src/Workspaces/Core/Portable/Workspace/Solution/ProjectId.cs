@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(ProjectId? other)
         {
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id;
         }
 

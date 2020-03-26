@@ -79,21 +79,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ISymbol? OverriddenMember(this ISymbol symbol)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).OverriddenEvent;
-
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).OverriddenMethod;
-
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).OverriddenProperty;
-            }
-
-            return null;
-        }
+                SymbolKind.Event => ((IEventSymbol)symbol).OverriddenEvent,
+                SymbolKind.Method => ((IMethodSymbol)symbol).OverriddenMethod,
+                SymbolKind.Property => ((IPropertySymbol)symbol).OverriddenProperty,
+                _ => null,
+            };
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
             => symbol switch
@@ -106,6 +98,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
+            if (symbol.Kind != SymbolKind.Method && symbol.Kind != SymbolKind.Property && symbol.Kind != SymbolKind.Event)
+                return ImmutableArray<ISymbol>.Empty;
+
             var containingType = symbol.ContainingType;
             var query = from iface in containingType.AllInterfaces
                         from interfaceMember in iface.GetMembers()
@@ -327,47 +322,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsWriteableFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol fieldSymbol:
-                    return !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst;
-                case IPropertySymbol propertySymbol:
-                    return !propertySymbol.IsReadOnly;
-            }
-
-            return false;
-        }
+                IFieldSymbol fieldSymbol => !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst,
+                IPropertySymbol propertySymbol => !propertySymbol.IsReadOnly,
+                _ => false,
+            };
 
         public static ITypeSymbol? GetMemberType(this ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.ReturnType;
-                case IEventSymbol eventSymbol:
-                    return eventSymbol.Type;
-            }
-
-            return null;
-        }
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
+                IEventSymbol eventSymbol => eventSymbol.Type,
+                _ => null,
+            };
 
         public static int GetArity(this ISymbol symbol)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.NamedType:
-                    return ((INamedTypeSymbol)symbol).Arity;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).Arity;
-                default:
-                    return 0;
-            }
-        }
+                SymbolKind.NamedType => ((INamedTypeSymbol)symbol).Arity,
+                SymbolKind.Method => ((IMethodSymbol)symbol).Arity,
+                _ => 0,
+            };
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
@@ -406,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var method = parameter.ContainingSymbol as IMethodSymbol;
                 if (method?.IsReducedExtension() == true)
                 {
-                    symbol = method.GetConstructedReducedFrom().Parameters[parameter.Ordinal + 1];
+                    symbol = method.GetConstructedReducedFrom()!.Parameters[parameter.Ordinal + 1];
                 }
             }
 
@@ -435,28 +413,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters[parameters.Length - 1].IsParams;
+            return parameters.Length > 0 && parameters[^1].IsParams;
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol m: return m.Parameters;
-                case IPropertySymbol nt: return nt.Parameters;
-                default: return ImmutableArray<IParameterSymbol>.Empty;
-            }
-        }
+                IMethodSymbol m => m.Parameters,
+                IPropertySymbol nt => nt.Parameters,
+                _ => ImmutableArray<IParameterSymbol>.Empty,
+            };
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol m: return m.TypeParameters;
-                case INamedTypeSymbol nt: return nt.TypeParameters;
-                default: return ImmutableArray<ITypeParameterSymbol>.Empty;
-            }
-        }
+                IMethodSymbol m => m.TypeParameters,
+                INamedTypeSymbol nt => nt.TypeParameters,
+                _ => ImmutableArray<ITypeParameterSymbol>.Empty,
+            };
 
         public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol? symbol)
         {
@@ -472,14 +446,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol m: return m.TypeArguments;
-                case INamedTypeSymbol nt: return nt.TypeArguments;
-                default: return ImmutableArray.Create<ITypeSymbol>();
-            }
-        }
+                IMethodSymbol m => m.TypeArguments,
+                INamedTypeSymbol nt => nt.TypeArguments,
+                _ => ImmutableArray.Create<ITypeSymbol>(),
+            };
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
@@ -502,13 +474,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Returns true if this symbol contains anything unsafe within it.  for example
-        /// List&lt;int*[]&gt; is unsafe, as it "int* Goo { get; }"
+        /// Returns <see langword="true"/> if the signature of this symbol requires the <see
+        /// langword="unsafe"/> modifier.  For example a method that takes <c>List&lt;int*[]&gt;</c>
+        /// is unsafe, as is <c>int* Goo { get; }</c>.  This will return <see langword="false"/> for
+        /// symbols that cannot have the <see langword="unsafe"/> modifier on them.
         /// </summary>
-        public static bool IsUnsafe([NotNullWhen(returnValue: true)] this ISymbol? member)
+        public static bool RequiresUnsafeModifier([NotNullWhen(returnValue: true)] this ISymbol? member)
         {
             // TODO(cyrusn): Defer to compiler code to handle this once it can.
-            return member?.Accept(new IsUnsafeVisitor()) == true;
+            return member?.Accept(new RequiresUnsafeModifierVisitor()) == true;
         }
 
         public static ITypeSymbol ConvertToType(
@@ -525,8 +499,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
                 var skip = extensionUsedAsInstance ? 1 : 0;
-
-                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
 
                 // Convert the symbol to Func<...> or Action<...>
                 var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
@@ -551,6 +523,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise, just default to object.
             return compilation.ObjectType;
+
+            // local functions
+            static string WithArity(string typeName, int arity)
+                => arity > 0 ? typeName + '`' + arity : typeName;
         }
 
         public static bool IsStaticType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
@@ -660,23 +636,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => !symbol.IsImplicitlyDeclared && symbol.IsFromSource();
 
         public static ITypeSymbol? GetSymbolType(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case ILocalSymbol localSymbol:
-                    return localSymbol.Type;
-                case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
-                case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type;
-                case IAliasSymbol aliasSymbol:
-                    return aliasSymbol.Target as ITypeSymbol;
-            }
-
-            return symbol as ITypeSymbol;
-        }
+                ILocalSymbol localSymbol => localSymbol.Type,
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                IParameterSymbol parameterSymbol => parameterSymbol.Type,
+                IAliasSymbol aliasSymbol => aliasSymbol.Target as ITypeSymbol,
+                _ => symbol as ITypeSymbol,
+            };
 
         /// <summary>
         /// If the <paramref name="symbol"/> is a method symbol, returns <see langword="true"/> if the method's return type is "awaitable", but not if it's <see langword="dynamic"/>.

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         const string someConst = ""some format code"";
         _ = $""prefix {someValue[||].ToString(someConst)} suffix"";
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix"";
     }
@@ -686,6 +686,119 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     {
         _ = $""prefix {[||]PadLeft(3)} suffix"";
     }
+}");
+        }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task OnConstantAlignment1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
+    }
+}",
+
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        const int maxLength = 1;
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str,-maxLength}"");
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(42247, "https://github.com/dotnet/roslyn/issues/42247")]
+        public async Task MissingOnNonConstantAlignment()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Linq;
+
+public static class Sample
+{
+    public static void PrintRightAligned ( String[] strings )
+    {
+        var maxLength = strings.Max(str => str.Length);
+
+        for ( var i = 0; i < strings.Length; i++ )
+        {
+            var str = strings[i];
+            Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToString()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringEvenWhenNotOverridden()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    string M() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringWithArgument()
+        {
+            await TestMissingAsync(
+@"class Base
+{
+    public string ToString(string format) => format;
+}
+
+class Derived : Base
+{
+    public override string ToString() => $""Test: {base[||].ToString(""a"")}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString()[||].PadLeft(10)}"";
+}",
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString(),10}"";
 }");
         }
     }

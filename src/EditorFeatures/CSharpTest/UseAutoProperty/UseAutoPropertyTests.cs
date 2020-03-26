@@ -2312,7 +2312,7 @@ namespace RoslynSandbox
 @"public class Foo
 {
 	public object O { get; }
-}", options: Option(FormattingOptions.UseTabs, true));
+}", options: Option(FormattingOptions2.UseTabs, true));
         }
 
         [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
@@ -2329,7 +2329,7 @@ namespace RoslynSandbox
 @"public class Foo
 {
     public object O { get; }
-}", options: Option(FormattingOptions.UseTabs, false));
+}", options: Option(FormattingOptions2.UseTabs, false));
         }
 
         [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
@@ -2404,6 +2404,27 @@ indent_style = space
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>");
+        }
+
+        [WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotOnSerializableType()
+        {
+            await TestMissingAsync(
+@"
+[System.Serializable]
+class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
         }
     }
 }

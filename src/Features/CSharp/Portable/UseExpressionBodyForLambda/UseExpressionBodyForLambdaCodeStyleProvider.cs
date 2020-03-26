@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var canOffer = expressionBodyOpt.TryConvertToStatement(
-                semicolonTokenOpt: default, createReturnStatementForExpression: false, out _);
+                semicolonTokenOpt: null, createReturnStatementForExpression: false, out _);
             if (!canOffer)
             {
                 // Couldn't even convert the expression into statement form.
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
-                    semicolonTokenOpt: default,
+                    semicolonTokenOpt: null,
                     createReturnStatementForExpression,
                     out var statement))
             {
@@ -229,11 +228,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
     }
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeRefactoringProvider()
+        {
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

@@ -331,7 +331,9 @@ namespace Microsoft.CodeAnalysis
         /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
         /// <returns>
-        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if the project language of this project doesn't support producing compilations.
+        /// Returns the produced <see cref="Compilation"/>, or <see langword="null"/> if <see
+        /// cref="SupportsCompilation"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
         /// </returns>
         public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
         {

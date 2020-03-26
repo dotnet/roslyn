@@ -16,10 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             CompilationUnitSyntax compilationUnit,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, spans, isMetadataAsSource);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();
@@ -38,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit.EndOfFileToken.LeadingTrivia, spans);
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return true;
         }
     }
 }

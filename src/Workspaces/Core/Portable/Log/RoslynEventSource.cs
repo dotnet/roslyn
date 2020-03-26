@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);
+                    Task.Yield().GetAwaiter().OnCompleted(() => Task.Run(SendFunctionDefinitions));
                     return;
                 }
 
@@ -98,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";
-        }
-
-        [NonEvent]
-        private void SendFunctionDefinitionsAsync()
-        {
-            Task.Run((Action)SendFunctionDefinitions);
         }
 
         [NonEvent]

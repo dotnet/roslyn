@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         where TAssignmentSyntax : SyntaxNode
         where TBinaryExpressionSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
 
         /// <summary>
         /// Maps from a binary expression kind (like AddExpression) to the corresponding assignment
@@ -36,15 +35,15 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
-                   CodeStyleOptions.PreferCompoundAssignment,
+                   CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _syntaxFacts = syntaxFacts;
-            Utilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
         }
 
         protected abstract TSyntaxKind GetAnalysisKind();
@@ -59,9 +58,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         private void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
             var assignment = (TAssignmentSyntax)context.Node;
+            var cancellationToken = context.CancellationToken;
 
             var syntaxTree = assignment.SyntaxTree;
-            var option = context.GetOption(CodeStyleOptions.PreferCompoundAssignment, assignment.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, assignment.Language);
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment,
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
+
+            assignmentRight = _syntaxFacts.WalkDownParentheses(assignmentRight);
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
@@ -116,7 +118,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             // is side-effect-free since we will be changing the number of times it is
             // executed from twice to once.
             var semanticModel = context.SemanticModel;
-            if (!IsSideEffectFree(assignmentLeft, semanticModel, isTopLevel: true, context.CancellationToken))
+            if (!UseCompoundAssignmentUtilities.IsSideEffectFree(
+                    _syntaxFacts, assignmentLeft, semanticModel, cancellationToken))
             {
                 return;
             }
@@ -127,101 +130,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                 properties: null));
-        }
-
-        private bool IsSideEffectFree(
-            SyntaxNode expr, SemanticModel semanticModel, bool isTopLevel, CancellationToken cancellationToken)
-        {
-            if (expr == null)
-            {
-                return false;
-            }
-
-            // it basically has to be of the form "a.b.c", where all components are locals,
-            // parameters or fields.  Basically, nothing that can cause arbitrary user code
-            // execution when being evaluated by the compiler.
-
-            if (_syntaxFacts.IsThisExpression(expr) ||
-                _syntaxFacts.IsBaseExpression(expr))
-            {
-                // Referencing this/base like  this.a.b.c causes no side effects itself.
-                return true;
-            }
-
-            if (_syntaxFacts.IsIdentifierName(expr))
-            {
-                return IsSideEffectFreeSymbol(expr, semanticModel, isTopLevel, cancellationToken);
-            }
-
-            if (_syntaxFacts.IsParenthesizedExpression(expr))
-            {
-                _syntaxFacts.GetPartsOfParenthesizedExpression(expr,
-                    out _, out var expression, out _);
-
-                return IsSideEffectFree(expression, semanticModel, isTopLevel, cancellationToken);
-            }
-
-            if (_syntaxFacts.IsSimpleMemberAccessExpression(expr))
-            {
-                _syntaxFacts.GetPartsOfMemberAccessExpression(expr,
-                    out var subExpr, out _);
-                return IsSideEffectFree(subExpr, semanticModel, isTopLevel: false, cancellationToken) &&
-                       IsSideEffectFreeSymbol(expr, semanticModel, isTopLevel, cancellationToken);
-            }
-
-            if (_syntaxFacts.IsConditionalAccessExpression(expr))
-            {
-                _syntaxFacts.GetPartsOfConditionalAccessExpression(expr,
-                    out var expression, out var whenNotNull);
-                return IsSideEffectFree(expression, semanticModel, isTopLevel: false, cancellationToken) &&
-                       IsSideEffectFree(whenNotNull, semanticModel, isTopLevel: false, cancellationToken);
-            }
-
-            // Something we don't explicitly handle.  Assume this may have side effects.
-            return false;
-        }
-
-        private static bool IsSideEffectFreeSymbol(
-            SyntaxNode expr, SemanticModel semanticModel, bool isTopLevel, CancellationToken cancellationToken)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(expr, cancellationToken);
-            if (symbolInfo.CandidateSymbols.Length > 0 ||
-                symbolInfo.Symbol == null)
-            {
-                // couldn't bind successfully, assume that this might have side-effects.
-                return false;
-            }
-
-            var symbol = symbolInfo.Symbol;
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Namespace:
-                case SymbolKind.NamedType:
-                case SymbolKind.Field:
-                case SymbolKind.Parameter:
-                case SymbolKind.Local:
-                    return true;
-            }
-
-            if (symbol.Kind == SymbolKind.Property && isTopLevel)
-            {
-                // If we have `this.Prop = this.Prop * 2`, then that's just a single read/write of
-                // the prop and we can safely make that `this.Prop *= 2` (since it will still be a
-                // single read/write).  However, if we had `this.prop.x = this.prop.x * 2`, then
-                // that's multiple reads of `this.prop`, and it's not safe to convert that to
-                // `this.prop.x *= 2` in the case where calling 'prop' may have side effects.
-                //
-                // Note, this doesn't apply if the property is a ref-property.  In that case, we'd
-                // go from a read and a write to to just a read (and a write to it's returned ref
-                // value).
-                var property = (IPropertySymbol)symbol;
-                if (property.RefKind == RefKind.None)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

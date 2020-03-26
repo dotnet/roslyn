@@ -56,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Next pair
             End Sub
 
-            Private Function GetTrailingAndLeadingTrivia(pair As KeyValuePair(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData)) As ValueTuple(Of SyntaxTriviaList, SyntaxTriviaList)
+            Private Function GetTrailingAndLeadingTrivia(pair As KeyValuePair(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData)) As (SyntaxTriviaList, SyntaxTriviaList)
                 If pair.Key.Item1.Kind = 0 OrElse _lastToken = pair.Key.Item2 Then
-                    Return ValueTuple.Create(Of SyntaxTriviaList, SyntaxTriviaList)(SyntaxTriviaList.Empty,
-                                                                                    GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
+                    Return (SyntaxTriviaList.Empty,
+                            GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
                 End If
 
                 Dim vbTriviaData = TryCast(pair.Value, TriviaDataWithList)
@@ -67,10 +67,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Dim triviaList = vbTriviaData.GetTriviaList(_cancellationToken)
                     Dim index = GetIndexForEndOfLeadingTrivia(triviaList)
 
-                    Return ValueTuple.Create(SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, 0, index)), SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)))
+                    Return (SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, 0, index)), SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)))
                 End If
 
-                Return ValueTuple.Create(Of SyntaxTriviaList, SyntaxTriviaList)(GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken), SyntaxTriviaList.Empty)
+                ' Grab the text change we're making and split it into the trailing trivia for the
+                ' previous token and the leading trivia for the next token.  The trivia may contain
+                ' multiple newlines, so we need to first grab the trailing portion (up through the
+                ' first newline), then use the remainder as the leading portion.
+                Dim text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText
+                Dim trailing = SyntaxFactory.ParseTrailingTrivia(text)
+                Dim leading = SyntaxFactory.ParseLeadingTrivia(text.Substring(trailing.FullSpan.Length))
+
+                Return (trailing, leading)
             End Function
 
             Private Function GetTextSpan(pair As ValueTuple(Of SyntaxToken, SyntaxToken)) As TextSpan

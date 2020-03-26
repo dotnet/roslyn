@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // If we have a containing type, make sure its type arguments are updated as well.
-                var updatedContainingType = symbol.ContainingType == null
-                    ? null
-                    : symbol.ContainingType.Accept(this);
+                var updatedContainingType = symbol.ContainingType?.Accept(this);
 
                 // If our containing type changed, then find us again in the new containing type.
                 if (!Equals(updatedContainingType, symbol.ContainingType))
