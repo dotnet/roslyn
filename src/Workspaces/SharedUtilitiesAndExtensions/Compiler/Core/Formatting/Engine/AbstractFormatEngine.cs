@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected virtual FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
         {
             // initialize context
-            var context = new FormattingContext(this, tokenStream, _language);
+            var context = new FormattingContext(this, tokenStream);
             context.Initialize(_formattingRules, _token1, _token2, cancellationToken);
 
             return context;
