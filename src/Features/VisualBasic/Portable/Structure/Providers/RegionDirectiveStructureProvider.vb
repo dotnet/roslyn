@@ -30,14 +30,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   CancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
             If matchingDirective IsNot Nothing Then
-                Dim autoCollapse = options.GetOption(
+                ' Always auto-collapse regions for Metadata As Source. These generated files only have one region at the
+                ' top of the file, which has content like the following:
+                '
+                '   #Region "Assembly System.Runtime, Version=4.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+                '   ' C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.1.0\ref\netcoreapp3.1\System.Runtime.dll
+                '   #End Region
+                '
+                ' For other files, auto-collapse regions based on the user option.
+                Dim autoCollapse = isMetadataAsSource OrElse options.GetOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
                 Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
                 spans.AddIfNotNull(CreateBlockSpan(
                     span, span,
                     GetBannerText(regionDirective),
-                    autoCollapse:=isMetadataAsSource OrElse autoCollapse,
+                    autoCollapse:=autoCollapse,
                     isDefaultCollapsed:=Not isMetadataAsSource,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
