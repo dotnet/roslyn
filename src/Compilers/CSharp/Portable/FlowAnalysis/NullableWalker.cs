@@ -3914,8 +3914,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 
-            LearnFromCompareExchangeMethod(method, node, results);
-
             var returnState = GetReturnTypeWithState(method);
             if (returnNotNull)
             {
@@ -4089,21 +4087,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
+        bool IsCompareExchangeMethod(MethodSymbol method)
         {
-            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
+            if (method is null)
+            {
+                return false;
+            }
+
+            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
                 || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
-            if (!isCompareExchangeMethod)
-            {
-                return;
-            }
+        }
 
-            var arguments = node.Arguments;
-            if (arguments.Length != method.ParameterCount)
-            {
-                return;
-            }
+        private class CompareExchangeInfo
+        {
+            public ImmutableArray<BoundExpression> arguments;
+            public ImmutableArray<VisitArgumentResult> results;
 
+            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results)
+            {
+                this.arguments = arguments;
+                this.results = results;
+            }
+        }
+
+        private NullableFlowState LearnFromCompareExchangeMethod(CompareExchangeInfo compareExchangeInfo, NullableFlowState state)
+        {
             // In general a call to CompareExchange of the form:
             //
             // Interlocked.CompareExchange(ref location, value, comparand);
@@ -4115,23 +4123,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var locationSlot = MakeSlot(arguments[0]);
-            if (locationSlot != -1)
+            var comparand = compareExchangeInfo.arguments[2];
+            var valueFlowState = compareExchangeInfo.results[1].RValueType.State;
+            if (comparand.ConstantValue?.IsNull == true)
             {
-                var comparand = arguments[2];
-                var valueFlowState = results[1].RValueType.State;
-                if (comparand.ConstantValue?.IsNull == true)
-                {
-                    // If location contained a null, then the write `location = value` definitely occurred
-                    State[locationSlot] = valueFlowState;
-                }
-                else
-                {
-                    var locationFlowState = results[0].RValueType.State;
-                    // A write may have occurred
-                    State[locationSlot] = valueFlowState.Join(locationFlowState);
-                }
+                // If location contained a null, then the write `location = value` definitely occurred
             }
+            else
+            {
+                var locationFlowState = compareExchangeInfo.results[0].RValueType.State;
+                // A write may have occurred
+                valueFlowState = valueFlowState.Join(locationFlowState);
+            }
+
+            return valueFlowState;
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -4402,6 +4407,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors && !parametersOpt.IsDefault)
             {
+                // For CompareExchange method we need more context to determine the state of outbound assignment
+                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : null;
+
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
                 for (int i = 0; i < arguments.Length; i++)
@@ -4419,7 +4427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterType,
                         parameterAnnotations,
                         results[i],
-                        notNullParametersBuilder);
+                        notNullParametersBuilder,
+                        (compareExchangeInfo is object && i == 0) ? compareExchangeInfo : null);
                 }
             }
             else
@@ -4783,7 +4792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations parameterType,
             FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
-            ArrayBuilder<ParameterSymbol> notNullParametersOpt)
+            ArrayBuilder<ParameterSymbol> notNullParametersOpt,
+            CompareExchangeInfo compareExchangeInfoOpt)
         {
             // Note: the state may be conditional if a previous argument involved a conditional post-condition
             // The WhenTrue/False states correspond to the invocation returning true/false
@@ -4802,6 +4812,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // assign from a fictional value from the parameter to the argument.
                         parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
+                        if (compareExchangeInfoOpt is object)
+                        {
+                            var adjustedState = LearnFromCompareExchangeMethod(compareExchangeInfoOpt, parameterWithState.State);
+                            parameterWithState = TypeWithState.Create(parameterType.Type, adjustedState);
+                        }
+
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
@@ -7120,7 +7136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
+                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                            notNullParametersOpt: null, compareExchangeInfoOpt: null);
                     }
                 }
             }
