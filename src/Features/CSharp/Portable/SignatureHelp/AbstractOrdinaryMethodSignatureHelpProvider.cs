@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, CancellationToken.None)).ToList(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
                 descriptionParts: descriptionParts);
         }
 

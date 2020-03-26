@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CreateSpan(node);
 
                 case SyntaxKind.CatchClause:
-                    return CreateSpanForCatchClause((CatchClauseSyntax)node, position);
+                    return CreateSpanForCatchClause((CatchClauseSyntax)node);
 
                 case SyntaxKind.FinallyClause:
                     return TryCreateSpanForNode(((FinallyClauseSyntax)node).Block, position);
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return 0;
         }
 
-        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)
+        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause)
         {
             if (catchClause.Filter != null)
             {
