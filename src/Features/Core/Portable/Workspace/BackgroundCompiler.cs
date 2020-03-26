@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class BackgroundCompiler : IDisposable
+    internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
-        private readonly IWorkspaceTaskScheduler _compilationScheduler;
+        private readonly TaskQueue _taskQueue;
 
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             // make a scheduler that runs on the thread pool
-            var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.Host
             ISet<ProjectId> allProjects)
         {
             var cancellationToken = _cancellationSource.Token;
-            return _compilationScheduler.ScheduleTask(
-                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
+            return _taskQueue.ScheduleTask(
                 "BackgroundCompiler.BuildCompilationsAsync",
+                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 cancellationToken);
         }
 
