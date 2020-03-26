@@ -441,13 +441,13 @@
     <value>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</value>
   </data>
   <data name="RemoveShippedDeletedDiagnosticIdTitle" xml:space="preserve">
-    <value>Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</value>
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
   </data>
   <data name="RemoveShippedDeletedDiagnosticIdMessage" xml:space="preserve">
-    <value>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule with '*REMOVED*' prefix to unshipped file.</value>
+    <value>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</value>
   </data>
   <data name="RemoveShippedDeletedDiagnosticIdDescription" xml:space="preserve">
-    <value>Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</value>
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
   </data>
   <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle" xml:space="preserve">
     <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>

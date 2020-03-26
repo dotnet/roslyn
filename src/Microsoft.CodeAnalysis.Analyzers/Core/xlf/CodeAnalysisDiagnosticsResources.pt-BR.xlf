@@ -263,18 +263,18 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
-        <source>Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</target>
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
-        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule with '*REMOVED*' prefix to unshipped file.</source>
-        <target state="new">Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule with '*REMOVED*' prefix to unshipped file.</target>
+        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
+        <target state="new">Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
-        <source>Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry with '*REMOVED*' prefix in unshipped file.</target>
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
