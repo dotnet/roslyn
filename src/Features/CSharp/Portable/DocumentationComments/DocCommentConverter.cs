@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
@@ -46,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             // Check the leading trivia for doc comments.
             if (node.GetLeadingTrivia().Any(SyntaxKind.SingleLineDocumentationCommentTrivia))
             {
-                var newLeadingTrivia = new List<SyntaxTrivia>();
+                using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newLeadingTrivia);
 
                 foreach (var trivia in node.GetLeadingTrivia().SkipWhile(t => !t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)))
                 {
                     if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
                     {
                         var structuredTrivia = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-                        var commentLines = ConvertDocCommentToRegularComment(structuredTrivia).ToSyntaxTriviaList();
+                        var commentLines = ConvertDocCommentToRegularComment(structuredTrivia);
 
                         if (commentLines.Count > 0)
                         {
@@ -75,27 +76,22 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             return node;
         }
 
-        private IEnumerable<SyntaxTrivia> ConvertDocCommentToRegularComment(DocumentationCommentTriviaSyntax structuredTrivia)
+        private SyntaxTriviaList ConvertDocCommentToRegularComment(DocumentationCommentTriviaSyntax structuredTrivia)
         {
             var xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString(), "///");
-
             var docComment = DocumentationComment.FromXmlFragment(xmlFragment);
-
             var commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(_formattingService, docComment);
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var builder);
 
             foreach (var line in commentLines)
             {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    yield return SyntaxFactory.Comment("// " + line);
-                }
-                else
-                {
-                    yield return SyntaxFactory.Comment("//");
-                }
-
-                yield return SyntaxFactory.ElasticCarriageReturnLineFeed;
+                builder.Add(SyntaxFactory.Comment(string.IsNullOrWhiteSpace(line)
+                    ? "//" : "// " + line));
+                builder.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
             }
+
+            return SyntaxFactory.TriviaList(builder);
         }
     }
 }
