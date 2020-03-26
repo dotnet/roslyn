@@ -4809,7 +4809,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // check whether parameter would unsafely let a null out in the worse case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
+                            var leftAnnotations = GetLValueAnnotations(argument);
+                            ReportNullableAssignmentIfNecessary(
+                                parameterValue,
+                                targetType: ApplyLValueAnnotations(lValueType, leftAnnotations),
+                                valueType: applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations),
+                                UseLegacyWarnings(argument, result.LValueType));
                         }
                     }
                     break;
