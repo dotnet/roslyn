@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis
         /// Result of binding an AssemblyRef to an AssemblyDef. 
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        internal struct AssemblyReferenceBinding
+        internal readonly struct AssemblyReferenceBinding
         {
-            private readonly AssemblyIdentity _referenceIdentity;
+            private readonly AssemblyIdentity? _referenceIdentity;
             private readonly int _definitionIndex;
             private readonly int _versionDifference;
 
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal AssemblyIdentity ReferenceIdentity
+            internal AssemblyIdentity? ReferenceIdentity
             {
                 get
                 {
@@ -103,7 +105,8 @@ namespace Microsoft.CodeAnalysis
 
             private string GetDebuggerDisplay()
             {
-                return IsBound ? ReferenceIdentity.GetDisplayName() + " -> #" + DefinitionIndex + (VersionDifference != 0 ? " VersionDiff=" + VersionDifference : "") : "unbound";
+                var displayName = ReferenceIdentity?.GetDisplayName() ?? "";
+                return IsBound ? displayName + " -> #" + DefinitionIndex + (VersionDifference != 0 ? " VersionDiff=" + VersionDifference : "") : "unbound";
             }
         }
     }

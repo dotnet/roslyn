@@ -24,9 +24,9 @@ class B
 {
     {|caret:|}A classA;
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -49,9 +49,10 @@ class B
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
+            using var workspace = CreateTestWorkspace(markups, out var locations);
+
+            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -67,9 +68,9 @@ class B
     A classA;
     {|caret:|}
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

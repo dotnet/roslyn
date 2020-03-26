@@ -17,16 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
-
-        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
-        private DiagnosticAnalyzerService()
-        {
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
-            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-        }
-
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
