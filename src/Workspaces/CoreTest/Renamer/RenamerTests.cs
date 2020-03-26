@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,32 +70,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 var documentRenameResult = await Rename.Renamer.RenameDocumentNameAsync(document, endDocument.DocumentName, workspace.Options);
                 var documentFoldersRenameResult = await Rename.Renamer.RenameDocumentFoldersAsync(document, endDocument.DocumentFolders, workspace.Options);
 
-                foreach (var action in documentRenameResult.ApplicableActions)
+                foreach (var action in documentRenameResult.ApplicableActions.Concat(documentFoldersRenameResult.ApplicableActions))
                 {
-                    solution = await action.GetModifiedSolutionAsync(solution, CancellationToken.None).ConfigureAwait(false);
-
-                    foreach (var error in action.Errors)
+                    foreach (var error in action.GetErrors())
                     {
                         Assert.True(remainingErrors.Contains(error), $"Error '{error}' was unexpected");
                         remainingErrors.Remove(error);
                     }
                 }
 
-                foreach (var action in documentFoldersRenameResult.ApplicableActions)
-                {
-                    solution = await action.GetModifiedSolutionAsync(solution, CancellationToken.None).ConfigureAwait(false);
-
-                    foreach (var error in action.Errors)
-                    {
-                        Assert.True(remainingErrors.Contains(error), $"Error '{error}' was unexpected");
-                        remainingErrors.Remove(error);
-                    }
-                }
-
+                solution = await documentRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);
                 var updatedDocument = solution.GetDocument(documentId);
-
                 Assert.Equal(endDocument.DocumentName, updatedDocument.Name);
+
+                solution = await documentFoldersRenameResult.UpdateSolutionAsync(solution, CancellationToken.None);
+                updatedDocument = solution.GetDocument(documentId);
                 AssertEx.SetEqual(endDocument.DocumentFolders, updatedDocument.Folders);
+
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
                 Assert.Equal(0, remainingErrors.Count);
             }
@@ -137,6 +129,69 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             };
 
             return TestRenameDocument(startDocuments, endDocuments, expectedErrors);
+        }
+
+        protected async Task TestEmptyActionSet(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)
+        {
+            var defaultDocumentName = documentName ?? DefaultDocumentName;
+            var defaultDocumentPath = documentPath ?? DefaultDocumentPath;
+
+            var startDocuments = new[]
+            {
+                new DocumentWithInfo()
+                {
+                    Text = startText,
+                    DocumentName = defaultDocumentName,
+                    DocumentFilePath = defaultDocumentPath
+                }
+            };
+
+            var endDocuments = new[]
+            {
+                new DocumentWithInfo()
+                {
+                    Text = startText,
+                    DocumentName = newDocumentName ?? defaultDocumentName,
+                    DocumentFilePath = newDocumentPath ?? defaultDocumentPath
+                }
+            };
+
+            using var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId = ProjectId.CreateNewId();
+            var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "ProjectName", "AssemblyName", LanguageName, filePath: "");
+            var documentIdToDocumentInfoMap = new List<(DocumentId, DocumentWithInfo)>();
+
+            solution = solution
+                    .AddProject(projectInfo);
+
+            for (var i = 0; i < startDocuments.Length; i++)
+            {
+                var startDocument = startDocuments[i];
+                var startSourceText = SourceText.From(startDocument.Text);
+                var documentId = DocumentId.CreateNewId(projectId);
+
+                solution = solution
+                    .AddDocument(
+                        documentId,
+                        startDocument.DocumentName,
+                        startSourceText,
+                        filePath: startDocument.DocumentFilePath,
+                        folders: startDocument.DocumentFolders);
+
+                documentIdToDocumentInfoMap.Add((documentId, endDocuments[i]));
+            }
+
+            foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
+            {
+                var document = solution.GetDocument(documentId);
+                var documentRenameResult = await Rename.Renamer.RenameDocumentNameAsync(document, endDocument.DocumentName, workspace.Options);
+                var documentFoldersRenameResult = await Rename.Renamer.RenameDocumentFoldersAsync(document, endDocument.DocumentFolders, workspace.Options);
+
+                Assert.Empty(documentRenameResult.ApplicableActions);
+                Assert.Empty(documentFoldersRenameResult.ApplicableActions);
+            }
         }
     }
 }

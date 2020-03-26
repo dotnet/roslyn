@@ -27,29 +27,26 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         internal class SyncNamespaceDocumentAction : RenameDocumentAction
         {
-            private readonly IReadOnlyList<string> _newFolders;
             private readonly AnalysisResult _analysis;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis, Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, ImmutableArray<string> errors)
-                : base(document.Id, optionSet, errors)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, OptionSet optionSet, ImmutableArray<ErrorResource> errors)
+                : base(errors, optionSet)
             {
                 _analysis = analysis;
-                _newFolders = newFolders;
             }
 
             public override string GetDescription(CultureInfo? culture)
              => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Solution solution, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
             {
-                solution = solution.WithDocumentFolders(DocumentId, _newFolders);
+                var solution = document.Project.Solution;
 
                 if (!_analysis.SupportsSyncNamespace)
                 {
                     return solution;
                 }
 
-                var document = solution.GetRequiredDocument(DocumentId);
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -88,16 +85,16 @@ namespace Microsoft.CodeAnalysis.Rename
 
             public static Task<SyncNamespaceDocumentAction> CreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
             {
-                var errors = new ArrayBuilder<string>();
+                var errors = new ArrayBuilder<ErrorResource>();
 
                 var analysisResult = Analyze(document);
 
                 if (!analysisResult.SupportsSyncNamespace)
                 {
-                    errors.Add(WorkspacesResources.The_project_does_not_support_sync_namespace);
+                    errors.Add(new ErrorResource(nameof(WorkspacesResources.The_project_does_not_support_sync_namespace), new object[0]));
                 }
 
-                return Task.FromResult(new SyncNamespaceDocumentAction(analysisResult, document, newFolders, optionSet, errors.ToImmutableAndFree()));
+                return Task.FromResult(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutableAndFree()));
             }
 
             private static AnalysisResult Analyze(Document document)
