@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             out ImmutableArray<Node> sortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            int[]? tmp = new int[unsortedNodes.Length];
+            var tmp = new int[unsortedNodes.Length];
             for (var i = 0; i < tmp.Length; i++)
             {
                 tmp[i] = i;
