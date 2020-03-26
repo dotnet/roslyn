@@ -66,7 +66,4 @@
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems" Label="Shared" />
-  <ItemGroup>
-    <ExpectedCompile Remove="MetadataAsSource\CSharpMetadataFormattingRule.cs" />
-  </ItemGroup>
 </Project>
