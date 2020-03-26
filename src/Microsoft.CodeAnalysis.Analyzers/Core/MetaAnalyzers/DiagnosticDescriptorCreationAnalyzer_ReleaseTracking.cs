@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             shippedText = null;
             unshippedText = null;
 
-            StringComparer comparer = StringComparer.Ordinal;
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
             foreach (AdditionalText text in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();

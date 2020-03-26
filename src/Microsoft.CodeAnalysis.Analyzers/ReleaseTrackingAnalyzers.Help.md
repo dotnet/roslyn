@@ -8,9 +8,11 @@ Release tracking analyzer enables third party analyzer packages to define analyz
    2. Default severity of the diagnostic
    3. Enabled by default status.
 
-This analyzer expects that the thirdparty analyzer project has two additional files, namely `AnalyzerReleases.Unshipped.md` and `AnalyzerReleases.Shipped.md`, to track this release specific metadata.
+This analyzer expects that the third party analyzer project has two additional files, namely `AnalyzerReleases.Unshipped.md` and `AnalyzerReleases.Shipped.md`, to track this release specific metadata.
 1. `AnalyzerReleases.Unshipped.md`: Additional file for the upcoming or unshipped analyzer release. This file will start empty at the beginning of each release. While working on the upcoming release, it will track additions/removals/changes to analyzer rules in the repo.
-1. `AnalyzerReleases.Shipped.md`: Additional file for shipped analyzer releases. This file only tracks analyzer rules for shipped releases. It cannot be changed while work is in progress for upcoming release. When a new analyzer package is released, a new release with shipped package version should be created in the shipped file, and all the entries from the unshipped file should be mvoed under the new shipped release.
+2. `AnalyzerReleases.Shipped.md`: Additional file for shipped analyzer releases. This file only tracks analyzer rules for shipped releases. It cannot be changed while work is in progress for upcoming release. When a new analyzer package is released, a new release with shipped package version should be created in the shipped file, and all the entries from the unshipped file should be mvoed under the new shipped release.
+
+Note that each analyzer project that contributes an assembly to the analyzer NuGet package would require these additional files.
 
 Release tracking analyzer provides the diagnostics and code fixes to enable analyzer authors to maintain the shipped and unshipped files. Analyzer author only requires to perform the following two manual tasks:
 1. Create these two files and pass mark them as additional files for their analyzer project (steps explained in next section), and
