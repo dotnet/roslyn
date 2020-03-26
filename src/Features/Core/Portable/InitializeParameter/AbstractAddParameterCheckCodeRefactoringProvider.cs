@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
-        protected abstract SyntaxToken CreateInterpolatedStringStartToken();
-        protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -353,10 +351,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
+        private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
             => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
-        private TStatementSyntax CreateStringCheckStatement(
+        private static TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
@@ -371,7 +369,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     generator.Argument(generator.IdentifierName(parameter.Name))),
                 SpecializedCollections.SingletonEnumerable(
                     generator.ThrowStatement(
-                        CreateArgumentException(compilation, generator, parameter))));
+                        CreateArgumentException(compilation, generator, parameter, methodName))));
         }
 
         private SyntaxNode GetStatementToAddNullCheckAfter(
@@ -506,7 +504,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private SyntaxNode GetTypeNode(
+        private static SyntaxNode GetTypeNode(
             Compilation compilation, SyntaxGenerator generator, Type type)
         {
             var typeSymbol = compilation.GetTypeByMetadataName(type.FullName);
@@ -520,7 +518,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return generator.TypeExpression(typeSymbol);
         }
 
-        private SyntaxNode CreateArgumentNullException(
+        private static SyntaxNode CreateArgumentNullException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
         {
             return generator.ObjectCreationExpression(
@@ -528,22 +526,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
-        private SyntaxNode CreateArgumentException(
-            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
+        private static SyntaxNode CreateArgumentException(
+            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName)
         {
+            string text = methodName switch
+            {
+                nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
+                nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString()
+            };
             var content = new List<SyntaxNode>()
             {
                 generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}'")),
-                generator.InterpolatedStringText(generator.InterpolatedStringTextToken("cannot be null or empty"))
+                generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text))
             };
             return generator.ObjectCreationExpression(
                 GetTypeNode(compilation, generator, typeof(ArgumentException)),
-                generator.InterpolatedStringExpression
-                (
-                    CreateInterpolatedStringStartToken().WithLeadingTrivia(content.First().GetLeadingTrivia()),
+                generator.InterpolatedStringExpression(
+                    generator.CreateInterpolatedStringStartToken(false).WithLeadingTrivia(content.First().GetLeadingTrivia()),
                     content,
-                    CreateInterpolatedStringEndToken().WithTrailingTrivia(content.Last().GetTrailingTrivia())
-                ),
+                    generator.CreateInterpolatedStringEndToken().WithTrailingTrivia(content.Last().GetTrailingTrivia())),
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
     }

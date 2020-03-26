@@ -15,22 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     internal class CSharpConvertConcatenationToInterpolatedStringRefactoringProvider :
         AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<ExpressionSyntax>
     {
-        private const string InterpolatedVerbatimText = "$@\"";
-
         [ImportingConstructor]
         public CSharpConvertConcatenationToInterpolatedStringRefactoringProvider()
         {
         }
-
-        protected override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
-        {
-            return isVerbatim
-                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
-                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
-        }
-
-        protected override SyntaxToken CreateInterpolatedStringEndToken()
-            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
 
         protected override string GetTextWithoutQuotes(string text, bool isVerbatim, bool isCharacterLiteral)
             => isVerbatim

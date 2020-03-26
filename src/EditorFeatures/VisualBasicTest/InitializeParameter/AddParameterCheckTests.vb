@@ -462,7 +462,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException($""'{NameOf(s)}' cannot be null or empty"", NameOf(s))
+            Throw New ArgumentException($""'{NameOf(s)}' cannot be null or whitespace"", NameOf(s))
         End If
     end sub
 end class", index:=2)

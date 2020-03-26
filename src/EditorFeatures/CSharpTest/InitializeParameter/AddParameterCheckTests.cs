@@ -1428,7 +1428,7 @@ class C
     {
         if (string.IsNullOrWhiteSpace(s))
         {
-            throw new ArgumentException($""'{nameof(s)}' cannot be null or empty"", nameof(s));
+            throw new ArgumentException($""'{nameof(s)}' cannot be null or whitespace"", nameof(s));
         }
     }
 }", index: 2);

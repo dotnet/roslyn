@@ -787,6 +787,16 @@
         <target state="translated">{0} se dá zjednodušit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="cannot_be_null_or_empty">
+        <source>cannot be null or empty</source>
+        <target state="new">cannot be null or empty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cannot_be_null_or_whitespace">
+        <source>cannot be null or whitespace</source>
+        <target state="new">cannot be null or whitespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">proměnná typu discard</target>

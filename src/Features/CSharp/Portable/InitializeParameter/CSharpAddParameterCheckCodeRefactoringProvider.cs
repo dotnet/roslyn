@@ -56,11 +56,5 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool PrefersThrowExpression(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
-
-        protected override SyntaxToken CreateInterpolatedStringStartToken()
-            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
-
-        protected override SyntaxToken CreateInterpolatedStringEndToken()
-            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
     }
 }
