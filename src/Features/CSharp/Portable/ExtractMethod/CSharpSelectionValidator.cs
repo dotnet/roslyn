@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var selectionInfo = GetInitialSelectionInfo(root, text);
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
-            selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
+            selectionInfo = AssignFinalSpan(selectionInfo, text);
             selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             return AssignFinalSpan(selectionInfo.With(s => s.FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true))
                                                 .With(s => s.LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true)),
-                                   text, cancellationToken);
+                                   text);
         }
 
         private TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
