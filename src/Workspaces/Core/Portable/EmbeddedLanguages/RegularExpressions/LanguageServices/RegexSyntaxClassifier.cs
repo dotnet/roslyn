@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _info.SyntaxFacts))
+            if (!RegexPatternDetector.IsPossiblyPatternToken(token, _info.SyntaxFacts))
             {
                 return;
             }
