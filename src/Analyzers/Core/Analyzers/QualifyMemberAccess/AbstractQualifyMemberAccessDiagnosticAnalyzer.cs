@@ -153,15 +153,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
-            switch (operation)
+            return operation switch
             {
-                case IMemberReferenceOperation memberReferenceOperation:
-                    return IsStaticMemberOrIsLocalFunctionHelper(memberReferenceOperation.Member);
-                case IInvocationOperation invocationOperation:
-                    return IsStaticMemberOrIsLocalFunctionHelper(invocationOperation.TargetMethod);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(operation);
-            }
+                IMemberReferenceOperation memberReferenceOperation => IsStaticMemberOrIsLocalFunctionHelper(memberReferenceOperation.Member),
+                IInvocationOperation invocationOperation => IsStaticMemberOrIsLocalFunctionHelper(invocationOperation.TargetMethod),
+                _ => throw ExceptionUtilities.UnexpectedValue(operation),
+            };
 
             static bool IsStaticMemberOrIsLocalFunctionHelper(ISymbol symbol)
             {
@@ -173,33 +170,21 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     internal static class QualifyMembersHelpers
     {
         public static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
-        {
-            switch (symbolKind)
+            => symbolKind switch
             {
-                case SymbolKind.Field:
-                    return CodeStyleOptions2.QualifyFieldAccess;
-                case SymbolKind.Property:
-                    return CodeStyleOptions2.QualifyPropertyAccess;
-                case SymbolKind.Method:
-                    return CodeStyleOptions2.QualifyMethodAccess;
-                case SymbolKind.Event:
-                    return CodeStyleOptions2.QualifyEventAccess;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbolKind);
-            }
-        }
+                SymbolKind.Field => CodeStyleOptions2.QualifyFieldAccess,
+                SymbolKind.Property => CodeStyleOptions2.QualifyPropertyAccess,
+                SymbolKind.Method => CodeStyleOptions2.QualifyMethodAccess,
+                SymbolKind.Event => CodeStyleOptions2.QualifyEventAccess,
+                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
+            };
 
         internal static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
-        {
-            switch (operation)
+            => operation switch
             {
-                case IMemberReferenceOperation memberReferenceOperation:
-                    return GetApplicableOptionFromSymbolKind(memberReferenceOperation.Member.Kind);
-                case IInvocationOperation invocationOperation:
-                    return GetApplicableOptionFromSymbolKind(invocationOperation.TargetMethod.Kind);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(operation);
-            }
-        }
+                IMemberReferenceOperation memberReferenceOperation => GetApplicableOptionFromSymbolKind(memberReferenceOperation.Member.Kind),
+                IInvocationOperation invocationOperation => GetApplicableOptionFromSymbolKind(invocationOperation.TargetMethod.Kind),
+                _ => throw ExceptionUtilities.UnexpectedValue(operation),
+            };
     }
 }
