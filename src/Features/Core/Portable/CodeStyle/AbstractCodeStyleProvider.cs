@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString title, LocalizableString message)
         {
             return new DiagnosticDescriptor(
-                this._descriptorId, title, message,
+                _descriptorId, title, message,
                 DiagnosticCategory.Style,
                 DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true);

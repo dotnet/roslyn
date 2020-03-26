@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 ? DetermineConstantInsertPosition(oldType, newType)
                 : DetermineFieldInsertPosition(oldType, newType);
 
-            var legalInsertionIndices = this.GetInsertionIndices(oldType, cancellationToken);
+            var legalInsertionIndices = GetInsertionIndices(oldType, cancellationToken);
             if (legalInsertionIndices[preferredInsertionIndex])
             {
                 return preferredInsertionIndex;

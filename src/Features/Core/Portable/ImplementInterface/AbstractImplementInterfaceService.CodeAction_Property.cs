@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
 
                 var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
-                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                return generator.GetSetAccessorStatements(compilation, property, ThroughMember,
                     propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Document document, SourceText text, SyntaxTree tree)
         {
             // make sure given position is within valid text range.
-            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, this.Position)), 0);
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, Position)), 0);
 
             var location = tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
             return new TodoCommentData
             {
-                Priority = this.Descriptor.Priority,
-                Message = this.Message,
+                Priority = Descriptor.Priority,
+                Message = Message,
                 DocumentId = document.Id,
                 OriginalLine = originalLineInfo.StartLinePosition.Line,
                 OriginalColumn = originalLineInfo.StartLinePosition.Character,

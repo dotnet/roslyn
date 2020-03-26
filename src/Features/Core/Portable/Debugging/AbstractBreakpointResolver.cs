@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             IEqualityComparer<string> identifierComparer)
         {
             _solution = solution;
-            this.Text = text;
+            Text = text;
             _language = language;
             _identifierComparer = identifierComparer;
         }
