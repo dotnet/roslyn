@@ -5169,6 +5169,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, DiagnosticBag diagnostics)
         {
+            AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
+            BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+            return BindInterfaceCreationExpression(node, type, diagnostics, node.Type, analyzedArguments, node.Initializer, wasTargetTyped: false);
+        }
+
+        private BoundExpression BindInterfaceCreationExpression(SyntaxNode node, NamedTypeSymbol type, DiagnosticBag diagnostics, SyntaxNode typeNode, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax initializerOpt, bool wasTargetTyped)
+        {
             Debug.Assert((object)type != null);
 
             // COM interfaces which have ComImportAttribute and CoClassAttribute can be instantiated with "new". 
@@ -5184,23 +5191,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol coClassType = type.ComImportCoClass;
                 if ((object)coClassType != null)
                 {
-                    return BindComImportCoClassCreationExpression(node, type, coClassType, diagnostics);
+                    return BindComImportCoClassCreationExpression(node, type, coClassType, diagnostics, typeNode, analyzedArguments, initializerOpt, wasTargetTyped);
                 }
             }
 
             // interfaces can't be instantiated in C#
             diagnostics.Add(ErrorCode.ERR_NoNewAbstract, node.Location, type);
-            return BindBadInterfaceCreationExpression(node, type, diagnostics);
+            return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, initializerOpt, typeNode, diagnostics);
         }
 
-        private BoundExpression BindBadInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, DiagnosticBag diagnostics)
-        {
-            AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
-            BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
-            return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, diagnostics);
-        }
-
-        private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, DiagnosticBag diagnostics)
+        private BoundExpression BindComImportCoClassCreationExpression(SyntaxNode node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, DiagnosticBag diagnostics, SyntaxNode typeNode, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax initializerOpt, bool wasTargetTyped)
         {
             Debug.Assert((object)interfaceType != null);
             Debug.Assert(interfaceType.IsInterfaceType());
@@ -5235,10 +5235,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NoPIA support
                 if (interfaceType.ContainingAssembly.IsLinked)
                 {
-                    return BindNoPiaObjectCreationExpression(node, interfaceType, coClassType, diagnostics);
+                    return BindNoPiaObjectCreationExpression(node, interfaceType, coClassType, diagnostics, typeNode, analyzedArguments, initializerOpt);
                 }
 
-                var classCreation = BindClassCreationExpression(node, coClassType, coClassType.Name, diagnostics, interfaceType);
+                var classCreation = BindClassCreationExpression(
+                    node,
+                    coClassType.Name,
+                    typeNode,
+                    coClassType,
+                    analyzedArguments,
+                    diagnostics,
+                    initializerOpt,
+                    interfaceType,
+                    wasTargetTyped);
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion = this.Conversions.ClassifyConversionFromExpression(classCreation, interfaceType, ref useSiteDiagnostics, forCast: true);
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -5269,14 +5278,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return BindBadInterfaceCreationExpression(node, interfaceType, diagnostics);
+            return MakeBadExpressionForObjectCreation(node, interfaceType, analyzedArguments, initializerOpt, typeNode, diagnostics);
         }
 
         private BoundExpression BindNoPiaObjectCreationExpression(
-            ObjectCreationExpressionSyntax node,
+            SyntaxNode node,
             NamedTypeSymbol interfaceType,
             NamedTypeSymbol coClassType,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            SyntaxNode typeNode,
+            AnalyzedArguments analyzedArguments,
+            InitializerExpressionSyntax initializerOpt)
         {
             string guidString;
             if (!coClassType.GetGuidString(out guidString))
@@ -5286,31 +5298,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 guidString = System.Guid.Empty.ToString("D");
             }
 
-            var boundInitializerOpt = node.Initializer == null ? null :
-                                                BindInitializerExpression(syntax: node.Initializer,
+            var boundInitializerOpt = initializerOpt == null ? null :
+                                                BindInitializerExpression(syntax: initializerOpt,
                                                  type: interfaceType,
-                                                 typeSyntax: node.Type,
+                                                 typeSyntax: typeNode,
                                                  diagnostics: diagnostics);
 
             var creation = new BoundNoPiaObjectCreationExpression(node, guidString, boundInitializerOpt, interfaceType);
 
-            // Get the bound arguments and the argument names, it is an error if any are present.
-            AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
-            try
+            if (analyzedArguments.Arguments.Count > 0)
             {
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: false);
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, node.Location, interfaceType, analyzedArguments.Arguments.Count);
 
-                if (analyzedArguments.Arguments.Count > 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, node.ArgumentList.Location, interfaceType, analyzedArguments.Arguments.Count);
-
-                    var children = BuildArgumentsForErrorRecovery(analyzedArguments).Add(creation);
-                    return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, creation.Type);
-                }
-            }
-            finally
-            {
-                analyzedArguments.Free();
+                var children = BuildArgumentsForErrorRecovery(analyzedArguments).Add(creation);
+                return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, creation.Type);
             }
 
             return creation;

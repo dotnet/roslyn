@@ -572,25 +572,22 @@ class C
         public void TestTargetType_Enum()
         {
             var source = @"
+using System;
 enum E {}
 class C
 {
-    void M()
+    static void Main()
     {
         E x0 = new();
         var x1 = (E)new();
+        Console.Write(x0);
+        Console.Write(x1);
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,16): error CS8752: The type 'E' may not be used as the target-type of 'new()'
-                //         E x0 = new();
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("E").WithLocation(7, 16),
-                // (8,21): error CS8752: The type 'E' may not be used as the target-type of 'new()'
-                //         var x1 = (E)new();
-                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("E").WithLocation(8, 21)
-                );
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "00");
         }
 
         [Fact]
@@ -804,6 +801,62 @@ class C
                 // (9,14): error CS8752: The type '<anonymous type: int X>' may not be used as the target-type of 'new()'
                 //         x1 = new(2);
                 Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new(2)").WithArguments("<anonymous type: int X>").WithLocation(9, 14));
+        }
+
+        [Fact]
+        public void TestTargetType_CoClass_01()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class CoClassType : InterfaceType { }
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(CoClassType))]
+interface InterfaceType { }
+
+public class Program
+{
+    public static void Main()
+    {
+        InterfaceType a = new() { };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestTargetType_CoClass_02()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+public class GenericCoClassType<T, U> : NonGenericInterfaceType
+{
+    public GenericCoClassType(U x) { }
+}
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(GenericCoClassType<int, string>))]
+public interface NonGenericInterfaceType
+{
+}
+
+public class MainClass
+{
+    public static int Main()
+    {
+        NonGenericInterfaceType a = new(""string"");
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3224,9 +3277,9 @@ class C
 
             var comp = CreateCompilation(source, references: new[] { CSharpRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,11): error CS0143: The type 'dynamic' has no constructors defined
+                // (6,11): error CS8752: The type 'dynamic' may not be used as the target type of new()
                 //         F(new());
-                Diagnostic(ErrorCode.ERR_NoConstructors, "new()").WithArguments("dynamic").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("dynamic").WithLocation(6, 11)
                 );
         }
 
