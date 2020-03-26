@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedProject(newStateMap[projectId]);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(newStateMap[projectId]));
 
             return Branch(
                 solutionAttributes: newSolutionAttributes,
@@ -503,25 +503,20 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject.Id, newProject);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedProject(ProjectState projectState)
-        {
-            return CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(projectState));
-        }
-
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
             foreach (var documentState in documentStates)
             {
-                if (string.IsNullOrEmpty(documentState.FilePath))
+                var filePath = documentState.FilePath;
+
+                if (RoslynString.IsNullOrEmpty(filePath))
                 {
                     continue;
                 }
 
-                builder[documentState.FilePath!] = builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath)
-                    ? documentIdsWithPath.Add(documentState.Id)
-                    : ImmutableArray.Create(documentState.Id);
+                builder.MultiAdd(filePath, documentState.Id);
             }
 
             return builder.ToImmutable();
@@ -551,7 +546,7 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(_projectIdToProjectStateMap[projectId]));
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
@@ -562,35 +557,47 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedProject(ProjectState projectState)
-        {
-            return CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(projectState));
-        }
-
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
             foreach (var documentState in documentStates)
             {
-                if (string.IsNullOrEmpty(documentState.FilePath))
+                var filePath = documentState.FilePath;
+
+                if (RoslynString.IsNullOrEmpty(filePath))
                 {
                     continue;
                 }
 
-                if (!builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
                 {
                     throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
                 }
 
-                if (documentIdsWithPath.Length == 1)
-                {
-                    builder.Remove(documentState.FilePath!);
-                }
-                else
-                {
-                    builder[documentState.FilePath!] = documentIdsWithPath.Remove(documentState.Id);
-                }
+                builder.MultiRemove(filePath, documentState.Id);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
+        {
+            if (oldFilePath == newFilePath)
+            {
+                return _filePathToDocumentIdsMap;
+            }
+
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+
+            if (!RoslynString.IsNullOrEmpty(oldFilePath))
+            {
+                builder.MultiRemove(oldFilePath, documentId);
+            }
+
+            if (!RoslynString.IsNullOrEmpty(newFilePath))
+            {
+                builder.MultiAdd(newFilePath, documentId);
             }
 
             return builder.ToImmutable();
@@ -1371,7 +1378,14 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(oldProject != newProject);
 
             var oldDocument = oldProject.GetDocumentState(newDocument.Id);
-            return ForkProject(newProject, new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument));
+            Contract.ThrowIfNull(oldDocument);
+
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
+
+            return ForkProject(
+                newProject,
+                new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument),
+                newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
         private SolutionState UpdateAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
