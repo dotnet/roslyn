@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         var identifier = ((QueryBodySyntax)selectClause.Parent).Continuation.Identifier;
                         return AddToBlockTop(CreateLocalDeclarationStatement(identifier, selectClause.Expression, generateTypeFromExpression: true), statement);
                     default:
-                        throw new ArgumentException($"Unexpected node kind {node.Kind().ToString()}");
+                        throw new ArgumentException($"Unexpected node kind {node.Kind()}");
                 }
             }
 
