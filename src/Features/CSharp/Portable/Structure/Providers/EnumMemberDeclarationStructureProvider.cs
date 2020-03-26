@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal class FieldDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<FieldDeclarationSyntax>
+    internal class EnumMemberDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EnumMemberDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
-            FieldDeclarationSyntax fieldDeclaration,
+            EnumMemberDeclarationSyntax enumMemberDeclaration,
             ArrayBuilder<BlockSpan> spans,
             bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(fieldDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumMemberDeclaration, spans, isMetadataAsSource);
         }
     }
 }
