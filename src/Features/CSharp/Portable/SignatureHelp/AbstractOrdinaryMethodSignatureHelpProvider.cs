@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             IMethodSymbol method,
             int position,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            SemanticModel semanticModel)
         {
             return ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts: null);
         }

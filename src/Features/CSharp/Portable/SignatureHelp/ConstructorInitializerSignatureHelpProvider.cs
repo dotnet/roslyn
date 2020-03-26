@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
+                GetPostambleParts(),
                 constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             return item;
         }
@@ -160,10 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
-        {
-            return SpecializedCollections.SingletonList(
-                Punctuation(SyntaxKind.CloseParenToken));
-        }
+        private IList<SymbolDisplayPart> GetPostambleParts()
+            => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
     }
 }
