@@ -279,27 +279,19 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         private static bool IsMismatch(ISymbol methodOrProperty, int? parameterCount)
-        {
-            switch (methodOrProperty)
+            => methodOrProperty switch
             {
-                case IMethodSymbol method: return method.Parameters.Length != parameterCount;
-                case IPropertySymbol property: return property.Parameters.Length != parameterCount;
-            }
-
-            return false;
-        }
+                IMethodSymbol method => method.Parameters.Length != parameterCount,
+                IPropertySymbol property => property.Parameters.Length != parameterCount,
+                _ => false,
+            };
 
         private static IEnumerable<INamedTypeSymbol> GetTypeMembersRecursive(INamespaceOrTypeSymbol container)
-        {
-            switch (container)
+            => container switch
             {
-                case INamespaceSymbol namespaceSymbol:
-                    return namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n));
-                case INamedTypeSymbol typeSymbol:
-                    return typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol);
-                default:
-                    return null;
-            }
-        }
+                INamespaceSymbol namespaceSymbol => namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n)),
+                INamedTypeSymbol typeSymbol => typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol),
+                _ => null,
+            };
     }
 }

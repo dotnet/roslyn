@@ -112,19 +112,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             => new HighlightSpan(textSpan, HighlightSpanKind.None);
 
         private RegexToken GetCaptureToken(RegexEscapeNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case RegexBackreferenceEscapeNode backReference:
-                    return backReference.NumberToken;
-                case RegexCaptureEscapeNode captureEscape:
-                    return captureEscape.CaptureToken;
-                case RegexKCaptureEscapeNode kCaptureEscape:
-                    return kCaptureEscape.CaptureToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                RegexBackreferenceEscapeNode backReference => backReference.NumberToken,
+                RegexCaptureEscapeNode captureEscape => captureEscape.CaptureToken,
+                RegexKCaptureEscapeNode kCaptureEscape => kCaptureEscape.CaptureToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
