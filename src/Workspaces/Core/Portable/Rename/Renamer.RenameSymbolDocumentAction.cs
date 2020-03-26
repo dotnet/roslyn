@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         internal class RenameSymbolDocumentAction : RenameDocumentAction
         {
-            private readonly RenameSymbolDocumentActionAnalysis _analysis;
+            private readonly AnalysisResult _analysis;
 
             private RenameSymbolDocumentAction(
-                RenameSymbolDocumentActionAnalysis analysis,
+                AnalysisResult analysis,
                 OptionSet optionSet,
                 ImmutableArray<ErrorResource> errors)
                 : base(errors, optionSet)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution;
             }
 
-            private static async Task<SyntaxNode> GetMatchingTypeDeclarationAsync(Document document, string name, CancellationToken cancellationToken)
+            private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, string name, CancellationToken cancellationToken)
             {
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 return typeDeclarations.FirstOrDefault(d => syntaxFacts.GetDisplayName(d, DisplayNameOptions.None).Equals(name, StringComparison.OrdinalIgnoreCase));
             }
 
-            public static async Task<RenameSymbolDocumentAction?> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+            public static async Task<RenameSymbolDocumentAction?> TryCreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                var analysis = await RenameSymbolDocumentActionAnalysis.CreateAsync(document, newName, optionSet, cancellationToken).ConfigureAwait(false);
+                var analysis = await AnalysisResult.CreateAsync(document, newName, optionSet, cancellationToken).ConfigureAwait(false);
 
                 if (analysis.ShouldApplyAction)
                 {
@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 return null;
             }
 
-            private readonly struct RenameSymbolDocumentActionAnalysis
+            private readonly struct AnalysisResult
             {
                 public string OriginalDocumentName { get; }
                 public string NewDocumentName { get; }
                 public string NewSymbolName { get; }
                 public string? OriginalSymbolName { get; }
                 public bool ShouldApplyAction => OriginalSymbolName != null && NewSymbolName != OriginalSymbolName;
-                private RenameSymbolDocumentActionAnalysis(
+                private AnalysisResult(
                     Document document,
                     string newName,
                     ISymbol? symbol = null)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     OriginalSymbolName = symbol?.Name;
                 }
 
-                public static async Task<RenameSymbolDocumentActionAnalysis> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+                public static async Task<AnalysisResult> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
                 {
                     // TODO: Detect naming conflicts ahead of time
                     var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
@@ -103,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
-                        return new RenameSymbolDocumentActionAnalysis(document, newName, symbol);
+                        return new AnalysisResult(document, newName, symbol);
                     }
 
-                    return new RenameSymbolDocumentActionAnalysis(document, newName);
+                    return new AnalysisResult(document, newName);
                 }
             }
         }

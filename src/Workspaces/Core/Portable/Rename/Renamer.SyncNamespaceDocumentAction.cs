@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            public static Task<SyncNamespaceDocumentAction> CreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
+            public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
             {
                 var errors = new ArrayBuilder<ErrorResource>();
 
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 if (!analysisResult.SupportsSyncNamespace)
                 {
-                    errors.Add(new ErrorResource(nameof(WorkspacesResources.The_project_does_not_support_sync_namespace), new object[0]));
+                    return Task.FromResult<SyncNamespaceDocumentAction?>(null);
                 }
 
-                return Task.FromResult(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutableAndFree()));
+                return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutableAndFree()));
             }
 
             private static AnalysisResult Analyze(Document document)

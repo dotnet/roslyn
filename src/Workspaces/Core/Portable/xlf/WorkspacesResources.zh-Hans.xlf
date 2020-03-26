@@ -1302,11 +1302,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Sync namespace to folder structure</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_project_does_not_support_sync_namespace">
-        <source>The project does not support sync namespace</source>
-        <target state="new">The project does not support sync namespace</target>
-        <note>This is an error message generated to show that the project a document is in does not currently support the feature to sync namespaces</note>
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">visual basic 文件</target>

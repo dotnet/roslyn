@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             documentName: "IInterface.cs",
             newDocumentName: "IInterface2.cs");
 
-
         [Fact]
         public Task CSharp_RenameDocument_RenameEnum()
         => TestRenameDocument(
@@ -116,7 +115,6 @@ namespace Test
             return TestRenameDocument(originalDocuments, expectedDocuments);
         }
 
-
         [Fact]
         public Task CSharp_RenameDocument_NoRenameNamespace()
         => TestEmptyActionSet(
@@ -148,7 +146,6 @@ namespace Test
         documentName: @"Document.cs",
         newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
-
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
         => TestRenameDocument(
@@ -167,8 +164,6 @@ namespace Test
         documentPath: @"Test\Path\Document.cs",
         documentName: @"Document.cs",
         newDocumentPath: @"Test\Document.cs");
-
-
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespaceAndClass()
