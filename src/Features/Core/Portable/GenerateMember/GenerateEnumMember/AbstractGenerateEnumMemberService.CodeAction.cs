@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
     {
         private partial class GenerateEnumMemberCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
 
             public GenerateEnumMemberCodeAction(
-                TService service,
                 Document document,
                 State state)
             {
-                _service = service;
                 _document = document;
                 _state = state;
             }
