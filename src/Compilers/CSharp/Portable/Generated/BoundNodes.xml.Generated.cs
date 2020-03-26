@@ -9201,7 +9201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, type);
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
