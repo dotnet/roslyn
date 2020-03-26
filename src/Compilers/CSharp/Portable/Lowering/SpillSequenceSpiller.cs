@@ -677,18 +677,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic) break;
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
-                        var receiver = VisitExpression(ref leftBuilder, field.ReceiverOpt);
-                        receiver = Spill(builder, receiver, field.FieldSymbol.ContainingType.IsValueType ? RefKind.Ref : RefKind.None);
+                        var receiver = spillReceiver(field, ref leftBuilder);
                         left = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        // dummy field access for side effects
+                        Spill(leftBuilder, left, sideEffectsOnly: true);
                         break;
 
                     case BoundKind.ArrayAccess:
                         var arrayAccess = (BoundArrayAccess)left;
                         // array and indices are pushed on stack so need to spill that
                         var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
-                        expression = Spill(builder, expression, RefKind.None);
-                        var indices = this.VisitExpressionList(ref builder, arrayAccess.Indices, forceSpill: true);
+                        expression = Spill(leftBuilder, expression, RefKind.None);
+                        var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
                         left = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        // dummy array access for side effects
+                        Spill(leftBuilder, left, sideEffectsOnly: true);
                         break;
 
                     default:
@@ -710,6 +713,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
+
+            BoundExpression spillReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder)
+            {
+                if (field.FieldSymbol.ContainingType.IsReferenceType)
+                {
+                    // a reference type can always live across await so Spill using leftBuilder
+                    return Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt));
+                }
+                if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
+                {
+                    // an arrayAccess returns a ref so can only be called after the await, but spill expression and indices
+                    var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
+                    expression = Spill(leftBuilder, expression, RefKind.None);
+                    var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
+                    return arrayAccess.Update(expression, indices, arrayAccess.Type);
+                }
+                if (field.ReceiverOpt is BoundFieldAccess receiverField)
+                {
+                    var receiverReceiver = spillReceiver(receiverField, ref leftBuilder);
+                    return receiverField.Update(receiverReceiver, receiverField.FieldSymbol, receiverField.ConstantValueOpt, receiverField.ResultKind, receiverField.Type);
+                }
+                return Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt), RefKind.Ref);
+            }
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
