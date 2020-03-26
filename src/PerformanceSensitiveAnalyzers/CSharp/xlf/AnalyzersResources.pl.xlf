@@ -53,7 +53,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
         <target state="translated">To miejsce wywołania wywołuje funkcję z parametrem „params”. Powoduje to alokację tablicy.</target>
         <note />
       </trans-unit>
