@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -620,10 +622,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[M()]')
-  Children(1):
-      IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'M()')
-        Children(0)
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc int[M()]')
+      Children(1):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'M()')
+                Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(6,42): error CS0120: An object reference is required for the non-static field, method, or property 'C.M()'

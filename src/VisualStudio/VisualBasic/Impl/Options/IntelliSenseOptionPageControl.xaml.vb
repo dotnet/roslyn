@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
@@ -13,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             MyBase.New(optionStore)
             InitializeComponent()
 
-            BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
+            BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
             Show_completion_list_after_a_character_is_deleted.IsChecked = Me.OptionStore.GetOption(
                 CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic) <> False
 

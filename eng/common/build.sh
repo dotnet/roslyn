@@ -26,6 +26,7 @@ usage()
   echo "  --pack                     Package build outputs into NuGet packages and Willow components"
   echo "  --sign                     Sign build outputs"
   echo "  --publish                  Publish artifacts (e.g. symbols)"
+  echo "  --clean                    Clean the solution"
   echo ""
 
   echo "Advanced settings:"
@@ -35,7 +36,7 @@ usage()
   echo "  --nodeReuse <value>      Sets nodereuse msbuild parameter ('true' or 'false')"
   echo "  --warnAsError <value>    Sets warnaserror msbuild parameter ('true' or 'false')"
   echo ""
-  echo "Command line arguments starting with '/p:' are passed through to MSBuild."
+  echo "Command line arguments not listed above are passed thru to msbuild."
   echo "Arguments can also be passed in with a single hyphen."
 }
 
@@ -62,10 +63,12 @@ publish=false
 sign=false
 public=false
 ci=false
+clean=false
 
 warn_as_error=true
 node_reuse=true
 binary_log=false
+pipelines_log=false
 
 projects=''
 configuration='Debug'
@@ -81,6 +84,9 @@ while [[ $# > 0 ]]; do
       usage
       exit 0
       ;;
+    -clean)
+      clean=true
+      ;;
     -configuration|-c)
       configuration=$2
       shift
@@ -91,6 +97,9 @@ while [[ $# > 0 ]]; do
       ;;
     -binarylog|-bl)
       binary_log=true
+      ;;
+    -pipelineslog|-pl)
+      pipelines_log=true
       ;;
     -restore|-r)
       restore=true
@@ -137,22 +146,8 @@ while [[ $# > 0 ]]; do
       node_reuse=$2
       shift
       ;;
-    -p:*|/p:*)
-      properties="$properties $1"
-      ;;
-    -m:*|/m:*)
-      properties="$properties $1"
-      ;;
-    -bl:*|/bl:*)
-      properties="$properties $1"
-      ;;
-    -dl:*|/dl:*)
-      properties="$properties $1"
-      ;;
     *)
-      echo "Invalid argument: $1"
-      usage
-      exit 1
+      properties="$properties $1"
       ;;
   esac
 
@@ -160,6 +155,7 @@ while [[ $# > 0 ]]; do
 done
 
 if [[ "$ci" == true ]]; then
+  pipelines_log=true
   binary_log=true
   node_reuse=false
 fi
@@ -205,17 +201,16 @@ function Build {
   ExitWithExitCode 0
 }
 
-# Import custom tools configuration, if present in the repo.
-configure_toolset_script="$eng_root/configure-toolset.sh"
-if [[ -a "$configure_toolset_script" ]]; then
-  . "$configure_toolset_script"
+if [[ "$clean" == true ]]; then
+  if [ -d "$artifacts_dir" ]; then
+    rm -rf $artifacts_dir
+    echo "Artifacts directory deleted."
+  fi
+  exit 0
 fi
 
-# TODO: https://github.com/dotnet/arcade/issues/1468
-# Temporary workaround to avoid breaking change.
-# Remove once repos are updated.
-if [[ -n "${useInstalledDotNetCli:-}" ]]; then
-  use_installed_dotnet_cli="$useInstalledDotNetCli"
+if [[ "$restore" == true ]]; then
+  InitializeNativeTools
 fi
 
 Build

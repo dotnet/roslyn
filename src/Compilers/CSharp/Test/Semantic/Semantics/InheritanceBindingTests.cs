@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8698,9 +8700,9 @@ class C2 : I
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (14,29): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,29): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void I.Goo<T>(T? value) where T : struct { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "where").WithArguments("constraints for override and explicit interface implementation methods").WithLocation(14, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "where").WithArguments("constraints for override and explicit interface implementation methods", "8.0").WithLocation(14, 29)
                 );
         }
 
@@ -8761,9 +8763,9 @@ class Derived : Base
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (9,42): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,42): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public override void Goo<T>(T value) where T : class { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "where").WithArguments("constraints for override and explicit interface implementation methods").WithLocation(9, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "where").WithArguments("constraints for override and explicit interface implementation methods", "8.0").WithLocation(9, 42)
                 );
         }
 

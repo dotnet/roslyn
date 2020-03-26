@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -14,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKind.Interactive), Shared]
         internal class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
+            [ImportingConstructor]
+            public InteractiveTextBufferSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
             {
                 if (textBuffer != null)
@@ -52,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.Interactive), Shared]
         internal class InteractiveDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
+            [ImportingConstructor]
+            public InteractiveDocumentSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(Document document)
             {
                 // TODO: Implement this.

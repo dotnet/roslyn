@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -16,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
         Private Const BC42356 As String = NameOf(BC42356) ' This async method lacks 'Await' operators and so will run synchronously.
 
         Private Shared ReadOnly s_diagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC42356)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
@@ -53,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
                 newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf methodSymbol.ReturnType.OriginalDefinition Is knownTypes._taskType Then
+            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
                 ' Convert this to a 'Sub' method.
                 Dim subStatement = SyntaxFactory.SubStatement(
                     functionStatement.AttributeLists,

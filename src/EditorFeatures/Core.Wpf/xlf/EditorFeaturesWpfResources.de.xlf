@@ -17,6 +17,16 @@
         <target state="translated">Der IntelliSense-Index für "{0}" wird heruntergeladen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">Vorschläge werden gesammelt: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">Vorschläge werden gesammelt. Es wird darauf gewartet, dass die Lösung vollständig geladen wird.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">RegEx - Kommentar</target>
@@ -60,6 +70,11 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">RegEx - Anderes Escapezeichen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">Issues unterdrücken oder konfigurieren</target>
         <note />
       </trans-unit>
     </body>

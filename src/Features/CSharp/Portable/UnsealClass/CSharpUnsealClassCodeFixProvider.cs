@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsealClass
     internal sealed class CSharpUnsealClassCodeFixProvider : AbstractUnsealClassCodeFixProvider
     {
         private const string CS0509 = nameof(CS0509); // 'D': cannot derive from sealed type 'C'
+
+        [ImportingConstructor]
+        public CSharpUnsealClassCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0509);

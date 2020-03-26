@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
         private const string CS8345 = nameof(CS8345);
+
+        [ImportingConstructor]
+        public MakeRefStructCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8345);

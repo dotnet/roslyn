@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,48 +34,28 @@ namespace Microsoft.CodeAnalysis.Classification
             Workspace workspace,
             CancellationToken cancellationToken = default)
         {
-            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxClassificationService>();
+            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxClassificationService>();
 
             var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
 
-            var extensionManager = workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = workspace.Services.GetRequiredService<IExtensionManager>();
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
-            var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-            var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-            try
-            {
-                service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
-                service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
+            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
+            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
 
-                var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
-                var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
+            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
+            service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
 
-                allClassifications.AddRange(syntacticClassifications.Where(
-                    s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
-                allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
+            var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
+            var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
 
-                return allClassifications;
-            }
-            finally
-            {
-                syntacticClassifications.Free();
-                semanticClassifications.Free();
-            }
-        }
+            allClassifications.AddRange(syntacticClassifications.Where(
+                s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
+            allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-        internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            Document document,
-            TextSpan textSpan,
-            CancellationToken cancellationToken = default)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            return await GetClassifiedSymbolDisplayPartsAsync(
-                semanticModel, textSpan,
-                document.Project.Solution.Workspace,
-                cancellationToken).ConfigureAwait(false);
+            return allClassifications;
         }
 
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(

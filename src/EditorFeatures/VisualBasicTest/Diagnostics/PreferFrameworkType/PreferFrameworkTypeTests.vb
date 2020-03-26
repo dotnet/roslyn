@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict On
 
@@ -13,43 +15,43 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
     Partial Public Class PreferFrameworkTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly onWithInfo As New CodeStyleOption(Of Boolean)(True, NotificationOption.Suggestion)
-        Private ReadOnly offWithInfo As New CodeStyleOption(Of Boolean)(False, NotificationOption.Suggestion)
+        Private ReadOnly onWithInfo As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion)
+        Private ReadOnly offWithInfo As New CodeStyleOption2(Of Boolean)(False, NotificationOption2.Suggestion)
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(),
                     New PreferFrameworkTypeCodeFixProvider())
         End Function
 
-        Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey2, Object)
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Suggestion),
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Suggestion),
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeEverywhere As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property FrameworkTypeEverywhere As IDictionary(Of OptionKey2, Object)
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion),
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo, GetLanguage()))
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo, GetLanguage()))
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInDeclaration As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property FrameworkTypeInDeclaration As IDictionary(Of OptionKey2, Object)
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Suggestion),
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInMemberAccess As IDictionary(Of OptionKey, Object)
+        Private ReadOnly Property FrameworkTypeInMemberAccess As IDictionary(Of OptionKey2, Object)
             Get
                 Return OptionsSet(
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Suggestion),
-                    SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo, GetLanguage()))
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Suggestion),
+                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo, GetLanguage()))
             End Get
         End Property
 

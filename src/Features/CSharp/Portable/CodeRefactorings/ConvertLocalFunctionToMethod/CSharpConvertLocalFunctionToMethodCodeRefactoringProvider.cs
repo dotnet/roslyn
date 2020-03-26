@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,32 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
+        [ImportingConstructor]
+        public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var identifier = await root.SyntaxTree.GetTouchingTokenAsync(context.Span.Start,
-                token => token.Parent.IsKind(SyntaxKind.LocalFunctionStatement), cancellationToken).ConfigureAwait(false);
-            if (identifier == default)
-            {
-                return;
-            }
-
-            if (context.Span.Length > 0 &&
-                context.Span != identifier.Span)
-            {
-                return;
-            }
-
-            var localFunction = (LocalFunctionStatementSyntax)identifier.Parent;
-            if (localFunction.Identifier != identifier)
+            var localFunction = await context.TryGetRelevantNodeAsync<LocalFunctionStatementSyntax>().ConfigureAwait(false);
+            if (localFunction == null)
             {
                 return;
             }
@@ -61,8 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                localFunction.Span);
         }
 
         private static async Task<Document> UpdateDocumentAsync(
@@ -83,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             // First, create a parameter per each capture so that we can pass them as arguments to the final method
             // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
-            // We also make a `ref` parameter here for each capture that is being written into inside the funciton
+            // We also make a `ref` parameter here for each capture that is being written into inside the function
             var capturesAsParameters = captures
                 .Where(capture => !capture.IsThisParameter())
                 .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -121,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var defaultOptions = CodeGenerationOptions.Default;
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
-                document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var defaultOptions = new CodeGenerationOptions(options: options);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, root.SyntaxTree.Options);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -154,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 // Using symbol to get type arguments, since it could be inferred and not present in the source
                 var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
-                if (symbol?.OriginalDefinition != declaredSymbol)
+                if (!Equals(symbol?.OriginalDefinition, declaredSymbol))
                 {
                     continue;
                 }

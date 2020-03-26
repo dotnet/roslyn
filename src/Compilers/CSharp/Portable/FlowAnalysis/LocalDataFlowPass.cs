@@ -1,20 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : LocalDataFlowPass<TLocalState, TLocalFunctionState>.ILocalDataFlowState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
+        internal interface ILocalDataFlowState : ILocalState
+        {
+            /// <summary>
+            /// True if new variables introduced in <see cref="AbstractFlowPass{TLocalState, TLocalFunctionState}" /> should be set
+            /// to the bottom state. False if they should be set to the top state.
+            /// </summary>
+            bool NormalizeToBottom { get; }
+        }
+
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
         /// </summary>
@@ -24,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
         /// is used in the implementation of region analysis (support for extract method) to compute
         /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to <see cref="VariableIdentifier.ContainingSlot"/>, slot 0 indicates
+        /// that the variable in <see cref="VariableIdentifier.Symbol"/> is a root, i.e. not nested within another
+        /// tracked variable. Slots &lt; 0 are illegal.
         /// </summary>
         protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
 
@@ -32,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the index of the next slot number to use.
         /// </summary>
         protected int nextVariableSlot = 1;
+
+        private readonly int _maxSlotDepth;
 
         /// <summary>
         /// A cache for remember which structs are empty.
@@ -43,9 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments)
+            bool trackUnassignments,
+            int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }
 
@@ -88,14 +108,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
         }
 
+        protected virtual bool IsEmptyStructType(TypeSymbol type)
+        {
+            return _emptyStructTypeCache.IsEmptyStructType(type);
+        }
+
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
         protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
+            Debug.Assert(containingSlot >= 0);
+
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
+
+            if (containingSlot < 0)
+            {
+                // Error case. Diagnostics should already have been produced.
+                return -1;
+            }
 
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -104,7 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
                 var variableType = symbol.GetTypeOrReturnType().Type;
-                if (!forceSlotEvenIfEmpty && _emptyStructTypeCache.IsEmptyStructType(variableType))
+                if (!forceSlotEvenIfEmpty && IsEmptyStructType(variableType))
+                {
+                    return -1;
+                }
+
+                if (_maxSlotDepth > 0 && GetSlotDepth(containingSlot) >= _maxSlotDepth)
                 {
                     return -1;
                 }
@@ -132,6 +170,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return slot;
         }
 
+        private int GetSlotDepth(int slot)
+        {
+            int depth = 0;
+            while (slot > 0)
+            {
+                depth++;
+                slot = variableBySlot[slot].ContainingSlot;
+            }
+            return depth;
+        }
+
+        /// <summary>
+        /// Sets the starting state for any newly declared variables in the LocalDataFlowPass.
+        /// </summary>
         protected abstract void Normalize(ref TLocalState state);
 
         /// <summary>
@@ -147,17 +199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = symbol as TupleFieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+                TypeSymbol containingType = symbol.ContainingType;
 
                 // for tuple fields the variable identifier represents the underlying field
                 symbol = fieldSymbol.TupleUnderlyingField;
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if ((object)restField == null)
+                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
+                    if (restField is null)
                     {
                         return -1;
                     }
@@ -174,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type;
                 }
             }
 
@@ -188,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variableId = variableBySlot[slot];
             while (variableId.ContainingSlot > 0)
             {
-                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event);
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
                 variableId = variableBySlot[variableId.ContainingSlot];
             }
             return variableId.Symbol;
@@ -217,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        Debug.Assert((receiver is null) == member.IsStatic);
+                        Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);
                     }
                     break;
@@ -229,8 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
-            int containingSlot = -1;
-            if (!member.IsStatic)
+            int containingSlot;
+            if (member.RequiresInstanceReceiver())
             {
                 if (receiverOpt is null)
                 {
@@ -242,7 +295,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
             }
+            else
+            {
+                containingSlot = 0;
+            }
+
             return GetOrCreateSlot(member, containingSlot);
+        }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                ref var varInfo = ref variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -11,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
     Friend Class VisualBasicNameTupleElementCodeRefactoringProvider
         Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
             Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
-        End Function
-
-        Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
-            Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
         End Function
     End Class
 End Namespace

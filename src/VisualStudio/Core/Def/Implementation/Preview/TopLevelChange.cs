@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -17,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     {
         private readonly string _name;
         private readonly IComponentModel _componentModel;
-        private Solution _newSolution;
-        private Solution _oldSolution;
+        private readonly Solution _newSolution;
+        private readonly Solution _oldSolution;
         private readonly Glyph _glyph;
 
         public TopLevelChange(
@@ -82,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
                 // Apply file change to document.
                 ApplyFileChangesCore(oldTextDocument, updatedTextDocument?.Id, updatedDocumentTextOpt,
-                    fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                    fileChange.CheckState, fileChange.ChangedDocumentKind);
 
                 // Now apply file change to linked documents.
                 if (oldTextDocument is Document oldDocument)
@@ -95,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                         var newLinkedDocumentIdOpt = updatedDocumentTextOpt != null ? oldLinkedDocument.Id : null;
 
                         ApplyFileChangesCore(oldLinkedDocument, newLinkedDocumentIdOpt, updatedDocumentTextOpt,
-                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                            fileChange.CheckState, fileChange.ChangedDocumentKind);
                     }
                 }
                 else if (updatedTextDocument is Document updatedDocument)
@@ -103,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     foreach (var newLinkedDocumentId in updatedDocument.GetLinkedDocumentIds())
                     {
                         ApplyFileChangesCore(oldTextDocument, newLinkedDocumentId, updatedDocumentTextOpt,
-                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                            fileChange.CheckState, fileChange.ChangedDocumentKind);
                     }
                 }
             }
@@ -116,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 DocumentId updatedDocumentIdOpt,
                 SourceText updateDocumentTextOpt,
                 __PREVIEWCHANGESITEMCHECKSTATE checkState,
-                bool isAdditionalDoc)
+                TextDocumentKind changedDocumentKind)
             {
                 Debug.Assert(oldDocument != null || updatedDocumentIdOpt != null);
                 Debug.Assert((updatedDocumentIdOpt != null) == (updateDocumentTextOpt != null));
@@ -127,9 +130,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     // If unchecked, then remove this added document from new solution.
                     if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
-                        solution = isAdditionalDoc ?
-                            solution.RemoveAdditionalDocument(updatedDocumentIdOpt) :
-                            solution.RemoveDocument(updatedDocumentIdOpt);
+                        switch (changedDocumentKind)
+                        {
+                            case TextDocumentKind.Document:
+                                solution = solution.RemoveDocument(updatedDocumentIdOpt);
+                                break;
+
+                            case TextDocumentKind.AnalyzerConfigDocument:
+                                solution = solution.RemoveAnalyzerConfigDocument(updatedDocumentIdOpt);
+                                break;
+
+                            case TextDocumentKind.AdditionalDocument:
+                                solution = solution.RemoveAdditionalDocument(updatedDocumentIdOpt);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
+                        }
                     }
                 }
                 else if (updatedDocumentIdOpt == null)
@@ -139,9 +156,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
                         var oldText = oldDocument.GetTextAsync().Result.ToString();
-                        solution = isAdditionalDoc ?
-                            solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath) :
-                            solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+
+                        switch (changedDocumentKind)
+                        {
+                            case TextDocumentKind.Document:
+                                solution = solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            case TextDocumentKind.AnalyzerConfigDocument:
+                                solution = solution.AddAnalyzerConfigDocument(oldDocument.Id, oldDocument.Name, SourceText.From(oldText), oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            case TextDocumentKind.AdditionalDocument:
+                                solution = solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
+                        }
                     }
                 }
                 else
@@ -149,9 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     Debug.Assert(oldDocument.Id == updatedDocumentIdOpt);
 
                     // Changed document.
-                    solution = isAdditionalDoc ?
-                        solution.WithAdditionalDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt) :
-                        solution.WithDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt);
+                    solution = solution.WithTextDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt, mode: PreservationMode.PreserveValue);
                 }
             }
         }

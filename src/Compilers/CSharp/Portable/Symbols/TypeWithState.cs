@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 
@@ -18,19 +20,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeWithState ForType(TypeSymbol type)
         {
-            var state = type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-            return new TypeWithState(type, state);
+            return Create(type, NullableFlowState.MaybeDefault);
         }
 
         public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
         {
-            var state = defaultState == NullableFlowState.MaybeNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            if (defaultState == NullableFlowState.MaybeDefault &&
+                (type is null || type.IsTypeParameterDisallowingAnnotation()))
+            {
+                Debug.Assert(type?.IsNullableTypeOrTypeParameter() != true);
+                return new TypeWithState(type, defaultState);
+            }
+            var state = defaultState != NullableFlowState.NotNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
             return new TypeWithState(type, state);
+        }
+
+        public static TypeWithState Create(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None)
+        {
+            var type = typeWithAnnotations.Type;
+            Debug.Assert((object)type != null);
+
+            NullableFlowState state;
+            if (type.CanContainNull())
+            {
+                if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
+                {
+                    state = NullableFlowState.MaybeDefault;
+                }
+                else if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
+                {
+                    state = NullableFlowState.NotNull;
+                }
+                else
+                {
+                    return typeWithAnnotations.ToTypeWithState();
+                }
+            }
+            else
+            {
+                state = NullableFlowState.NotNull;
+            }
+
+            return Create(type, state);
         }
 
         private TypeWithState(TypeSymbol type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
+            Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotation());
             Type = type;
             State = state;
         }
@@ -43,9 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
 
+        public TypeWithState WithSuppression(bool suppress) => suppress ? new TypeWithState(Type, NullableFlowState.NotNull) : this;
+
         public TypeWithAnnotations ToTypeWithAnnotations()
         {
             NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
+                ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+            return TypeWithAnnotations.Create(this.Type, annotation);
+        }
+
+        public TypeWithAnnotations ToAnnotatedTypeWithAnnotations()
+        {
+            NullableAnnotation annotation = (Type?.IsTypeParameterDisallowingAnnotation() == true || Type?.IsValueType == true)
                 ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
             return TypeWithAnnotations.Create(this.Type, annotation);
         }

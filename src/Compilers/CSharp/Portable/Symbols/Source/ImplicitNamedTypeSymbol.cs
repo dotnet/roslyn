@@ -1,16 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -29,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -94,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return ImmutableArray<TypeWithAnnotations>.Empty; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed; }
         }
 
         internal override bool IsComImport

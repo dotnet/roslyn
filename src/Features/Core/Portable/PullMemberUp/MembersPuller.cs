@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.  
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     modifiers: modifiers);
                 var options = new CodeGenerationOptions(generateMethodBodies: false);
                 var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
-                // Insert a new declaration and remove the orginal declaration
+                // Insert a new declaration and remove the original declaration
                 editor.InsertAfter(declaration, publicAndNonStaticSyntax);
                 editor.RemoveNode(eventDeclaration);
             }
@@ -254,19 +256,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
 
             // Remove some original members since we are pulling members into class.
-            // Note: If user chooses to make the member abstract, then the original member won't be touched,
-            // It will just pull a abstract declaration up to destination.
+            // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
+            // and it will pull an abstract declaration up to the destination.
             // But if the member is abstract itself, it will still be removed.
             foreach (var analysisResult in result.MemberAnalysisResults)
             {
-                if (!analysisResult.MakeMemberDeclarationAbstract)
+                foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                 {
-                    foreach (var syntax in symbolToDeclarations[analysisResult.Member])
+                    var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
+                        solution.GetDocumentId(syntax.SyntaxTree),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
-                        var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
-                            solution.GetDocumentId(syntax.SyntaxTree),
-                            cancellationToken).ConfigureAwait(false);
                         originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
+                    }
+                    else
+                    {
+                        var declarationSyntax = originalMemberEditor.Generator.GetDeclaration(syntax);
+                        originalMemberEditor.ReplaceNode(declarationSyntax, (node, generator) => generator.WithModifiers(node, DeclarationModifiers.Override));
                     }
                 }
             }

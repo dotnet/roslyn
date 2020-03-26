@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,8 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -239,6 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
@@ -296,6 +301,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return _lazyReturnType;
             }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
@@ -598,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                         var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-                        body = LambdaRewriter.Rewrite(
+                        body = ClosureConversion.Rewrite(
                             loweredBody: body,
                             thisType: this.SubstitutedSourceMethod.ContainingType,
                             thisParameter: _thisParameter,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds, CancellationToken cancellationToken)
+        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
         {
             foreach (var language in projectIds.Select(p => solution.GetProject(p).Language).Distinct())
             {
@@ -308,11 +310,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             var renameDeclarationLocations = new RenameDeclarationLocationReference[symbols.Count()];
 
-            int symbolIndex = 0;
+            var symbolIndex = 0;
             foreach (var symbol in symbols)
             {
                 var locations = symbol.Locations;
-                bool overriddenFromMetadata = false;
+                var overriddenFromMetadata = false;
 
                 if (symbol.IsOverride)
                 {
@@ -328,11 +330,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var location = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
                 if (location != null && location.IsInSource)
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
                 }
                 else
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Count());
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Length);
                 }
 
                 symbolIndex++;
@@ -387,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             var index = 0;
             index = newMetadataName.IndexOf(replacementText, 0);
-            StringBuilder newMetadataNameBuilder = new StringBuilder();
+            var newMetadataNameBuilder = new StringBuilder();
 
             // Every loop updates the newMetadataName to resemble the oldMetadataName
             while (index != -1 && index < oldMetadataName.Length)
@@ -420,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             int index)
         {
             Debug.Assert(index <= str1.Length && index <= str2.Length, "Index cannot be greater than the string");
-            int currentIndex = 0;
+            var currentIndex = 0;
             while (currentIndex < index)
             {
                 if (str1[currentIndex] != str2[currentIndex])

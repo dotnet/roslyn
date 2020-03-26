@@ -1,16 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool topLevel, TArg arg);
+
     internal partial class SourceMemberContainerTypeSymbol
     {
         /// <summary>
@@ -383,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfacePropertyOrEvent).Symbol;
+                implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterface(interfacePropertyOrEvent);
             }
 
             // If the property or event wasn't implemented, then we'd prefer to report diagnostics about that.
@@ -436,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = HasBaseTypeDeclaringInterfaceResult.ExactMatch;
                     return true;
                 }
-                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, TypeSymbol.EqualsIgnoringNullableComparer))
+                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     result = HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch;
                 }
@@ -633,15 +638,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNewModifier(Symbol symbol, bool isNew, DiagnosticBag diagnostics)
         {
-            // for error cases
-            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
-            {
-                return;
-            }
+            Debug.Assert(symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.NamedType);
 
             // Do not give warnings about missing 'new' modifier for implicitly declared members,
             // e.g. backing fields for auto-properties
             if (symbol.IsImplicitlyDeclared)
+            {
+                return;
+            }
+
+            if (symbol.ContainingType.IsInterface)
+            {
+                CheckNonOverrideMember(symbol, isNew,
+                                       OverriddenOrHiddenMembersHelpers.MakeInterfaceOverriddenOrHiddenMembers(symbol, memberIsFromSomeCompilation: true),
+                                       diagnostics, out _);
+                return;
+            }
+
+            // for error cases
+            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
             {
                 return;
             }
@@ -875,23 +890,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (overridingProperty.GetMethod is object)
                                 {
+                                    MethodSymbol overriddenGetMethod = overriddenProperty.GetOwnOrInheritedGetMethod();
                                     checkValidNullableMethodOverride(
                                         overridingProperty.GetMethod.Locations[0],
-                                        overriddenProperty.GetMethod,
+                                        overriddenGetMethod,
                                         overridingProperty.GetMethod,
                                         diagnostics,
+                                        checkReturnType: true,
                                         // Don't check parameters on the getter if there is a setter
                                         // because they will be a subset of the setter
-                                        checkParameters: overridingProperty.SetMethod is null);
+                                        checkParameters: overridingProperty.SetMethod is null ||
+                                                         overriddenGetMethod?.AssociatedSymbol != overriddenProperty ||
+                                                         overriddenProperty.GetOwnOrInheritedSetMethod()?.AssociatedSymbol != overriddenProperty);
                                 }
 
                                 if (overridingProperty.SetMethod is object)
                                 {
                                     checkValidNullableMethodOverride(
                                         overridingProperty.SetMethod.Locations[0],
-                                        overriddenProperty.SetMethod,
+                                        overriddenProperty.GetOwnOrInheritedSetMethod(),
                                         overridingProperty.SetMethod,
                                         diagnostics,
+                                        checkReturnType: false,
                                         checkParameters: true);
                                 }
                             }
@@ -938,13 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                checkValidNullableMethodOverride(
-                                    overridingMemberLocation,
-                                    overriddenEvent.AddMethod,
-                                    overridingEvent.AddMethod,
-                                    diagnostics,
-                                    checkParameters: true);
-                                // Don't check remove method because the result is the same
+                                CheckValidNullableEventOverride(overridingEvent.DeclaringCompilation, overriddenEvent, overridingEvent,
+                                                                diagnostics,
+                                                                (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
+                                                                overridingMemberLocation);
                             }
                         }
                         else
@@ -985,6 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     overriddenMethod,
                                     overridingMethod,
                                     diagnostics,
+                                    checkReturnType: true,
                                     checkParameters: true);
                             }
                         }
@@ -1030,61 +1048,117 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
                 DiagnosticBag diagnostics,
+                bool checkReturnType,
                 bool checkParameters)
             {
-                var compilation = overridingMethod.DeclaringCompilation;
-                if (overriddenMethod is null ||
-                    overridingMethod is null ||
-                    compilation is null ||
-                    !compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes))
-                {
-                    // Don't do any validation if the nullable feature is not enabled or
-                    // the override is not written directly in source
-                    return;
-                }
+                CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
+                                                 checkReturnType ? ReportBadReturn : null,
+                                                 checkParameters ? ReportBadParameter : null,
+                                                 overridingMemberLocation);
+            }
+        }
 
-                var conversions = compilation.Conversions.WithNullability(true);
+        static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
+            => diagnostics.Add(topLevel ?
+                ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
+                ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
+                location);
+
+        static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
+            => diagnostics.Add(
+                topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
+                location,
+                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
+
+        internal static void CheckValidNullableMethodOverride<TArg>(
+            CSharpCompilation compilation,
+            MethodSymbol overriddenMethod,
+            MethodSymbol overridingMethod,
+            DiagnosticBag diagnostics,
+            ReportMismatchinReturnType<TArg> reportMismatchInReturnType,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
+            TArg extraArgument)
+        {
+            if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
+            {
+                return;
+            }
+
+            if ((overriddenMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
+                (overridingMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
+            {
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overridingMethod.Locations[0], new FormattedSymbol(overridingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            var conversions = compilation.Conversions.WithNullability(true);
+            if (reportMismatchInReturnType != null)
+            {
+                // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
                         overridingMethod.RefKind,
+                        overridingMethod.ReturnTypeWithAnnotations.Type,
+                        overriddenMethod.ReturnTypeWithAnnotations.Type))
+                {
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                    return;
+                }
+
+                // check top-level nullability including flow analysis annotations
+                if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                        overriddenMethod.ReturnTypeWithAnnotations,
+                        overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
                         overridingMethod.ReturnTypeWithAnnotations,
-                        overriddenMethod.ReturnTypeWithAnnotations))
+                        overridingMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
                     return;
                 }
+            }
 
-                if (!checkParameters)
+            if (reportMismatchInParameterType == null)
+            {
+                return;
+            }
+
+            ImmutableArray<ParameterSymbol> overridingParameters = overridingMethod.GetParameters();
+            var overriddenParameters = overriddenMethod.GetParameters();
+
+            for (int i = 0; i < overriddenMethod.ParameterCount; i++)
+            {
+                var overriddenParameter = overriddenParameters[i];
+                var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
+                var overridingParameter = overridingParameters[i];
+                var overridingParameterType = overridingParameter.TypeWithAnnotations;
+                // check nested nullability
+                if (!isValidNullableConversion(
+                        conversions,
+                        overridingParameter.RefKind,
+                        overriddenParameterType.Type,
+                        overridingParameterType.Type))
                 {
-                    return;
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
                 }
-
-                ImmutableArray<ParameterSymbol> overridingParameters = overridingMethod.GetParameters();
-                var overriddenParameters = overriddenMethod.GetParameters();
-
-                for (int i = 0; i < overriddenMethod.ParameterCount; i++)
+                // check top-level nullability including flow analysis annotations
+                else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingParameter.RefKind,
+                        overriddenParameterType,
+                        overriddenParameter.FlowAnalysisAnnotations,
+                        overridingParameterType,
+                        overridingParameter.FlowAnalysisAnnotations))
                 {
-                    var overriddenParameterType = overriddenParameters[i].TypeWithAnnotations;
-                    var overridingParameterType = overridingParameters[i].TypeWithAnnotations;
-                    if (!isValidNullableConversion(
-                            conversions,
-                            overridingParameters[i].RefKind,
-                            overriddenParameterType,
-                            overridingParameterType))
-                    {
-                        diagnostics.Add(
-                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
-                            overridingMemberLocation,
-                            new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
-                    }
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
                 }
             }
 
             static bool isValidNullableConversion(
                 ConversionsBase conversions,
                 RefKind refKind,
-                TypeWithAnnotations sourceType,
-                TypeWithAnnotations targetType)
+                TypeSymbol sourceType,
+                TypeSymbol targetType)
             {
                 switch (refKind)
                 {
@@ -1102,7 +1176,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         break;
                 }
-                return conversions.HasAnyNullabilityImplicitConversion(sourceType, targetType);
+
+                Debug.Assert(conversions.IncludeNullability);
+                HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                return conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref discardedDiagnostics).Kind != ConversionKind.NoConversion;
+            }
+        }
+
+        private static bool PerformValidNullableOverrideCheck(
+            CSharpCompilation compilation,
+            Symbol overriddenMember,
+            Symbol overridingMember)
+        {
+            // Don't do any validation if the nullable feature is not enabled or
+            // the override is not written directly in source
+            return overriddenMember is object &&
+                   overridingMember is object &&
+                   compilation is object &&
+                   compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+        }
+
+        internal static void CheckValidNullableEventOverride<TArg>(
+            CSharpCompilation compilation,
+            EventSymbol overriddenEvent,
+            EventSymbol overridingEvent,
+            DiagnosticBag diagnostics,
+            Action<DiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch,
+            TArg extraArgument)
+        {
+            if (!PerformValidNullableOverrideCheck(compilation, overriddenEvent, overridingEvent))
+            {
+                return;
+            }
+
+            var conversions = compilation.Conversions.WithNullability(true);
+            if (!conversions.HasAnyNullabilityImplicitConversion(overriddenEvent.TypeWithAnnotations, overridingEvent.TypeWithAnnotations))
+            {
+                reportMismatch(diagnostics, overriddenEvent, overridingEvent, extraArgument);
             }
         }
 

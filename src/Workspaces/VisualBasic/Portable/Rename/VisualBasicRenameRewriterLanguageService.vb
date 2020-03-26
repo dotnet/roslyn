@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -12,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -198,6 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 Me._speculativeModel = GetSemanticModelForNode(speculativeNewNode, Me._semanticModel)
                 Debug.Assert(_speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
+
+                ' There are cases when we change the type of node to make speculation work (e.g.,
+                ' for AsNewClauseSyntax), so getting the newNode from the _speculativeModel 
+                ' ensures the final node replacing the original node is found.
+                probableRenameNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
+                speculativeNewNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotationForSpeculativeNode).First()
+
                 Dim renamedNode = MyBase.Visit(probableRenameNode)
 
                 If Not ReferenceEquals(renamedNode, probableRenameNode) Then
@@ -258,6 +268,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Async Function RenameAndAnnotateAsync(token As SyntaxToken, newToken As SyntaxToken, isRenameLocation As Boolean, isOldText As Boolean) As Task(Of SyntaxToken)
+                If newToken.IsKind(SyntaxKind.NewKeyword) Then
+                    ' The constructor definition cannot be renamed in Visual Basic
+                    Return newToken
+                End If
+
                 If Me._isProcessingComplexifiedSpans Then
                     If isRenameLocation Then
                         Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
@@ -551,8 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         ' or the replacement itself is escaped.
                         newToken = newToken.WithAdditionalAnnotations(Simplifier.Annotation)
                     Else
-                        Dim semanticModel = GetSemanticModelForNode(parent, If(Me._speculativeModel, Me._semanticModel))
-                        newToken = Simplification.VisualBasicSimplificationService.TryEscapeIdentifierToken(newToken, semanticModel, oldToken)
+                        newToken = TryEscapeIdentifierToken(newToken)
                     End If
                 End If
 

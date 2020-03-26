@@ -132,24 +132,43 @@
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
   </data>
-  <data name="Misplaced_using_directive" xml:space="preserve">
-    <value>Misplaced using directive</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  <data name="Chosen_version_0" xml:space="preserve">
+    <value>Chosen version: '{0}'</value>
   </data>
-  <data name="Move_misplaced_using_directives" xml:space="preserve">
-    <value>Move misplaced using directives</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  <data name="Could_not_find_by_name_0" xml:space="preserve">
+    <value>Could not find by name: '{0}'</value>
   </data>
-  <data name="Using_directives_must_be_placed_inside_of_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed inside of a namespace declaration</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  <data name="Decompilation_log" xml:space="preserve">
+    <value>Decompilation log</value>
   </data>
-  <data name="Using_directives_must_be_placed_outside_of_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed outside of a namespace declaration</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  <data name="Found_0_assemblies_for_1" xml:space="preserve">
+    <value>Found '{0}' assemblies for '{1}':</value>
   </data>
-  <data name="Warning_colon_Moving_using_directives_may_change_code_meaning" xml:space="preserve">
-    <value>Warning: Moving using directives may change code meaning.</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  <data name="Found_exact_match_0" xml:space="preserve">
+    <value>Found exact match: '{0}'</value>
+  </data>
+  <data name="Found_higher_version_match_0" xml:space="preserve">
+    <value>Found higher version match: '{0}'</value>
+  </data>
+  <data name="Found_single_assembly_0" xml:space="preserve">
+    <value>Found single assembly: '{0}'</value>
+  </data>
+  <data name="Load_from_0" xml:space="preserve">
+    <value>Load from: '{0}'</value>
+  </data>
+  <data name="Module_not_found" xml:space="preserve">
+    <value>Module not found!</value>
+  </data>
+  <data name="Resolve_0" xml:space="preserve">
+    <value>Resolve: '{0}'</value>
+  </data>
+  <data name="Resolve_module_0_of_1" xml:space="preserve">
+    <value>Resolve module: '{0}' of '{1}'</value>
+  </data>
+  <data name="WARN_Version_mismatch_Expected_0_Got_1" xml:space="preserve">
+    <value>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</value>
+  </data>
+  <data name="_0_items_in_cache" xml:space="preserve">
+    <value>'{0}' items in cache</value>
   </data>
 </root>

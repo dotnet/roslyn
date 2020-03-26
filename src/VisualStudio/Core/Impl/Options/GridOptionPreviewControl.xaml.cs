@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -53,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions.AllOptions);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.Concat(CodeStyleOptions.AllOptions));
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.AllOptions.As<IOption>());
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -115,7 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
-                Title = ServicesVSResources.Save_dot_editorconfig_file
+                Title = ServicesVSResources.Save_dot_editorconfig_file,
+                InitialDirectory = GetInitialDirectory()
             })
             {
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -127,6 +131,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     });
                 }
             };
+        }
+
+        private static string GetInitialDirectory()
+        {
+            var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+            if (solution is object)
+            {
+                if (!ErrorHandler.Failed(solution.GetSolutionInfo(out _, out var solutionFilePath, out _)))
+                {
+                    return Path.GetDirectoryName(solutionFilePath);
+                }
+            }
+
+            // returning an empty string will cause SaveFileDialog to use the directory from which 
+            // the user last selected a file
+            return string.Empty;
         }
     }
 }

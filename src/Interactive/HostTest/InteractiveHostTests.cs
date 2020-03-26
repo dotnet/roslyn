@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 extern alias InteractiveHost;
 
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
+            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             RedirectOutput();
 
@@ -1159,7 +1161,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith(new Exception().Message));
+            Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
@@ -1173,7 +1175,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             var error = ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
         }
 
         [Fact]

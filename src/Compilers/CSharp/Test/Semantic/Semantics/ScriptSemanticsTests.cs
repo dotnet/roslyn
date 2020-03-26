@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -401,7 +403,7 @@ G();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
-            Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
+            Assert.IsAssignableFrom<NamespaceSymbol>(members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
 
@@ -595,7 +597,7 @@ this[1]
                     var type = (NamedTypeSymbol)symbol;
                     Assert.False(type.IsScriptClass);
                     Assert.False(type.IsSubmissionClass);
-                    Assert.NotEqual(type.TypeKind, TypeKind.Submission);
+                    Assert.NotEqual(TypeKind.Submission, type.TypeKind);
                 }
             }
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -29,10 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
+        [ImportingConstructor]
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
         {
         }
+
+        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 return default;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
             if (returnedType == null)
             {
@@ -110,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
 
             // Local functions
-            (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
+            static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
                 switch (containingMember)
                 {
@@ -129,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 }
             }
 
-            bool IsAsync(SyntaxTokenList modifiers)
+            static bool IsAsync(SyntaxTokenList modifiers)
             {
                 return modifiers.Any(SyntaxKind.AsyncKeyword);
             }

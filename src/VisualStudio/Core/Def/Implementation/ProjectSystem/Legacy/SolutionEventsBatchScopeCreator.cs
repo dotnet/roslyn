@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -68,9 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            foreach (var scope in _fullSolutionLoadScopes)
+            foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
             {
-                scope.batchScope.Dispose();
+                batchScope.Dispose();
             }
 
             _fullSolutionLoadScopes.Clear();
@@ -82,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            for (int i = 0; i < _fullSolutionLoadScopes.Count; i++)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
                 if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
                 {
@@ -109,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
 
             // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
-            // projects are unloaded, but it seems fairly unecessary -- it'd only be useful if somebody closed one solution but then
+            // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
             // opened other solutions in entirely different languages from there.
             if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
             {
@@ -191,14 +195,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return VSConstants.S_OK;
             }
 
-            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
+                _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
 
                 return VSConstants.S_OK;
             }
 
             #region Unimplemented Members
+
+            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            {
+                return VSConstants.E_NOTIMPL;
+            }
 
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
             {
@@ -226,11 +236,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 return VSConstants.E_NOTIMPL;
             }

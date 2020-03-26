@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -177,6 +179,23 @@ namespace Roslyn.Test.Utilities
         public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
+        }
+
+        public static void Equal(string expected, string actual)
+        {
+            if (string.Equals(expected, actual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var message = new StringBuilder();
+            message.AppendLine();
+            message.AppendLine("Expected:");
+            message.AppendLine(expected);
+            message.AppendLine("Actual:");
+            message.AppendLine(actual);
+
+            Assert.True(false, message.ToString());
         }
 
         public static void Equal<T>(
@@ -590,7 +609,7 @@ namespace Roslyn.Test.Utilities
         {
             if (itemInspector == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
@@ -602,7 +621,7 @@ namespace Roslyn.Test.Utilities
 
             if (itemSeparator == null)
             {
-                if (expected is IEnumerable<byte>)
+                if (typeof(T) == typeof(byte))
                 {
                     itemSeparator = ", ";
                 }

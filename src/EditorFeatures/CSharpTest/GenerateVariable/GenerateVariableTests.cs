@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,21 +27,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         private const int ReadonlyFieldIndex = 1;
         private const int PropertyIndex = 2;
         private const int LocalIndex = 3;
+        private const int Parameter = 4;
+        private const int ParameterAndOverrides = 5;
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() => OptionsSet(
+        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
+        internal IDictionary<OptionKey2, object> OptionSet(OptionKey2 option, object value)
         {
-            var options = new Dictionary<OptionKey, object>();
+            var options = new Dictionary<OptionKey2, object>();
             options.Add(option, value);
             return options;
         }
@@ -206,6 +210,62 @@ index: PropertyIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Class
+{
+    void Method(string? s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+class Class
+{
+    private string? goo;
+
+    void Method(string? s)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    void Method(IEnumerable<string?> s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    private IEnumerable<string?> goo;
+
+    void Method(IEnumerable<string?> s)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSimpleWriteCount()
         {
             await TestExactActionSetOfferedAsync(
@@ -216,7 +276,27 @@ index: PropertyIndex);
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleWriteInOverrideCount()
+        {
+            await TestExactActionSetOfferedAsync(
+@"
+abstract class Base
+{
+    public abstract void Method(int i);
+}
+
+class Class : Base
+{
+    public override void Method(int i)
+    {
+        [|goo|] = 1;
+    }
+}",
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -371,7 +451,7 @@ class Class
         Method(out [|goo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2001,7 +2081,7 @@ class D
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
 
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -3851,6 +3931,74 @@ index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        string? bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(IEnumerable<string?> s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        IEnumerable<string?> bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(IEnumerable<string?> s)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalMissingForVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4513,7 +4661,7 @@ class C
 #line hidden
 }
 ";
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar") });
 
             await TestInRegularAndScriptAsync(code,
 @"
@@ -4542,7 +4690,7 @@ class MyAttrAttribute : Attribute
 {
 }
 
-[MyAttr(123, [|Version|] = 1)]
+[MyAttr(123, [|Value|] = 1)]
 class D
 {
 }",
@@ -4551,10 +4699,10 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    public int Version { get; set; }
+    public int Value { get; set; }
 }
 
-[MyAttr(123, Version = 1)]
+[MyAttr(123, Value = 1)]
 class D
 {
 }");
@@ -8652,7 +8800,8 @@ class C
     class Blah
     {
     }
-}",
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"
 class C
 {
@@ -8668,7 +8817,8 @@ class C
     {
         public (int y, int z) X { get; internal set; }
     }
-}");
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
@@ -8781,6 +8931,48 @@ class C
     class Blah
     {
         public object X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPatternWithNullablePattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { [|X|]: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { X: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, object? z) X { get; internal set; }
     }
 }");
         }
@@ -8939,6 +9131,144 @@ class C
         public int X;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|goo|];
+    }
+}",
+@"class Class
+{
+    void Method(object goo)
+    {
+        goo;
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameter_DoesntAddToInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class
+{
+    public void Method()
+    {
+        [|goo|];
+    }
+}",
+@"interface Interface
+{
+    void Method();
+}
+
+class Class
+{
+    public void Method(object goo)
+    {
+        [|goo|];
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterAndOverrides_AddsToInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class : Interface
+{
+    public void Method()
+    {
+        [|goo|];
+    }
+}",
+@"interface Interface
+{
+    void Method(object goo);
+}
+
+class Class : Interface
+{
+    public void Method(object goo)
+    {
+        [|goo|];
+    }
+}", index: ParameterAndOverrides);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterIsOfCorrectType()
+        {
+            await TestInRegularAndScriptAsync(
+    @"class Class
+{
+    void Method()
+    {
+        M1([|goo|]);
+    }
+
+    void M1(int a);
+}",
+    @"class Class
+{
+    void Method(int goo)
+    {
+        M1(goo);
+    }
+
+    void M1(int a);
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterAndOverrides_IsOfCorrectType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class : Interface
+{
+    public void Method()
+    {
+        M1([|goo|]);
+    }
+
+    void M1(int a);
+}",
+@"interface Interface
+{
+    void Method(int goo);
+}
+
+class Class : Interface
+{
+    public void Method(int goo)
+    {
+        M1(goo);
+    }
+
+    void M1(int a);
+}", index: ParameterAndOverrides);
         }
     }
 }

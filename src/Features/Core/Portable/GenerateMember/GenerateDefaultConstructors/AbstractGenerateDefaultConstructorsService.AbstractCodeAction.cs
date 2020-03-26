@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,9 +59,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     : default;
 
                 var classType = _state.ClassType;
-                var accessibility = baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass()
-                    ? Accessibility.Public
-                    : baseConstructor.DeclaredAccessibility;
+                var accessibility = DetermineAccessibility(baseConstructor, classType);
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: accessibility,
@@ -69,6 +68,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     parameters: baseConstructor.Parameters,
                     statements: default,
                     baseConstructorArguments: baseConstructorArguments);
+            }
+
+            private static Accessibility DetermineAccessibility(IMethodSymbol baseConstructor, INamedTypeSymbol classType)
+            {
+                if (baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass())
+                    return Accessibility.Public;
+
+                if (classType.IsSealed)
+                {
+                    // remove protected as it makes no sense in a sealed type.
+                    switch (baseConstructor.DeclaredAccessibility)
+                    {
+                        case Accessibility.Protected:
+                            return Accessibility.Public;
+                        case Accessibility.ProtectedAndInternal:
+                        case Accessibility.ProtectedOrInternal:
+                            return Accessibility.Internal;
+                    }
+                }
+
+                // Defer to whatever the base constructor was declared as.
+                return baseConstructor.DeclaredAccessibility;
             }
         }
     }

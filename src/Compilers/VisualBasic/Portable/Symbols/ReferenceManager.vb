@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -94,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Protected Overrides Function CreateAssemblyDataForFile(assembly As PEAssembly,
-                                                                   cachedSymbols As WeakList(Of IAssemblySymbol),
+                                                                   cachedSymbols As WeakList(Of IAssemblySymbolInternal),
                                                                    documentationProvider As DocumentationProvider,
                                                                    sourceAssemblySimpleName As String,
                                                                    importOptions As MetadataImportOptions,
@@ -224,7 +227,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
-                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False))
+                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(
+                    Function(unified, refAsmByIdentity) refAsmByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False), referencedAssembliesByIdentity)
+
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then
@@ -242,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If map.TryGetValue(identity, symbol, Function(v1, v2, s) True) Then
                     ' TODO: https://github.com/dotnet/roslyn/issues/9004
-                    Throw New NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}")
+                    Throw New NotSupportedException(String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging, identity, symbol.Identity.Version))
                 End If
 
                 Return New MissingAssemblySymbol(identity)
@@ -320,6 +325,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
                     Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
+                    ' Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+                    ' which would not match the previously created ones. As a result we would get duplicate PE types And conversion errors.
+                    Dim implicitReferenceResolutions = If(compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions,
+                        ImmutableDictionary(Of AssemblyIdentity, PortableExecutableReference).Empty)
+
                     Dim bindingResult() As BoundInputAssembly = Bind(compilation,
                                                                      explicitAssemblyData,
                                                                      modules,
@@ -332,6 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      allAssemblyData,
                                                                      implicitlyResolvedReferences,
                                                                      implicitlyResolvedReferenceMap,
+                                                                     implicitReferenceResolutions,
                                                                      resolutionDiagnostics,
                                                                      hasCircularReference,
                                                                      corLibraryIndex)
@@ -428,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
                                     explicitReferences,
-                                    implicitlyResolvedReferences,
+                                    implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     If(corLibrary Is assemblySymbol, Nothing, corLibrary),
@@ -791,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ''' <summary>
                 ''' Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 ''' </summary>
-                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbol)
+                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbolInternal)
 
                 Public ReadOnly DocumentationProvider As DocumentationProvider
 
@@ -810,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _internalsPotentiallyVisibleToCompilation As Boolean = False
 
                 Public Sub New(assembly As PEAssembly,
-                               cachedSymbols As WeakList(Of IAssemblySymbol),
+                               cachedSymbols As WeakList(Of IAssemblySymbolInternal),
                                embedInteropTypes As Boolean,
                                documentationProvider As DocumentationProvider,
                                sourceAssemblySimpleName As String,

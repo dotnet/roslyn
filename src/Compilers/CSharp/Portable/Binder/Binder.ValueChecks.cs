@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -246,9 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                        receiver = otherSymbol.IsStatic
-                            ? null // no receiver required
-                            : typeOrValue.Data.ValueExpression;
+                        receiver = otherSymbol.RequiresInstanceReceiver()
+                            ? typeOrValue.Data.ValueExpression
+                            : null; // no receiver required
                     }
                     return new BoundBadExpression(
                         expr.Syntax,
@@ -478,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.ImplicitReceiver:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     Debug.Assert(!RequiresRefAssignableVariable(valueKind));
                     return true;
 
@@ -850,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, DiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
-            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ImplicitReceiver ||
+            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
                 CheckValueKind(node, receiver, kind, true, diagnostics);
         }
 
@@ -868,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            return !symbol.IsStatic
+            return symbol.RequiresInstanceReceiver()
                 && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
@@ -1114,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1221,7 +1224,7 @@ moreArguments:
             //  o no ref or out argument(excluding the receiver and arguments of ref-like types) may have a narrower ref-safe-to-escape than E1; and
             //  o   no argument(including the receiver) may have a narrower safe-to-escape than E1.
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1322,7 +1325,12 @@ moreArguments:
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
-            if (symbol.IsStatic)
+            // SPEC:
+            // In a method invocation, the following constraints apply:
+            // - If there is a ref or out argument of a ref struct type (including the receiver), with safe-to-escape E1, then
+            // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
+
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1333,7 +1341,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
+            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly(symbol))
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1432,6 +1440,17 @@ moreArguments:
             }
 
             return true;
+
+            static bool isReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
+            {
+                MethodSymbol m => m.IsEffectivelyReadOnly,
+                // TODO: val escape checks should be skipped for property accesses when
+                // we can determine the only accessors being called are readonly.
+                // For now we are pessimistic and check escape if any accessor is non-readonly.
+                // Tracking in https://github.com/dotnet/roslyn/issues/35606
+                PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
+                _ => throw ExceptionUtilities.UnexpectedValue(methodOrPropertySymbol)
+            };
         }
 
         /// <summary>
@@ -2199,9 +2218,9 @@ moreArguments:
             foreach (var element in expr.Arguments)
             {
                 uint valEscape;
-                if (element.Kind == BoundKind.TupleLiteral)
+                if (element is BoundTupleExpression te)
                 {
-                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                    valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
                 }
                 else
                 {
@@ -2243,6 +2262,7 @@ moreArguments:
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2250,12 +2270,9 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2453,6 +2470,7 @@ moreArguments:
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.ImplicitReceiver:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
@@ -2461,6 +2479,9 @@ moreArguments:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
                     // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
+
+                case BoundKind.AwaitableValuePlaceholder:
+                    return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
 
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
@@ -2562,6 +2583,7 @@ moreArguments:
 
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2569,12 +2591,9 @@ moreArguments:
                     return true;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2586,10 +2605,17 @@ moreArguments:
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    var placeholder = (BoundDeconstructValuePlaceholder)expr;
-                    if (placeholder.ValEscape > escapeTo)
+                    if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, placeholder.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.AwaitableValuePlaceholder:
+                    if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -2829,7 +2855,8 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
-                case BoundKind.SwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
                     foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
                     {
                         var result = arm.Value;
@@ -2844,6 +2871,7 @@ moreArguments:
                     // returning "false" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for.
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return false;
 
                     #region "cannot produce ref-like values"
@@ -3061,7 +3089,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             switch (expression.Kind)
             {
@@ -3188,7 +3216,7 @@ moreArguments:
             bool peVerifyCompatEnabled,
             HashSet<LocalSymbol> stackLocalsOpt)
         {
-            Debug.Assert(!(method is null));
+            Debug.Assert(method is object);
 
             FieldSymbol field = fieldAccess.FieldSymbol;
 

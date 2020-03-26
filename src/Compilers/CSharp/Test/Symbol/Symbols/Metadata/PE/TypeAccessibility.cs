@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -101,10 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(Accessibility.ProtectedOrInternal, exceptionFromErrorCode.DeclaredAccessibility);
 
-            Assert.Same(module0, module0.GlobalNamespace.Locations.Single().MetadataModule);
-            Assert.Same(module0, system.Locations.Single().MetadataModule);
-            Assert.Same(module0, runtime.Locations.Single().MetadataModule);
-            Assert.Same(module0, obj.Locations.Single().MetadataModule);
+            Assert.Same(module0, module0.GlobalNamespace.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, system.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, runtime.Locations.Single().MetadataModuleInternal);
+            Assert.Same(module0, obj.Locations.Single().MetadataModuleInternal);
         }
     }
 }

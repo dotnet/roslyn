@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
     /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
     internal class DecisionDagBuilder
@@ -313,18 +314,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             tests.Add(valueAsITupleEvaluation);
             var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
 
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, valueAsITuple);
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(lengthEvaluation);
             var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
             tests.Add(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp));
 
+            var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, valueAsITuple);
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
                 tests.Add(indexEvaluation);
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
                 MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, tests, bindings);
             }
+        }
+
+        /// <summary>
+        /// Get the earliest input of which the symbol is a member.
+        /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to.
+        /// So two evaluations act on the same input so long as they have the same original input.
+        /// We use this method to compute the original input for an evaluation.
+        /// </summary>
+        private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
+        {
+            while (input.Source is BoundDagTypeEvaluation source && IsDerivedType(source.Input.Type, symbol.ContainingType))
+            {
+                input = source.Input;
+            }
+
+            return input;
+        }
+
+        bool IsDerivedType(TypeSymbol possibleDerived, TypeSymbol possibleBase)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref useSiteDiagnostics);
         }
 
         private void MakeTestsAndBindings(
@@ -339,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a null and type test if needed.
             if (!declaration.IsVar)
             {
-                input = MakeConvertToType(input, declaration.Syntax, type, tests);
+                input = MakeConvertToType(input, declaration.Syntax, type, isExplicitTest: false, tests);
             }
 
             BoundExpression variableAccess = declaration.VariableAccess;
@@ -357,12 +381,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
             if (input.Type.CanContainNull())
             {
                 // Add a null test
-                tests.Add(new BoundDagNonNullTest(syntax, input));
+                tests.Add(new BoundDagNonNullTest(syntax, isExplicitTest, input));
             }
         }
 
@@ -373,9 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
-            MakeCheckNotNull(input, syntax, tests);
+            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -412,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, tests);
+                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, isExplicitTest: false, tests);
                 tests.Add(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput));
             }
         }
@@ -438,8 +464,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
+
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
-            input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
+            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -447,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (recursive.DeconstructMethod != null)
                 {
                     MethodSymbol method = recursive.DeconstructMethod;
-                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, input);
+                    var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, OriginalInput(input, method));
                     tests.Add(evaluation);
                     int extensionExtra = method.IsStatic ? 1 : 0;
                     int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
@@ -477,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
                         FieldSymbol field = elements[i];
-                        var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
+                        var evaluation = new BoundDagFieldEvaluation(syntax, field, OriginalInput(input, field)); // fetch the ItemN field
                         tests.Add(evaluation);
                         var output = new BoundDagTemp(syntax, field.Type, evaluation);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
@@ -504,10 +531,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (symbol)
                     {
                         case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, input);
+                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
                             break;
                         case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, input);
+                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
                             break;
                         default:
                             Debug.Assert(recursive.HasAnyErrors);
@@ -902,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                                bool? matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t1.Type, t2.Type, ref useSiteDiagnostics, out _);
+                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteDiagnostics);
                                 if (matches == false)
                                 {
                                     // If T1 could never be T2
@@ -917,7 +944,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
-
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteDiagnostics, out _);
                                 _diagnostics.Add(syntax, useSiteDiagnostics);
                                 if (matches == true)
@@ -1007,6 +1033,90 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Determine what we can learn from one successful runtime type test about another planned
+        /// runtime type test for the purpose of building the decision tree.
+        /// We accommodate a special behavior of the runtime here, which does not match the language rules.
+        /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
+        /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
+        /// arrays of enums are considered to be their underlying type.  We need the dag construction to
+        /// recognize this runtime behavior, so we pretend that matching one of them gives no information
+        /// on whether the other will be matched.  That isn't quite correct (nothing reasonable we do
+        /// could be), but it comes closest to preserving the existing C#7 behavior without undesirable
+        /// side-effects, and permits the code-gen strategy to preserve the dynamic semantic equivalence
+        /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
+        /// See, for example, https://github.com/dotnet/roslyn/issues/35661
+        /// </summary>
+        private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+            TypeSymbol expressionType,
+            TypeSymbol patternType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteDiagnostics, out Conversion conversion);
+            return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
+                ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
+                : result;
+
+            static bool isRuntimeSimilar(TypeSymbol expressionType, TypeSymbol patternType)
+            {
+                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: var sz1, Rank: var r1 } &&
+                       patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
+                       sz1 == sz2 && r1 == r2)
+                {
+                    e1 = e1.EnumUnderlyingTypeOrSelf();
+                    e2 = e2.EnumUnderlyingTypeOrSelf();
+                    switch (e1.SpecialType, e2.SpecialType)
+                    {
+                        // The following support CLR behavior that is required by
+                        // the CLI specification but violates the C# language behavior.
+                        // See ECMA-335's definition of *array-element-compatible-with*.
+                        case var (s1, s2) when s1 == s2:
+                        case (SpecialType.System_SByte, SpecialType.System_Byte):
+                        case (SpecialType.System_Byte, SpecialType.System_SByte):
+                        case (SpecialType.System_Int16, SpecialType.System_UInt16):
+                        case (SpecialType.System_UInt16, SpecialType.System_Int16):
+                        case (SpecialType.System_Int32, SpecialType.System_UInt32):
+                        case (SpecialType.System_UInt32, SpecialType.System_Int32):
+                        case (SpecialType.System_Int64, SpecialType.System_UInt64):
+                        case (SpecialType.System_UInt64, SpecialType.System_Int64):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_IntPtr):
+
+                        // The following support behavior of the CLR that violates the CLI
+                        // and C# specifications, but we implement them because that is the
+                        // behavior on 32-bit runtimes.
+                        case (SpecialType.System_Int32, SpecialType.System_IntPtr):
+                        case (SpecialType.System_Int32, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UInt32, SpecialType.System_IntPtr):
+                        case (SpecialType.System_UInt32, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_IntPtr, SpecialType.System_Int32):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UInt32):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_Int32):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_UInt32):
+
+                        // The following support behavior of the CLR that violates the CLI
+                        // and C# specifications, but we implement them because that is the
+                        // behavior on 64-bit runtimes.
+                        case (SpecialType.System_Int64, SpecialType.System_IntPtr):
+                        case (SpecialType.System_Int64, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_UInt64, SpecialType.System_IntPtr):
+                        case (SpecialType.System_UInt64, SpecialType.System_UIntPtr):
+                        case (SpecialType.System_IntPtr, SpecialType.System_Int64):
+                        case (SpecialType.System_IntPtr, SpecialType.System_UInt64):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_Int64):
+                        case (SpecialType.System_UIntPtr, SpecialType.System_UInt64):
+                            return true;
+
+                        default:
+                            (expressionType, patternType) = (e1, e2);
+                            break;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         private static ImmutableArray<RemainingTestsForCase> RemoveEvaluation(ImmutableArray<RemainingTestsForCase> cases, BoundDagEvaluation e)
         {
             return cases.SelectAsArray((c, eval) => RemoveEvaluation(c, eval), e);
@@ -1016,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new RemainingTestsForCase(
                 Index: c.Index, Syntax: c.Syntax,
-                RemainingTests: c.RemainingTests.WhereAsArray(d => !(d is BoundDagEvaluation e2) || e2 != e),
+                RemainingTests: c.RemainingTests.WhereAsArray((d, e) => !(d is BoundDagEvaluation e2) || e2 != e, e),
                 Bindings: c.Bindings, WhenClause: c.WhenClause, CaseLabel: c.CaseLabel);
         }
 

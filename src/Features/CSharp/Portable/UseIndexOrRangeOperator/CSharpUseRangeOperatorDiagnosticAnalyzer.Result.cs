@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         public readonly struct Result
         {
             public readonly ResultKind Kind;
-            public readonly CodeStyleOption<bool> Option;
+            public readonly CodeStyleOption2<bool> Option;
             public readonly IInvocationOperation InvocationOperation;
             public readonly InvocationExpressionSyntax Invocation;
             public readonly IMethodSymbol SliceLikeMethod;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             public readonly IOperation Op2;
 
             public Result(
-                ResultKind kind, CodeStyleOption<bool> option,
+                ResultKind kind, CodeStyleOption2<bool> option,
                 IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
                 IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
                 IOperation op1, IOperation op2)

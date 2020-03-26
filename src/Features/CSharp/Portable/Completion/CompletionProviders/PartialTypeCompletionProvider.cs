@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +19,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(PartialTypeCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PartialMethodCompletionProvider))]
+    [Shared]
     internal partial class PartialTypeCompletionProvider : AbstractPartialTypeCompletionProvider
     {
         private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
@@ -35,13 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
             _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
 
+        [ImportingConstructor]
+        public PartialTypeCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
             return ch == ' ' ||
                 (CompletionUtilities.IsStartingNewWord(text, characterPosition) &&
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
@@ -71,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
         {
-            var declarationSyntax = syntax as BaseTypeDeclarationSyntax;
-            return declarationSyntax != null && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
+            return syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
         }
 
         protected override ImmutableDictionary<string, string> GetProperties(

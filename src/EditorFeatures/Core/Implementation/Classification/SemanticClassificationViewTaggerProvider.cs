@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 
-            return new[] { visibleSpanOpt.Value };
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)

@@ -27,6 +27,42 @@ class Test1 : I1
 }
 ```
 
+- Re-abstraction of interface implementation in derived interfaces. Types implementing the derived interface are required to supply implementation even when a base interface provides an implementation. 
+Here is an example:
+```
+public interface I1
+{
+    void M1() 
+    {
+    }
+
+    int P1 
+    {
+        get => throw null;
+        set => throw null;
+    }
+
+    event System.Action E1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I2 : I1
+{
+    abstract void I1.M1();
+    abstract int I1.P1 {get;set;}
+    abstract event System.Action I1.E1;
+}
+
+class Test1 : I2 // This type must implement all members of I1
+{
+}
+```
+In metadata, methods representing re-abstraction have all three flags `abstract`, `virtual`, `sealed` set and do not have `newslot` flag set.
+
+
 - Supplying an implementation along with declaration of a property or an indexer and recognizing that implementation as default implementation for them when a type implements the interface. 
 
 - Supplying an implementation along with declaration of an event and recognizing that implementation as default implementation for the event when a type implements the interface. 

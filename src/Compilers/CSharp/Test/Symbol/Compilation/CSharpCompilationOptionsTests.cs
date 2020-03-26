@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithTopLevelBinderFlags(value), opt => opt.TopLevelBinderFlags, BinderFlags.IgnoreCorLibraryDuplicatedTypes);
             TestProperty((old, value) => old.WithMetadataImportOptions(value), opt => opt.MetadataImportOptions, MetadataImportOptions.Internal);
             TestProperty((old, value) => old.WithReferencesSupersedeLowerVersions(value), opt => opt.ReferencesSupersedeLowerVersions, true);
+            TestProperty((old, value) => old.WithNullableContextOptions(value), opt => opt.NullableContextOptions, NullableContextOptions.Enable);
         }
 
         [Fact]
@@ -245,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithModuleName()
         {
             // ModuleName
-            Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
+            Assert.Null(TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
             TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
                 // error CS7087: Invalid module name: Name cannot be empty.
                 Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name cannot be empty.").WithLocation(1, 1)

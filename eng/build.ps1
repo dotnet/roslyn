@@ -42,6 +42,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
+  [switch]$sourceBuild = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -58,7 +59,6 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
-  [switch]$testLegacyCompletion,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -90,7 +90,6 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -102,6 +101,7 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -sourceBuild              Simulate building source-build"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
@@ -187,6 +187,10 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($bootstrap) {
+    $script:restore = $true
+  }
+
   $script:test32 = -not $test64
 
   foreach ($property in $properties) {
@@ -214,7 +218,7 @@ function BuildSolution() {
   $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
+  $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
   
   $ibcSourceBranchName = GetIbcSourceBranchName
   $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
@@ -222,14 +226,19 @@ function BuildSolution() {
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+  # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
+  # that MSBuild output as well as ones that custom tasks output.
+  #
+  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
+
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
+  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+
   try {
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -253,6 +262,8 @@ function BuildSolution() {
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
       @properties
   }
   finally {
@@ -341,10 +352,6 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  if ($testLegacyCompletion) {
-    $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
-  }
-
   $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
   Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
@@ -378,6 +385,7 @@ function TestUsingOptimizedRunner() {
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
+    $args += " -testVsi"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
     $args += " -trait:Feature=NetCore"
@@ -420,10 +428,28 @@ function TestUsingOptimizedRunner() {
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
-    if ($testLegacyCompletion) {
-      Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
+
+    if ($testVsi) {
+      Write-Host "Copying ServiceHub logs to $LogDir"
+      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
     }
   }
+}
+
+function EnablePreviewSdks() {
+  $vsInfo = LocateVisualStudio
+  if ($vsInfo -eq $null) {
+    # Preview SDKs are allowed when no Visual Studio instance is installed
+    return
+  }
+
+  $vsId = $vsInfo.instanceId
+  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
+  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
+  Create-Directory $instanceDir
+  $sdkFile = Join-Path $instanceDir "sdk.txt"
+  'UsePreviews=True' | Set-Content $sdkFile
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
@@ -440,9 +466,10 @@ function Deploy-VsixViaTool() {
   $vsDir = $vsInfo.installationPath.TrimEnd("\")
   $vsId = $vsInfo.instanceId
   $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+  $displayVersion = $vsInfo.catalog.productDisplayVersion
 
   $hive = "RoslynDev"
-  Write-Host "Using VS Instance $vsId at `"$vsDir`""
+  Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
   $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
 
   Write-Host "Uninstalling old Roslyn VSIX"
@@ -545,6 +572,9 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
+  $env:TEMP=$TempDir
+  $env:TMP=$TempDir
+
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -575,25 +605,36 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+  if ($testVsi) {
+    . (Join-Path $PSScriptRoot "build-utils-win.ps1")
+  }
+
   Push-Location $RepoRoot
 
   if ($ci) {
     List-Processes
     Prepare-TempDir
+    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
-
-    # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
-    # target netcoreapp2.1.
-    InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
-  if ($bootstrap) {
-    $bootstrapDir = Make-BootstrapBuild -force32:$test32
+  try
+  {
+    if ($bootstrap) {
+      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+    }
+  }
+  catch
+  {
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
+    }
+    throw $_
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
@@ -604,11 +645,25 @@ try {
     SetVisualStudioBootstrapperBuildArgs
   }
 
-  if ($testDesktop -or $testVsi -or $testIOperation) {
-    TestUsingOptimizedRunner
+  try
+  {
+    if ($testDesktop -or $testVsi -or $testIOperation) {
+      TestUsingOptimizedRunner
+    }
+  }
+  catch
+  {
+    if ($ci) {
+      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+    }
+    throw $_
   }
 
   if ($launch) {
+    if (-not $build) {
+      InitializeBuildTool
+    }
+
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
     &$devenvExe /rootSuffix RoslynDev
   }

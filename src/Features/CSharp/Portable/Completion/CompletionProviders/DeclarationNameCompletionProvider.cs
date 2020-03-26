@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -19,12 +23,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class DeclarationNameCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(DeclarationNameCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(TupleNameCompletionProvider))]
+    [Shared]
+    internal partial class DeclarationNameCompletionProvider : LSPCompletionProvider
     {
+        [ImportingConstructor]
+        public DeclarationNameCompletionProvider()
+        {
+        }
+
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -46,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
+                var nameInfo = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 var baseNames = GetBaseNames(semanticModel, nameInfo);
                 if (baseNames == default)
                 {
@@ -54,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
-                int sortValue = 0;
+                var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
                     // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
@@ -111,33 +125,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private Glyph GetGlyph(SymbolKind kind, Accessibility? declaredAccessibility)
         {
-            Glyph publicIcon;
-            switch (kind)
+            var publicIcon = kind switch
             {
-                case SymbolKind.Field:
-                    publicIcon = Glyph.FieldPublic;
-                    break;
-                case SymbolKind.Local:
-                    publicIcon = Glyph.Local;
-                    break;
-                case SymbolKind.Method:
-                    publicIcon = Glyph.MethodPublic;
-                    break;
-                case SymbolKind.Parameter:
-                    publicIcon = Glyph.Parameter;
-                    break;
-                case SymbolKind.Property:
-                    publicIcon = Glyph.PropertyPublic;
-                    break;
-                case SymbolKind.RangeVariable:
-                    publicIcon = Glyph.RangeVariable;
-                    break;
-                case SymbolKind.TypeParameter:
-                    publicIcon = Glyph.TypeParameter;
-                    break;
-                default:
-                    throw new ArgumentException();
-            }
+                SymbolKind.Field => Glyph.FieldPublic,
+                SymbolKind.Local => Glyph.Local,
+                SymbolKind.Method => Glyph.MethodPublic,
+                SymbolKind.Parameter => Glyph.Parameter,
+                SymbolKind.Property => Glyph.PropertyPublic,
+                SymbolKind.RangeVariable => Glyph.RangeVariable,
+                SymbolKind.TypeParameter => Glyph.TypeParameter,
+                _ => throw new ArgumentException(),
+            };
 
             switch (declaredAccessibility)
             {
@@ -199,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();
 
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType ||
-                    originalDefinition == lazyOfTType ||
+                if (Equals(originalDefinition, taskOfTType) ||
+                    Equals(originalDefinition, valueTaskType) ||
+                    Equals(originalDefinition, lazyOfTType) ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
@@ -239,7 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         foreach (var baseName in baseNames)
                         {
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
-                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
+
+                            // Don't add multiple items for the same name and only add valid identifiers
+                            if (name.Length > 1 && CSharpSyntaxFacts.Instance.IsValidIdentifier(name) && !result.ContainsKey(name))
                             {
                                 var targetToken = context.TargetToken;
                                 var uniqueName = semanticFactsService.GenerateUniqueName(

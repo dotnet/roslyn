@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,16 +18,15 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.NavigateToHighlightedReference)]
     internal partial class NavigateToHighlightReferenceCommandHandler :
-        VSCommanding.ICommandHandler<NavigateToNextHighlightedReferenceCommandArgs>,
-        VSCommanding.ICommandHandler<NavigateToPreviousHighlightedReferenceCommandArgs>
+        ICommandHandler<NavigateToNextHighlightedReferenceCommandArgs>,
+        ICommandHandler<NavigateToPreviousHighlightedReferenceCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
@@ -41,23 +42,22 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             _tagAggregatorFactory = tagAggregatorFactory ?? throw new ArgumentNullException(nameof(tagAggregatorFactory));
         }
 
-        public VSCommanding.CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
+        public CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
         {
             return GetCommandStateImpl(args);
         }
 
-        public VSCommanding.CommandState GetCommandState(NavigateToPreviousHighlightedReferenceCommandArgs args)
+        public CommandState GetCommandState(NavigateToPreviousHighlightedReferenceCommandArgs args)
         {
             return GetCommandStateImpl(args);
         }
 
-        private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
+        private CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
-            using (var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView))
-            {
-                var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
-                return tagUnderCursor == null ? VSCommanding.CommandState.Unavailable : VSCommanding.CommandState.Available;
-            }
+            using var tagAggregator = _tagAggregatorFactory.CreateTagAggregator<NavigableHighlightTag>(args.TextView);
+
+            var tagUnderCursor = FindTagUnderCaret(tagAggregator, args.TextView);
+            return tagUnderCursor == null ? CommandState.Unavailable : CommandState.Available;
         }
 
         public bool ExecuteCommand(NavigateToNextHighlightedReferenceCommandArgs args, CommandExecutionContext context)

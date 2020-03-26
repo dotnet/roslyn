@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -83,7 +85,7 @@ class C
         [|this|].SomeProperty = 1;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -418,8 +420,8 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+                SingleOption(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion),
+                SingleOption(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion));
 
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,

@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -11,6 +15,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal interface IStreamingFindReferencesProgress
     {
+        IStreamingProgressTracker ProgressTracker { get; }
+
         Task OnStartedAsync();
         Task OnCompletedAsync();
 
@@ -19,13 +25,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId);
         Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location);
-
-        Task ReportProgressAsync(int current, int maximum);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
+        IStreamingProgressTracker ProgressTracker { get; }
+
         Task OnReferenceFoundAsync(Document document, TextSpan span);
-        Task ReportProgressAsync(int current, int maximum);
     }
 }

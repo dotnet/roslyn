@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -270,8 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                 Debug.Assert(signatureIndex = 0 OrElse signatureIndex = 1)
 
                                 If signatureIndex = 1 AndAlso attrData.CommonConstructorArguments.Length = 2 Then
-                                    scope = TryCast(attrData.CommonConstructorArguments(0).Value, String)
-                                    identifier = TryCast(attrData.CommonConstructorArguments(1).Value, String)
+                                    scope = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
+                                    identifier = TryCast(attrData.CommonConstructorArguments(1).ValueInternal, String)
                                 End If
 
                                 Exit For
@@ -723,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Private Function RetargetTypedConstant(oldConstant As TypedConstant, ByRef typedConstantChanged As Boolean) As TypedConstant
-                Dim oldConstantType As TypeSymbol = DirectCast(oldConstant.Type, TypeSymbol)
+                Dim oldConstantType As TypeSymbol = DirectCast(oldConstant.TypeInternal, TypeSymbol)
                 Dim newConstantType As TypeSymbol = If(oldConstantType Is Nothing,
                                                        Nothing,
                                                        Retarget(oldConstantType, RetargetOptions.RetargetPrimitiveTypesByTypeCode))
@@ -739,7 +741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End If
 
                 Dim newConstantValue As Object
-                Dim oldConstantValue = oldConstant.Value
+                Dim oldConstantValue = oldConstant.ValueInternal
                 If (oldConstant.Kind = TypedConstantKind.Type) AndAlso (oldConstantValue IsNot Nothing) Then
                     newConstantValue = Retarget(DirectCast(oldConstantValue, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode)
                 Else

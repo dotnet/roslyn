@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -766,14 +768,14 @@ class Program
   IL_0006:  brfalse.s  IL_000e
   IL_0008:  call       ""ref readonly int Program.M()""
   IL_000d:  ret
-  IL_000e:  call       ""ref readonly (int Alice, int Bob) Program.M1()""
+  IL_000e:  call       ""ref readonly System.ValueTuple<int, int> Program.M1()""
   IL_0013:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0018:  ret
   IL_0019:  ldloc.0
   IL_001a:  brfalse.s  IL_0022
   IL_001c:  call       ""ref readonly int Program.P.get""
   IL_0021:  ret
-  IL_0022:  call       ""ref readonly (int Alice, int Bob) Program.P1.get""
+  IL_0022:  call       ""ref readonly System.ValueTuple<int, int> Program.P1.get""
   IL_0027:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_002c:  ret
 }");
@@ -845,7 +847,7 @@ class Program
   IL_0008:  ldarg.0
   IL_0009:  ldflda     ""int Program.F""
   IL_000e:  ret
-  IL_000f:  ldsflda    ""(int Alice, int Bob) Program.F1""
+  IL_000f:  ldsflda    ""System.ValueTuple<int, int> Program.F1""
   IL_0014:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0019:  ret
   IL_001a:  ldloc.0
@@ -855,7 +857,7 @@ class Program
   IL_0023:  ldflda     ""int Program.S.F""
   IL_0028:  ret
   IL_0029:  ldsflda    ""Program.S Program.S2""
-  IL_002e:  ldflda     ""(int Alice, int Bob) Program.S.F1""
+  IL_002e:  ldflda     ""System.ValueTuple<int, int> Program.S.F1""
   IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0038:  ret
 }");
@@ -876,7 +878,7 @@ class Program
   IL_0008:  ldarg.0
   IL_0009:  ldflda     ""int Program.F""
   IL_000e:  ret
-  IL_000f:  ldsflda    ""(int Alice, int Bob) Program.F1""
+  IL_000f:  ldsflda    ""System.ValueTuple<int, int> Program.F1""
   IL_0014:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0019:  ret
   IL_001a:  ldloc.0
@@ -886,7 +888,7 @@ class Program
   IL_0023:  ldflda     ""int Program.S.F""
   IL_0028:  ret
   IL_0029:  ldsflda    ""Program.S Program.S2""
-  IL_002e:  ldflda     ""(int Alice, int Bob) Program.S.F1""
+  IL_002e:  ldflda     ""System.ValueTuple<int, int> Program.S.F1""
   IL_0033:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_0038:  ret
 }");

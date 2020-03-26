@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,15 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             // ran by the CreatPkgDef.exe tool by reflecting over built assembly and invoking this method.
             var version = FileVersionInfo.GetVersionInfo(typeof(ProvideRoslynVersionRegistration).Assembly.Location);
 
-            using (var key = context.CreateKey(GetKeyName()))
-            {
-                key.SetValue(null, "#" + _productNameResourceID);
-                key.SetValue("Package", Guid.Parse(_packageGuidString).ToString("B"));
-                key.SetValue("PID", version.ProductVersion);
-                key.SetValue("ProductDetails", "#" + _detailsResourceID);
-                key.SetValue("UseInterface", false);
-                key.SetValue("UseVSProductID", false);
-            }
+            using var key = context.CreateKey(GetKeyName());
+            key.SetValue(null, "#" + _productNameResourceID);
+            key.SetValue("Package", Guid.Parse(_packageGuidString).ToString("B"));
+            key.SetValue("PID", version.ProductVersion);
+            key.SetValue("ProductDetails", "#" + _detailsResourceID);
+            key.SetValue("UseInterface", false);
+            key.SetValue("UseVSProductID", false);
         }
 
         public override void Unregister(RegistrationContext context)

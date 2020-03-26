@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -13,7 +15,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
@@ -31,17 +32,19 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAllWithEditorAsync(context.Document,
-                    e => FixInCurrentMember(context.Document, e, context.Diagnostics[0], c), c)),
+                    e => FixInCurrentMemberAsync(context.Document, e, context.Diagnostics[0], c), c)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
         }
 
-        private async Task FixInCurrentMember(
+        private async Task FixInCurrentMemberAsync(
             Document document, SyntaxEditor editor,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
@@ -118,8 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 {
                     // Use the callback form as anonymous types may be nested, and we want to
                     // properly replace them even in that case.
-                    var anonCreation = current as TAnonymousObjectCreationExpressionSyntax;
-                    if (anonCreation == null)
+                    if (!(current is TAnonymousObjectCreationExpressionSyntax anonCreation))
                     {
                         return current;
                     }

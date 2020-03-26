@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,7 +40,7 @@ class B
             var compilation = SyntaxFactory.CompilationUnit(
                 externs: SyntaxFactory.SingletonList<ExternAliasDirectiveSyntax>(
                             SyntaxFactory.ExternAliasDirective("A1")),
-                usings: default(SyntaxList<UsingDirectiveSyntax>),
+                usings: default,
                 attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
                                 SyntaxFactory.AttributeList(
                                     SyntaxFactory.Token(
@@ -59,15 +61,15 @@ class B
                 new MemberDeclarationSyntax[]
                 {
                     SyntaxFactory.ClassDeclaration(
-                        default(SyntaxList<AttributeListSyntax>),
+                        default,
                         SyntaxFactory.TokenList(),
                         SyntaxFactory.Identifier("My"),
                         null,
                         SyntaxFactory.BaseList(
                             SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                                 SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
-                                default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                                default(SyntaxList<MemberDeclarationSyntax>)),
+                                default,
+                                default),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
@@ -79,8 +81,8 @@ class B
                         identifier: SyntaxFactory.Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
-                        constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                        members: default(SyntaxList<MemberDeclarationSyntax>))
+                        constraintClauses: default,
+                        members: default)
                 }));
 
             Assert.NotNull(compilation);
@@ -148,7 +150,7 @@ public class SomeAttribute : System.Attribute { }
     string MyProperty => ""42"";
 }";
             var property = SyntaxFactory.PropertyDeclaration(
-                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                attributeLists: default,
                 modifiers: SyntaxFactory.TokenList(),
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
@@ -165,19 +167,19 @@ public class SomeAttribute : System.Attribute { }
                 semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
             var compilation = SyntaxFactory.CompilationUnit(
-                externs: default(SyntaxList<ExternAliasDirectiveSyntax>),
-                usings: default(SyntaxList<UsingDirectiveSyntax>),
-                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                externs: default,
+                usings: default,
+                attributeLists: default,
                 members: SyntaxFactory.List(
                 new MemberDeclarationSyntax[]
                 {
                     SyntaxFactory.ClassDeclaration(
-                        attributeLists: default(SyntaxList<AttributeListSyntax>),
+                        attributeLists: default,
                         modifiers: SyntaxFactory.TokenList(),
                         identifier: SyntaxFactory.Identifier("PropertyTest"),
                         typeParameterList: null,
                         baseList: null,
-                        constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                        constraintClauses: default,
                         members: SyntaxFactory.List(
                             new MemberDeclarationSyntax[]
                             {

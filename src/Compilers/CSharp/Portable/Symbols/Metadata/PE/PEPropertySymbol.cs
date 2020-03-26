@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -172,7 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol);
+
+            // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+            // because the property does not have explicit accessibility in metadata.
+            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
             propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
 
             _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
@@ -684,8 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var ordinal = i - 1;
                 bool isBad;
 
-                // https://github.com/dotnet/roslyn/issues/29821: handle extra annotations
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, extraAnnotations: default, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
 
                 if (isBad)
                 {

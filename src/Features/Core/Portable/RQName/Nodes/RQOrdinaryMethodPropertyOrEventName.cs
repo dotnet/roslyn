@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         internal RQOrdinaryMethodPropertyOrEventName(string constructType, string name)
         {
             _constructType = constructType;
-            this.Name = name;
+            Name = name;
         }
 
         public override string OrdinaryNameValue
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         public override SimpleGroupNode ToSimpleTree()
         {
-            return new SimpleGroupNode(_constructType, this.Name);
+            return new SimpleGroupNode(_constructType, Name);
         }
     }
 }

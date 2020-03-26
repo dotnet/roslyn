@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var typeInference = this.Document.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     this.Document.SemanticModel, _invocationExpression, objectAsDefault: true,
-                    nameOpt: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
+                    name: this.State.IdentifierToken.ValueText, cancellationToken: cancellationToken);
                 return inferredType;
             }
 
@@ -112,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 CancellationToken cancellationToken)
             {
                 var methodTypeParameter = GetMethodTypeParameter(type, cancellationToken);
-                return methodTypeParameter != null
-                    ? methodTypeParameter
-                    : CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
+                return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
             }
 
             private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 {
                     foreach (var typeArgument in ((GenericNameSyntax)State.SimpleNameOpt).TypeArgumentList.Arguments)
                     {
-                        var type = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type;
-                        result.Add(type);
+                        var typeInfo = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
+                        result.Add(typeInfo.Type);
                     }
                 }
 

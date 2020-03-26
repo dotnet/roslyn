@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -37,6 +39,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public SymbolTreeInfoIncrementalAnalyzerProvider()
+        {
+        }
+
         private readonly struct MetadataInfo
         {
             /// <summary>
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // If we hear about low memory conditions, flush our caches.  This will degrade the 
             // experience a bit (as we will no longer offer to Add-Using for p2p refs/metadata),
             // but will be better than OOM'ing.  These caches will be regenerated in the future
-            // when the incremental analyzer reanalyzers the projects in teh workspace.
+            // when the incremental analyzer reanalyzers the projects in the workspace.
             _projectToInfo.Clear();
             _metadataPathToInfo.Clear();
         }
@@ -200,8 +207,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // Produce the indices for the source and metadata symbols in parallel.
                 var tasks = new List<Task>
                 {
-                    GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
+                    InvokeAsync(project, (self, project, _, cancellationToken) => self.UpdateReferencesAsync(project, cancellationToken), null, cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -225,15 +232,22 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false, Constraint = "Avoid captures to reduce GC pressure when running in the host workspace.")]
+            private Task InvokeAsync(Project project, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
                 return isRemoteWorkspace
-                    ? Task.Run(func, cancellationToken)
-                    : func();
+                    ? GetNewTask(this, func, project, reference, cancellationToken)
+                    : func(this, project, reference, cancellationToken);
+
+                static Task GetNewTask(IncrementalAnalyzer self, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                {
+                    return Task.Run(() => func(self, project, reference, cancellationToken), cancellationToken);
+                }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false)]
+            private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>();
@@ -241,7 +255,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
                     tasks.Add(
-                        GetTask(project, () => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
+                        InvokeAsync(project, (self, project, reference, cancellationToken) => self.UpdateReferenceAsync(project, reference, cancellationToken), reference, cancellationToken));
                 }
 
                 return Task.WhenAll(tasks);
@@ -277,11 +291,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 metadataInfo.ReferencingProjects.Add(project.Id);
             }
 
-            public override void RemoveProject(ProjectId projectId)
+            public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 _projectToInfo.TryRemove(projectId, out var info);
-
                 RemoveMetadataReferences(projectId);
+
+                return Task.CompletedTask;
             }
 
             private void RemoveMetadataReferences(ProjectId projectId)

@@ -1,9 +1,14 @@
 Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select1() -> Microsoft.CodeAnalysis.SymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select2() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.GetAwaiterMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.GetResultMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.AwaitExpressionInfo.IsCompletedProperty() -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.AsClauseConversion() -> Microsoft.CodeAnalysis.SymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.SelectMany() -> Microsoft.CodeAnalysis.SymbolInfo
+Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.ToQueryableCollectionConversion() -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.Conversion.Exists() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.IsAnonymousDelegate() -> Boolean
@@ -24,6 +29,13 @@ Microsoft.CodeAnalysis.VisualBasic.Conversion.IsWidening() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.MethodSymbol() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.CurrentConversion() -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.CurrentProperty() -> Microsoft.CodeAnalysis.IPropertySymbol
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.DisposeMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.ElementConversion() -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.ElementType() -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.GetEnumeratorMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo.MoveNextMethod() -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts.GetText(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> String
 Microsoft.CodeAnalysis.VisualBasic.GlobalImport
@@ -49,6 +61,7 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic14 = 14 -> Microso
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16 = 1600 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
@@ -188,6 +201,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayTypeSyntax.WithElementType(elemen
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayTypeSyntax.WithRankSpecifiers(rankSpecifiers As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayRankSpecifierSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ArrayTypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax.AsKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax.WithAsKeyword(asKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsNewClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsNewClauseSyntax.AsKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsNewClauseSyntax.NewExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax
@@ -296,6 +310,12 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.Expression() -> M
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.Keyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.OpenParenToken() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.Type() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCloseParenToken(closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCommaToken(commaToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithOpenParenToken(openParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithType(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchBlockSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchBlockSyntax.CatchStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CatchStatementSyntax
@@ -552,6 +572,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax.GetNextDirective
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax.GetPreviousDirective(predicate As System.Func(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax, Boolean) = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax.GetRelatedDirectives() -> System.Collections.Generic.List(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax.HashToken() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax.WithHashToken(hashToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DisableWarningDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DisableWarningDirectiveTriviaSyntax.AddErrorCodes(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DisableWarningDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.DisableWarningDirectiveTriviaSyntax.DisableKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
@@ -820,6 +841,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldDeclarationSyntax.WithDeclarators
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldDeclarationSyntax.WithModifiers(modifiers As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldDeclarationSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldInitializerSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldInitializerSyntax.KeyKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldInitializerSyntax.WithKeyKeyword(keyKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.FieldInitializerSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyBlockSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyBlockSyntax.FinallyStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.FinallyStatementSyntax
@@ -864,11 +886,17 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax.WithExpression(
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax.WithForKeyword(forKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax.WithInKeyword(inKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.AddNextStatementControlVariables(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.NextStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.Statements() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.WithNextStatement(nextStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.WithStatements(statements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax.ControlVariable() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax.ForKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax.WithControlVariable(controlVariable As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax.WithForKeyword(forKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForStatementSyntax.ControlVariable() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode
 Microsoft.CodeAnalysis.VisualBasic.Syntax.ForStatementSyntax.EqualsToken() -> Microsoft.CodeAnalysis.SyntaxToken
@@ -1079,6 +1107,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax.WithInheritsKe
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax.WithTypes(types As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InstanceExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InstanceExpressionSyntax.Keyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InstanceExpressionSyntax.WithKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InstanceExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax.AddImplements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsStatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax.AddInherits(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InterfaceBlockSyntax
@@ -1161,9 +1190,17 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax.Update(expr
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax.WithArgumentList(argumentList As Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentListSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax.WithExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.AddAdditionalJoins(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.AdditionalJoins() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax)
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.AddJoinConditions(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.AddJoinedVariables(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.JoinKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.OnKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.WithAdditionalJoins(additionalJoins As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.WithJoinConditions(joinConditions As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.WithJoinedVariables(joinedVariables As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.WithJoinKeyword(joinKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax.WithOnKeyword(onKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax.EqualsKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinConditionSyntax.Left() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
@@ -1189,6 +1226,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.LabelSyntax.WithLabelToken(labelToken 
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaExpressionSyntax.Begin() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaExpressionSyntax.SubOrFunctionHeader() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaExpressionSyntax.WithSubOrFunctionHeader(subOrFunctionHeader As Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax.AddAttributeLists(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax.AddModifiers(ParamArray items As Microsoft.CodeAnalysis.SyntaxToken()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LambdaHeaderSyntax
@@ -1249,17 +1287,25 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax.WithExpre
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax.WithName(name As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax.WithOperatorToken(operatorToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MemberAccessExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.AddAttributeLists(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.AddModifiers(ParamArray items As Microsoft.CodeAnalysis.SyntaxToken()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.AddParameterListParameters(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.AttributeLists() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.Keyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.Modifiers() -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.ParameterList() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.WithAttributeLists(attributeLists As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.WithKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.WithModifiers(modifiers As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.WithParameterList(parameterList As Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterListSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.Begin() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.End() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.Statements() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.WithBegin(begin As Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.WithEnd(end As Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.WithStatements(statements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockSyntax.Begin() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodStatementSyntax
@@ -1444,8 +1490,11 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.NamespaceStatementSyntax.WithNamespace
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NameSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NameSyntax.Arity() -> Integer
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax.AddAttributeLists(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax.AttributeLists() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax.NewKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax.WithAttributeLists(attributeLists As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax.WithNewKeyword(newKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax.AddControlVariables(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NextStatementSyntax.ControlVariables() -> Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax)
@@ -1834,6 +1883,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleJoinClauseSyntax.WithJoinKeyword
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleJoinClauseSyntax.WithOnKeyword(onKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleJoinClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineElseClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineElseClauseSyntax.AddStatements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineElseClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SingleLineElseClauseSyntax.ElseKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
@@ -2036,6 +2086,9 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax.WithCloseParenT
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax.WithOfKeyword(ofKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax.WithOpenParenToken(openParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArgumentListSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.AddImplements(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsStatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.AddInherits(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.AddMembers(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.Begin() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.End() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.Implements() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsStatementSyntax)
@@ -2043,6 +2096,9 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.Inherits() -> Microsof
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.Members() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithBegin(begin As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithEnd(end As Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithImplements(implements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.ImplementsStatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithInherits(inherits As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.InheritsStatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithMembers(members As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeCharacter
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeCharacter.Decimal = 3 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeCharacter
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeCharacter.DecimalLiteral = 15 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeCharacter
@@ -2116,13 +2172,20 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax.WithIdentifier(ide
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax.WithTypeParameterConstraintClause(typeParameterConstraintClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterConstraintClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax.WithVarianceKeyword(varianceKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.AddAttributeLists(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.AddModifiers(ParamArray items As Microsoft.CodeAnalysis.SyntaxToken()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.AddTypeParameterListParameters(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.Arity() -> Integer
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.AttributeLists() -> Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.Keyword() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.Modifiers() -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.TypeParameterList() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterListSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithAttributeLists(attributeLists As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeListSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithModifiers(modifiers As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithTypeParameterList(typeParameterList As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterListSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.UnaryExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.UnaryExpressionSyntax.Operand() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
@@ -3329,6 +3392,7 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker.Depth() -> Microsoft.CodeAnalysis.SyntaxWalkerDepth
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker.New(depth As Microsoft.CodeAnalysis.SyntaxWalkerDepth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> Void
 Microsoft.CodeAnalysis.VisualBasicExtensions
 Microsoft.CodeAnalysis.VisualBasicExtensions.Any(list As Microsoft.CodeAnalysis.SyntaxTokenList, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
@@ -3344,15 +3408,24 @@ Microsoft.CodeAnalysis.VisualBasicExtensions.IsKind(nodeOrToken As Microsoft.Cod
 Microsoft.CodeAnalysis.VisualBasicExtensions.IsKind(token As Microsoft.CodeAnalysis.SyntaxToken, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 Microsoft.CodeAnalysis.VisualBasicExtensions.IsKind(trivia As Microsoft.CodeAnalysis.SyntaxTrivia, kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Boolean
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.ArgumentSyntax.IsNamed() -> Boolean
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachBlockSyntax.ForOrForEachStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ForOrForEachStatementSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.DeclarationKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax.WithDeclarationKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.BlockStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.EndBlockStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.WithBlockStatement(blockStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBaseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax.WithEndBlockStatement(endBlockStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.BlockStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.EndBlockStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithBlockStatement(blockStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax.WithEndBlockStatement(endBlockStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeBlockSyntax
+MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.DeclarationKeyword() -> Microsoft.CodeAnalysis.SyntaxToken
 MustOverride Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithDeclarationKeyword(keyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 MustOverride Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 MustOverride Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 MustOverride Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.GetRoot(cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode
+MustOverride Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Options() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 MustOverride Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.TryGetRoot(ByRef root As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode) -> Boolean
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.OmittedArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.OmittedArgumentSyntax.IsNamed() -> Boolean
@@ -3362,6 +3435,10 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumen
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.IsNamed() -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.GlobalImport.Equals(other As Microsoft.CodeAnalysis.VisualBasic.GlobalImport) -> Boolean
+Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.CompilationOptions() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
+Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.CompilationOptions(AutoPropertyValue As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Void
+Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.ParseOptions() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
+Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.ParseOptions(AutoPropertyValue As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions) -> Void
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithDocumentationMode(documentationMode As Microsoft.CodeAnalysis.DocumentationMode) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
@@ -4434,12 +4511,15 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(Of TRes
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ClassifyCommonConversion(source As Microsoft.CodeAnalysis.ITypeSymbol, destination As Microsoft.CodeAnalysis.ITypeSymbol) -> Microsoft.CodeAnalysis.Operations.CommonConversion
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(predicate As System.Func(Of String, Boolean), filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DirectiveReferences() -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetDeclarationDiagnostics(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetDiagnostics(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetMethodBodyDiagnostics(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetParseDiagnostics(cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetSymbolsWithName(name As String, filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.ISymbol)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetSymbolsWithName(predicate As System.Func(Of String, Boolean), filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.ISymbol)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.IsCaseSensitive() -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Language() -> String
@@ -4448,6 +4528,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ToMetadataRe
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(obj As Object) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Language() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.NullableContextOptions() -> Microsoft.CodeAnalysis.NullableContextOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(obj As Object) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Features() -> System.Collections.Generic.IReadOnlyDictionary(Of String, String)
@@ -4805,6 +4886,8 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.BracketedIdentifier(lead
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.BracketedIdentifier(text As String) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CallStatement(callKeyword As Microsoft.CodeAnalysis.SyntaxToken, invocation As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CallStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CallStatement(invocation As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CallStatementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CarriageReturn() -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CarriageReturnLineFeed() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CaseBlock(caseStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseBlockSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CaseBlock(caseStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseStatementSyntax, statements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseBlockSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.CaseBlock(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, caseStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CaseBlockSyntax
@@ -4965,7 +5048,13 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.DoWhileLoopBlock(doState
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.DoWhileStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DoStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.DoWhileStatement(doKeyword As Microsoft.CodeAnalysis.SyntaxToken, whileOrUntilClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileOrUntilClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DoStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.DoWhileStatement(whileOrUntilClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileOrUntilClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DoStatementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticCarriageReturn() -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticCarriageReturnLineFeed() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticEndOfLine(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticLineFeed() -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticMarker() -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticSpace() -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticTab() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElasticWhitespace(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElseBlock() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseBlockSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ElseBlock(elseStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseStatementSyntax, statements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ElseBlockSyntax
@@ -5267,6 +5356,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.LetClause(variables As M
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.LikeExpression(left As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, operatorToken As Microsoft.CodeAnalysis.SyntaxToken, right As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.BinaryExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.LikeExpression(left As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, right As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.BinaryExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.LineContinuationTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.LineFeed() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.List(Of TNode)() -> Microsoft.CodeAnalysis.SyntaxList(Of TNode)
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.List(Of TNode)(nodes As System.Collections.Generic.IEnumerable(Of TNode)) -> Microsoft.CodeAnalysis.SyntaxList(Of TNode)
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Literal(leading As Microsoft.CodeAnalysis.SyntaxTriviaList, text As String, value As Char, trailing As Microsoft.CodeAnalysis.SyntaxTriviaList) -> Microsoft.CodeAnalysis.SyntaxToken
@@ -5435,8 +5525,10 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseExpression(text As 
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseLeadingTrivia(text As String, offset As Integer = 0) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseName(text As String, offset As Integer = 0, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NameSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseParameterList(text As String, offset As Integer = 0, consumeFullText As Boolean = True) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ParameterListSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, path As String = "", cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As String, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, path As String = "", diagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic) = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.ParseOptions, path As String, cancellationToken As System.Threading.CancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As String, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing, diagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic) = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(text As String, options As Microsoft.CodeAnalysis.ParseOptions, path As String, encoding As System.Text.Encoding, cancellationToken As System.Threading.CancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseToken(text As String, offset As Integer = 0, startStatement As Boolean = False) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTokens(text As String, offset As Integer = 0, initialTokenPosition As Integer = 0, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing) -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxToken)
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTrailingTrivia(text As String, offset As Integer = 0) -> Microsoft.CodeAnalysis.SyntaxTriviaList
@@ -5577,6 +5669,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SkippedTokensTrivia() ->
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SkippedTokensTrivia(tokens As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SkippedTokensTriviaSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SkipWhileClause(condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SkipWhileClause(skipOrTakeKeyword As Microsoft.CodeAnalysis.SyntaxToken, whileKeyword As Microsoft.CodeAnalysis.SyntaxToken, condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Space() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SpecialConstraint(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, constraintKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SpecialConstraintSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.StopOrEndStatement(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, stopOrEndKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.StopOrEndStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.StopStatement(stopOrEndKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.StopOrEndStatementSyntax
@@ -5615,6 +5708,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyncLockStatement(expres
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyncLockStatement(syncLockKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyntaxTree(root As Microsoft.CodeAnalysis.SyntaxNode, options As Microsoft.CodeAnalysis.ParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyntaxTrivia(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Tab() -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TakeClause(count As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TakeClause(skipOrTakeKeyword As Microsoft.CodeAnalysis.SyntaxToken, count As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TakeWhileClause(condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax
@@ -5830,6 +5924,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.YieldStatement(expressio
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.YieldStatement(yieldKeyword As Microsoft.CodeAnalysis.SyntaxToken, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.AllowsLeadingImplicitLineContinuation(token As Microsoft.CodeAnalysis.SyntaxToken) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.AllowsTrailingImplicitLineContinuation(token As Microsoft.CodeAnalysis.SyntaxToken) -> Boolean
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.EqualityComparer() -> System.Collections.Generic.IEqualityComparer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.GetAccessorStatementKind(keyword As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.GetBaseTypeStatementKind(keyword As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.GetBinaryExpression(keyword As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
@@ -5971,9 +6066,16 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsXmlTextToken(kind As Mic
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsXmlWhitespace(c As Char) -> Boolean
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.MakeHalfWidthIdentifier(text As String) -> String
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.VarianceKindFromToken(token As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VarianceKind
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Default() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(symbolList As String, ByRef diagnostics As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostic), symbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> System.Collections.Generic.IReadOnlyDictionary(Of String, Object)
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Script() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Create(assemblyName As String, syntaxTrees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree) = Nothing, references As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.MetadataReference) = Nothing, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.Instance() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.DeserializeFrom(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxNode
-Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(root As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
-Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
-Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As String, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(root As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing, diagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic) = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(root As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, path As String, encoding As System.Text.Encoding) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", diagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic) = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, path As String, cancellationToken As System.Threading.CancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As String, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing, diagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic) = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As String, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions, path As String, encoding As System.Text.Encoding, cancellationToken As System.Threading.CancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree

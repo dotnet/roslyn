@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -22,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         private const string CS8313 = nameof(CS8313); // A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
         private const string CS8505 = nameof(CS8505); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
 
+        [ImportingConstructor]
+        public CSharpReplaceDefaultLiteralCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS8313, CS8505);
 
@@ -38,9 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
-                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression))
+                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression, out LiteralExpressionSyntax defaultLiteral))
             {
-                var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
                 var (newExpression, displayText) = GetReplacementExpressionAndText(

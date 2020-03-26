@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">启动“{0}”进程失败(退出代码:{1})，输出:</target>
+        <target state="translated">启动“{0}”进程失败(退出代码: {1})，输出为:</target>
         <note />
       </trans-unit>
       <trans-unit id="Hosting_process_exited_with_exit_code_0">

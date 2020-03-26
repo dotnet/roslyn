@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     internal class CSharpGenerateConstructorService : AbstractGenerateConstructorService<CSharpGenerateConstructorService, ArgumentSyntax, AttributeArgumentSyntax>
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+
+        [ImportingConstructor]
+        public CSharpGenerateConstructorService()
+        {
+        }
 
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is SimpleNameSyntax;
@@ -182,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             {
                 SyntaxToken thisOrBaseKeyword;
                 SyntaxKind newCtorInitializerKind;
-                if (tokenKind != SyntaxKind.BaseKeyword && state.TypeToGenerateIn == namedType)
+                if (tokenKind != SyntaxKind.BaseKeyword && Equals(state.TypeToGenerateIn, namedType))
                 {
                     thisOrBaseKeyword = SyntaxFactory.Token(SyntaxKind.ThisKeyword);
                     newCtorInitializerKind = SyntaxKind.ThisConstructorInitializer;
@@ -221,12 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
                 var typeNameToReplace = (TypeSyntax)oldToken.Parent;
                 TypeSyntax newTypeName;
-                if (namedType != state.TypeToGenerateIn)
+                if (!Equals(namedType, state.TypeToGenerateIn))
                 {
                     while (true)
                     {
-                        var parentType = typeNameToReplace.Parent as TypeSyntax;
-                        if (parentType == null)
+                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
                         {
                             break;
                         }

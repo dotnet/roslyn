@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -11,15 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertLogical
     Friend Class VisualBasicInvertLogicalCodeRefactoringProvider
         Inherits AbstractInvertLogicalCodeRefactoringProvider(Of SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax)
 
-        Protected Overrides Function GetKind(rawKind As Integer) As SyntaxKind
-            Return CType(rawKind, SyntaxKind)
-        End Function
-
-        Protected Overrides Function InvertedKind(binaryExprKind As SyntaxKind) As SyntaxKind
-            Return If(binaryExprKind = SyntaxKind.AndAlsoExpression,
-                      SyntaxKind.OrElseExpression,
-                      SyntaxKind.AndAlsoExpression)
-        End Function
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetOperatorText(binaryExprKind As SyntaxKind) As String
             Return If(binaryExprKind = SyntaxKind.AndAlsoExpression,

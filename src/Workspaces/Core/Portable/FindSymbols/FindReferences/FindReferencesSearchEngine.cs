@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
-            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
         }
 
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)

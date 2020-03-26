@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
                     var explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
 
-                    if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, EqualityComparer<Symbol>.Default))
+                    if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, SymbolEqualityComparer.ConsiderEverything))
                     {
                         return false;
                     }
@@ -565,10 +567,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
-        private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, EqualityComparer<TypeSymbol> comparer)
+        private static bool HaveSameTypeConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, IEqualityComparer<TypeSymbol> comparer)
         {
             // Check that constraintTypes1 is a subset of constraintTypes2 and
             // also that constraintTypes2 is a subset of constraintTypes1
@@ -599,16 +601,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!typeParameter1.IsValueType)
             {
-                bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
-                bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
-                    isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
+                bool? isNotNullable1 = typeParameter1.IsNotNullable;
+                bool? isNotNullable2 = typeParameter2.IsNotNullable;
+                if (isNotNullable1.HasValue && isNotNullable2.HasValue &&
+                    isNotNullable1.GetValueOrDefault() != isNotNullable2.GetValueOrDefault())
                 {
                     return false;
                 }
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, SymbolEqualityComparer.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny);
         }
 
         /// <summary>

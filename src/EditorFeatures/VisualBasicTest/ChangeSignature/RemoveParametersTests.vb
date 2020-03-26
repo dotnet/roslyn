@@ -1,11 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -116,7 +120,7 @@ End Module
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New VisualBasicChangeSignatureCommandHandler()
+                Dim handler = New VisualBasicChangeSignatureCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext)())
 
                 Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

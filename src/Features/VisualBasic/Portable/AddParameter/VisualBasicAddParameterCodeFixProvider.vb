@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -31,6 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         Const BC30516 As String = NameOf(BC30516) ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
         Const BC36582 As String = NameOf(BC36582) ' error BC36582: Too many arguments to extension method 'Public Sub ExtensionM1()' defined in 'Extensions'.
         Const BC36625 As String = NameOf(BC36625) ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(
             IDEDiagnosticIds.UnboundConstructorId,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -53,13 +55,18 @@ namespace Microsoft.CodeAnalysis
             return (AnalyzerConfigDocumentState)base.UpdateText(text, mode);
         }
 
+        public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
+        {
+            return (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
+        }
+
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                this.sourceTextOpt,
+                this.sourceText,
                 newTextSource);
         }
     }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -359,6 +361,38 @@ end class",
     sub M(a as integer, b as integer)
         a += 10
         b -= a
+    end sub
+end class")
+        End Function
+
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        Public Async Function TestParenthesizedExpression() As Task
+            Await TestInRegularAndScriptAsync(
+"public class C
+    sub M(a as integer)
+        a [||]= (a + 10)
+    end sub
+end class",
+"public class C
+    sub M(a as integer)
+        a += 10
+    end sub
+end class")
+        End Function
+
+        <WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
+        Public Async Function TestParenthesizedExpressionTrailingTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"public class C
+    sub M(a as integer)
+        a [||]= (a + 10) ' trailing
+    end sub
+end class",
+"public class C
+    sub M(a as integer)
+        a += 10 ' trailing
     end sub
 end class")
         End Function

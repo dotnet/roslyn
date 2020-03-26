@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -54,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
     internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
+        [ImportingConstructor]
+        public GenerateMethodCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             GenerateMethodDiagnosticIds.FixableDiagnosticIds;
 
@@ -84,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IGenerateParameterizedMemberService>();
+            var service = document.GetRequiredLanguageService<IGenerateParameterizedMemberService>();
             return service.GenerateMethodAsync(document, node, cancellationToken);
         }
     }

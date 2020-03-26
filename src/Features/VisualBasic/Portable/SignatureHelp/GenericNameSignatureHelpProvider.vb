@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -14,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("GenericNameSignatureHelpProvider", LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class GenericNameSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = " "c OrElse ch = ","c
@@ -94,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                             Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
 
-            If accessibleSymbols.Count = 0 Then
+            If accessibleSymbols.Length = 0 Then
                 Return Nothing
             End If
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
-            if (!TryParseArguments(arguments, out bool initialize, out bool? is64bit))
+            if (!TryParseArguments(arguments, out var initialize, out var is64bit))
             {
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
@@ -77,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
-            string arguments = snapshot.GetText(argumentsSpan);
-            int argumentsStart = argumentsSpan.Start;
+            var arguments = snapshot.GetText(argumentsSpan);
+            var argumentsStart = argumentsSpan.Start;
             foreach (var pos in GetNoConfigPositions(arguments))
             {
                 var snapshotSpan = new SnapshotSpan(snapshot, new Span(argumentsStart + pos, s_noConfigParameterNameLength));
@@ -90,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// </remarks>
         internal static IEnumerable<int> GetNoConfigPositions(string arguments)
         {
-            int startIndex = 0;
+            var startIndex = 0;
             while (true)
             {
-                int index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.Ordinal);
+                var index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.Ordinal);
                 if (index < 0) yield break;
 
                 if ((index == 0 || char.IsWhiteSpace(arguments[index - 1])) &&

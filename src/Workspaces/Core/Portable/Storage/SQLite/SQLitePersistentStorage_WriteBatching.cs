@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,17 +58,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             TKey key,
             CancellationToken cancellationToken)
         {
-            var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
-            try
-            {
-                await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                writesToProcess.Free();
-            }
+            using var _ = ArrayBuilder<Action<SqlConnection>>.GetInstance(out var writesToProcess);
+            await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         private async Task FlushSpecificWritesAsync<TKey>(
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
             Dictionary<TKey, Task> keyToWriteTask,
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Get's the task representing the current writes being performed by another
             // thread for this queue+key, and a TaskCompletionSource we can use to let
             // other threads know about our own progress writing any new writes in this queue.
-            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync().ConfigureAwait(false);
+            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
             try
             {
                 // Wait for all previous writes to be flushed.
@@ -97,10 +93,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                using (var pooledConnection = GetPooledConnection())
-                {
-                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                }
+                using var pooledConnection = GetPooledConnection();
+                ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
             }
             catch (OperationCanceledException ex)
             {
@@ -116,91 +110,85 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // to proceed.
                 taskCompletionSource?.TrySetResult(0);
             }
+        }
 
-            return;
-
-            // Local functions
-            async Task<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", OftenCompletesSynchronously = true)]
+        private async ValueTask<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync<TKey>(
+            MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
+            Dictionary<TKey, Task> keyToWriteTask,
+            TKey key,
+            ArrayBuilder<Action<SqlConnection>> writesToProcess,
+            CancellationToken cancellationToken)
+        {
+            // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
+            // and 'keyToWriteTask' collections.
+            //
+            // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes
+            // performed by FlushAllPendingWritesAsync.
+            using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
-                // and 'keyToWriteTask' collections.
-                //
-                // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes
-                // performed by FlushAllPendingWritesAsync.
-                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // Get the writes we need to process. 
+                // Note: explicitly foreach so we operate on the struct enumerator for
+                // MultiDictionary.ValueSet.
+                var actions = keyToWriteActions[key];
+                writesToProcess.EnsureCapacity(writesToProcess.Count + actions.Count);
+                foreach (var action in actions)
                 {
-                    // Get the writes we need to process. 
-                    // Note: explicitly foreach so we operate on the struct enumerator for
-                    // MultiDictionary.ValueSet.
-                    var actions = keyToWriteActions[key];
-                    writesToProcess.EnsureCapacity(writesToProcess.Count + actions.Count);
-                    foreach (var action in actions)
-                    {
-                        writesToProcess.Add(action);
-                    }
-
-                    // and clear them from the queues so we don't process things multiple times.
-                    keyToWriteActions.Remove(key);
-
-                    // Find the existing task responsible for writing to this queue.
-                    var existingWriteTask = keyToWriteTask.TryGetValue(key, out var task)
-                        ? task
-                        : Task.CompletedTask;
-
-                    if (writesToProcess.Count == 0)
-                    {
-                        // We have no writes of our own.  But there may be an existing task that
-                        // is writing out this queue.   Return this so our caller can wait for
-                        // all existing writes to complete.
-                        return (previousTask: existingWriteTask, taskCompletionSource: null);
-                    }
-
-                    // Create a TCS that represents our own work writing out "writesToProcess".
-                    // Store it in keyToWriteTask so that if other threads come along, they'll
-                    // wait for us to complete before doing their own reads/writes on this queue.
-                    var localCompletionSource = new TaskCompletionSource<int>();
-
-                    keyToWriteTask[key] = localCompletionSource.Task;
-
-                    return (previousTask: existingWriteTask, taskCompletionSource: localCompletionSource);
+                    writesToProcess.Add(action);
                 }
+
+                // and clear them from the queues so we don't process things multiple times.
+                keyToWriteActions.Remove(key);
+
+                // Find the existing task responsible for writing to this queue.
+                var existingWriteTask = keyToWriteTask.TryGetValue(key, out var task)
+                    ? task
+                    : Task.CompletedTask;
+
+                if (writesToProcess.Count == 0)
+                {
+                    // We have no writes of our own.  But there may be an existing task that
+                    // is writing out this queue.   Return this so our caller can wait for
+                    // all existing writes to complete.
+                    return (previousTask: existingWriteTask, taskCompletionSource: null);
+                }
+
+                // Create a TCS that represents our own work writing out "writesToProcess".
+                // Store it in keyToWriteTask so that if other threads come along, they'll
+                // wait for us to complete before doing their own reads/writes on this queue.
+                var localCompletionSource = new TaskCompletionSource<int>();
+
+                keyToWriteTask[key] = localCompletionSource.Task;
+
+                return (previousTask: existingWriteTask, taskCompletionSource: localCompletionSource);
             }
         }
 
         private async Task FlushAllPendingWritesAsync(CancellationToken cancellationToken)
         {
             // Copy the work from _writeQueue to a local list that we can process.
-            var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
-            try
+            using var _ = ArrayBuilder<Action<SqlConnection>>.GetInstance(out var writesToProcess);
+            using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // Copy the pending work the accessors have to the local copy.
+                _solutionAccessor.AddAndClearAllPendingWrites(writesToProcess);
+                _projectAccessor.AddAndClearAllPendingWrites(writesToProcess);
+                _documentAccessor.AddAndClearAllPendingWrites(writesToProcess);
+
+                // Indicate that there is no outstanding write task.  The next request to 
+                // write will cause one to be kicked off.
+                _flushAllTask = null;
+
+                // Note: we keep the lock while we're writing all.  That way if any reads come
+                // in and want to wait for the respective keys to be written, they will see the
+                // results of our writes after the lock is released.  Note: this is slightly
+                // heavyweight.  But as we're only doing these writes in bulk a couple of times
+                // a second max, this should not be an area of contention.
+                if (writesToProcess.Count > 0)
                 {
-                    // Copy the pending work the accessors have to the local copy.
-                    _solutionAccessor.AddAndClearAllPendingWrites(writesToProcess);
-                    _projectAccessor.AddAndClearAllPendingWrites(writesToProcess);
-                    _documentAccessor.AddAndClearAllPendingWrites(writesToProcess);
-
-                    // Indicate that there is no outstanding write task.  The next request to 
-                    // write will cause one to be kicked off.
-                    _flushAllTask = null;
-
-                    // Note: we keep the lock while we're writing all.  That way if any reads come
-                    // in and want to wait for the respective keys to be written, they will see the
-                    // results of our writes after the lock is released.  Note: this is slightly
-                    // heavyweight.  But as we're only doing these writes in bulk a couple of times
-                    // a second max, this should not be an area of contention.
-                    if (writesToProcess.Count > 0)
-                    {
-                        using (var pooledConnection = GetPooledConnection())
-                        {
-                            ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
-                        }
-                    }
+                    using var pooledConnection = GetPooledConnection();
+                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
                 }
-            }
-            finally
-            {
-                writesToProcess.Free();
             }
         }
 
@@ -222,13 +210,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Create a transaction and perform all writes within it.
-                connection.RunInTransaction(() =>
-                {
-                    foreach (var action in writesToProcess)
+                connection.RunInTransaction(
+                    state =>
                     {
-                        action(connection);
-                    }
-                });
+                        foreach (var action in state.writesToProcess)
+                        {
+                            action(state.connection);
+                        }
+                    },
+                    (writesToProcess, connection));
             }
             catch (Exception ex)
             {

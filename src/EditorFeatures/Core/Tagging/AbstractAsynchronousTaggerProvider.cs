@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 #if DEBUG
@@ -67,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable, or null, can be returned to indicate that this tagger should 
         /// run unconditionally.
         /// </summary>
-        protected virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
-        protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
+        protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
+        protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
 
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        internal IAccurateTagger<T> CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
-            return new[] { subjectBuffer.CurrentSnapshot.GetFullSpan() };
+            return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
         }
 
         /// <summary>
@@ -184,11 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
-
-        internal Task ProduceTagsAsync_ForTestingPurposesOnly(TaggerContext<TTag> context)
-        {
-            return ProduceTagsAsync(context);
-        }
 
         /// <summary>
         /// Produce tags for the given context.
@@ -246,23 +245,39 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
         }
 
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
         private struct DiffResult
         {
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
-                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)removed)
             {
             }
 
-            public DiffResult(IEnumerable<SnapshotSpan> added, IEnumerable<SnapshotSpan> removed)
+            public DiffResult(IEnumerable<SnapshotSpan>? added, IEnumerable<SnapshotSpan>? removed)
             {
                 Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
                 Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;
             }
 
             public int Count => Added.Count + Removed.Count;
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
+
+            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
+            {
+                _provider = provider;
+            }
+
+            internal Task ProduceTagsAsync(TaggerContext<TTag> context)
+                => _provider.ProduceTagsAsync(context);
         }
     }
 }

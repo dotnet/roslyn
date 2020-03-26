@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -144,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace, provider As DiagnosticAnalyzer) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
             Dim hostDocument = GetHostDocument(workspace)
 
-            Dim invocationBuffer = hostDocument.TextBuffer
+            Dim invocationBuffer = hostDocument.GetTextBuffer()
             Dim invocationPoint = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue AndAlso Not d.IsLinkFile).CursorPosition.Value
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

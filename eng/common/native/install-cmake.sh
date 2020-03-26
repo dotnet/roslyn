@@ -69,7 +69,7 @@ tool_name_moniker="$tool_name-$version-$tool_os-$tool_arch"
 tool_install_directory="$install_path/$tool_name/$version"
 tool_file_path="$tool_install_directory/$tool_name_moniker/bin/$tool_name"
 shim_path="$install_path/$tool_name.sh"
-uri="${base_uri}/$tool_folder/cmake/$tool_name_moniker.tar.gz"
+uri="${base_uri}/$tool_folder/$tool_name/$tool_name_moniker.tar.gz"
 
 # Clean up tool and installers
 if [[ $clean = true ]]; then
@@ -101,7 +101,7 @@ fi
 DownloadAndExtract $uri $tool_install_directory $force $download_retries $retry_wait_time_seconds
 
 if [[ $? != 0 ]]; then
-  echo "Installation failed" >&2
+  Write-PipelineTelemetryError -category 'NativeToolsBootstrap' 'Installation failed'
   exit 1
 fi
 
@@ -110,7 +110,7 @@ fi
 NewScriptShim $shim_path $tool_file_path true
 
 if [[ $? != 0 ]]; then
-  echo "Shim generation failed" >&2
+  Write-PipelineTelemetryError -category 'NativeToolsBootstrap' 'Shim generation failed'
   exit 1
 fi
 
