@@ -1331,7 +1331,7 @@ unsafe class C
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      0x5
+  IL_001a:  calli      ""delegate*<S*,IntWrapper>""
   IL_001f:  ldfld      ""int IntWrapper.i""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
   IL_0029:  ret
@@ -1354,7 +1354,7 @@ unsafe class C
   IL_0018:  conv.u
   IL_0019:  ldc.r4     3.5
   IL_001e:  ldloc.1
-  IL_001f:  calli      0x9
+  IL_001f:  calli      ""delegate*<S*,float,ReturnWrapper>""
   IL_0024:  dup
   IL_0025:  ldfld      ""int ReturnWrapper.i1""
   IL_002a:  call       ""void System.Console.Write(int)""
