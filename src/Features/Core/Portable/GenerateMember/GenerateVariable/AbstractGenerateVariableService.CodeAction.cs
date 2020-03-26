@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private partial class GenerateVariableCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly State _state;
             private readonly bool _generateProperty;
             private readonly bool _isReadonly;
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
-                TService service,
                 SemanticDocument document,
                 State state,
                 bool generateProperty,
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool isConstant,
                 RefKind refKind)
             {
-                _service = service;
                 _semanticDocument = document;
                 _state = state;
                 _generateProperty = generateProperty;
