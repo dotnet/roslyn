@@ -604,16 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
             var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
             var lastMember = compilationUnit.Members.LastOrDefault();
-            Location afterThisLocation = null;
-            if (lastMember != null)
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0));
-            }
-            else
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan());
-            }
-
+            var afterThisLocation = lastMember != null
+                ? semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0))
+                : semanticModel.SyntaxTree.GetLocation(new TextSpan());
             return Tuple.Create(globalNamespace,
                                 rootNamespaceOrType,
                                 afterThisLocation);
