@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -60,22 +62,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
             var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             return FilterDiagnostics(diagnostics);
         }
 
+        private class FromFileLoader : IAnalyzerAssemblyLoader
+        {
+            public static FromFileLoader Instance = new FromFileLoader();
+
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
+        }
+
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))

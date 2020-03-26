@@ -584,5 +584,8 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
             => this.Name;
+
+        internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
+            => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
     }
 }

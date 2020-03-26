@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastOptionSetPerLanguage = new ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>>();
             }
 
-            public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers compilation, Project project, Func<Project, ISkippedAnalyzersInfo>? getSkippedAnalyzersInfo, bool forcedAnalysis, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers compilation, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(compilation.Analyzers.Length != 0);
 
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (service == null)
                 {
                     // host doesn't support RemoteHostService such as under unit test
-                    return await AnalyzeInProcAsync(compilation, project, client: null, getSkippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
+                    return await AnalyzeInProcAsync(compilation, project, client: null, cancellationToken).ConfigureAwait(false);
                 }
 
                 var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (remoteHostClient == null)
                 {
                     // remote host is not running. this can happen if remote host is disabled.
-                    return await AnalyzeInProcAsync(compilation, project, client: null, getSkippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
+                    return await AnalyzeInProcAsync(compilation, project, client: null, cancellationToken).ConfigureAwait(false);
                 }
 
                 // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
-                CompilationWithAnalyzers compilation, Project project, RemoteHostClient? client, Func<Project, ISkippedAnalyzersInfo>? getSkippedAnalyzersInfo, CancellationToken cancellationToken)
+                CompilationWithAnalyzers compilation, Project project, RemoteHostClient? client, CancellationToken cancellationToken)
             {
                 Debug.Assert(compilation.Analyzers.Length != 0);
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
                 var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
 
-                var skippedAnalyzersInfo = getSkippedAnalyzersInfo?.Invoke(project) ?? SkippedHostAnalyzersInfo.Default;
+                var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, compilation.Compilation, compilation.Analyzers, skippedAnalyzersInfo, cancellationToken);

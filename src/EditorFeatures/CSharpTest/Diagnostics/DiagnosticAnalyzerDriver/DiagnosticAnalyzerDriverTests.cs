@@ -114,7 +114,7 @@ class C
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length))
+                return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length));
             });
         }
 
@@ -168,8 +168,8 @@ class C
 
         private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
-            diagnosticService.GetDiagnosticDescriptorsPerReference();
+            var diagnosticService = new HostDiagnosticAnalyzers(new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) });
+            diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
         }
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
@@ -600,6 +600,11 @@ class C
             }
 
             using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
+            {
+                new AnalyzerImageReference(vsixAnalyzers.CastArray<DiagnosticAnalyzer>())
+            })));
+
             var project = workspace.CurrentSolution.Projects.Single();
 
             if (!nugetAnalyzers.IsEmpty)
@@ -609,10 +614,9 @@ class C
 
             var document = project.Documents.Single();
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(
-                workspaceAnalyzerOpt: vsixAnalyzers.SingleOrDefault(),
-                document,
-                root.FullSpan)).OrderBy(d => d.Id).ToImmutableArray();
+
+            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, root.FullSpan))
+                .OrderBy(d => d.Id).ToImmutableArray();
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 

@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly TimeSpan _gcAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
-            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
-
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
@@ -84,34 +81,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public void SetAssetSource(AssetSource assetSource)
             => _assetSource = assetSource;
 
-        public bool TryAddGlobalAsset(Checksum checksum, object value)
-        {
-            UpdateLastActivityTime();
-
-            return _globalAssets.TryAdd(checksum, new Entry(value));
-        }
-
         public bool TryAddAsset(Checksum checksum, object value)
         {
             UpdateLastActivityTime();
 
             return _assets.TryAdd(checksum, new Entry(value));
-        }
-
-        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
-        {
-            UpdateLastActivityTime();
-
-            foreach (var asset in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var value = asset.Value.Object;
-                if (value is T tValue)
-                {
-                    yield return tValue;
-                }
-            }
         }
 
         public bool TryGetAsset<T>(Checksum checksum, [MaybeNull, NotNullWhen(true)] out T value)
@@ -120,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
-                if (!_globalAssets.TryGetValue(checksum, out var entry) &&
-                    !_assets.TryGetValue(checksum, out entry))
+                if (!_assets.TryGetValue(checksum, out var entry))
                 {
                     value = default;
                     return false;

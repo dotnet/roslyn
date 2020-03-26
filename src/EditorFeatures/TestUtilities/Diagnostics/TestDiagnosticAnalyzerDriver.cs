@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,8 +39,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             var documentDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
             var projectDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
-
-            await SynchronizeGlobalAssetToRemoteHostIfNeededAsync(project.Solution.Workspace).ConfigureAwait(false);
 
             if (getDocumentDiagnostics)
             {
@@ -94,50 +90,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
             => GetDiagnosticsAsync(project, document: null, filterSpan: null, getDocumentDiagnostics: false, getProjectDiagnostics: true);
-
-        private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
-            if (client == null)
-            {
-                return;
-            }
-
-            // get global assets such as host analyzers for remote host
-            var checksums = AddGlobalAssets(workspace);
-
-            // send over global asset
-            _ = await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
-                nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                workspace.CurrentSolution,
-                new[] { (object)checksums },
-                callbackTarget: null,
-                CancellationToken.None).ConfigureAwait(false);
-        }
-
-        private Checksum[] AddGlobalAssets(Workspace workspace)
-        {
-            var builder = ArrayBuilder<Checksum>.GetInstance();
-
-            var snapshotService = workspace.Services.GetService<IRemotableDataService>();
-            var serializer = workspace.Services.GetService<ISerializerService>();
-
-            foreach (var (_, reference) in _diagnosticAnalyzerService.HostAnalyzers.GetHostAnalyzerReferencesMap())
-            {
-                if (!(reference is AnalyzerFileReference))
-                {
-                    // OOP only supports analyzer file reference
-                    continue;
-                }
-
-                var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
-
-                builder.Add(asset.Checksum);
-                snapshotService.AddGlobalAsset(reference, asset, CancellationToken.None);
-            }
-
-            return builder.ToArrayAndFree();
         }
     }
 }

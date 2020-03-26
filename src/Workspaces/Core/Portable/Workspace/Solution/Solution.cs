@@ -84,11 +84,6 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
 
         /// <summary>
-        /// References to analyzers that apply to all projects in the solution.
-        /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
-
-        /// <summary>
         /// The version of the most recently modified project.
         /// </summary>
         public VersionStamp GetLatestProjectVersion() => _state.GetLatestProjectVersion();
@@ -1734,6 +1729,11 @@ namespace Microsoft.CodeAnalysis
         /// instance was created.
         /// </summary>
         public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Analyzer references associated with the solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
 
         /// <summary>
         /// Creates a new solution instance with the specified <paramref name="options"/>.

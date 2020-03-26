@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             TextSpan span,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project,includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics);
             return await testDriver.GetDocumentDiagnosticsAsync(document, span);
         }
 

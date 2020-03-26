@@ -469,6 +469,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 default:
@@ -1452,20 +1454,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
-            }
-        }
-
-        /// <summary>
-        /// Applies a solution transformation to the workspace and triggers workspace changed.
-        /// </summary>
-        public void ApplySolutionChangeToWorkspace(Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
-        {
-            lock (_gate)
-            {
-                if (SetCurrentSolutionWithLock(solutionTransformation, out var oldSolution, out var newSolution))
-                {
-                    RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-                }
             }
         }
 

@@ -129,9 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
             var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
@@ -143,9 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))

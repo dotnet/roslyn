@@ -466,15 +466,30 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         public async Task TestFullSolutionAnalysisForHiddenAnalyzers()
         {
             // By default, hidden analyzer does not execute in full solution analysis.
-            var project = CreateNewProject();
-            await TestCoreAsync(project, expectAnalyzerExecuted: false);
+            using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
+            var project = workspace.CurrentSolution.Projects.Single();
 
+            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: false);
+        }
+
+        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInCompilationOptions()
+        {
             // Escalating the analyzer to non-hidden effective severity through compilation options
             // ensures that analyzer executes in full solution analysis.
-            project = CreateNewProject();
+            using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
+            var project = workspace.CurrentSolution.Projects.Single();
+
             var newSpecificOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add(NamedTypeAnalyzer.DiagnosticId, ReportDiagnostic.Warn);
             project = project.WithCompilationOptions(project.CompilationOptions.WithSpecificDiagnosticOptions(newSpecificOptions));
-            await TestCoreAsync(project, expectAnalyzerExecuted: true);
+            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: true);
+        }
+
+        [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
+        public async Task TestFullSolutionAnalysisForHiddenAnalyzers_SeverityInAnalyzerConfigOptions()
+        {
+            using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
+            var project = workspace.CurrentSolution.Projects.Single();
 
             // Escalating the analyzer to non-hidden effective severity through analyzer config options
             // ensures that analyzer executes in full solution analysis.
@@ -482,68 +497,71 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 [*.cs]
 dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 ";
-            project = CreateNewProject();
+
             project = project.AddAnalyzerConfigDocument(
                 ".editorconfig",
                 text: SourceText.From(analyzerConfigText),
                 filePath: "z:\\.editorconfig").Project;
-            await TestCoreAsync(project, expectAnalyzerExecuted: true);
 
-            return;
+            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: true);
+        }
 
-            static Project CreateNewProject()
+        private static AdhocWorkspace CreateWorkspaceWithProjectAndAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            var workspace = new AdhocWorkspace();
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = workspace.CurrentSolution;
+
+            solution = solution
+                .WithOptions(solution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution))
+                .AddAnalyzerReference(new AnalyzerImageReference(ImmutableArray.Create(analyzer)))
+                .AddProject(
+                    ProjectInfo.Create(
+                        projectId,
+                        VersionStamp.Create(),
+                        "Dummy",
+                        "Dummy",
+                        LanguageNames.CSharp,
+                        filePath: "z:\\Dummy.csproj",
+                        documents: new[] {
+                            DocumentInfo.Create(
+                                DocumentId.CreateNewId(projectId),
+                                "test.cs",
+                                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
+                                filePath: "z:\\test.cs")}));
+
+            Assert.True(workspace.TryApplyChanges(solution));
+
+            return workspace;
+        }
+
+        private async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
+        {
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(listener);
+
+            var called = false;
+            service.DiagnosticsUpdated += (s, e) =>
             {
-                using var workspace = new AdhocWorkspace();
-
-                var projectId = ProjectId.CreateNewId();
-                var project = workspace.AddProject(
-                              ProjectInfo.Create(
-                                  projectId,
-                                  VersionStamp.Create(),
-                                  "Dummy",
-                                  "Dummy",
-                                  LanguageNames.CSharp,
-                                  filePath: "z:\\Dummy.csproj",
-                                  documents: new[] {
-                                  DocumentInfo.Create(
-                                      DocumentId.CreateNewId(projectId),
-                                      "test.cs",
-                                      loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
-                                      filePath: "z:\\test.cs")}));
-
-                var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
-                return project.WithSolutionOptions(options);
-            }
-
-            async Task TestCoreAsync(Project project, bool expectAnalyzerExecuted)
-            {
-                // create listener/service/analyzer
-                var listener = new AsynchronousOperationListener();
-                var service = new MyDiagnosticAnalyzerService(new DiagnosticAnalyzer[] {
-                    new NamedTypeAnalyzer(DiagnosticSeverity.Hidden)
-                }, listener, project.Language);
-
-                var called = false;
-                service.DiagnosticsUpdated += (s, e) =>
+                if (e.Diagnostics.Length == 0)
                 {
-                    if (e.Diagnostics.Length == 0)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                    Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
+                var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
 
-                    called = true;
-                };
+                called = true;
+            };
 
-                var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
-                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
+            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-                await listener.ExpeditedWaitAsync();
+            await listener.ExpeditedWaitAsync();
 
-                Assert.Equal(expectAnalyzerExecuted, called);
-            }
+            Assert.Equal(expectAnalyzerExecuted, called);
         }
 
         [Theory, CombinatorialData]

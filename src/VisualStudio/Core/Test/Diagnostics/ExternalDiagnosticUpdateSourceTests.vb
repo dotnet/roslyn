@@ -67,7 +67,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
                     ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)))
 
-                Dim service = New TestDiagnosticAnalyzerService(analyzers:=ImmutableArray.Create(Of AnalyzerReference)(analyzerReference))
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+                Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -268,16 +270,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim options = workspace.CurrentSolution.Options.WithChangedOption(
                     SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
 
+                Dim analyzer = New CompilationAnalyzer()
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
                 Dim analyzerReference = New AnalyzerImageReference(New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}).WithOptions(options))
 
                 Dim waiter = New AsynchronousOperationListener()
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim analyzer = New CompilationAnalyzer()
-                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
-
-                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(LanguageNames.CSharp, New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
+                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService()
                 Dim registation = service.CreateIncrementalAnalyzer(workspace)
 
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
@@ -442,13 +444,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
-            Private ReadOnly _hostAnalyzers As HostDiagnosticAnalyzers
 
-            Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing,
-                           Optional analyzers As ImmutableArray(Of AnalyzerReference) = Nothing)
+            Public Sub New(Optional data As ImmutableArray(Of DiagnosticData) = Nothing)
                 _data = data.NullToEmpty
                 _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
-                _hostAnalyzers = New HostDiagnosticAnalyzers(analyzers.NullToEmpty)
             End Sub
 
             Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
@@ -460,12 +459,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get
                     Return _analyzerInfoCache
-                End Get
-            End Property
-
-            Public ReadOnly Property HostAnalyzers As HostDiagnosticAnalyzers Implements IDiagnosticAnalyzerService.HostAnalyzers
-                Get
-                    Return _hostAnalyzers
                 End Get
             End Property
 

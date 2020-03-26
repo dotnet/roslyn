@@ -8,6 +8,7 @@ Option Strict Off
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -118,25 +119,53 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return hostDocument
         End Function
 
+        Private Class FromFileLoader
+            Implements IAnalyzerAssemblyLoader
+
+            Public Shared Instance As FromFileLoader = New FromFileLoader()
+
+            Public Sub AddDependencyLocation(fullPath As String) Implements IAnalyzerAssemblyLoader.AddDependencyLocation
+            End Sub
+
+            Public Function LoadFromPath(fullPath As String) As Assembly Implements IAnalyzerAssemblyLoader.LoadFromPath
+                Return Assembly.LoadFrom(fullPath)
+            End Function
+        End Class
+
+        Shared Sub AddAnalyzerToWorkspace(workspace As Workspace, analyzer As DiagnosticAnalyzer)
+            Dim analyzeReferences As AnalyzerReference()
+            If analyzer IsNot Nothing Then
+                analyzeReferences = {New AnalyzerImageReference(ImmutableArray.Create(analyzer))}
+            Else
+                ' create a serializable analyzer reference
+                analyzeReferences =
+                {
+                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, FromFileLoader.Instance),
+                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, FromFileLoader.Instance)
+                }
+            End If
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences))
+        End Sub
+
         Private Async Function GetDiagnosticAndFixesAsync(workspace As TestWorkspace) As Task(Of IEnumerable(Of Tuple(Of Diagnostic, CodeFixCollection)))
             Dim hostDocument = GetHostDocument(workspace)
             Dim providerAndFixer = CreateDiagnosticProviderAndFixer(workspace, hostDocument.Project.Language)
             Dim fixer = providerAndFixer.Item2
 
-            Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(providerAndFixer.Item1))
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+            AddAnalyzerToWorkspace(workspace, providerAndFixer.Item1)
 
             Dim result = New List(Of Tuple(Of Diagnostic, CodeFixCollection))
             Dim docAndDiagnostics = Await GetDocumentAndDiagnosticsAsync(workspace)
-            Dim _document = docAndDiagnostics.Item1
+            Dim document = docAndDiagnostics.Item1
 
             Dim ids = New HashSet(Of String)(fixer.FixableDiagnosticIds)
             Dim diagnostics = docAndDiagnostics.Item2.Where(Function(d) ids.Contains(d.Id)).ToList()
-            Dim tree = Await _document.GetSyntaxTreeAsync()
+            Dim tree = Await document.GetSyntaxTreeAsync()
 
             For Each diagnostic In diagnostics
                 Dim fixes = New List(Of CodeFix)
-                Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
+                Dim context = New CodeFixContext(document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
                     result.Add(Tuple.Create(diagnostic, New CodeFixCollection(

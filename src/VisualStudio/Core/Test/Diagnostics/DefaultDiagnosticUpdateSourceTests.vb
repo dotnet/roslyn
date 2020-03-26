@@ -35,7 +35,7 @@ class 123 { }
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -83,7 +83,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -120,7 +120,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
@@ -156,7 +156,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -192,10 +192,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim analyzerReference = New TestAnalyzerReferenceByLanguage()
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
-
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -224,7 +221,7 @@ class 123 { }
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), New MockDiagnosticUpdateSourceRegistrationService())
+                Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -252,7 +249,7 @@ End Class
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), New MockDiagnosticUpdateSourceRegistrationService())
+                Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -291,7 +288,7 @@ End Class
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim miscService = New DefaultDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(), diagnosticService)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.ScriptSemantic)

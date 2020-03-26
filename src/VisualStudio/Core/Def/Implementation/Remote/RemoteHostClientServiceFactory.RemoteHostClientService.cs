@@ -116,8 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     Contract.ThrowIfNull(_shutdownCancellationTokenSource);
                     Contract.ThrowIfNull(_checksumUpdater);
 
-                    RemoveGlobalAssets();
-
                     _shutdownCancellationTokenSource.Cancel();
 
                     _checksumUpdater.Shutdown();
@@ -206,20 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (client != null)
                 {
                     client.StatusChanged += OnStatusChanged;
-
-                    // send over global asset
-                    var success = await client.TryRunRemoteAsync(
-                        WellKnownRemoteHostServices.RemoteHostService,
-                        nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                        _workspace.CurrentSolution,
-                        new object[] { },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (success)
-                    {
-                        return client;
-                    }
+                    return client;
                 }
 
                 return null;

@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : this(registrationService,
                    listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
-            // hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
         }
 
         // protected for testing purposes.
@@ -56,10 +55,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener)
-            : this(registrationService)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
             _eventMap = new EventMap();
 
             // use diagnostic event task scheduler so that we never flood async events queue with million of events.

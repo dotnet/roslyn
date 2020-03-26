@@ -20,20 +20,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
         {
             using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
+            {
+                new AnalyzerImageReference(analyzers.ToImmutableArray())
+            }));
+
             var documentId = workspace.Documents[0].Id;
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var span = (await document.GetSyntaxRootAsync()).FullSpan;
 
-            var actualDiagnostics = new List<Diagnostic>();
-            foreach (var analyzer in analyzers)
-            {
-                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-                actualDiagnostics.AddRange(
-                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span));
-            }
-
+            var actualDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             actualDiagnostics.Verify(expectedDiagnostics);
         }
 

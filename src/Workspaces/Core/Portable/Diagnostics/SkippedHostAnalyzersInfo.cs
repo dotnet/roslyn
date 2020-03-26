@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Information about analyzers supplied by the host (IDE), which can be completely skipped or its diagnostics partially filtered for the corresponding project
     /// as project analyzer reference (from NuGet) has equivalent analyzer(s) reporting all or subset of diagnostic IDs reported by these analyzers.
     /// </summary>
-    internal sealed class SkippedHostAnalyzersInfo : ISkippedAnalyzersInfo
+    internal readonly struct SkippedHostAnalyzersInfo
     {
-        public static readonly SkippedHostAnalyzersInfo Default = new SkippedHostAnalyzersInfo(
+        public static readonly SkippedHostAnalyzersInfo Empty = new SkippedHostAnalyzersInfo(
             ImmutableHashSet<DiagnosticAnalyzer>.Empty,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>>.Empty);
 
@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static SkippedHostAnalyzersInfo Create(
-            Project project,
             HostDiagnosticAnalyzers hostAnalyzers,
+            IReadOnlyList<AnalyzerReference> projectAnalyzerReferences,
+            string language,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             var projectAnalyzers = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project).Select(entry => (entry.Key, entry.Value));
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (fullySkippedHostAnalyzers.IsEmpty && filteredDiagnosticIdsForAnalyzers.IsEmpty)
             {
-                return Default;
+                return Empty;
             }
 
             return new SkippedHostAnalyzersInfo(fullySkippedHostAnalyzers, filteredDiagnosticIdsForAnalyzers);

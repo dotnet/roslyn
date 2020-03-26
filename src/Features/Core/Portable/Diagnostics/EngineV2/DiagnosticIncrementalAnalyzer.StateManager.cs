@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly IPersistentStorageService _persistentStorageService;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IPersistentStorageService persistentStorageService)
+            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _persistentStorageService = persistentStorageService;
                 _analyzerInfoCache = analyzerInfoCache;

@@ -2,27 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
+#nullable enable
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticAnalyzerExtensions
     {
         private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
         private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
-
-        public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
-            => analyzer switch
-            {
-                FileContentLoadAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
-                DocumentDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
-                ProjectDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.ProjectAnalysis,
-                IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
-
-                // It is not possible to know the categorization for a public analyzer, so return a worst-case categorization.
-                _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
-            };
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
         {
@@ -40,6 +28,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return false;
         }
+
+        public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
+            => analyzer switch
+            {
+                FileContentLoadAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
+                DocumentDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
+                ProjectDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.ProjectAnalysis,
+                IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
+
+                // It is not possible to know the categorization for a public analyzer, so return a worst-case categorization.
+                _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
+            };
 
         public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
         {

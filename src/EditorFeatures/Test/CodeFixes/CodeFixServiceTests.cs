@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             MockAnalyzerReference.MockDiagnosticAnalyzer? diagnosticAnalyzer = null)
         {
             var code = @"class C { }";
-            var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            var diagnosticService = new TestDiagnosticAnalyzerService();
 
             var vsixFixers = vsixFixer != null
                 ? SpecializedCollections.SingletonEnumerable(new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => vsixFixer, new CodeChangeProviderMetadata(name: nameof(VsixCodeFixProvider), languages: LanguageNames.CSharp)))

@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Document document,
             AnalysisKind kind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             CompilationWithAnalyzers? compilationWithAnalyzers,
-            Func<Project, ISkippedAnalyzersInfo>? getSkippedAnalyzersInfo,
             TextSpan? span,
             CancellationToken cancellationToken)
         {
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
             var singleAnalyzer = ImmutableArray.Create(analyzer);
-            var skippedAnalyzerInfo = getSkippedAnalyzersInfo?.Invoke(document.Project) ?? SkippedHostAnalyzersInfo.Default;
+            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
             ImmutableArray<string> filteredIds;
 
             switch (kind)

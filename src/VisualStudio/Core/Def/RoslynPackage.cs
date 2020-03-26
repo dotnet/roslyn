@@ -154,15 +154,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             try
             {
-                var packages = provider.GetHostDiagnosticAnalyzerPackages();
-                var loader = provider.GetAnalyzerAssemblyLoader();
-
-                var references = packages.SelectMany(p => p.Assemblies).Distinct(StringComparer.OrdinalIgnoreCase).SelectAsArray(
-                    path => (AnalyzerReference)new AnalyzerFileReference(path, loader));
-
+                var references = provider.GetAnalyzerReferencesInExtensions();
                 LogWorkspaceAnalyzerCount(references.Length);
-
-                _workspace.ApplySolutionChangeToWorkspace(s => s.WithAnalyzerReferences(references));
+                _workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
             }
             catch (Exception e) when (FatalError.Report(e))
             {

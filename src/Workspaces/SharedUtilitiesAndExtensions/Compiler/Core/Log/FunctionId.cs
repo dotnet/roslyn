@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHostClientService_Restarted = 302,
 
         RemoteHostService_SynchronizePrimaryWorkspaceAsync = 303,
-        RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
+        // obsolete: RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
 
         AssetStorage_CleanAssets = 305,
         AssetStorage_TryGetAsset = 306,
