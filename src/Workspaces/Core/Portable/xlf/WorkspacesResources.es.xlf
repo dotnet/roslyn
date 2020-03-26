@@ -1297,6 +1297,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="new">The solution already contains the specified reference.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="new">Unknown</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Archivos de Visual Basic</target>

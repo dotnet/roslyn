@@ -1297,6 +1297,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">The solution already contains the specified reference.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="new">Unknown</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic 파일</target>

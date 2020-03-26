@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DiagnosticAnalyzerExtensions
     {
+        private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
+        private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
+
         public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
             => analyzer switch
             {
@@ -20,6 +23,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // It is not possible to know the categorization for a public analyzer, so return a worst-case categorization.
                 _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
             };
+
+        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
+        {
+            // TODO: find better way.
+            var typeString = analyzer.GetType().ToString();
+            if (typeString == CSharpCompilerAnalyzerTypeName)
+            {
+                return true;
+            }
+
+            if (typeString == VisualBasicCompilerAnalyzerTypeName)
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
         {

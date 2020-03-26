@@ -65,23 +65,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 : descriptor.GetEffectiveSeverity(options);
         }
 
-        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            // TODO: find better way.
-            var typeString = analyzer.GetType().FullName;
-            if (typeString == CSharpCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            if (typeString == VisualBasicCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.

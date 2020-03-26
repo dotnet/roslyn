@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                var displayName = reference.Display ?? FeaturesResources.Unknown;
+                var displayName = reference.Display ?? WorkspacesResources.Unknown;
 
                 // if there are duplicates, merge descriptors
                 if (builder.TryGetValue(displayName, out var existing))
