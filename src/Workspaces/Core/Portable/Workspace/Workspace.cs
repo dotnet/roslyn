@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler _taskQueue;
+        private readonly TaskQueue _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -83,8 +83,9 @@ namespace Microsoft.CodeAnalysis
             _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+            var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
+            var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
@@ -285,18 +286,18 @@ namespace Microsoft.CodeAnalysis
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
+        protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(action, taskName);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
         }
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
+        protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(func, taskName);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
         }
 
         /// <summary>

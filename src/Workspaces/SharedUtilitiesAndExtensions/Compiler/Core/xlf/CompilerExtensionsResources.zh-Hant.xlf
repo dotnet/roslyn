@@ -157,6 +157,11 @@
         <target state="new">Public or Protected Field</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Specified_sequence_has_duplicate_items">
+        <source>Specified sequence has duplicate items</source>
+        <target state="new">Specified sequence has duplicate items</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Static_Field">
         <source>Static Field</source>
         <target state="new">Static Field</target>
