@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Design;
 using System.IO;
@@ -39,6 +41,7 @@ using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
@@ -61,11 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
         private const byte DecompilerEulaOptionVersion = 1;
 
-        private VisualStudioWorkspace _workspace;
-        private IComponentModel _componentModel;
-        private RuleSetEventHandler _ruleSetEventHandler;
-        private ColorSchemeApplier _colorSchemeApplier;
-        private IDisposable _solutionEventMonitor;
+        private VisualStudioWorkspace? _workspace;
+        private IComponentModel? _componentModel;
+        private RuleSetEventHandler? _ruleSetEventHandler;
+        private ColorSchemeApplier? _colorSchemeApplier;
+        private IDisposable? _solutionEventMonitor;
 
         public RoslynPackage()
         {
@@ -150,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
 
             // Initialize ColorScheme support
-            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             _colorSchemeApplier.Initialize();
         }
 
@@ -275,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             if (_workspace != null)
             {
-                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
+                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 
@@ -306,18 +309,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void TrackBulkFileOperations()
         {
+            RoslynDebug.AssertNotNull(_workspace);
+
             // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
             // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
             // explicitly asked for.
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, 
             // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            var globalNotificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
+            IGlobalOperationNotificationService globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
-            var gate = new object();
-            GlobalOperationRegistration localRegistration = null;
+            object gate = new object();
+            GlobalOperationRegistration? localRegistration = null;
 
             BulkFileOperation.End += (s, a) =>
             {

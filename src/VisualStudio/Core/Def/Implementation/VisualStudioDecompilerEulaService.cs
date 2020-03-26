@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
-        private RoslynPackage _roslynPackage;
+        private RoslynPackage? _roslynPackage;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,16 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public async Task<bool> IsAcceptedAsync(CancellationToken cancellationToken)
         {
             var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
-            return roslynPackage.IsDecompilerEulaAccepted;
+            return roslynPackage?.IsDecompilerEulaAccepted ?? false;
         }
 
         public async Task MarkAcceptedAsync(CancellationToken cancellationToken)
         {
             var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
-            roslynPackage.IsDecompilerEulaAccepted = true;
+            if (roslynPackage is object)
+            {
+                roslynPackage.IsDecompilerEulaAccepted = true;
+            }
         }
 
-        private async ValueTask<RoslynPackage> TryGetRoslynPackageAsync(CancellationToken cancellationToken)
+        private async ValueTask<RoslynPackage?> TryGetRoslynPackageAsync(CancellationToken cancellationToken)
         {
             if (_roslynPackage is null)
             {
