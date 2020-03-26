@@ -4,8 +4,11 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
@@ -19,5 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// analysis of the workspace to find todo comments
         /// </summary>
         void Start(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Legacy entry-point to allow existing in-process languages to report todo comments.  These languages are
+        /// responsible for determining when to compute todo comments (for example, on <see
+        /// cref="Workspace.WorkspaceChanged"/>).  This can be called on any thread.
+        /// </summary>
+        Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken);
     }
 }
