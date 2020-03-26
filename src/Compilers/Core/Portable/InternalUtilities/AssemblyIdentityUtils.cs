@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis
