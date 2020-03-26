@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private struct MetadataInfoCreator : IDisposable
         {
-            private static Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
-            private static ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
+            private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
+            private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
             private readonly Solution _solution;
             private readonly Checksum _checksum;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this int x);
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
-            private MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
+            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
