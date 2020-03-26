@@ -535,7 +535,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             string text = methodName switch
             {
                 nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
-                nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString()
+                nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
+                _ => "default"
             };
             var content = new List<SyntaxNode>()
             {
