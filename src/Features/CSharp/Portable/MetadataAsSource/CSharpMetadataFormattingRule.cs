@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
         public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
         {
-            return;
         }
 
         protected override bool IsNewLine(char c)
