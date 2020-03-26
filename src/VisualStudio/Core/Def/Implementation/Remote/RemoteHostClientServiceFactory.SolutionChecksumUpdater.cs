@@ -5,11 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -119,10 +119,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _event.Release();
             }
 
-            private Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+            private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                return _service.Workspace.SynchronizePrimaryWorkspaceAsync(_service.Workspace.CurrentSolution, cancellationToken);
+                var workspace = _service.Workspace;
+                var solution = workspace.CurrentSolution;
+                if (solution.BranchId != solution.Workspace.PrimaryBranchId)
+                {
+                    return;
+                }
+
+                var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return;
+                }
+
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+                {
+                    var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                        solution,
+                        new object[] { checksum, solution.WorkspaceVersion },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
+
 
             private static void CancelAndDispose(CancellationTokenSource cancellationSource)
             {
