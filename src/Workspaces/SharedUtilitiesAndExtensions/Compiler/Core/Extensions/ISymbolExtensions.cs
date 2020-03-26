@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsParams([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters[parameters.Length - 1].IsParams;
+            return parameters.Length > 0 && parameters[^1].IsParams;
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
@@ -500,8 +500,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
                 var skip = extensionUsedAsInstance ? 1 : 0;
 
-                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
-
                 // Convert the symbol to Func<...> or Action<...>
                 var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
                     ? WithArity("System.Action", count)
@@ -525,6 +523,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise, just default to object.
             return compilation.ObjectType;
+
+            // local functions
+            static string WithArity(string typeName, int arity)
+                => arity > 0 ? typeName + '`' + arity : typeName;
         }
 
         public static bool IsStaticType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
