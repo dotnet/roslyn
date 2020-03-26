@@ -9,17 +9,15 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-    Friend Class MultiLineIfBlockStructureProvider
-        Inherits AbstractSyntaxNodeStructureProvider(Of MultiLineIfBlockSyntax)
+    Friend Class EnumMemberDeclarationStructureProvider
+        Inherits AbstractSyntaxNodeStructureProvider(Of EnumMemberDeclarationSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As MultiLineIfBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(enumMemberDeclaration As EnumMemberDeclarationSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
                                                   isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            spans.AddIfNotNull(CreateBlockSpanFromBlock(
-                               node, node.IfStatement, autoCollapse:=False,
-                               type:=BlockTypes.Conditional, isCollapsible:=True))
+            CollectCommentsRegions(enumMemberDeclaration, spans, isMetadataAsSource)
         End Sub
     End Class
 End Namespace

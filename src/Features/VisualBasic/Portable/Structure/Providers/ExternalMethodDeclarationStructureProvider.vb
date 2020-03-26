@@ -14,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(externalMethodDeclaration As DeclareStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(externalMethodDeclaration, spans)
+            CollectCommentsRegions(externalMethodDeclaration, spans, isMetadataAsSource)
         End Sub
     End Class
 End Namespace

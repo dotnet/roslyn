@@ -503,79 +503,49 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet ?? _lazyAnalyzerConfigSet);
         }
 
-        public ProjectState UpdateName(string name)
+        private ProjectInfo.ProjectAttributes Attributes
+            => ProjectInfo.Attributes;
+
+        private ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes)
+            => With(projectInfo: ProjectInfo.With(attributes: attributes));
+
+        public ProjectState WithName(string name)
+            => (name == Name) ? this : WithAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
+
+        public ProjectState WithFilePath(string? filePath)
+            => (filePath == FilePath) ? this : WithAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
+
+        public ProjectState WithAssemblyName(string assemblyName)
+            => (assemblyName == AssemblyName) ? this : WithAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
+
+        public ProjectState WithOutputFilePath(string? outputFilePath)
+            => (outputFilePath == OutputFilePath) ? this : WithAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
+
+        public ProjectState WithOutputRefFilePath(string? outputRefFilePath)
+            => (outputRefFilePath == OutputRefFilePath) ? this : WithAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
+
+        public ProjectState WithDefaultNamespace(string? defaultNamespace)
+            => (defaultNamespace == DefaultNamespace) ? this : WithAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
+
+        public ProjectState WithHasAllInformation(bool hasAllInformation)
+            => (hasAllInformation == HasAllInformation) ? this : WithAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
+
+        public ProjectState WithRunAnalyzers(bool runAnalyzers)
+            => (runAnalyzers == RunAnalyzers) ? this : WithAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+
+        public ProjectState WithCompilationOptions(CompilationOptions options)
         {
-            if (name == this.Name)
+            if (options == CompilationOptions)
             {
                 return this;
             }
 
-            return this.With(projectInfo: this.ProjectInfo.WithName(name).WithVersion(this.Version.GetNewerVersion()));
+            return With(projectInfo: ProjectInfo.WithCompilationOptions(options).WithVersion(Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateFilePath(string? filePath)
+        public ProjectState WithParseOptions(ParseOptions options)
         {
-            if (filePath == this.FilePath)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithFilePath(filePath).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateAssemblyName(string assemblyName)
-        {
-            if (assemblyName == this.AssemblyName)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithAssemblyName(assemblyName).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateOutputFilePath(string? outputFilePath)
-        {
-            if (outputFilePath == this.OutputFilePath)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputFilePath).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateOutputRefFilePath(string? outputRefFilePath)
-        {
-            if (outputRefFilePath == this.OutputRefFilePath)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateDefaultNamespace(string? defaultNamespace)
-        {
-            if (defaultNamespace == this.DefaultNamespace)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithDefaultNamespace(defaultNamespace).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateCompilationOptions(CompilationOptions options)
-        {
-            if (options == this.CompilationOptions)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithCompilationOptions(options).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateParseOptions(ParseOptions options)
-        {
-            if (options == this.ParseOptions)
+            if (options == ParseOptions)
             {
                 return this;
             }
@@ -589,29 +559,9 @@ namespace Microsoft.CodeAnalysis
                 docMap = docMap.SetItem(docId, newDocState);
             }
 
-            return this.With(
-                projectInfo: this.ProjectInfo.WithParseOptions(options).WithVersion(this.Version.GetNewerVersion()),
+            return With(
+                projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
                 documentStates: docMap);
-        }
-
-        public ProjectState UpdateHasAllInformation(bool hasAllInformation)
-        {
-            if (hasAllInformation == this.HasAllInformation)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState UpdateRunAnalyzers(bool runAnalyzers)
-        {
-            if (runAnalyzers == this.RunAnalyzers)
-            {
-                return this;
-            }
-
-            return this.With(projectInfo: this.ProjectInfo.WithRunAnalyzers(runAnalyzers).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
@@ -635,101 +585,34 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public ProjectState RemoveProjectReference(ProjectReference projectReference)
+        public ProjectState WithProjectReferences(IReadOnlyList<ProjectReference> projectReferences)
         {
-            Debug.Assert(this.ProjectReferences.Contains(projectReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Remove(projectReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState AddProjectReferences(IEnumerable<ProjectReference> projectReferences)
-        {
-            var newProjectRefs = this.ProjectReferences;
-            foreach (var projectReference in projectReferences)
+            if (projectReferences == ProjectReferences)
             {
-                Debug.Assert(!newProjectRefs.Contains(projectReference));
-                newProjectRefs = newProjectRefs.ToImmutableArray().Add(projectReference);
+                return this;
             }
 
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(newProjectRefs).WithVersion(this.Version.GetNewerVersion()));
+            return With(projectInfo: ProjectInfo.With(projectReferences: projectReferences).WithVersion(Version.GetNewerVersion()));
         }
 
-        public ProjectState WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
+        public ProjectState WithMetadataReferences(IReadOnlyList<MetadataReference> metadataReferences)
         {
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(projectReferences).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState AddMetadataReference(MetadataReference toMetadata)
-        {
-            Debug.Assert(!this.MetadataReferences.Contains(toMetadata));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Add(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState RemoveMetadataReference(MetadataReference toMetadata)
-        {
-            Debug.Assert(this.MetadataReferences.Contains(toMetadata));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(this.MetadataReferences.ToImmutableArray().Remove(toMetadata)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState AddMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        {
-            var newMetaRefs = this.MetadataReferences;
-            foreach (var metadataReference in metadataReferences)
+            if (metadataReferences == MetadataReferences)
             {
-                Debug.Assert(!newMetaRefs.Contains(metadataReference));
-                newMetaRefs = newMetaRefs.ToImmutableArray().Add(metadataReference);
+                return this;
             }
 
-            return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(newMetaRefs).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState WithMetadataReferences(IEnumerable<MetadataReference> metadataReferences)
-        {
-            return this.With(
-                projectInfo: this.ProjectInfo.WithMetadataReferences(metadataReferences).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState AddAnalyzerReference(AnalyzerReference analyzerReference)
-        {
-            Debug.Assert(!this.AnalyzerReferences.Contains(analyzerReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Add(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState RemoveAnalyzerReference(AnalyzerReference analyzerReference)
-        {
-            Debug.Assert(this.AnalyzerReferences.Contains(analyzerReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(this.AnalyzerReferences.ToImmutableArray().Remove(analyzerReference)).WithVersion(this.Version.GetNewerVersion()));
-        }
-
-        public ProjectState AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
-        {
-            var newAnalyzerReferences = this.AnalyzerReferences;
-            foreach (var analyzerReference in analyzerReferences)
-            {
-                Debug.Assert(!newAnalyzerReferences.Contains(analyzerReference));
-                newAnalyzerReferences = newAnalyzerReferences.ToImmutableArray().Add(analyzerReference);
-            }
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(newAnalyzerReferences).WithVersion(this.Version.GetNewerVersion()));
+            return With(projectInfo: ProjectInfo.With(metadataReferences: metadataReferences).WithVersion(Version.GetNewerVersion()));
         }
 
         public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            return this.With(
-                projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(this.Version.GetNewerVersion()));
+            if (analyzerReferences == AnalyzerReferences)
+            {
+                return this;
+            }
+
+            return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
         }
 
         public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 id ?? throw new ArgumentNullException(nameof(id)),
                 name ?? throw new ArgumentNullException(nameof(name)),
-                folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders)),
+                PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
                 sourceCodeKind,
                 loader,
                 filePath,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             => With(attributes: Attributes.With(name: name ?? throw new ArgumentNullException(nameof(name))));
 
         public DocumentInfo WithFolders(IEnumerable<string>? folders)
-            => With(attributes: Attributes.With(folders: folders.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(folders))));
+            => With(attributes: Attributes.With(folders: PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders))));
 
         public DocumentInfo WithSourceCodeKind(SourceCodeKind kind)
             => With(attributes: Attributes.With(sourceCodeKind: kind));
