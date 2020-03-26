@@ -9311,31 +9311,21 @@ class C2 : C1
             var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics();
 
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
 
-            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
-            var diags = comp2.GetDiagnostics();
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
-            diags.Verify(
-                // (6,9): warning CS0612: 'C1.M1()' is obsolete
-                //         M1(); // 1
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
-
-            var diag = diags.Single();
-            Assert.Equal("", diag.Descriptor.HelpLinkUri);
-
-
-            comp2 = CreateCompilation(source2, references: new[] { comp1.EmitToImageReference() });
-            diags = comp2.GetDiagnostics();
-
-            // Perhaps we should not accept the arguments when the well-known property
-            // is of an unexpected type that is assignable from string.
-            diags.Verify(
-                // (6,9): warning A: 'C1.M1()' is obsolete
-                //         M1(); // 1
-                Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
-
-            diag = diags.Single();
-            Assert.Equal("B", diag.Descriptor.HelpLinkUri);
+                var diag = diags.Single();
+                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+            }
         }
 
         [Fact]

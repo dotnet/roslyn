@@ -1684,13 +1684,13 @@ namespace Microsoft.CodeAnalysis
                 var numNamed = sig.ReadUInt16();
                 for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
-                    var ((name, value), isProperty) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
-                    if (value.TypeInternal?.SpecialType == SpecialType.System_String && isProperty)
+                    var ((name, value), isProperty, typeCode) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
                         if (diagnosticId is null && name == "DiagnosticId")
-                            diagnosticId = (string?)value.ValueInternal;
+                            diagnosticId = stringValue;
                         else if (urlFormat is null && name == "UrlFormat")
-                            urlFormat = (string?)value.ValueInternal;
+                            urlFormat = stringValue;
                     }
                 }
             }
