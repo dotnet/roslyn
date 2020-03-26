@@ -4,14 +4,11 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
