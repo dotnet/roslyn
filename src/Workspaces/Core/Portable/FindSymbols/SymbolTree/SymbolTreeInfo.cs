@@ -312,9 +312,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private StringSlice GetNameSlice(int nodeIndex)
-            => GetNameSlice(_concatenatedNames, _nodes, nodeIndex);
-
         private static StringSlice GetNameSlice(
             string concatenatedNames, ImmutableArray<Node> nodes, int nodeIndex)
         {
