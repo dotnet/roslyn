@@ -22,8 +22,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
-
             var receiverType = receiver.Type;
+
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
+            var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
+            // Bind with expression arguments
+            foreach (var initializer in syntax.Initializers)
+            {
+                var propName = initializer.NameEquals?.Name.Identifier.Text;
+                Symbol? member = null;
+                if (!(propName is null) && !(receiverType is null))
+                {
+                    this.LookupMembersInType(
+                        lookupResult,
+                        receiverType,
+                        propName,
+                        arity: 0,
+                        basesBeingResolved: null,
+                        options: LookupOptions.MustBeInstance, // properties are not invocable - their accessors are
+                        originalBinder: this,
+                        diagnose: false,
+                        useSiteDiagnostics: ref useSiteDiagnostics);
+                    if (lookupResult.IsSingleViable &&
+                        lookupResult.SingleSymbolOrDefault is var sym &&
+                        (sym.Kind == SymbolKind.Field || sym.Kind == SymbolKind.Property))
+                    {
+                        member = lookupResult.SingleSymbolOrDefault;
+                    }
+
+                    if (member is null)
+                    {
+                        Error(
+                            diagnostics,
+                            ErrorCode.ERR_NoSuchMemberOrExtension,
+                            initializer.NameEquals!.Name.Location,
+                            receiverType,
+                            propName);
+                    }
+                }
+
+                var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
+                lookupResult.Clear();
+                args.Add((member, expr));
+            }
+
             if (receiverType is null || receiverType.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
@@ -36,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE: The receiver type must have a single declared instance method called 'With'
-            var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             LookupMembersWithoutInheritance(
                 lookupResult,
                 receiverType,
@@ -80,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             lookupResult.Clear();
+            useSiteDiagnostics = null;
             ImmutableArray<Symbol?> withMembers;
 
             if (withMethod is null)
@@ -101,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverType,
                         withMethod.ReturnType);
                 }
+
+                useSiteDiagnostics = null;
 
                 // Build WithMethod member list
                 var matchingMembers = ArrayBuilder<Symbol?>.GetInstance(withMethod.ParameterCount);
@@ -147,47 +192,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     lookupResult.Clear();
+                    useSiteDiagnostics = null;
                     matchingMembers.Add(member);
                 }
                 withMembers = matchingMembers.ToImmutableAndFree();
             }
 
-            var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
-            // Bind with expression arguments
-            foreach (var initializer in syntax.Initializers)
+            // Verify that the member name exists in the 'With' method parameter list
+            // and that there is an implicit conversion from the expression to the
+            // property type
+            for (int i = 0; i < args.Count; i++)
             {
-                var propName = initializer.NameEquals?.Name.Identifier.Text;
-                Symbol? member = null;
-                if (propName is object)
+                var (member, expr) = args[i];
+                if (!(member is null))
                 {
-                    this.LookupMembersInType(
-                        lookupResult,
-                        receiverType,
-                        propName,
-                        arity: 0,
-                        basesBeingResolved: null,
-                        options: LookupOptions.MustBeInstance, // properties are not invocable - their accessors are
-                        originalBinder: this,
-                        diagnose: false,
-                        useSiteDiagnostics: ref useSiteDiagnostics);
-                    if (lookupResult.IsSingleViable &&
-                        lookupResult.SingleSymbolOrDefault is var sym &&
-                        (sym.Kind == SymbolKind.Field || sym.Kind == SymbolKind.Property))
-                    {
-                        member = lookupResult.SingleSymbolOrDefault;
-                    }
-                    if (member is null || !withMembers.Contains(member))
+                    if (!withMembers.Contains(member))
                     {
                         diagnostics.Add(
                             ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter,
-                            initializer.NameEquals!.Name.Location,
-                            propName);
+                            syntax.Initializers[i].NameEquals!.Name.Location,
+                            member.Name);
+                    }
+
+                    var memberType = member.GetTypeOrReturnType().Type;
+                    var conversion = Conversions.ClassifyImplicitConversionFromExpression(
+                        expr,
+                        memberType,
+                        ref useSiteDiagnostics);
+
+                    if (!conversion.IsImplicit || !conversion.IsValid)
+                    {
+                        GenerateImplicitConversionError(
+                            diagnostics,
+                            expr.Syntax,
+                            conversion,
+                            expr,
+                            memberType);
                     }
                 }
-
-                var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
-                lookupResult.Clear();
-                args.Add((member, expr));
+                useSiteDiagnostics = null;
             }
 
             lookupResult.Free();

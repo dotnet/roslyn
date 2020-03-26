@@ -694,7 +694,10 @@ class C
             comp.VerifyDiagnostics(
                 // (9,13): error CS8806: The 'With' method parameter named 'X' has type 'string' which doesn't match member type 'int'
                 //         c = c with { X = ""};
-                Diagnostic(ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType, "c").WithArguments("X", "string", "int").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_WithParameterTypeDoesntMatchMemberType, "c").WithArguments("X", "string", "int").WithLocation(9, 13),
+                // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         c = c with { X = ""};
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(9, 26)
             );
         }
 
@@ -1037,9 +1040,59 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8807: There is no `With` method parameter which matches property 'Y'.
+                // (12,22): error CS1061: 'B' does not contain a definition for 'Y' and no accessible extension method 'Y' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
                 //         b = b with { Y = 2 };
-                Diagnostic(ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter, "Y").WithArguments("Y").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Y").WithArguments("B", "Y").WithLocation(12, 22)
+            );
+        }
+
+        [Fact]
+        public void WithExprNestedErrors()
+        {
+            var src = @"
+class C
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { X = """"-3 };
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { X = ""-3 };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(7, 13),
+                // (7,22): error CS1061: 'C' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         c = c with { X = ""-3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("C", "X").WithLocation(7, 22),
+                // (7,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
+                //         c = c with { X = ""-3 };
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(7, 26)
+            );
+        }
+
+        [Fact]
+        public void WithExprNoExpressionToPropertyTypeConversion()
+        {
+            var src = @"
+class C
+{
+    public int X = 0;
+    public C With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { X = """" };
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         c = c with { X = "" };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(9, 26)
             );
         }
     }
