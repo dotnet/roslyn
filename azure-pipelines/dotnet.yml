@@ -49,7 +49,7 @@ steps:
 
 - task: PublishSymbols@2
   inputs:
-    SymbolsFolder: $(Build.ArtifactStagingDirectory)/symbols-Windows
+    SymbolsFolder: $(Build.ArtifactStagingDirectory)/symbols-$(Agent.JobName)
     SearchPattern: '**/*.pdb'
     IndexSources: false
     SymbolServerType: TeamServices
