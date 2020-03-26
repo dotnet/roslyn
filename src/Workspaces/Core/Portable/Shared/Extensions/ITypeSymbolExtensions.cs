@@ -155,20 +155,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
 
-        public static ISymbol? FindImplementations(
-            this ITypeSymbol typeSymbol,
-            ISymbol constructedInterfaceMember,
-            Workspace workspace)
-        {
-            switch (constructedInterfaceMember)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
+            => constructedInterfaceMember switch
             {
-                case IEventSymbol eventSymbol: return typeSymbol.FindImplementations(eventSymbol, workspace);
-                case IMethodSymbol methodSymbol: return typeSymbol.FindImplementations(methodSymbol, workspace);
-                case IPropertySymbol propertySymbol: return typeSymbol.FindImplementations(propertySymbol, workspace);
-            }
-
-            return null;
-        }
+                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, workspace),
+                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, workspace),
+                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, workspace),
+                _ => null,
+            };
 
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
