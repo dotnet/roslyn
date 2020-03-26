@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts()
-            => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.GreaterThanToken));
+        private IList<SymbolDisplayPart> GetPostambleParts(INamedTypeSymbol namedType)
+        {
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.GreaterThanToken));
+        }
     }
 }

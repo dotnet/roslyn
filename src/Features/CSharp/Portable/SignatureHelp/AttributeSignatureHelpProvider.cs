@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var result = new List<SignatureHelpSymbolParameter>();
             foreach (var parameter in constructor.Parameters)
             {
-                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter));
+                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter, cancellationToken));
             }
 
             for (var i = 0; i < namedParameters.Count; i++)

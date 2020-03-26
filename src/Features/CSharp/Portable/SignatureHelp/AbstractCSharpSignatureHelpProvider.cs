@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter)
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,

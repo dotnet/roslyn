@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -118,9 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
-                return expression.Parent is ConditionalAccessExpressionSyntax conditional
-                    ? TextSpan.FromBounds(conditional.Span.Start, openBracket.FullSpan.End)
-                    : CompleteElementAccessExpression.GetTextSpan(openBracket);
+                if (expression.Parent is ConditionalAccessExpressionSyntax conditional)
+                {
+                    return TextSpan.FromBounds(conditional.Span.Start, openBracket.FullSpan.End);
+                }
+                else
+                {
+                    return CompleteElementAccessExpression.GetTextSpan(expression, openBracket);
+                }
             }
             else if (openBracket.Parent is ArrayRankSpecifierSyntax)
             {
@@ -155,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expression.Parent is ConditionalAccessExpressionSyntax)
             {
                 // The typed code looks like: <expression>?[
+                var conditional = (ConditionalAccessExpressionSyntax)expression.Parent;
                 var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
                 var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
                 offset = expression.SpanStart - conditionalAccessExpression.SpanStart;
@@ -225,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService)
+            IDocumentationCommentFormattingService documentationCommentFormattingService,
+            CancellationToken cancellationToken)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
@@ -234,8 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
-                GetPostambleParts(),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+                GetPostambleParts(indexer),
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
@@ -274,8 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts()
-            => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseBracketToken));
+        private IList<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
+        {
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseBracketToken));
+        }
 
         private static class CompleteElementAccessExpression
         {
@@ -294,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     token != expression.ArgumentList.CloseBracketToken;
             }
 
-            internal static TextSpan GetTextSpan(SyntaxToken openBracket)
+            internal static TextSpan GetTextSpan(SyntaxNode expression, SyntaxToken openBracket)
             {
                 Contract.ThrowIfFalse(openBracket.Parent is BracketedArgumentListSyntax &&
                     (openBracket.Parent.Parent is ElementAccessExpressionSyntax || openBracket.Parent.Parent is ElementBindingExpressionSyntax));

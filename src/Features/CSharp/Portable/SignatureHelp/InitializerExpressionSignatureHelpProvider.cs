@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CreateCollectionInitializerSignatureHelpItems(addMethods.Select(s =>
-                ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel)).ToList(),
+                ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
