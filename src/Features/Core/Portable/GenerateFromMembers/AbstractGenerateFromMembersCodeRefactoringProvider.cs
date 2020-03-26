@@ -116,8 +116,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return parameters.ToImmutableAndFree();
         }
 
-        private static readonly char[] s_underscore = { '_' };
-
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,

@@ -175,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
-                    updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
+                    updatedDocument,
+                    n => movedImports.Contains(i => i.IsEquivalentTo(n)),
+                    CancellationToken).ConfigureAwait(false);
 
                 return updatedDocument.Project.Solution;
             }

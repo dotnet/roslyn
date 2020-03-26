@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 container = ((INamespaceOrTypeSymbol)container.ContainingType) ?? container.ContainingNamespace;
 
                 // We ran out of containers to match against before we matched all the names, so this type isn't a match.
-                if ((container == null) && (i > 0))
+                if (container == null && i > 0)
                 {
                     return false;
                 }
