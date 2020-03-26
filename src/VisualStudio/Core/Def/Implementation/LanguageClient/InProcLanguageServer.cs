@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,10 +16,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Utilities.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -225,18 +227,74 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        protected virtual async Task PublishDiagnosticsAsync(Document document)
+        /// <summary>
+        /// Stores the last published LSP diagnostics with the Roslyn document that they came from.
+        /// This is useful in the following scenario.  Imagine we have documentA which has contributions from mapped files m1 and m2.
+        /// dA -> m1
+        /// And m1 additionally contributes to documentB.
+        /// m1 -> dA, dB
+        /// When we query for diagnostic on dA, we get a subset of the diagnostics on m1 (missing the contributions from dB)
+        /// Since each publish diagnostics notification replaces diagnostics per document,
+        /// we must union the diagnostics contribution from dB and dA to produce all diagnostics for m1 and publish all at once.
+        /// 
+        /// This dictionary stores the previously computed diagnostics for the published file so that we can
+        /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
+        /// </summary>
+        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
+            new Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>>();
+
+        /// <summary>
+        /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.
+        /// When we get empty diagnostics for the document we need to find the uris we previously published for this document.
+        /// Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic contributions from other documents).
+        /// </summary>
+        private readonly Dictionary<DocumentId, ImmutableArray<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableArray<Uri>>();
+
+        private async Task PublishDiagnosticsAsync(Document document)
         {
+            // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
 
-            foreach (var fileUri in fileUriToDiagnostics.Keys)
+            // Get the list of file uris with diagnostics (for the document).
+            // If we found no diagnostics use previously published uris so we can clear out diagnostics from this document.
+            var urisForCurrentDocument = fileUriToDiagnostics.Keys.Any() ? fileUriToDiagnostics.Keys.ToImmutableArray()
+                : GetOrEmpty(_documentsToPublishedUris, document.Id);
+
+            // Go through each uri and publish the updated set of diagnostics per uri.
+            foreach (var fileUri in urisForCurrentDocument)
             {
-                var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = fileUriToDiagnostics[fileUri], Uri = fileUri };
-                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+                // Get the updated diagnostics for a single uri that were contributed by the current document.
+                var diagnostics = GetOrEmpty(fileUriToDiagnostics, fileUri);
+
+                if (_publishedFileToDiagnostics.ContainsKey(fileUri))
+                {
+                    // Get all previously published diagnostics for this uri excluding those that were contributed from the current document.
+                    // We don't need those since we just computed the updated values above.
+                    var diagnosticsFromOtherDocuments = _publishedFileToDiagnostics[fileUri].Where(kvp => kvp.Key != document.Id).SelectMany(kvp => kvp.Value);
+
+                    // Since diagnostics are replaced per uri, we must publish both contributions from this document and any other document
+                    // that has diagnostic contributions to this uri, so union the two sets.
+                    diagnostics = diagnostics.AddRange(diagnosticsFromOtherDocuments);
+                }
+
+                await SendDiagnosticsNotificationAsync(fileUri, diagnostics).ConfigureAwait(false);
+
+                // Update the published diagnostics map to contain the new diagnostics for this document and mapped uri.
+                _publishedFileToDiagnostics.GetOrAdd(fileUri,
+                    (_) => { return new Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>(); })[document.Id] = diagnostics;
             }
+
+            // Update the mapping for this document to be the uris we just published diagnostics for.
+            _documentsToPublishedUris[document.Id] = urisForCurrentDocument;
         }
 
-        private async Task<Dictionary<Uri, LanguageServer.Protocol.Diagnostic[]>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LanguageServer.Protocol.Diagnostic> diagnostics)
+        {
+            var publishDiagnosticsParams = new PublishDiagnosticParams { Diagnostics = diagnostics.ToArray(), Uri = uri };
+            await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
+        }
+
+        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
                                                 .Where(IncludeDiagnostic);
@@ -256,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // and which are just imported.  So we publish them all and let them get de-duped.
             var fileUriToDiagnostics = diagnostics.GroupBy(diagnostic => GetDiagnosticUri(document, diagnostic)).ToDictionary(
                 group => group.Key,
-                group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToArray());
+                group => group.Select(diagnostic => ConvertToLspDiagnostic(diagnostic, text)).ToImmutableArray());
             return fileUriToDiagnostics;
 
             static Uri GetDiagnosticUri(Document document, DiagnosticData diagnosticData)
@@ -299,6 +357,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
+        }
+
+        private static ImmutableArray<V> GetOrEmpty<K, V>(Dictionary<K, ImmutableArray<V>> dict, K key)
+        {
+            if (dict.TryGetValue(key, out var immutableArray))
+            {
+                return immutableArray;
+            }
+
+            return ImmutableArray<V>.Empty;
         }
     }
 }
