@@ -10,46 +10,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Errors
+namespace Microsoft.CodeAnalysis
 {
-    internal sealed class CustomObsoleteDiagnosticInfo : DiagnosticInfo
+    internal class CustomObsoleteDiagnosticInfo : DiagnosticInfo
     {
         internal ObsoleteAttributeData Data { get; }
 
-        internal CustomObsoleteDiagnosticInfo(Symbol obsoletedSymbol, ObsoleteAttributeData data, bool inCollectionInitializer)
-            : base(CSharp.MessageProvider.Instance, (int)GetErrorCode(data, inCollectionInitializer), arguments: GetArguments(obsoletedSymbol, data))
+        internal CustomObsoleteDiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, ObsoleteAttributeData data, params object[] arguments)
+            : base(messageProvider, errorCode, arguments)
         {
             Data = data;
-        }
-
-        private static ErrorCode GetErrorCode(ObsoleteAttributeData data, bool inCollectionInitializer)
-        {
-            // dev11 had a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.
-            if (data.Message is null)
-            {
-                return inCollectionInitializer ? ErrorCode.WRN_DeprecatedCollectionInitAdd : ErrorCode.WRN_DeprecatedSymbol;
-            }
-
-            return (data.IsError, inCollectionInitializer) switch
-            {
-                (true, true) => ErrorCode.ERR_DeprecatedCollectionInitAddStr,
-                (true, false) => ErrorCode.ERR_DeprecatedSymbolStr,
-                (false, true) => ErrorCode.WRN_DeprecatedCollectionInitAddStr,
-                (false, false) => ErrorCode.WRN_DeprecatedSymbolStr
-            };
-        }
-
-        private static object[] GetArguments(Symbol obsoletedSymbol, ObsoleteAttributeData obsoleteAttributeData)
-        {
-            var message = obsoleteAttributeData.Message;
-            if (message is object)
-            {
-                return new object[] { obsoletedSymbol, message };
-            }
-            else
-            {
-                return new object[] { obsoletedSymbol };
-            }
         }
 
         public override string MessageIdentifier
@@ -101,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
                 }
                 catch
                 {
-                    // TODO: should we report a meta-diagnostic of some kind when the string.Format fails?
-                    // also, should we do some validation of the 'UrlFormat' values provided in source to prevent people from shipping
-                    // obsoleted symbols with malformed 'UrlFormat' values?
+                    // if string.Format fails we just want to use the default (non-user specified) URI.
                 }
             }
 
@@ -125,9 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Errors
                 customTags = tagsBuilder.ToImmutableAndFree();
             }
 
-            // TODO: we expect some users to repeatedly use
-            // the same diagnostic IDs and url format values for many symbols.
-            // do we want to cache similar diagnostic descriptors?
             return new DiagnosticDescriptor(
                 id: id,
                 title: baseDescriptor.Title,

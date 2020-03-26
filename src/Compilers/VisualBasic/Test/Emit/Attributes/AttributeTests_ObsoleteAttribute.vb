@@ -1146,7 +1146,7 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
-        <Fact(Skip:="TODO")>
+        <Fact>
         Public Sub TestObsoleteAttributeCustomProperties()
             Dim source =
 <compilation>
@@ -1190,6 +1190,110 @@ End Namespace
 
             Dim diag = diags.Single()
             Assert.Equal("TEST2", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub TestObsoleteAttributeCustomPropertiesFromMetadata()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[Imports System
+
+Public Class C1
+    <Obsolete(DiagnosticId:="TEST1", UrlFormat:="TEST2")>
+    Sub M1()
+    End Sub
+End Class
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Sub New()
+        End Sub
+    
+        Public Sub New(message As String)
+        End Sub
+    
+        Public Sub New(message As String, isError As Boolean)
+        End Sub
+    
+        Public Property DiagnosticId As String
+        Public Property UrlFormat As String
+    End Class
+End Namespace
+
+]]>
+    </file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="b.vb"><![CDATA[
+Class C2
+    Inherits C1
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(4, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("TEST2", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact>
+        Public Sub TestObsoleteAttributeDuplicateProperties()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[Imports System
+
+Class C1
+    <Obsolete(DiagnosticId:="TEST1", DiagnosticId:="TEST2", UrlFormat:="TEST3", UrlFormat:="TEST4")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Sub New()
+        End Sub
+    
+        Public Sub New(message As String)
+        End Sub
+    
+        Public Sub New(message As String, isError As Boolean)
+        End Sub
+    
+        Public Property DiagnosticId As String
+        Public Property UrlFormat As String
+    End Class
+End Namespace
+
+]]>
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("TEST3", diag.Descriptor.HelpLinkUri)
         End Sub
 
         <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>

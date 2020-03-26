@@ -14,7 +14,6 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Errors;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

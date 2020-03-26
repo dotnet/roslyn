@@ -129,17 +129,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim accessorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
 
                 If String.IsNullOrEmpty(data.Message) Then
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2),
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2), data,
                                         accessorString, accessorSymbol.AssociatedSymbol)
                 Else
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3),
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3), data,
                                         accessorString, accessorSymbol.AssociatedSymbol, data.Message)
                 End If
             Else
                 If String.IsNullOrEmpty(data.Message) Then
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbolNoMessage1, ERRID.WRN_UseOfObsoleteSymbolNoMessage1), symbol)
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbolNoMessage1, ERRID.WRN_UseOfObsoleteSymbolNoMessage1), data, symbol)
                 Else
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbol2, ERRID.WRN_UseOfObsoleteSymbol2), symbol, data.Message)
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbol2, ERRID.WRN_UseOfObsoleteSymbol2), data, symbol, data.Message)
                 End If
             End If
 
