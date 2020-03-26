@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
+        public override async Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(
             INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
             var compilationUnit = (CompilationUnitSyntax)selectedDocumentRoot;
@@ -594,9 +594,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken);
                     if (enclosingNamespaceSymbol.Symbol != null)
                     {
-                        return Tuple.Create((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
-                                            (INamespaceOrTypeSymbol)namedTypeSymbol,
-                                            enclosingNamespace.CloseBraceToken.GetLocation());
+                        return ((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
+                                namedTypeSymbol,
+                                enclosingNamespace.CloseBraceToken.GetLocation());
                     }
                 }
             }
@@ -607,9 +607,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             var afterThisLocation = lastMember != null
                 ? semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0))
                 : semanticModel.SyntaxTree.GetLocation(new TextSpan());
-            return Tuple.Create(globalNamespace,
-                                rootNamespaceOrType,
-                                afterThisLocation);
+
+            return (globalNamespace, rootNamespaceOrType, afterThisLocation);
         }
 
         private NamespaceDeclarationSyntax FindNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members, int indexDone, List<string> containers)

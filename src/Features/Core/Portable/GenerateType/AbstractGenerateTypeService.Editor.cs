@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var containers = namespaceContainersAndUsings.containers;
                 var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
-                Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation;
+                (INamespaceSymbol, INamespaceOrTypeSymbol, Location) enclosingNamespaceGeneratedTypeToAddAndLocation;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
