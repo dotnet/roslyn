@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         internal const string ShippedFileName = "AnalyzerReleases.Shipped.md";
         internal const string UnshippedFileName = "AnalyzerReleases.Unshipped.md";
-        internal const string RemovedPrefix = "*REMOVED*";
         internal const string ReleasePrefix = "## Release";
         internal const string TableTitleNewRules = "### New Rules";
         internal const string TableTitleRemovedRules = "### Removed Rules";

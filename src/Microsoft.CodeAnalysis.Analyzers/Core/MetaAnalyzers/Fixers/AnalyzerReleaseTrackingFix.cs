@@ -116,11 +116,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             if (index > 0)
             {
                 ruleId = entry.Substring(0, index).Trim();
-                if (ruleId.StartsWith(DiagnosticDescriptorCreationAnalyzer.RemovedPrefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    ruleId = ruleId.Substring(DiagnosticDescriptorCreationAnalyzer.RemovedPrefix.Length);
-                }
-
                 return true;
             }
 
