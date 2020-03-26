@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
             // If the list ends with 3 newlines remove the last one until there's only 2 newlines to end the leading trivia.
             while (trimmedLeadingTrivia.Count >= 3 &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 3]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 2]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 1]))
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^3]) &&
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^2]) &&
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^1]))
             {
                 trimmedLeadingTrivia.RemoveAt(trimmedLeadingTrivia.Count - 1);
             }
