@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document,

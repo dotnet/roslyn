@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             INamedTypeSymbol delegateType,
-            INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
@@ -36,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateTypePostambleParts(invokeMethod),
-                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
+                suffixParts: GetDelegateTypePostambleParts(),
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
 
             return (SpecializedCollections.SingletonList(item), 0);
         }
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             const string TargetName = "target";
 
@@ -86,10 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     displayParts: parts));
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)
-        {
-            return SpecializedCollections.SingletonList(
-                Punctuation(SyntaxKind.CloseParenToken));
-        }
+        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
+            => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
     }
 }

@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                                 afterThisLocation);
         }
 
-        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, CompilationUnitSyntax compilationUnit)
+        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, CompilationUnitSyntax compilationUnit)
         {
             foreach (var member in compilationUnit.Members)
             {

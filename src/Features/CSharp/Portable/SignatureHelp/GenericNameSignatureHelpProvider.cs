@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
-                    GetPostambleParts(namedType),
+                    GetPostambleParts(),
                     namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             }
             else
@@ -222,14 +222,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 isOptional: false,
                 documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
-                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
+                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
         }
 
         private IList<SymbolDisplayPart> GetSelectedDisplayParts(
             ITypeParameterSymbol typeParam,
             SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken)
+            int position)
         {
             var parts = new List<SymbolDisplayPart>();
 
