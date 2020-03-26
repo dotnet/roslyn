@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (delegateType.IsFunctionPointer())
             {
-                if (method.ParameterCount != numParams)
+                if (isExtensionMethod)
                 {
                     Error(diagnostics, ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, errorLocation);
                     diagnostics.Add(errorLocation, useSiteDiagnostics);

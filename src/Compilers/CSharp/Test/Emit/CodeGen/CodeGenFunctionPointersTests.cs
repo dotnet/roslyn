@@ -3083,7 +3083,7 @@ unsafe class C
                 // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C,void>'
                 //         delegate*<C, void> ptr1 = &c.M1;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C,void>").WithLocation(10, 35),
-                // (11,32): error CS8788: Cannot use a reduced extension method as the target of a '&' operator.
+                // (11,32): error CS8788: Cannot use a an extension method with a receiver as the target of a '&amp;' operator.
                 //         delegate*<void> ptr2 = &c.M1;
                 Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M1").WithLocation(11, 32)
             );

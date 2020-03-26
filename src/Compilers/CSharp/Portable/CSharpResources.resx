@@ -6077,6 +6077,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</value>
   </data>
   <data name="ERR_CannotUseReducedExtensionMethodInAddressOf" xml:space="preserve">
-    <value>Cannot use a reduced extension method as the target of a '&amp;' operator.</value>
+    <value>Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</value>
   </data>
 </root>

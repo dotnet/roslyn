@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
-        <source>Cannot use a reduced extension method as the target of a '&amp;' operator.</source>
-        <target state="new">Cannot use a reduced extension method as the target of a '&amp;' operator.</target>
+        <source>Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
