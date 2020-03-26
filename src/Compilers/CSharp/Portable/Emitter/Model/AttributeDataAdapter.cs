@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics), value);
         }
 
-        private protected override bool IsStringProperty(string memberName)
+        private protected sealed override bool IsStringProperty(string memberName)
         {
             if (AttributeClass is object)
             {

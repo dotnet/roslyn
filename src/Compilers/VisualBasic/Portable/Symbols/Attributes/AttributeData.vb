@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
         End Function
 
-        Private Protected Overrides Function IsStringProperty(memberName As String) As Boolean
+        Private Protected NotOverridable Overrides Function IsStringProperty(memberName As String) As Boolean
             If AttributeClass IsNot Nothing Then
                 For Each member In AttributeClass.GetMembers(memberName)
                     Dim prop = TryCast(member, PropertySymbol)
