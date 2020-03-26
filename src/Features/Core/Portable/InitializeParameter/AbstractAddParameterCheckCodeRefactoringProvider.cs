@@ -21,13 +21,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
+        TTypeDeclarationSyntax,
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax,
         TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TTypeDeclarationSyntax,
             TParameterSyntax,
             TStatementSyntax,
             TExpressionSyntax>
+        where TTypeDeclarationSyntax : SyntaxNode
         where TParameterSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
@@ -345,7 +348,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
-            InsertStatement(editor, functionDeclaration, method, statementToAddAfter, nullCheckStatement);
+            InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);

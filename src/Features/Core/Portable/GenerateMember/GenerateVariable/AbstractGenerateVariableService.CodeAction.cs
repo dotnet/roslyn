@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 var solution = _semanticDocument.Project.Solution;
                 var syntaxTree = _semanticDocument.SyntaxTree;
-                var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
+                var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
                 var otions = new CodeGenerationOptions(

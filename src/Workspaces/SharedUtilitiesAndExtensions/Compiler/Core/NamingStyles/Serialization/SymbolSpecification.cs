@@ -80,17 +80,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 modifiers: ImmutableArray<ModifierKind>.Empty);
         }
 
-        internal bool AppliesTo(ISymbol symbol)
-        {
-            return AnyMatches(this.ApplicableSymbolKindList, symbol) &&
-                   AllMatches(this.RequiredModifierList, symbol) &&
-                   AnyMatches(this.ApplicableAccessibilityList, symbol);
-        }
+        public bool AppliesTo(ISymbol symbol)
+            => AnyMatches(this.ApplicableSymbolKindList, symbol) &&
+               AllMatches(this.RequiredModifierList, symbol) &&
+               AnyMatches(this.ApplicableAccessibilityList, symbol);
 
-        internal bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
+        public bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
             => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
 
-        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
+        public bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
         {
             if (!ApplicableSymbolKindList.Any(k => k.Equals(kind)))
             {

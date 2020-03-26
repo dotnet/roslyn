@@ -104,10 +104,10 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            var options = new Dictionary<OptionKey, object>();
+            var options = new Dictionary<OptionKey2, object>();
             var language = workspace.Projects.Single().Language;
-            var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
-            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+            var preferIntrinsicPredefinedTypeOption = new OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error);
             options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
 
             workspace.ApplyOptions(options);

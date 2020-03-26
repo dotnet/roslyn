@@ -227,7 +227,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
-                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False))
+                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(
+                    Function(unified, refAsmByIdentity) refAsmByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False), referencedAssembliesByIdentity)
+
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then

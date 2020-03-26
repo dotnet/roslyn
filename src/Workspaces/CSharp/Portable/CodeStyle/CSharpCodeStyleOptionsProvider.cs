@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = CSharpCodeStyleOptions.AllOptions;
+        public ImmutableArray<IOption> Options { get; } = CSharpCodeStyleOptions.AllOptions.As<IOption>();
     }
 }

@@ -4,21 +4,17 @@
 
 #nullable enable
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Fading
 {
     internal static class FadingOptions
     {
-        public static readonly PerLanguageOption<bool> FadeOutUnusedImports = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new PerLanguageOption2<bool>(
             nameof(FadingOptions), nameof(FadeOutUnusedImports), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnusedImports)}"));
 
-        public static readonly PerLanguageOption<bool> FadeOutUnreachableCode = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new PerLanguageOption2<bool>(
             nameof(FadingOptions), nameof(FadeOutUnreachableCode), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(FadeOutUnreachableCode)}"));
     }
