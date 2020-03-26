@@ -62,10 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                             newLeadingTrivia.AddRange(commentLines);
                         }
                     }
-                    else
-                    {
-                        newLeadingTrivia.Add(trivia);
-                    }
                 }
 
                 node = node.WithLeadingTrivia(newLeadingTrivia);

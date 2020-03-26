@@ -20,6 +20,7 @@ using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.MetadataAsSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -84,11 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
-            document = await Formatter.FormatAsync(
-                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
+            var formattedDoc = await Formatter.FormatAsync(
+                document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                options: null,
+                CSharpMetadataFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+                cancellationToken).ConfigureAwait(false);
 
-            return document;
+            return formattedDoc;
         }
 
         private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)

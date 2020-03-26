@@ -117,4 +117,7 @@
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />
+  <ItemGroup>
+    <ExpectedCompile Remove="MetadataAsSource\AbstractMetadataFormattingRule.cs" />
+  </ItemGroup>
 </Project>
