@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -47,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             {
                 var newLeadingTrivia = new List<SyntaxTrivia>();
 
-                foreach (var trivia in node.GetLeadingTrivia())
+                foreach (var trivia in node.GetLeadingTrivia().SkipWhile(t => !t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)))
                 {
-                    if (trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
+                    if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
                     {
                         var structuredTrivia = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
                         var commentLines = ConvertDocCommentToRegularComment(structuredTrivia).ToSyntaxTriviaList();
@@ -61,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 
                             newLeadingTrivia.AddRange(commentLines);
                         }
+                    }
+                    else
+                    {
+                        newLeadingTrivia.Add(trivia);
                     }
                 }
 
