@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">此呼叫站台呼叫函式時設定了 'params' 參數。如此會導致即使沒有為 params 參數傳入任何參數，都會進行陣列配置</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
+        <target state="translated">此呼叫位置正在呼叫具有 'params' 參數的函式。這會產生陣列配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

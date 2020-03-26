@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Ce site d'appel appelle une fonction avec un paramètre 'params'. Cela se traduit par une allocation de tableau même si aucun paramètre n'est passé pour le paramètre params</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
+        <target state="translated">Ce site d'appel appelle une fonction avec un paramètre 'params'. Cela se traduit par une allocation de tableau</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">{0} öğesine yönelik örtük oluşturucu</target>
+        <target state="translated">'{0}' için örtük oluşturucu</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} için örtük get erişimcisi</target>
+        <target state="translated">'{0}' için örtük get erişimcisi</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} için örtük set erişimcisi</target>
+        <target state="translated">'{0}' için örtük set erişimcisi</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

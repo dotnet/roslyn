@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">implicitní konstruktor pro {0}</target>
+        <target state="translated">implicitní konstruktor pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">implicitní přístupový objekt get pro {0}</target>
+        <target state="translated">implicitní přístupový objekt get pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">implicitní přístupový objekt set pro {0}</target>
+        <target state="translated">implicitní přístupový objekt set pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

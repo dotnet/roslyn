@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">この呼び出しサイトは 'params' パラメーターを持つ関数を呼び出します。結果として、params パラメーターにパラメーターが何も渡されない場合でも、配列が割り当てられます。</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
+        <target state="translated">この呼び出しサイトは 'params' パラメーターを持つ関数を呼び出しています。結果として、配列が割り当てられます</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="translated">値の型へのオーバーロードされていない仮想メソッドの呼び出しにより、ボックス化または制限付きの命令が追加されます</target>
+        <target state="translated">値の型へのオーバーロードされていない仮想メソッド呼び出しにより、ボックス化または制限付きの命令が追加されます</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="translated">値の型へのオーバーライドされていない仮想メソッドの呼び出し</target>
+        <target state="translated">値の型へのオーバーライドされていない仮想メソッド呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
