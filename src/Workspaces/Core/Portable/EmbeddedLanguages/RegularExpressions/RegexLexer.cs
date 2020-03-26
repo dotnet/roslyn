@@ -105,8 +105,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             var result = ArrayBuilder<RegexTrivia>.GetInstance();
 
-            var start = Position;
-
             while (Position < Text.Length)
             {
                 var comment = ScanComment(options);
