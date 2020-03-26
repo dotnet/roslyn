@@ -2677,6 +2677,909 @@ void local()
         }
 
         [Fact]
+        public void Scope_17()
+        {
+            var text = @"
+using alias1 = N2.Test;
+using N2;
+string Test = ""1"";
+System.Console.WriteLine(Test);
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_18()
+        {
+            var text1 = @"
+string Test = ""1"";
+System.Console.WriteLine(Test);
+";
+            var text2 = @"
+using alias1 = N2.Test;
+using N2;
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_19()
+        {
+            var text = @"
+using alias1 = N2.Test;
+using N2;
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 33),
+                // (21,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(21, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_20()
+        {
+            var text1 = @"
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+";
+            var text2 = @"
+using alias1 = N2.Test;
+using N2;
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 33),
+                // (18,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_21()
+        {
+            var text = @"
+using Test = N2.Test;
+
+string Test = ""1"";
+System.Console.WriteLine(Test);
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using Test = N2.Test;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_22()
+        {
+            var text1 = @"
+string Test = ""1"";
+System.Console.WriteLine(Test);
+";
+            var text2 = @"
+using Test = N2.Test;
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using Test = N2.Test;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_23()
+        {
+            var text = @"
+using Test = N2.Test;
+
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using Test = N2.Test;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 33),
+                // (21,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(21, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_24()
+        {
+            var text1 = @"
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+";
+            var text2 = @"
+using Test = N2.Test;
+
+namespace N2 { class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using Test = N2.Test;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 33),
+                // (18,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_25()
+        {
+            var text = @"
+using alias1 = N2.Test;
+using static N2;
+string Test = ""1"";
+System.Console.WriteLine(Test);
+
+class N2 { public class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using static N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_26()
+        {
+            var text1 = @"
+string Test = ""1"";
+System.Console.WriteLine(Test);
+";
+            var text2 = @"
+using alias1 = N2.Test;
+using static N2;
+class N2 { public class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test); // 1
+        Test.ToString(); // 2
+        Test.EndsWith(null); // 3
+        _ = nameof(Test); // 4
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using static N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test.EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_27()
+        {
+            var text = @"
+using alias1 = N2.Test;
+using static N2;
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+
+class N2 { public class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using static N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 34),
+                // (17,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(17, 9),
+                // (18,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 9),
+                // (19,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(19, 33),
+                // (21,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(21, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_28()
+        {
+            var text1 = @"
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+";
+            var text2 = @"
+using alias1 = N2.Test;
+using static N2;
+class N2 { public class Test {} }
+
+class Derived : Test
+{
+    void M()
+    {
+        Test x = null;
+        alias1 y = x;
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using alias2 = Test;
+    using static N2;
+
+    class Derived : Test
+    {
+        void M()
+        {
+            Test x = null;
+            alias2 y = x;
+            System.Console.WriteLine(y);
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 33),
+                // (18,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_29()
+        {
+            var text = @"
+using static N2;
+
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+
+class N2 { public static string Test() => null; }
+
+class Derived
+{
+    void M()
+    {
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using static N2;
+
+    class Derived
+    {
+        void M()
+        {
+            System.Console.WriteLine(Test());
+            Test().ToString();
+            Test().EndsWith(null);
+            var d = new System.Func<string>(Test);
+            d();
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N2;").WithLocation(2, 1),
+                // (13,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 34),
+                // (14,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(14, 9),
+                // (15,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 9),
+                // (16,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(16, 33),
+                // (18,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(18, 20)
+                );
+        }
+
+        [Fact]
+        public void Scope_30()
+        {
+            var text1 = @"
+string Test() => ""1"";
+System.Console.WriteLine(Test());
+";
+            var text2 = @"
+using static N2;
+
+class N2 { public static string Test() => null; }
+
+class Derived
+{
+    void M()
+    {
+        System.Console.WriteLine(Test()); // 1
+        Test().ToString(); // 2
+        Test().EndsWith(null); // 3
+        System.Func<string> d = Test; // 4
+        d();
+        _ = nameof(Test); // 5
+    }
+}
+
+namespace N1
+{
+    using static N2;
+
+    class Derived
+    {
+        void M()
+        {
+            System.Console.WriteLine(Test());
+            Test().ToString();
+            Test().EndsWith(null);
+            var d = new System.Func<string>(Test);
+            d();
+            _ = nameof(Test);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N2;").WithLocation(2, 1),
+                // (10,34): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Console.WriteLine(Test()); // 1
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(10, 34),
+                // (11,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(11, 9),
+                // (12,9): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         Test().EndsWith(null); // 3
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(12, 9),
+                // (13,33): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         System.Func<string> d = Test; // 4
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(13, 33),
+                // (15,20): error CS9000: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.
+                //         _ = nameof(Test); // 5
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "Test").WithArguments("Test").WithLocation(15, 20)
+                );
+        }
+
+        [Fact]
         public void LocalFunctionStatement_01()
         {
             var text = @"
@@ -4010,6 +4913,184 @@ static extern void local1();
                 Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
                 Assert.False(importData.BestFitMapping);
                 Assert.True(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        [Fact]
+        public void ModelWithIgnoredAccessibility_01()
+        {
+            var source = @"
+new A().M();
+
+class A
+{
+    A M() { return new A(); }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS0122: 'A.M()' is inaccessible due to its protection level
+                // new A().M();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("A.M()").WithLocation(2, 9)
+                );
+
+            var a = ((Compilation)comp).SourceModule.GlobalNamespace.GetTypeMember("A");
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var invocation = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+            Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
+            Assert.Null(semanticModel.GetSymbolInfo(invocation).Symbol);
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).CandidateSymbols.Single().Name);
+            Assert.Equal(CandidateReason.Inaccessible, semanticModel.GetSymbolInfo(invocation).CandidateReason);
+            Assert.Empty(semanticModel.LookupSymbols(invocation.SpanStart, container: a, name: "M"));
+
+            semanticModel = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
+
+            Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);
+            Assert.NotEmpty(semanticModel.LookupSymbols(invocation.SpanStart, container: a, name: "M"));
+        }
+
+        [Fact]
+        public void ModelWithIgnoredAccessibility_02()
+        {
+            var source = @"
+var x = new A().M();
+
+class A
+{
+    A M() 
+    {
+        x = null;
+        return new A(); 
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (2,17): error CS0122: 'A.M()' is inaccessible due to its protection level
+                // var x = new A().M();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("A.M()").WithLocation(2, 17),
+                // (8,9): error CS9000: Cannot use local variable or local function 'x' declared in a top-level statement in this context.
+                //         x = null;
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(8, 9)
+                );
+
+            var a = ((Compilation)comp).SourceModule.GlobalNamespace.GetTypeMember("A");
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var localDecl = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var localRef = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
+
+            var x = semanticModel.GetDeclaredSymbol(localDecl);
+            Assert.Same(x, semanticModel.LookupSymbols(localDecl.SpanStart, name: "x").Single());
+            Assert.Same(x, semanticModel.GetSymbolInfo(localRef).Symbol);
+            Assert.Same(x, semanticModel.LookupSymbols(localRef.SpanStart, name: "x").Single());
+        }
+
+        [Fact]
+        public void ModelWithIgnoredAccessibility_03()
+        {
+            var source = @"
+var x = new B().M(1);
+
+class A
+{
+    public long M(long i) => i; 
+}
+
+class B : A
+{
+    protected int M(int i)
+    {
+        _ = x;
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (13,13): error CS9000: Cannot use local variable or local function 'x' declared in a top-level statement in this context.
+                //         _ = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(13, 13)
+                );
+
+            var a = ((Compilation)comp).SourceModule.GlobalNamespace.GetTypeMember("A");
+            var syntaxTree1 = comp.SyntaxTrees.Single();
+            var localDecl = syntaxTree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var localRef = syntaxTree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+
+            verifyModel(ignoreAccessibility: true, "System.Int32");
+            verifyModel(ignoreAccessibility: false, "System.Int64");
+
+            void verifyModel(bool ignoreAccessibility, string expectedType)
+            {
+                var semanticModel1 = comp.GetSemanticModel(syntaxTree1, ignoreAccessibility);
+
+                var xDecl = semanticModel1.GetDeclaredSymbol(localDecl);
+                Assert.Same(xDecl, semanticModel1.LookupSymbols(localDecl.SpanStart, name: "x").Single());
+                var xRef = semanticModel1.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(xRef, semanticModel1.LookupSymbols(localRef.SpanStart, name: "x").Single());
+                Assert.Equal(expectedType, ((ILocalSymbol)xRef).Type.ToTestDisplayString());
+                Assert.Equal(expectedType, ((ILocalSymbol)xDecl).Type.ToTestDisplayString());
+                Assert.Same(xDecl, xRef);
+            }
+        }
+
+        [Fact]
+        public void ModelWithIgnoredAccessibility_04()
+        {
+            var source1 = @"
+var x = new B().M(1);
+";
+            var source2 = @"
+class A
+{
+    public long M(long i) => i; 
+}
+
+class B : A
+{
+    protected int M(int i)
+    {
+        _ = x;
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS9000: Cannot use local variable or local function 'x' declared in a top-level statement in this context.
+                //         _ = x;
+                Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(11, 13)
+                );
+
+            var a = ((Compilation)comp).SourceModule.GlobalNamespace.GetTypeMember("A");
+            var syntaxTree1 = comp.SyntaxTrees.First();
+            var localDecl = syntaxTree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var syntaxTree2 = comp.SyntaxTrees[1];
+            var localRef = syntaxTree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+
+            verifyModel(ignoreAccessibility: true, "System.Int32");
+            verifyModel(ignoreAccessibility: false, "System.Int64");
+
+            void verifyModel(bool ignoreAccessibility, string expectedType)
+            {
+                var semanticModel1 = comp.GetSemanticModel(syntaxTree1, ignoreAccessibility);
+
+                var xDecl = semanticModel1.GetDeclaredSymbol(localDecl);
+                Assert.Same(xDecl, semanticModel1.LookupSymbols(localDecl.SpanStart, name: "x").Single());
+                Assert.Equal(expectedType, ((ILocalSymbol)xDecl).Type.ToTestDisplayString());
+
+                var semanticModel2 = comp.GetSemanticModel(syntaxTree2, ignoreAccessibility);
+
+                var xRef = semanticModel2.GetSymbolInfo(localRef).Symbol;
+                Assert.Same(xRef, semanticModel2.LookupSymbols(localRef.SpanStart, name: "x").Single());
+                Assert.Equal(expectedType, ((ILocalSymbol)xRef).Type.ToTestDisplayString());
+                Assert.Same(xDecl, xRef);
             }
         }
 

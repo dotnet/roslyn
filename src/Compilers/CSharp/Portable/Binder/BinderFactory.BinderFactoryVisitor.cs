@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!binderCache.TryGetValue(key, out result))
                     {
                         SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
-                        ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder();
+                        ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                         result = bodyBinder.GetBinder(compilationUnit);
 
                         binderCache.TryAdd(key, result);
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!inUsing &&
                             SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
                         {
-                            ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder();
+                            ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
                             result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
                         }
                     }

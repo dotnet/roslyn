@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The corresponding <see cref="SingleTypeDeclaration"/>. 
         /// </summary>
-        SingleTypeDeclaration _declaration;
+        private readonly SingleTypeDeclaration _declaration;
 
         private readonly TypeSymbol _returnType;
         private WeakReference<ExecutableCodeBinder>? _weakBodyBinder;
+        private WeakReference<ExecutableCodeBinder>? _weakIgnoreAccessibilityBodyBinder;
 
         internal SynthesizedSimpleProgramEntryPointSymbol(SimpleProgramNamedTypeSymbol containingType, SingleTypeDeclaration declaration, DiagnosticBag diagnostics)
             : base(containingType, syntaxReferenceOpt: declaration.SyntaxReference, ImmutableArray.Create(declaration.SyntaxReference.GetLocation()), isIterator: declaration.IsIterator)
@@ -175,13 +176,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal CompilationUnitSyntax CompilationUnit => (CompilationUnitSyntax)SyntaxNode;
 
-        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
-            // PROTOTYPE(SimplePrograms): Respect additional flags passed in by SemanticModel
-            return GetBodyBinder();
+            return GetBodyBinder(ignoreAccessibility);
         }
 
-        private ExecutableCodeBinder CreateBodyBinder()
+        private ExecutableCodeBinder CreateBodyBinder(bool ignoreAccessibility)
         {
             CSharpCompilation compilation = DeclaringCompilation;
 
@@ -189,27 +189,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             result = new InContainerBinder(compilation.GlobalNamespace, result, SyntaxNode, inUsing: false);
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);
+            result = result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None);
+
             return new ExecutableCodeBinder(SyntaxNode, this, result);
         }
 
-        internal ExecutableCodeBinder GetBodyBinder()
+        internal ExecutableCodeBinder GetBodyBinder(bool ignoreAccessibility)
         {
+            ref WeakReference<ExecutableCodeBinder>? weakBinder = ref ignoreAccessibility ? ref _weakIgnoreAccessibilityBodyBinder : ref _weakBodyBinder;
+
             while (true)
             {
-                var previousWeakReference = _weakBodyBinder;
+                var previousWeakReference = weakBinder;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out ExecutableCodeBinder? previousBinder))
                 {
                     return previousBinder;
                 }
 
-                ExecutableCodeBinder newBinder = CreateBodyBinder();
-                if (Interlocked.CompareExchange(ref _weakBodyBinder, new WeakReference<ExecutableCodeBinder>(newBinder), previousWeakReference) == previousWeakReference)
+                ExecutableCodeBinder newBinder = CreateBodyBinder(ignoreAccessibility);
+                if (Interlocked.CompareExchange(ref weakBinder, new WeakReference<ExecutableCodeBinder>(newBinder), previousWeakReference) == previousWeakReference)
                 {
                     return newBinder;
                 }
             }
         }
-
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
