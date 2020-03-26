@@ -52,6 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind) As Boolean
+            If node Is Nothing Then
+                Return False
+            End If
+
+            Return node.Kind = kind1 OrElse
+                   node.Kind = kind2 OrElse
+                   node.Kind = kind3 OrElse
+                   node.Kind = kind4
+        End Function
+
+        <Extension()>
         Public Function IsKind(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
             If node Is Nothing Then
                 Return False

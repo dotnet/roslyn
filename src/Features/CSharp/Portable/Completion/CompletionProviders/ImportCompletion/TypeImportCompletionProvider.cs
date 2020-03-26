@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+
         protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
             SemanticModel semanticModel,

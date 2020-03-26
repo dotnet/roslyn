@@ -382,13 +382,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class PendingBranch
         {
             public readonly BoundNode Branch;
+            public bool IsConditionalState;
             public TLocalState State;
+            public TLocalState StateWhenTrue;
+            public TLocalState StateWhenFalse;
             public readonly LabelSymbol Label;
 
-            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label)
+            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
                 this.Branch = branch;
                 this.State = state.Clone();
+                this.IsConditionalState = isConditionalState;
+                if (isConditionalState)
+                {
+                    this.StateWhenTrue = stateWhenTrue.Clone();
+                    this.StateWhenFalse = stateWhenFalse.Clone();
+                }
                 this.Label = label;
             }
         }
@@ -1009,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitRvalue(node.Receiver);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
             return null;
         }
@@ -1580,10 +1589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
-                        Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer)
+                        updatePendingBranchState(ref pend.State, ref stateMovedUpInFinally);
+
+                        if (pend.IsConditionalState)
                         {
-                            Join(ref pend.State, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenTrue, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenFalse, ref stateMovedUpInFinally);
                         }
                     }
                 }
@@ -1599,6 +1610,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(endState);
             RestorePending(oldPending);
             return null;
+
+            void updatePendingBranchState(ref TLocalState stateToUpdate, ref TLocalState stateMovedUpInFinally)
+            {
+                Meet(ref stateToUpdate, ref this.State);
+                if (_nonMonotonicTransfer)
+                {
+                    Join(ref stateToUpdate, ref stateMovedUpInFinally);
+                }
+            }
         }
 
         protected Optional<TLocalState> NonMonotonicState;
@@ -1706,10 +1726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitBlock(node.FinallyBlock);
         }
 
-        public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
-            AdjustStateAfterReturnStatement(node);
+            PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+            SetUnreachable();
             return result;
         }
 
@@ -1724,12 +1745,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
-        {
-            PendingBranches.Add(new PendingBranch(node, this.State, null));
-            SetUnreachable();
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)

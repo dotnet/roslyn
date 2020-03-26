@@ -87,6 +87,16 @@
         <target state="new">Modifier preferences</target>
         <note />
       </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="new">Naming styles</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="new">Non-Field Members</target>
@@ -147,6 +157,11 @@
         <target state="new">Public or Protected Field</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Specified_sequence_has_duplicate_items">
+        <source>Specified sequence has duplicate items</source>
+        <target state="new">Specified sequence has duplicate items</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Static_Field">
         <source>Static Field</source>
         <target state="new">Static Field</target>
@@ -161,6 +176,11 @@
         <source>Struct</source>
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="new">Symbol specifications</target>
+        <note />
       </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
         <source>The first word, '{0}', must begin with a lower case character</source>

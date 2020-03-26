@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isPossibleTupleContext,
             bool isPatternContext,
             bool isRightSideOfNumericType,
+            bool isInArgumentList,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -111,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
-                   isPatternContext, isRightSideOfNumericType, cancellationToken)
+                   isPatternContext, isRightSideOfNumericType, isInArgumentList,
+                   cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -208,6 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // If the second dot was typed, we just insert two dots.
             var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
+            var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
+
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -260,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
+                isInArgumentList: isArgumentListToken,
                 cancellationToken: cancellationToken);
         }
 

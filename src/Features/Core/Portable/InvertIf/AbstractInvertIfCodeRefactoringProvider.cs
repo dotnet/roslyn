@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            Debug.Assert(subsequentStatementRanges.Length > 0);
-            return ifNode.Parent == subsequentStatementRanges[0].Parent;
+            return subsequentStatementRanges.Length == 1 &&
+                   ifNode.Parent == subsequentStatementRanges[0].Parent;
         }
 
         private int GetNearmostParentJumpStatementRawKind(SyntaxNode ifNode)

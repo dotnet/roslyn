@@ -72,16 +72,6 @@
         <target state="translated">래핑된 매개 변수 맞춤</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
-        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">코드에 불필요한 값을 할당하면 값의 중복 계산으로 표시될 수 있으므로 이와 같은 할당을 사용하지 않도록 합니다. 값의 중복 계산이 아닌 할당을 유지하려는 경우 할당 대상을 이름이 밑줄로 시작하고 필요에 따라 뒤에 정수가 있는(예: '_', '_1', '_2' 등) 지역 변수로 변경합니다. 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">코드에 사용되지 않는 매개 변수를 사용하지 않도록 합니다. 매개 변수를 제거할 수 없는 경우 이름을 변경하여 밑줄로 시작하고 필요에 따라 뒤에 정수가 있도록 합니다(예: '_', '_1', '_2' 등). 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">대기된 작업에서 '{0}'이(가) 반환됨</target>
@@ -130,6 +120,11 @@
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하면 상태 시스템의 셰이프가 변경되므로 디버그 세션을 계속할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -207,6 +202,11 @@
         <target state="translated">범위를 벗어나기 전에 개체를 삭제하십시오.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">소스 파일 '{0}'의 현재 콘텐츠가 빌드된 소스와 일치하지 않습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
@@ -232,11 +232,6 @@
         <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_value_is_never_used">
-        <source>Expression value is never used</source>
-        <target state="translated">식 값은 절대 사용되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">인터페이스 추출...</target>
@@ -250,11 +245,6 @@
       <trans-unit id="Extract_method">
         <source>Extract method</source>
         <target state="translated">메서드 추출</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">메서드 + 로컬 추출</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
@@ -317,6 +307,11 @@
         <target state="translated">모든 인터페이스를 암시적으로 구현</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -325,6 +320,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">암시적으로 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -457,16 +457,6 @@
         <target state="translated">네임스페이스로 이동...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed if it is not part of a shipped public API; its initial value is never used</source>
-        <target state="needs-review-translation">'{0}' 매개 변수가 제공된 퍼블릭 API의 일부가 아닌 경우 제거할 수 있습니다. 해당 초기 값은 사용되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
-        <source>Parameter '{0}' can be removed; its initial value is never used</source>
-        <target state="needs-review-translation">'{0}' 매개 변수는 제거할 수 있습니다. 해당 초기 값은 사용되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
         <target state="translated">소스 파일 {0}을(를) 수정하면 다음 내부 오류로 인해 디버그 세션을 계속 진행할 수 없습니다. {1}.</target>
@@ -492,26 +482,6 @@
         <target state="translated">메타데이터에서 찾은 관련 메서드 시그니처가 업데이트되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_assignment">
-        <source>Remove redundant assignment</source>
-        <target state="translated">중복 할당 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter">
-        <source>Remove unused parameter</source>
-        <target state="translated">사용하지 않는 매개 변수를 제거하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0">
-        <source>Remove unused parameter '{0}'</source>
-        <target state="translated">사용하지 않는 매개 변수 '{0}' 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="translated">제공된 공용 API의 일부가 아닌 경우 사용하지 않는 매개 변수 '{0}' 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 바꾸기</target>
@@ -525,6 +495,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -557,6 +532,16 @@
         <target state="translated">{0}을(를) 표시하지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">대상 유형 일치</target>
@@ -570,16 +555,6 @@
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">소스 파일 '{0}' 또는 포함하는 프로젝트에 대해 빌드된 PDB를 읽을 수 없습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value">
-        <source>Unnecessary assignment of a value</source>
-        <target state="translated">불필요한 값 할당</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
-        <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="translated">'{0}'에 불필요한 값 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -642,34 +617,14 @@
         <target state="translated">람다 식에 블록 본문 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_local_functions">
-        <source>Use block body for local functions</source>
-        <target state="translated">로컬 함수에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
         <target state="translated">복합형 할당 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_discard_underscore">
-        <source>Use discard '_'</source>
-        <target state="translated">무시 항목 '_' 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_discarded_local">
-        <source>Use discarded local</source>
-        <target state="translated">무시된 로컬 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">람다 식에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="translated">로컬 함수의 식 본문 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
@@ -980,11 +935,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">전역 네임스페이스</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">명시적으로 인터페이스 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -1719,18 +1669,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: 관리되는 상태(관리되는 개체)를 삭제합니다.</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: 관리되는 상태(관리되는 개체)를 삭제합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: 큰 필드를 null로 설정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">중복 호출을 검색하려면</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: 큰 필드를 null로 설정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -1873,11 +1818,6 @@ Do you want to continue?</source>
         <target state="translated">메서드를 동기 메서드로 설정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">this' 또는 'Me' 한정자를 추가합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
         <target state="translated">소스: {0}</target>
@@ -2000,29 +1940,9 @@ This version used in: {2}</source>
         <target state="translated">매개 변수:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">누락된 사례 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">둘 다 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Default Case 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">Variadic SignatureHelpItem에는 매개 변수가 하나 이상 있어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">중괄호 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -2100,16 +2020,6 @@ This version used in: {2}</source>
         <target state="translated">{0}' 패키지 설치</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">개체 초기화를 간단하게 만들 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">throw' 식 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">프로젝트 {0}</target>
@@ -2118,71 +2028,6 @@ This version used in: {2}</source>
       <trans-unit id="Inline_variable_declaration">
         <source>Inline variable declaration</source>
         <target state="translated">인라인 변수 선언</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">패턴 일치 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">메서드에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">메서드에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">접근자에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">생성자에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">인덱서에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">연산자에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">속성에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">접근자에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">생성자에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">인덱서에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">연산자에 식 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">속성에 식 본문 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
@@ -2225,39 +2070,9 @@ This version used in: {2}</source>
         <target state="translated">파스칼식 대/소문자</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">컬렉션 초기화를 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">COALESCE 식 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Null 전파 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">변수 선언은 인라인될 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Null 검사를 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">컬렉션 초기화 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">개체 초기화 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
@@ -2365,11 +2180,6 @@ This version used in: {2}</source>
         <target state="translated">Equals/GetHashCode에 사용할 멤버 선택</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">식 트리를 변경하면 런타임에 동작이 변경될 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
         <target state="translated">재정의 생성...</target>
@@ -2430,16 +2240,6 @@ This version used in: {2}</source>
         <target state="translated">{0} 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">default' 식 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'default' 식을 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>
@@ -2470,34 +2270,9 @@ This version used in: {2}</source>
         <target state="translated">보고된 진단 '{0}'의 소스 위치 '{1}'이(가) 지정된 파일의 범위 밖인 파일 '{2}'에 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">접근할 수 없는 코드가 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">접근할 수 없는 코드 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">한정자가 순서대로 정렬되지 않음</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">순서 한정자</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">{0}(프로젝트 {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">접근성 한정자 필요</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -2508,11 +2283,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">로컬 함수 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
-        <source>Warning: Declaration changes scope and may change meaning.</source>
-        <target state="translated">경고: 선언 시 범위가 변경되고 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
@@ -2608,16 +2378,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">경고: 반복 계산 중 컬렉션이 수정될 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="translated">읽기 전용 한정자 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="translated">필드를 읽기 전용으로 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

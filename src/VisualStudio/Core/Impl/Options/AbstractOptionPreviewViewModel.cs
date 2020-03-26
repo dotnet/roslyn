@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected void AddParenthesesOption(
             string language, OptionStore optionStore,
-            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> languageOption,
             string title, string[] examples, bool defaultAddForClarity)
         {
             var preferences = new List<ParenthesesPreference>();
@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedParametersPreference>(
-                CodeStyleOptions.UnusedParameters, language,
+                CodeStyleOptions2.UnusedParameters, language,
                 ServicesVSResources.Avoid_unused_parameters, enumValues,
                 examples, this, optionStore, title,
                 unusedParameterPreferences));

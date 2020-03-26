@@ -1208,15 +1208,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService)
         {
-            string escapedIdentifier;
-            if (replacementText.StartsWith("@", StringComparison.Ordinal))
+            // Identifiers we never consider valid to rename to.
+            switch (replacementText)
             {
-                escapedIdentifier = replacementText;
+                case "var":
+                case "dynamic":
+                case "unmanaged":
+                case "notnull":
+                    return false;
             }
-            else
-            {
-                escapedIdentifier = "@" + replacementText;
-            }
+
+            var escapedIdentifier = replacementText.StartsWith("@", StringComparison.Ordinal)
+                ? replacementText : "@" + replacementText;
 
             // Make sure we got an identifier. 
             if (!syntaxFactsService.IsValidIdentifier(escapedIdentifier))

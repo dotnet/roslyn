@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 SyntaxNode declaratorToRemoveNodeOpt = null;
                 ITypeSymbol declaratorToRemoveTypeOpt = null;
 
-                if (declaratorToRemoveLocationOpt != default)
+                if (declaratorToRemoveLocationOpt != null)
                 {
                     declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
                     declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();

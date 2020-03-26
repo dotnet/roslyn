@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions.TabSize), _indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), _indentation, text.Length);
 
                 return false;
             }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions.TabSize), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia))
                 {
                     return true;
                 }

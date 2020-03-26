@@ -521,9 +521,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
             var reportDiagnostic = ReportDiagnostic.Default;
-            var cryptoKeyFile = default(string);
-            var strongNameProvider = default(StrongNameProvider);
-            var delaySign = default(bool?);
+            var cryptoKeyFile = (string)null;
+            var strongNameProvider = (StrongNameProvider)null;
+            var delaySign = (bool?)null;
             var checkOverflow = false;
             var allowUnsafe = false;
             var outputKind = OutputKind.DynamicallyLinkedLibrary;
@@ -1007,14 +1007,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 references = new List<MetadataReference>(TestBase.PortableRefsMinimal.Length);
                 references.AddRange(TestBase.PortableRefsMinimal);
-            }
-
-            var systemRuntimeFacade = element.Attribute(CommonReferenceFacadeSystemRuntimeAttributeName);
-            if (systemRuntimeFacade != null &&
-                ((bool?)systemRuntimeFacade).HasValue &&
-                ((bool?)systemRuntimeFacade).Value)
-            {
-                references.Add(TestBase.SystemRuntimeFacadeRef);
             }
 
             return references;
