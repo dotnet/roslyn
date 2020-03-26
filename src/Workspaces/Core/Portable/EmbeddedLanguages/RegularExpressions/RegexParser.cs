@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
         {
             if (result is RegexAlternationNode topAlternation &&
-                topAlternation.Left is RegexAlternationNode innerAlternation)
+                topAlternation.Left is RegexAlternationNode)
             {
                 return new RegexAlternationNode(
                     topAlternation.Left,
@@ -1486,7 +1486,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
             {
                 var backslashToken = _currentToken;
-                var afterSlash = _lexer.Position;
 
                 // trivia is not allowed anywhere in a character class, and definitely not between
                 // a \ and the following character.
