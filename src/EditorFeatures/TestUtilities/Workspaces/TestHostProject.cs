@@ -348,9 +348,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Language,
                 FilePath,
                 OutputFilePath,
-                outputRefFilePath: null,
-                compilationOutputFilePaths: default,
-                DefaultNamespace,
                 CompilationOptions,
                 ParseOptions,
                 Documents.Select(d => d.ToDocumentInfo()),
@@ -358,11 +355,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 MetadataReferences,
                 AnalyzerReferences,
                 AdditionalDocuments.Select(d => d.ToDocumentInfo()),
-                AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 IsSubmission,
-                HostObjectType,
-                hasAllInformation: true,
-                runAnalyzers: true);
+                HostObjectType)
+                .WithAnalyzerConfigDocuments(AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()))
+                .WithDefaultNamespace(DefaultNamespace);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

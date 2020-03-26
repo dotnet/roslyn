@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -114,28 +115,31 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             project.SetOutputFileName(initialPath);
             Assert.Equal(initialPath, project.GetOutputFileName());
 
-            Assert.Equal(initialPath, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            string getCurrentCompilationOutputAssemblyPath()
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+
+            Assert.Equal(initialPath, getCurrentCompilationOutputAssemblyPath());
 
             // Change output folder from command line arguments - verify that objOutputPath changes.
             var newPath = @"C:\NewFolder\test.dll";
             project.SetOutputFileName(newPath);
             Assert.Equal(newPath, project.GetOutputFileName());
 
-            Assert.Equal(newPath, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(newPath, getCurrentCompilationOutputAssemblyPath());
 
             // Change output file name - verify that outputPath changes.
             newPath = @"C:\NewFolder\test2.dll";
             project.SetOutputFileName(newPath);
             Assert.Equal(newPath, project.GetOutputFileName());
 
-            Assert.Equal(newPath, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(newPath, getCurrentCompilationOutputAssemblyPath());
 
             // Change output file name and folder - verify that outputPath changes.
             newPath = @"C:\NewFolder3\test3.dll";
             project.SetOutputFileName(newPath);
             Assert.Equal(newPath, project.GetOutputFileName());
 
-            Assert.Equal(newPath, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(newPath, getCurrentCompilationOutputAssemblyPath());
         }
 
         [WpfFact]
@@ -144,24 +148,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment();
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-            Assert.Null(project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            string getCurrentCompilationOutputAssemblyPath()
+                => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_VisualStudioProject.Id).CompilationOutputFilePaths.AssemblyPath;
+
+            Assert.Null(getCurrentCompilationOutputAssemblyPath());
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\1.pdb /debug+", out _));
 
             // Compilation doesn't have output file, so we don't expect any build outputs either.
-            Assert.Null(project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Null(getCurrentCompilationOutputAssemblyPath());
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/out:C:\a\2.dll /debug+", out _));
 
-            Assert.Equal(@"C:\a\2.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(@"C:\a\2.dll", getCurrentCompilationOutputAssemblyPath());
 
             project.SetOutputFileName(@"C:\a\3.dll");
 
-            Assert.Equal(@"C:\a\3.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(@"C:\a\3.dll", getCurrentCompilationOutputAssemblyPath());
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\4.pdb /debug+", out _));
 
-            Assert.Equal(@"C:\a\3.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath);
+            Assert.Equal(@"C:\a\3.dll", getCurrentCompilationOutputAssemblyPath());
         }
 
         [WpfTheory]
