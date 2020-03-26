@@ -1430,7 +1430,6 @@
     </FactoryComment>
   </Node>
   <AbstractNode Name="BaseObjectCreationExpressionSyntax" Base="ExpressionSyntax">
-      <Kind Name="ObjectCreationExpression"/>
       <Field Name="NewKeyword" Type="SyntaxToken">
           <Kind Name="NewKeyword"/>
           <PropertyComment>
