@@ -689,7 +689,7 @@ ISwitchOperation (3 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(11,18): error CS8120: The switch case has already been handled by a previous case.
+                // file.cs(11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int y:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(11, 18)
             };

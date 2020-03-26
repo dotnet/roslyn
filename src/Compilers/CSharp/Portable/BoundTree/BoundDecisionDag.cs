@@ -180,6 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return d.Value == inputConstant;
                         case BoundDagTypeTest d:
                             return inputConstant.IsNull ? (bool?)false : null;
+                        case BoundDagRelationalTest d:
+                            var f = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+                            if (f is null) return null;
+                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
+                            var set = f.Related(d.Relation.Operator(), d.Value);
+                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }

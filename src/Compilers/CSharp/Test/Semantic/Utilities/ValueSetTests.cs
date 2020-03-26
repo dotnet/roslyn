@@ -675,5 +675,140 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(i1, i2);
             }
         }
+
+        [Fact]
+        public void TestAnyFuzz_01()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = ForInt.Related(BinaryOperatorKind.Equal, i);
+                Assert.True(s1.Any(LessThan, i + 1));
+                Assert.False(s1.Any(LessThan, i));
+                Assert.False(s1.Any(LessThan, i - 1));
+                Assert.True(s1.Any(LessThanOrEqual, i + 1));
+                Assert.True(s1.Any(LessThanOrEqual, i));
+                Assert.False(s1.Any(LessThanOrEqual, i - 1));
+                Assert.False(s1.Any(GreaterThan, i + 1));
+                Assert.False(s1.Any(GreaterThan, i));
+                Assert.True(s1.Any(GreaterThan, i - 1));
+                Assert.False(s1.Any(GreaterThanOrEqual, i + 1));
+                Assert.True(s1.Any(GreaterThanOrEqual, i));
+                Assert.True(s1.Any(GreaterThanOrEqual, i - 1));
+            }
+        }
+
+        [Fact]
+        public void TestAnyFuzz_02()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                int j = Random.Next();
+                var s1 = ForInt.Related(BinaryOperatorKind.Equal, j);
+                Assert.True(s1.Any(LessThan, j + 1));
+                Assert.False(s1.Any(LessThan, j));
+                Assert.False(s1.Any(LessThan, j - 1));
+                Assert.True(s1.Any(LessThanOrEqual, j + 1));
+                Assert.True(s1.Any(LessThanOrEqual, j));
+                Assert.False(s1.Any(LessThanOrEqual, j - 1));
+                Assert.False(s1.Any(GreaterThan, j + 1));
+                Assert.False(s1.Any(GreaterThan, j));
+                Assert.True(s1.Any(GreaterThan, j - 1));
+                Assert.False(s1.Any(GreaterThanOrEqual, j + 1));
+                Assert.True(s1.Any(GreaterThanOrEqual, j));
+                Assert.True(s1.Any(GreaterThanOrEqual, j - 1));
+            }
+        }
+
+        [Fact]
+        public void TestAllFuzz_01()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = ForInt.Related(BinaryOperatorKind.LessThan, i);
+                Assert.True(s1.All(LessThan, i + 1));
+                Assert.True(s1.All(LessThan, i));
+                Assert.False(s1.All(LessThan, i - 1));
+                Assert.True(s1.All(LessThanOrEqual, i + 1));
+                Assert.True(s1.All(LessThanOrEqual, i));
+                Assert.True(s1.All(LessThanOrEqual, i - 1));
+                Assert.False(s1.All(LessThanOrEqual, i - 2));
+                s1 = ForInt.Related(BinaryOperatorKind.GreaterThan, i);
+                Assert.False(s1.All(GreaterThan, i + 1));
+                Assert.True(s1.All(GreaterThan, i));
+                Assert.True(s1.All(GreaterThan, i - 1));
+                Assert.False(s1.All(GreaterThanOrEqual, i + 2));
+                Assert.True(s1.All(GreaterThanOrEqual, i + 1));
+                Assert.True(s1.All(GreaterThanOrEqual, i));
+                Assert.True(s1.All(GreaterThanOrEqual, i - 1));
+            }
+        }
+
+        [Fact]
+        public void TestAllFuzz_02()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                int j = Random.Next(0, int.MaxValue - 1);
+                var s1 = ForInt.Related(BinaryOperatorKind.LessThan, j);
+                Assert.True(s1.All(LessThan, j + 1));
+                Assert.True(s1.All(LessThan, j));
+                Assert.False(s1.All(LessThan, j - 1));
+                Assert.True(s1.All(LessThanOrEqual, j + 1));
+                Assert.True(s1.All(LessThanOrEqual, j));
+                Assert.True(s1.All(LessThanOrEqual, j - 1));
+                Assert.False(s1.All(LessThanOrEqual, j - 2));
+                s1 = ForInt.Related(BinaryOperatorKind.GreaterThan, j);
+                Assert.False(s1.All(GreaterThan, j + 1));
+                Assert.True(s1.All(GreaterThan, j));
+                Assert.True(s1.All(GreaterThan, j - 1));
+                Assert.False(s1.All(GreaterThanOrEqual, j + 2));
+                Assert.True(s1.All(GreaterThanOrEqual, j + 1));
+                Assert.True(s1.All(GreaterThanOrEqual, j));
+                Assert.True(s1.All(GreaterThanOrEqual, j - 1));
+            }
+        }
+
+        [Fact]
+        public void TestAllFuzz_03()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var s1 = ForInt.Related(BinaryOperatorKind.Equal, i);
+                Assert.True(s1.All(LessThan, i + 1));
+                Assert.False(s1.All(LessThan, i));
+                Assert.False(s1.All(LessThan, i - 1));
+                Assert.True(s1.All(LessThanOrEqual, i + 1));
+                Assert.True(s1.All(LessThanOrEqual, i));
+                Assert.False(s1.All(LessThanOrEqual, i - 1));
+                Assert.False(s1.All(GreaterThan, i + 1));
+                Assert.False(s1.All(GreaterThan, i));
+                Assert.True(s1.All(GreaterThan, i - 1));
+                Assert.False(s1.All(GreaterThanOrEqual, i + 1));
+                Assert.True(s1.All(GreaterThanOrEqual, i));
+                Assert.True(s1.All(GreaterThanOrEqual, i - 1));
+            }
+        }
+
+        [Fact]
+        public void TestAllFuzz_04()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                int j = Random.Next(0, int.MaxValue - 1);
+                var s1 = ForInt.Related(BinaryOperatorKind.Equal, j);
+                Assert.True(s1.All(LessThan, j + 1));
+                Assert.False(s1.All(LessThan, j));
+                Assert.False(s1.All(LessThan, j - 1));
+                Assert.True(s1.All(LessThanOrEqual, j + 1));
+                Assert.True(s1.All(LessThanOrEqual, j));
+                Assert.False(s1.All(LessThanOrEqual, j - 1));
+                Assert.False(s1.All(GreaterThan, j + 1));
+                Assert.False(s1.All(GreaterThan, j));
+                Assert.True(s1.All(GreaterThan, j - 1));
+                Assert.False(s1.All(GreaterThanOrEqual, j + 1));
+                Assert.True(s1.All(GreaterThanOrEqual, j));
+                Assert.True(s1.All(GreaterThanOrEqual, j - 1));
+            }
+        }
     }
 }

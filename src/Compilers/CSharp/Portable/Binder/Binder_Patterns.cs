@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not actually emitted into the lowered code.
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
@@ -61,8 +61,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                 hasErrors = true;
             }
-
-            if (expression.ConstantValue != null)
+            else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
+            {
+                switch (pattern)
+                {
+                    case BoundConstantPattern _:
+                    case BoundITuplePattern _:
+                        // these patterns can fail in practice
+                        throw ExceptionUtilities.Unreachable;
+                    case BoundRelationalPattern _:
+                    case BoundTypePattern _:
+                    case BoundNegatedPattern _:
+                    case BoundBinaryPattern _:
+                        diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                        break;
+                    case BoundDiscardPattern _:
+                        // we do not give a warning on this because it is an existing scenario, and it should
+                        // have been obvious in source that it would always match.
+                        break;
+                    case BoundDeclarationPattern _:
+                    case BoundRecursivePattern _:
+                        // We do not give a warning on these because people do this to give a name to a value
+                        break;
+                }
+            }
+            else if (expression.ConstantValue != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
                 if (!hasErrors)
@@ -71,9 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
-                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel) && pattern.Kind == BoundKind.ConstantPattern)
+                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
                     {
-                        diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                        switch (pattern)
+                        {
+                            case BoundConstantPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                                break;
+                            case BoundRelationalPattern _:
+                            case BoundTypePattern _:
+                            case BoundNegatedPattern _:
+                            case BoundBinaryPattern _:
+                            case BoundDiscardPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
+                                break;
+                        }
                     }
                 }
             }
@@ -189,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(expression.Kind == BoundKind.TypeExpression);
+                Debug.Assert(expression is { Kind: BoundKind.TypeExpression, Type: { } });
+                hasErrors |= CheckValidPatternType(patternExpression, inputType, expression.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
                 return expression;
             }
         }

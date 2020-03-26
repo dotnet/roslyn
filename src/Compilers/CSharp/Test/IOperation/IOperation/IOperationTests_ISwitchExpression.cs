@@ -429,7 +429,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // file.cs(7,42): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         y = /*<bind>*/x switch { _ => 5, 1 => 2 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(7, 42)
             };
