@@ -1146,6 +1146,52 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
+        <Fact(Skip:="TODO")>
+        Public Sub TestObsoleteAttributeCustomProperties()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[Imports System
+
+Class C1
+    <Obsolete(DiagnosticId:="TEST1", UrlFormat:="TEST2")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Sub New()
+        End Sub
+    
+        Public Sub New(message As String)
+        End Sub
+    
+        Public Sub New(message As String, isError As Boolean)
+        End Sub
+    
+        Public Property DiagnosticId As String
+        Public Property UrlFormat As String
+    End Class
+End Namespace
+
+]]>
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("TEST2", diag.Descriptor.HelpLinkUri)
+        End Sub
+
         <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
         Public Sub TestObsoleteInAlias()
