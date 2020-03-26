@@ -8288,7 +8288,7 @@ class Program
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
     {
-      // Code size      429 (0x1ad)
+      // Code size      437 (0x1b5)
       .maxstack  3
       .locals init (int V_0, //a
                     int V_1, //x
@@ -8314,167 +8314,173 @@ class Program
      -IL_0000:  nop
      -IL_0001:  call       ""object Program.F()""
       IL_0006:  stloc.s    V_9
-      IL_0008:  ldloc.s    V_9
-      IL_000a:  isinst     ""int""
-      IL_000f:  brfalse.s  IL_001e
-      IL_0011:  ldloc.s    V_9
-      IL_0013:  unbox.any  ""int""
-      IL_0018:  stloc.1
-      IL_0019:  br         IL_0149
-      IL_001e:  ldloc.s    V_9
-      IL_0020:  isinst     ""bool""
-      IL_0025:  brtrue     IL_015a
-      IL_002a:  ldloc.s    V_9
-      IL_002c:  isinst     ""System.Runtime.CompilerServices.ITuple""
-      IL_0031:  stloc.s    V_10
-      IL_0033:  ldloc.s    V_10
-      IL_0035:  brfalse.s  IL_007c
+      IL_0008:  ldc.i4.1
+      IL_0009:  brtrue.s   IL_000c
+     -IL_000b:  nop
+     ~IL_000c:  ldloc.s    V_9
+      IL_000e:  isinst     ""int""
+      IL_0013:  brfalse.s  IL_0022
+      IL_0015:  ldloc.s    V_9
+      IL_0017:  unbox.any  ""int""
+      IL_001c:  stloc.1
+     ~IL_001d:  br         IL_014d
+      IL_0022:  ldloc.s    V_9
+      IL_0024:  isinst     ""bool""
+      IL_0029:  brtrue     IL_015e
+      IL_002e:  ldloc.s    V_9
+      IL_0030:  isinst     ""System.Runtime.CompilerServices.ITuple""
+      IL_0035:  stloc.s    V_10
       IL_0037:  ldloc.s    V_10
-      IL_0039:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
-      IL_003e:  stloc.s    V_11
-      IL_0040:  ldloc.s    V_11
-      IL_0042:  ldc.i4.2
-      IL_0043:  bne.un.s   IL_005c
-      IL_0045:  ldloc.s    V_10
-      IL_0047:  ldc.i4.0
-      IL_0048:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-      IL_004d:  stloc.2
-      IL_004e:  ldloc.s    V_10
-      IL_0050:  ldc.i4.1
-      IL_0051:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-      IL_0056:  stloc.3
-      IL_0057:  br         IL_015f
-      IL_005c:  ldloc.s    V_9
-      IL_005e:  isinst     ""C""
-      IL_0063:  brtrue     IL_016b
-      IL_0068:  br.s       IL_0073
-      IL_006a:  ldloc.s    V_11
-      IL_006c:  brfalse    IL_0188
-      IL_0071:  br.s       IL_00b1
-      IL_0073:  ldloc.s    V_11
-      IL_0075:  brfalse    IL_0188
-      IL_007a:  br.s       IL_00f1
-      IL_007c:  ldloc.s    V_9
-      IL_007e:  isinst     ""double""
-      IL_0083:  brfalse.s  IL_00a3
-      IL_0085:  ldloc.s    V_9
-      IL_0087:  unbox.any  ""double""
-      IL_008c:  stloc.s    V_12
-      IL_008e:  ldloc.s    V_12
-      IL_0090:  ldc.r8     4
-      IL_0099:  beq        IL_0166
-      IL_009e:  br         IL_01a3
-      IL_00a3:  ldloc.s    V_9
-      IL_00a5:  isinst     ""C""
-      IL_00aa:  brtrue     IL_0177
-      IL_00af:  br.s       IL_00f1
-      IL_00b1:  ldloc.s    V_9
-      IL_00b3:  castclass  ""C""
-      IL_00b8:  stloc.s    V_13
-      IL_00ba:  ldloc.s    V_13
-      IL_00bc:  ldloca.s   V_4
-      IL_00be:  ldloca.s   V_14
-      IL_00c0:  callvirt   ""void C.Deconstruct(out int, out object)""
-      IL_00c5:  nop
-      IL_00c6:  ldloc.s    V_14
-      IL_00c8:  isinst     ""C""
-      IL_00cd:  stloc.s    V_15
-      IL_00cf:  ldloc.s    V_15
-      IL_00d1:  brfalse.s  IL_00e2
+      IL_0039:  brfalse.s  IL_0080
+      IL_003b:  ldloc.s    V_10
+      IL_003d:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
+      IL_0042:  stloc.s    V_11
+     ~IL_0044:  ldloc.s    V_11
+      IL_0046:  ldc.i4.2
+      IL_0047:  bne.un.s   IL_0060
+      IL_0049:  ldloc.s    V_10
+      IL_004b:  ldc.i4.0
+      IL_004c:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_0051:  stloc.2
+     ~IL_0052:  ldloc.s    V_10
+      IL_0054:  ldc.i4.1
+      IL_0055:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_005a:  stloc.3
+     ~IL_005b:  br         IL_0163
+      IL_0060:  ldloc.s    V_9
+      IL_0062:  isinst     ""C""
+      IL_0067:  brtrue     IL_016f
+      IL_006c:  br.s       IL_0077
+      IL_006e:  ldloc.s    V_11
+      IL_0070:  brfalse    IL_018c
+      IL_0075:  br.s       IL_00b5
+      IL_0077:  ldloc.s    V_11
+      IL_0079:  brfalse    IL_018c
+      IL_007e:  br.s       IL_00f5
+      IL_0080:  ldloc.s    V_9
+      IL_0082:  isinst     ""double""
+      IL_0087:  brfalse.s  IL_00a7
+      IL_0089:  ldloc.s    V_9
+      IL_008b:  unbox.any  ""double""
+      IL_0090:  stloc.s    V_12
+     ~IL_0092:  ldloc.s    V_12
+      IL_0094:  ldc.r8     4
+      IL_009d:  beq        IL_016a
+      IL_00a2:  br         IL_01a7
+      IL_00a7:  ldloc.s    V_9
+      IL_00a9:  isinst     ""C""
+      IL_00ae:  brtrue     IL_017b
+      IL_00b3:  br.s       IL_00f5
+      IL_00b5:  ldloc.s    V_9
+      IL_00b7:  castclass  ""C""
+      IL_00bc:  stloc.s    V_13
+     ~IL_00be:  ldloc.s    V_13
+      IL_00c0:  ldloca.s   V_4
+      IL_00c2:  ldloca.s   V_14
+      IL_00c4:  callvirt   ""void C.Deconstruct(out int, out object)""
+      IL_00c9:  nop
+     ~IL_00ca:  ldloc.s    V_14
+      IL_00cc:  isinst     ""C""
+      IL_00d1:  stloc.s    V_15
       IL_00d3:  ldloc.s    V_15
-      IL_00d5:  ldloca.s   V_5
-      IL_00d7:  callvirt   ""void C.Deconstruct(out int)""
-      IL_00dc:  nop
-      IL_00dd:  br         IL_018d
-      IL_00e2:  ldloc.s    V_13
-      IL_00e4:  ldloca.s   V_6
-      IL_00e6:  callvirt   ""void C.Deconstruct(out int)""
-      IL_00eb:  nop
-      IL_00ec:  br         IL_0194
-      IL_00f1:  ldloc.s    V_9
-      IL_00f3:  isinst     ""D""
-      IL_00f8:  stloc.s    V_16
-      IL_00fa:  ldloc.s    V_16
-      IL_00fc:  brfalse    IL_01a3
-      IL_0101:  ldloc.s    V_16
-      IL_0103:  callvirt   ""int D.P.get""
-      IL_0108:  stloc.s    V_17
-      IL_010a:  ldloc.s    V_17
-      IL_010c:  ldc.i4.1
-      IL_010d:  bne.un     IL_01a3
-      IL_0112:  ldloc.s    V_16
-      IL_0114:  callvirt   ""D D.Q.get""
-      IL_0119:  stloc.s    V_18
-      IL_011b:  ldloc.s    V_18
-      IL_011d:  brfalse    IL_01a3
-      IL_0122:  ldloc.s    V_18
-      IL_0124:  callvirt   ""int D.P.get""
-      IL_0129:  stloc.s    V_19
-      IL_012b:  ldloc.s    V_19
-      IL_012d:  ldc.i4.2
-      IL_012e:  bne.un.s   IL_01a3
-      IL_0130:  ldloc.s    V_16
-      IL_0132:  callvirt   ""C D.R.get""
-      IL_0137:  stloc.s    V_20
-      IL_0139:  ldloc.s    V_20
-      IL_013b:  brfalse.s  IL_01a3
-      IL_013d:  ldloc.s    V_20
-      IL_013f:  ldloca.s   V_7
-      IL_0141:  callvirt   ""void C.Deconstruct(out int)""
-      IL_0146:  nop
-      IL_0147:  br.s       IL_019b
-      IL_0149:  ldloc.1
-      IL_014a:  call       ""int Program.G(int)""
-      IL_014f:  ldc.i4.s   10
-      IL_0151:  bgt.s      IL_0155
-      IL_0153:  br.s       IL_01a3
-      IL_0155:  ldc.i4.1
-      IL_0156:  stloc.s    V_8
-      IL_0158:  br.s       IL_01a9
-      IL_015a:  ldc.i4.2
-      IL_015b:  stloc.s    V_8
-      IL_015d:  br.s       IL_01a9
-      IL_015f:  br.s       IL_0161
-      IL_0161:  ldc.i4.3
-      IL_0162:  stloc.s    V_8
-      IL_0164:  br.s       IL_01a9
-      IL_0166:  ldc.i4.4
-      IL_0167:  stloc.s    V_8
-      IL_0169:  br.s       IL_01a9
-      IL_016b:  call       ""bool Program.B()""
-      IL_0170:  brtrue.s   IL_0183
-      IL_0172:  br         IL_006a
-      IL_0177:  call       ""bool Program.B()""
-      IL_017c:  brtrue.s   IL_0183
-      IL_017e:  br         IL_00b1
-      IL_0183:  ldc.i4.5
-      IL_0184:  stloc.s    V_8
-      IL_0186:  br.s       IL_01a9
-      IL_0188:  ldc.i4.6
-      IL_0189:  stloc.s    V_8
-      IL_018b:  br.s       IL_01a9
-      IL_018d:  br.s       IL_018f
-      IL_018f:  ldc.i4.7
-      IL_0190:  stloc.s    V_8
-      IL_0192:  br.s       IL_01a9
-      IL_0194:  br.s       IL_0196
-      IL_0196:  ldc.i4.8
-      IL_0197:  stloc.s    V_8
-      IL_0199:  br.s       IL_01a9
-      IL_019b:  br.s       IL_019d
-      IL_019d:  ldc.i4.s   9
-      IL_019f:  stloc.s    V_8
-      IL_01a1:  br.s       IL_01a9
-      IL_01a3:  ldc.i4.s   10
-      IL_01a5:  stloc.s    V_8
-      IL_01a7:  br.s       IL_01a9
-      IL_01a9:  ldloc.s    V_8
-      IL_01ab:  stloc.0
-     -IL_01ac:  ret
+      IL_00d5:  brfalse.s  IL_00e6
+      IL_00d7:  ldloc.s    V_15
+      IL_00d9:  ldloca.s   V_5
+      IL_00db:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00e0:  nop
+     ~IL_00e1:  br         IL_0191
+      IL_00e6:  ldloc.s    V_13
+      IL_00e8:  ldloca.s   V_6
+      IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00ef:  nop
+     ~IL_00f0:  br         IL_0198
+      IL_00f5:  ldloc.s    V_9
+      IL_00f7:  isinst     ""D""
+      IL_00fc:  stloc.s    V_16
+      IL_00fe:  ldloc.s    V_16
+      IL_0100:  brfalse    IL_01a7
+      IL_0105:  ldloc.s    V_16
+      IL_0107:  callvirt   ""int D.P.get""
+      IL_010c:  stloc.s    V_17
+     ~IL_010e:  ldloc.s    V_17
+      IL_0110:  ldc.i4.1
+      IL_0111:  bne.un     IL_01a7
+      IL_0116:  ldloc.s    V_16
+      IL_0118:  callvirt   ""D D.Q.get""
+      IL_011d:  stloc.s    V_18
+     ~IL_011f:  ldloc.s    V_18
+      IL_0121:  brfalse    IL_01a7
+      IL_0126:  ldloc.s    V_18
+      IL_0128:  callvirt   ""int D.P.get""
+      IL_012d:  stloc.s    V_19
+     ~IL_012f:  ldloc.s    V_19
+      IL_0131:  ldc.i4.2
+      IL_0132:  bne.un.s   IL_01a7
+      IL_0134:  ldloc.s    V_16
+      IL_0136:  callvirt   ""C D.R.get""
+      IL_013b:  stloc.s    V_20
+     ~IL_013d:  ldloc.s    V_20
+      IL_013f:  brfalse.s  IL_01a7
+      IL_0141:  ldloc.s    V_20
+      IL_0143:  ldloca.s   V_7
+      IL_0145:  callvirt   ""void C.Deconstruct(out int)""
+      IL_014a:  nop
+     ~IL_014b:  br.s       IL_019f
+     -IL_014d:  ldloc.1
+      IL_014e:  call       ""int Program.G(int)""
+      IL_0153:  ldc.i4.s   10
+      IL_0155:  bgt.s      IL_0159
+     ~IL_0157:  br.s       IL_01a7
+     -IL_0159:  ldc.i4.1
+      IL_015a:  stloc.s    V_8
+      IL_015c:  br.s       IL_01ad
+     -IL_015e:  ldc.i4.2
+      IL_015f:  stloc.s    V_8
+      IL_0161:  br.s       IL_01ad
+      IL_0163:  br.s       IL_0165
+     -IL_0165:  ldc.i4.3
+      IL_0166:  stloc.s    V_8
+      IL_0168:  br.s       IL_01ad
+     -IL_016a:  ldc.i4.4
+      IL_016b:  stloc.s    V_8
+      IL_016d:  br.s       IL_01ad
+     -IL_016f:  call       ""bool Program.B()""
+      IL_0174:  brtrue.s   IL_0187
+     ~IL_0176:  br         IL_006e
+     -IL_017b:  call       ""bool Program.B()""
+      IL_0180:  brtrue.s   IL_0187
+     ~IL_0182:  br         IL_00b5
+     -IL_0187:  ldc.i4.5
+      IL_0188:  stloc.s    V_8
+      IL_018a:  br.s       IL_01ad
+     -IL_018c:  ldc.i4.6
+      IL_018d:  stloc.s    V_8
+      IL_018f:  br.s       IL_01ad
+      IL_0191:  br.s       IL_0193
+     -IL_0193:  ldc.i4.7
+      IL_0194:  stloc.s    V_8
+      IL_0196:  br.s       IL_01ad
+      IL_0198:  br.s       IL_019a
+     -IL_019a:  ldc.i4.8
+      IL_019b:  stloc.s    V_8
+      IL_019d:  br.s       IL_01ad
+      IL_019f:  br.s       IL_01a1
+     -IL_01a1:  ldc.i4.s   9
+      IL_01a3:  stloc.s    V_8
+      IL_01a5:  br.s       IL_01ad
+     -IL_01a7:  ldc.i4.s   10
+      IL_01a9:  stloc.s    V_8
+      IL_01ab:  br.s       IL_01ad
+      IL_01ad:  ldc.i4.1
+      IL_01ae:  brtrue.s   IL_01b1
+     -IL_01b0:  nop
+     ~IL_01b1:  ldloc.s    V_8
+      IL_01b3:  stloc.0
+     -IL_01b4:  ret
     }
 ");
 
-            verifier.VerifyPdb("Program.Main", @"   
+            verifier.VerifyPdb("Program.Main", @"
     <symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -8510,34 +8516,68 @@ class Program
           <sequencePoints>
             <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
             <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
-            <entry offset=""0x1ac"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
+            <entry offset=""0xb"" startLine=""24"" startColumn=""21"" endLine=""48"" endColumn=""10"" document=""1"" />
+            <entry offset=""0xc"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1d"" hidden=""true"" document=""1"" />
+            <entry offset=""0x44"" hidden=""true"" document=""1"" />
+            <entry offset=""0x52"" hidden=""true"" document=""1"" />
+            <entry offset=""0x5b"" hidden=""true"" document=""1"" />
+            <entry offset=""0x92"" hidden=""true"" document=""1"" />
+            <entry offset=""0xbe"" hidden=""true"" document=""1"" />
+            <entry offset=""0xca"" hidden=""true"" document=""1"" />
+            <entry offset=""0xe1"" hidden=""true"" document=""1"" />
+            <entry offset=""0xf0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x10e"" hidden=""true"" document=""1"" />
+            <entry offset=""0x11f"" hidden=""true"" document=""1"" />
+            <entry offset=""0x12f"" hidden=""true"" document=""1"" />
+            <entry offset=""0x13d"" hidden=""true"" document=""1"" />
+            <entry offset=""0x14b"" hidden=""true"" document=""1"" />
+            <entry offset=""0x14d"" startLine=""27"" startColumn=""19"" endLine=""27"" endColumn=""33"" document=""1"" />
+            <entry offset=""0x157"" hidden=""true"" document=""1"" />
+            <entry offset=""0x159"" startLine=""27"" startColumn=""37"" endLine=""27"" endColumn=""38"" document=""1"" />
+            <entry offset=""0x15e"" startLine=""30"" startColumn=""23"" endLine=""30"" endColumn=""24"" document=""1"" />
+            <entry offset=""0x165"" startLine=""33"" startColumn=""27"" endLine=""33"" endColumn=""28"" document=""1"" />
+            <entry offset=""0x16a"" startLine=""36"" startColumn=""20"" endLine=""36"" endColumn=""21"" document=""1"" />
+            <entry offset=""0x16f"" startLine=""39"" startColumn=""17"" endLine=""39"" endColumn=""25"" document=""1"" />
+            <entry offset=""0x176"" hidden=""true"" document=""1"" />
+            <entry offset=""0x17b"" startLine=""39"" startColumn=""17"" endLine=""39"" endColumn=""25"" document=""1"" />
+            <entry offset=""0x182"" hidden=""true"" document=""1"" />
+            <entry offset=""0x187"" startLine=""39"" startColumn=""29"" endLine=""39"" endColumn=""30"" document=""1"" />
+            <entry offset=""0x18c"" startLine=""40"" startColumn=""19"" endLine=""40"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x193"" startLine=""41"" startColumn=""35"" endLine=""41"" endColumn=""36"" document=""1"" />
+            <entry offset=""0x19a"" startLine=""42"" startColumn=""28"" endLine=""42"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x1a1"" startLine=""45"" startColumn=""56"" endLine=""45"" endColumn=""57"" document=""1"" />
+            <entry offset=""0x1a7"" startLine=""47"" startColumn=""18"" endLine=""47"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x1b0"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x1b1"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1b4"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
           </sequencePoints>
-          <scope startOffset=""0x0"" endOffset=""0x1ad"">
-            <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1ad"" attributes=""0"" />
-            <scope startOffset=""0x1"" endOffset=""0x1ac"">
-              <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1ac"" attributes=""0"" />
-              <scope startOffset=""0x149"" endOffset=""0x15a"">
-                <local name=""x"" il_index=""1"" il_start=""0x149"" il_end=""0x15a"" attributes=""0"" />
+          <scope startOffset=""0x0"" endOffset=""0x1b5"">
+            <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b5"" attributes=""0"" />
+            <scope startOffset=""0x1"" endOffset=""0x1b4"">
+              <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
+              <scope startOffset=""0x14d"" endOffset=""0x15e"">
+                <local name=""x"" il_index=""1"" il_start=""0x14d"" il_end=""0x15e"" attributes=""0"" />
               </scope>
-              <scope startOffset=""0x15f"" endOffset=""0x166"">
-                <local name=""y"" il_index=""2"" il_start=""0x15f"" il_end=""0x166"" attributes=""0"" />
-                <local name=""z"" il_index=""3"" il_start=""0x15f"" il_end=""0x166"" attributes=""0"" />
+              <scope startOffset=""0x163"" endOffset=""0x16a"">
+                <local name=""y"" il_index=""2"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
+                <local name=""z"" il_index=""3"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
               </scope>
-              <scope startOffset=""0x18d"" endOffset=""0x194"">
-                <local name=""p"" il_index=""4"" il_start=""0x18d"" il_end=""0x194"" attributes=""0"" />
-                <local name=""q"" il_index=""5"" il_start=""0x18d"" il_end=""0x194"" attributes=""0"" />
+              <scope startOffset=""0x191"" endOffset=""0x198"">
+                <local name=""p"" il_index=""4"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
+                <local name=""q"" il_index=""5"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
               </scope>
-              <scope startOffset=""0x194"" endOffset=""0x19b"">
-                <local name=""p"" il_index=""6"" il_start=""0x194"" il_end=""0x19b"" attributes=""0"" />
+              <scope startOffset=""0x198"" endOffset=""0x19f"">
+                <local name=""p"" il_index=""6"" il_start=""0x198"" il_end=""0x19f"" attributes=""0"" />
               </scope>
-              <scope startOffset=""0x19b"" endOffset=""0x1a3"">
-                <local name=""z"" il_index=""7"" il_start=""0x19b"" il_end=""0x1a3"" attributes=""0"" />
+              <scope startOffset=""0x19f"" endOffset=""0x1a7"">
+                <local name=""z"" il_index=""7"" il_start=""0x19f"" il_end=""0x1a7"" attributes=""0"" />
               </scope>
             </scope>
           </scope>
@@ -8839,7 +8879,7 @@ public class C
 
             verifier.VerifyIL("C.M", sequencePoints: "C.M", expectedIL: @"
     {
-      // Code size      437 (0x1b5)
+      // Code size      472 (0x1d8)
       .maxstack  2
       .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                     int V_1,
@@ -8866,153 +8906,177 @@ public class C
       IL_000c:  stloc.2
       IL_000d:  call       ""object C.F()""
       IL_0012:  stloc.s    V_4
-      IL_0014:  ldloc.s    V_4
-      IL_0016:  isinst     ""int""
-      IL_001b:  brfalse.s  IL_003a
-      IL_001d:  ldloc.s    V_4
-      IL_001f:  unbox.any  ""int""
-      IL_0024:  stloc.s    V_5
-      IL_0026:  ldloc.s    V_5
-      IL_0028:  ldc.i4.1
-      IL_0029:  beq.s      IL_0071
-      IL_002b:  br.s       IL_002d
-      IL_002d:  ldloc.s    V_5
-      IL_002f:  ldc.i4.2
-      IL_0030:  beq        IL_0107
-      IL_0035:  br         IL_017d
-      IL_003a:  ldloc.s    V_4
-      IL_003c:  isinst     ""C""
-      IL_0041:  stloc.s    V_6
-      IL_0043:  ldloc.s    V_6
-      IL_0045:  brfalse    IL_017d
-      IL_004a:  ldloc.s    V_6
-      IL_004c:  callvirt   ""object C.Q.get""
-      IL_0051:  stloc.s    V_7
-      IL_0053:  ldloc.s    V_7
-      IL_0055:  isinst     ""int""
-      IL_005a:  brfalse    IL_017d
-      IL_005f:  ldloc.2
-      IL_0060:  ldloc.s    V_7
-      IL_0062:  unbox.any  ""int""
-      IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
-      IL_006c:  br         IL_0167
-     ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
-      IL_0076:  stloc.s    V_8
-      IL_0078:  call       ""object C.F()""
-      IL_007d:  stloc.s    V_10
-      IL_007f:  ldloc.s    V_10
-      IL_0081:  isinst     ""C""
-      IL_0086:  stloc.s    V_11
-      IL_0088:  ldloc.s    V_11
-      IL_008a:  brfalse.s  IL_00fc
-      IL_008c:  ldloc.s    V_11
-      IL_008e:  callvirt   ""object C.P.get""
-      IL_0093:  stloc.s    V_12
-      IL_0095:  ldloc.s    V_12
-      IL_0097:  isinst     ""int""
-      IL_009c:  brfalse.s  IL_00fc
-      IL_009e:  ldloc.s    V_8
-      IL_00a0:  ldloc.s    V_12
-      IL_00a2:  unbox.any  ""int""
-      IL_00a7:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
-      IL_00ac:  ldloc.s    V_11
-      IL_00ae:  callvirt   ""object C.Q.get""
-      IL_00b3:  stloc.s    V_13
-      IL_00b5:  ldloc.s    V_13
-      IL_00b7:  isinst     ""C""
-      IL_00bc:  stloc.s    V_14
-      IL_00be:  ldloc.s    V_14
-      IL_00c0:  brfalse.s  IL_00fc
-      IL_00c2:  ldloc.s    V_14
-      IL_00c4:  callvirt   ""object C.P.get""
-      IL_00c9:  stloc.s    V_15
-      IL_00cb:  ldloc.s    V_15
-      IL_00cd:  isinst     ""int""
-      IL_00d2:  brfalse.s  IL_00fc
-      IL_00d4:  ldloc.s    V_8
-      IL_00d6:  ldloc.s    V_15
-      IL_00d8:  unbox.any  ""int""
-      IL_00dd:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
-      IL_00e2:  br.s       IL_00e4
-      IL_00e4:  br.s       IL_00e6
-      IL_00e6:  ldloc.s    V_8
-      IL_00e8:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
-      IL_00ee:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-      IL_00f3:  call       ""int C.G(System.Func<int>)""
-      IL_00f8:  stloc.s    V_9
-      IL_00fa:  br.s       IL_0102
-      IL_00fc:  ldc.i4.s   10
-      IL_00fe:  stloc.s    V_9
-      IL_0100:  br.s       IL_0102
-      IL_0102:  ldloc.s    V_9
-      IL_0104:  stloc.3
-      IL_0105:  br.s       IL_0181
-     ~IL_0107:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
-      IL_010c:  stloc.s    V_16
-      IL_010e:  call       ""object C.F()""
-      IL_0113:  stloc.s    V_15
-      IL_0115:  ldloc.s    V_15
-      IL_0117:  isinst     ""C""
-      IL_011c:  stloc.s    V_14
-      IL_011e:  ldloc.s    V_14
-      IL_0120:  brfalse.s  IL_015c
-      IL_0122:  ldloc.s    V_14
-      IL_0124:  callvirt   ""object C.P.get""
-      IL_0129:  stloc.s    V_13
-      IL_012b:  ldloc.s    V_13
-      IL_012d:  isinst     ""int""
-      IL_0132:  brfalse.s  IL_015c
-      IL_0134:  ldloc.s    V_16
-      IL_0136:  ldloc.s    V_13
-      IL_0138:  unbox.any  ""int""
-      IL_013d:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
-      IL_0142:  br.s       IL_0144
-      IL_0144:  br.s       IL_0146
-      IL_0146:  ldloc.s    V_16
-      IL_0148:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
-      IL_014e:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-      IL_0153:  call       ""int C.G(System.Func<int>)""
-      IL_0158:  stloc.s    V_9
-      IL_015a:  br.s       IL_0162
-      IL_015c:  ldc.i4.s   20
-      IL_015e:  stloc.s    V_9
-      IL_0160:  br.s       IL_0162
-      IL_0162:  ldloc.s    V_9
-      IL_0164:  stloc.3
-      IL_0165:  br.s       IL_0181
-      IL_0167:  br.s       IL_0169
-      IL_0169:  ldloc.2
-      IL_016a:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
-      IL_0170:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-      IL_0175:  call       ""int C.G(System.Func<int>)""
-      IL_017a:  stloc.3
-      IL_017b:  br.s       IL_0181
-      IL_017d:  ldc.i4.0
-      IL_017e:  stloc.3
-      IL_017f:  br.s       IL_0181
-      IL_0181:  ldloc.0
-      IL_0182:  ldloc.3
-      IL_0183:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-      IL_0188:  br.s       IL_018a
-      IL_018a:  ldloc.0
-      IL_018b:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-      IL_0190:  ldc.i4.0
-      IL_0191:  bgt.s      IL_0195
-      IL_0193:  br.s       IL_01a9
-      IL_0195:  ldloc.0
-      IL_0196:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
-      IL_019c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-      IL_01a1:  call       ""int C.G(System.Func<int>)""
-      IL_01a6:  stloc.1
-      IL_01a7:  br.s       IL_01ad
-      IL_01a9:  ldc.i4.0
-      IL_01aa:  stloc.1
-      IL_01ab:  br.s       IL_01ad
-      IL_01ad:  ldloc.1
-      IL_01ae:  stloc.s    V_17
-      IL_01b0:  br.s       IL_01b2
-     -IL_01b2:  ldloc.s    V_17
-      IL_01b4:  ret
+      IL_0014:  ldc.i4.1
+      IL_0015:  brtrue.s   IL_0018
+     -IL_0017:  nop
+     ~IL_0018:  ldloc.s    V_4
+      IL_001a:  isinst     ""int""
+      IL_001f:  brfalse.s  IL_003e
+      IL_0021:  ldloc.s    V_4
+      IL_0023:  unbox.any  ""int""
+      IL_0028:  stloc.s    V_5
+     ~IL_002a:  ldloc.s    V_5
+      IL_002c:  ldc.i4.1
+      IL_002d:  beq.s      IL_0075
+      IL_002f:  br.s       IL_0031
+      IL_0031:  ldloc.s    V_5
+      IL_0033:  ldc.i4.2
+      IL_0034:  beq        IL_0116
+      IL_0039:  br         IL_0194
+      IL_003e:  ldloc.s    V_4
+      IL_0040:  isinst     ""C""
+      IL_0045:  stloc.s    V_6
+      IL_0047:  ldloc.s    V_6
+      IL_0049:  brfalse    IL_0194
+      IL_004e:  ldloc.s    V_6
+      IL_0050:  callvirt   ""object C.Q.get""
+      IL_0055:  stloc.s    V_7
+     ~IL_0057:  ldloc.s    V_7
+      IL_0059:  isinst     ""int""
+      IL_005e:  brfalse    IL_0194
+      IL_0063:  ldloc.2
+      IL_0064:  ldloc.s    V_7
+      IL_0066:  unbox.any  ""int""
+      IL_006b:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
+     ~IL_0070:  br         IL_017e
+     ~IL_0075:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
+      IL_007a:  stloc.s    V_8
+      IL_007c:  call       ""object C.F()""
+      IL_0081:  stloc.s    V_10
+      IL_0083:  ldc.i4.1
+      IL_0084:  brtrue.s   IL_0087
+     -IL_0086:  nop
+     ~IL_0087:  ldloc.s    V_10
+      IL_0089:  isinst     ""C""
+      IL_008e:  stloc.s    V_11
+      IL_0090:  ldloc.s    V_11
+      IL_0092:  brfalse.s  IL_0104
+      IL_0094:  ldloc.s    V_11
+      IL_0096:  callvirt   ""object C.P.get""
+      IL_009b:  stloc.s    V_12
+     ~IL_009d:  ldloc.s    V_12
+      IL_009f:  isinst     ""int""
+      IL_00a4:  brfalse.s  IL_0104
+      IL_00a6:  ldloc.s    V_8
+      IL_00a8:  ldloc.s    V_12
+      IL_00aa:  unbox.any  ""int""
+      IL_00af:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
+     ~IL_00b4:  ldloc.s    V_11
+      IL_00b6:  callvirt   ""object C.Q.get""
+      IL_00bb:  stloc.s    V_13
+     ~IL_00bd:  ldloc.s    V_13
+      IL_00bf:  isinst     ""C""
+      IL_00c4:  stloc.s    V_14
+      IL_00c6:  ldloc.s    V_14
+      IL_00c8:  brfalse.s  IL_0104
+      IL_00ca:  ldloc.s    V_14
+      IL_00cc:  callvirt   ""object C.P.get""
+      IL_00d1:  stloc.s    V_15
+     ~IL_00d3:  ldloc.s    V_15
+      IL_00d5:  isinst     ""int""
+      IL_00da:  brfalse.s  IL_0104
+      IL_00dc:  ldloc.s    V_8
+      IL_00de:  ldloc.s    V_15
+      IL_00e0:  unbox.any  ""int""
+      IL_00e5:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
+     ~IL_00ea:  br.s       IL_00ec
+      IL_00ec:  br.s       IL_00ee
+     -IL_00ee:  ldloc.s    V_8
+      IL_00f0:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
+      IL_00f6:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_00fb:  call       ""int C.G(System.Func<int>)""
+      IL_0100:  stloc.s    V_9
+      IL_0102:  br.s       IL_010a
+     -IL_0104:  ldc.i4.s   10
+      IL_0106:  stloc.s    V_9
+      IL_0108:  br.s       IL_010a
+      IL_010a:  ldc.i4.1
+      IL_010b:  brtrue.s   IL_010e
+     -IL_010d:  nop
+     -IL_010e:  ldloc.s    V_9
+      IL_0110:  stloc.3
+      IL_0111:  br         IL_0198
+     ~IL_0116:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
+      IL_011b:  stloc.s    V_16
+      IL_011d:  call       ""object C.F()""
+      IL_0122:  stloc.s    V_15
+      IL_0124:  ldc.i4.1
+      IL_0125:  brtrue.s   IL_0128
+     -IL_0127:  nop
+     ~IL_0128:  ldloc.s    V_15
+      IL_012a:  isinst     ""C""
+      IL_012f:  stloc.s    V_14
+      IL_0131:  ldloc.s    V_14
+      IL_0133:  brfalse.s  IL_016f
+      IL_0135:  ldloc.s    V_14
+      IL_0137:  callvirt   ""object C.P.get""
+      IL_013c:  stloc.s    V_13
+     ~IL_013e:  ldloc.s    V_13
+      IL_0140:  isinst     ""int""
+      IL_0145:  brfalse.s  IL_016f
+      IL_0147:  ldloc.s    V_16
+      IL_0149:  ldloc.s    V_13
+      IL_014b:  unbox.any  ""int""
+      IL_0150:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
+     ~IL_0155:  br.s       IL_0157
+      IL_0157:  br.s       IL_0159
+     -IL_0159:  ldloc.s    V_16
+      IL_015b:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
+      IL_0161:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0166:  call       ""int C.G(System.Func<int>)""
+      IL_016b:  stloc.s    V_9
+      IL_016d:  br.s       IL_0175
+     -IL_016f:  ldc.i4.s   20
+      IL_0171:  stloc.s    V_9
+      IL_0173:  br.s       IL_0175
+      IL_0175:  ldc.i4.1
+      IL_0176:  brtrue.s   IL_0179
+     -IL_0178:  nop
+     -IL_0179:  ldloc.s    V_9
+      IL_017b:  stloc.3
+      IL_017c:  br.s       IL_0198
+      IL_017e:  br.s       IL_0180
+     -IL_0180:  ldloc.2
+      IL_0181:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
+      IL_0187:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_018c:  call       ""int C.G(System.Func<int>)""
+      IL_0191:  stloc.3
+      IL_0192:  br.s       IL_0198
+     -IL_0194:  ldc.i4.0
+      IL_0195:  stloc.3
+      IL_0196:  br.s       IL_0198
+      IL_0198:  ldc.i4.1
+      IL_0199:  brtrue.s   IL_019c
+     -IL_019b:  nop
+     ~IL_019c:  ldloc.0
+      IL_019d:  ldloc.3
+      IL_019e:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_01a3:  ldc.i4.1
+      IL_01a4:  brtrue.s   IL_01a7
+     -IL_01a6:  nop
+     ~IL_01a7:  br.s       IL_01a9
+     -IL_01a9:  ldloc.0
+      IL_01aa:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_01af:  ldc.i4.0
+      IL_01b0:  bgt.s      IL_01b4
+     ~IL_01b2:  br.s       IL_01c8
+     -IL_01b4:  ldloc.0
+      IL_01b5:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
+      IL_01bb:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_01c0:  call       ""int C.G(System.Func<int>)""
+      IL_01c5:  stloc.1
+      IL_01c6:  br.s       IL_01cc
+     -IL_01c8:  ldc.i4.0
+      IL_01c9:  stloc.1
+      IL_01ca:  br.s       IL_01cc
+      IL_01cc:  ldc.i4.1
+      IL_01cd:  brtrue.s   IL_01d0
+     -IL_01cf:  nop
+     ~IL_01d0:  ldloc.1
+      IL_01d1:  stloc.s    V_17
+      IL_01d3:  br.s       IL_01d5
+     -IL_01d5:  ldloc.s    V_17
+      IL_01d7:  ret
     }
 ");
             verifier.VerifyPdb("C.M", @"
@@ -9062,21 +9126,57 @@ public class C
             <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
             <entry offset=""0x1"" hidden=""true"" document=""1"" />
             <entry offset=""0x7"" hidden=""true"" document=""1"" />
-            <entry offset=""0x71"" hidden=""true"" document=""1"" />
-            <entry offset=""0x107"" hidden=""true"" document=""1"" />
-            <entry offset=""0x1b2"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x17"" startLine=""7"" startColumn=""20"" endLine=""21"" endColumn=""10"" document=""1"" />
+            <entry offset=""0x18"" hidden=""true"" document=""1"" />
+            <entry offset=""0x2a"" hidden=""true"" document=""1"" />
+            <entry offset=""0x57"" hidden=""true"" document=""1"" />
+            <entry offset=""0x70"" hidden=""true"" document=""1"" />
+            <entry offset=""0x75"" hidden=""true"" document=""1"" />
+            <entry offset=""0x86"" startLine=""9"" startColumn=""22"" endLine=""13"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x87"" hidden=""true"" document=""1"" />
+            <entry offset=""0x9d"" hidden=""true"" document=""1"" />
+            <entry offset=""0xb4"" hidden=""true"" document=""1"" />
+            <entry offset=""0xbd"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd3"" hidden=""true"" document=""1"" />
+            <entry offset=""0xea"" hidden=""true"" document=""1"" />
+            <entry offset=""0xee"" startLine=""11"" startColumn=""59"" endLine=""11"" endColumn=""73"" document=""1"" />
+            <entry offset=""0x104"" startLine=""12"" startColumn=""27"" endLine=""12"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x10d"" startLine=""7"" startColumn=""20"" endLine=""21"" endColumn=""10"" document=""1"" />
+            <entry offset=""0x10e"" startLine=""9"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x116"" hidden=""true"" document=""1"" />
+            <entry offset=""0x127"" startLine=""14"" startColumn=""22"" endLine=""18"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x128"" hidden=""true"" document=""1"" />
+            <entry offset=""0x13e"" hidden=""true"" document=""1"" />
+            <entry offset=""0x155"" hidden=""true"" document=""1"" />
+            <entry offset=""0x159"" startLine=""16"" startColumn=""40"" endLine=""16"" endColumn=""50"" document=""1"" />
+            <entry offset=""0x16f"" startLine=""17"" startColumn=""27"" endLine=""17"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x178"" startLine=""9"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x179"" startLine=""14"" startColumn=""18"" endLine=""18"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x180"" startLine=""19"" startColumn=""31"" endLine=""19"" endColumn=""41"" document=""1"" />
+            <entry offset=""0x194"" startLine=""20"" startColumn=""18"" endLine=""20"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x19b"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x19c"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1a6"" startLine=""22"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
+            <entry offset=""0x1a7"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1a9"" startLine=""24"" startColumn=""19"" endLine=""24"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x1b2"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1b4"" startLine=""24"" startColumn=""33"" endLine=""24"" endColumn=""43"" document=""1"" />
+            <entry offset=""0x1c8"" startLine=""25"" startColumn=""18"" endLine=""25"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x1cf"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x1d0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1d5"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
           </sequencePoints>
-          <scope startOffset=""0x0"" endOffset=""0x1b5"">
+          <scope startOffset=""0x0"" endOffset=""0x1d8"">
             <namespace name=""System"" />
-            <scope startOffset=""0x1"" endOffset=""0x1b2"">
-              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1b2"" attributes=""0"" />
-              <scope startOffset=""0x7"" endOffset=""0x188"">
-                <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x7"" il_end=""0x188"" attributes=""0"" />
-                <scope startOffset=""0x71"" endOffset=""0x105"">
-                  <local name=""CS$&lt;&gt;8__locals2"" il_index=""8"" il_start=""0x71"" il_end=""0x105"" attributes=""0"" />
+            <scope startOffset=""0x1"" endOffset=""0x1d5"">
+              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1d5"" attributes=""0"" />
+              <scope startOffset=""0x7"" endOffset=""0x1a3"">
+                <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x7"" il_end=""0x1a3"" attributes=""0"" />
+                <scope startOffset=""0x75"" endOffset=""0x111"">
+                  <local name=""CS$&lt;&gt;8__locals2"" il_index=""8"" il_start=""0x75"" il_end=""0x111"" attributes=""0"" />
                 </scope>
-                <scope startOffset=""0x107"" endOffset=""0x165"">
-                  <local name=""CS$&lt;&gt;8__locals3"" il_index=""16"" il_start=""0x107"" il_end=""0x165"" attributes=""0"" />
+                <scope startOffset=""0x116"" endOffset=""0x17c"">
+                  <local name=""CS$&lt;&gt;8__locals3"" il_index=""16"" il_start=""0x116"" il_end=""0x17c"" attributes=""0"" />
                 </scope>
               </scope>
             </scope>
@@ -10462,9 +10562,20 @@ class C
           </customDebugInfo>
           <sequencePoints>
             <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
+            <entry offset=""0xb"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
+            <entry offset=""0xc"" hidden=""true"" document=""1"" />
+            <entry offset=""0x14"" startLine=""1"" startColumn=""64"" endLine=""1"" endColumn=""89"" document=""1"" />
+            <entry offset=""0x15"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1b"" startLine=""1"" startColumn=""78"" endLine=""1"" endColumn=""79"" document=""1"" />
+            <entry offset=""0x1f"" startLine=""1"" startColumn=""86"" endLine=""1"" endColumn=""87"" document=""1"" />
+            <entry offset=""0x26"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
+            <entry offset=""0x27"" startLine=""1"" startColumn=""62"" endLine=""1"" endColumn=""89"" document=""1"" />
+            <entry offset=""0x2b"" startLine=""1"" startColumn=""96"" endLine=""1"" endColumn=""97"" document=""1"" />
+            <entry offset=""0x32"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
+            <entry offset=""0x33"" hidden=""true"" document=""1"" />
           </sequencePoints>
-          <scope startOffset=""0x0"" endOffset=""0x2a"">
-            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x2a"" attributes=""0"" />
+          <scope startOffset=""0x0"" endOffset=""0x3a"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x3a"" attributes=""0"" />
           </scope>
         </method>
       </methods>

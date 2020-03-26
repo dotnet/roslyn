@@ -2323,7 +2323,7 @@ Closed Open -> Opened
   IL_003a:  ret
 }");
             compVerifier.VerifyIL("Door.ChangeState1",
-@"{
+            @"{
   // Code size       67 (0x43)
   .maxstack  2
   .locals init (Door.DoorState V_0)
@@ -3319,7 +3319,7 @@ public class Program
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
             v.VerifyIL(qualifiedMethodName: "Program.Main", @"
     {
-      // Code size       53 (0x35)
+      // Code size       61 (0x3d)
       .maxstack  2
       .locals init (int V_0, //i
                     Program V_1, //y
@@ -3330,31 +3330,44 @@ public class Program
       IL_0001:  ldc.i4.0
       IL_0002:  stloc.0
       // sequence point: var y = (i s ...   }).Chain()
-      IL_0003:  ldloc.0
-      IL_0004:  brfalse.s  IL_000e
-      IL_0006:  br.s       IL_0008
-      IL_0008:  ldloc.0
-      IL_0009:  ldc.i4.1
-      IL_000a:  beq.s      IL_0016
-      IL_000c:  br.s       IL_001e
-      IL_000e:  newobj     ""Program..ctor()""
-      IL_0013:  stloc.2
-      IL_0014:  br.s       IL_0026
-      IL_0016:  newobj     ""Program..ctor()""
-      IL_001b:  stloc.2
-      IL_001c:  br.s       IL_0026
-      IL_001e:  newobj     ""Program..ctor()""
-      IL_0023:  stloc.2
-      IL_0024:  br.s       IL_0026
-      IL_0026:  ldloc.2
-      IL_0027:  callvirt   ""Program Program.Chain()""
-      IL_002c:  stloc.1
+      IL_0003:  ldc.i4.1
+      IL_0004:  brtrue.s   IL_0007
+      // sequence point: switch ...         }
+      IL_0006:  nop
+      // sequence point: <hidden>
+      IL_0007:  ldloc.0
+      IL_0008:  brfalse.s  IL_0012
+      IL_000a:  br.s       IL_000c
+      IL_000c:  ldloc.0
+      IL_000d:  ldc.i4.1
+      IL_000e:  beq.s      IL_001a
+      IL_0010:  br.s       IL_0022
+      // sequence point: new Program()
+      IL_0012:  newobj     ""Program..ctor()""
+      IL_0017:  stloc.2
+      IL_0018:  br.s       IL_002a
+      // sequence point: new Program()
+      IL_001a:  newobj     ""Program..ctor()""
+      IL_001f:  stloc.2
+      IL_0020:  br.s       IL_002a
+      // sequence point: new Program()
+      IL_0022:  newobj     ""Program..ctor()""
+      IL_0027:  stloc.2
+      IL_0028:  br.s       IL_002a
+      IL_002a:  ldc.i4.1
+      IL_002b:  brtrue.s   IL_002e
+      // sequence point: var y = (i s ...   }).Chain()
+      IL_002d:  nop
+      // sequence point: <hidden>
+      IL_002e:  ldloc.2
+      IL_002f:  callvirt   ""Program Program.Chain()""
+      IL_0034:  stloc.1
       // sequence point: y.Chain2();
-      IL_002d:  ldloc.1
-      IL_002e:  callvirt   ""Program Program.Chain2()""
-      IL_0033:  pop
+      IL_0035:  ldloc.1
+      IL_0036:  callvirt   ""Program Program.Chain2()""
+      IL_003b:  pop
       // sequence point: }
-      IL_0034:  ret
+      IL_003c:  ret
     }
 ", sequencePoints: "Program.Main", source: source);
         }
@@ -3386,34 +3399,40 @@ public class Class1
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
                     compVerifier.VerifyIL("Class1.M", @"
-{
-      // Code size       37 (0x25)
+    {
+      // Code size       45 (0x2d)
       .maxstack  2
       .locals init (bool V_0,
                     int V_1,
                     bool V_2)
       IL_0000:  nop
-      IL_0001:  ldarg.0
-      IL_0002:  isinst     ""int""
-      IL_0007:  brfalse.s  IL_001b
-      IL_0009:  ldarg.0
-      IL_000a:  unbox.any  ""int""
-      IL_000f:  stloc.1
-      IL_0010:  ldloc.1
-      IL_0011:  ldc.i4.s   42
-      IL_0013:  beq.s      IL_0017
-      IL_0015:  br.s       IL_001b
-      IL_0017:  ldc.i4.1
-      IL_0018:  stloc.0
+      IL_0001:  ldc.i4.1
+      IL_0002:  brtrue.s   IL_0005
+      IL_0004:  nop
+      IL_0005:  ldarg.0
+      IL_0006:  isinst     ""int""
+      IL_000b:  brfalse.s  IL_001f
+      IL_000d:  ldarg.0
+      IL_000e:  unbox.any  ""int""
+      IL_0013:  stloc.1
+      IL_0014:  ldloc.1
+      IL_0015:  ldc.i4.s   42
+      IL_0017:  beq.s      IL_001b
       IL_0019:  br.s       IL_001f
-      IL_001b:  ldc.i4.0
+      IL_001b:  ldc.i4.1
       IL_001c:  stloc.0
-      IL_001d:  br.s       IL_001f
-      IL_001f:  ldloc.0
-      IL_0020:  stloc.2
+      IL_001d:  br.s       IL_0023
+      IL_001f:  ldc.i4.0
+      IL_0020:  stloc.0
       IL_0021:  br.s       IL_0023
-      IL_0023:  ldloc.2
-      IL_0024:  ret
+      IL_0023:  ldc.i4.1
+      IL_0024:  brtrue.s   IL_0027
+      IL_0026:  nop
+      IL_0027:  ldloc.0
+      IL_0028:  stloc.2
+      IL_0029:  br.s       IL_002b
+      IL_002b:  ldloc.2
+      IL_002c:  ret
     }
 ");
                 }

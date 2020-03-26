@@ -3093,62 +3093,69 @@ class C
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("C.Grade",
-@"{
-  // Code size      110 (0x6e)
-  .maxstack  6
-  .locals init (char V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4     0xea60
-  IL_0006:  ldc.i4.0
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.3
-  IL_000a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_000f:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-  IL_0014:  brtrue.s   IL_0053
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4     0x1b58
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.0
-  IL_001e:  ldc.i4.0
-  IL_001f:  ldc.i4.2
-  IL_0020:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0025:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-  IL_002a:  brtrue.s   IL_0058
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4     0x320
-  IL_0032:  ldc.i4.0
-  IL_0033:  ldc.i4.0
-  IL_0034:  ldc.i4.0
-  IL_0035:  ldc.i4.1
-  IL_0036:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_003b:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-  IL_0040:  brtrue.s   IL_005d
-  IL_0042:  ldarg.0
-  IL_0043:  ldc.i4.s   90
-  IL_0045:  newobj     ""decimal..ctor(int)""
-  IL_004a:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-  IL_004f:  brtrue.s   IL_0062
-  IL_0051:  br.s       IL_0067
-  IL_0053:  ldc.i4.s   70
-  IL_0055:  stloc.0
-  IL_0056:  br.s       IL_006c
-  IL_0058:  ldc.i4.s   68
-  IL_005a:  stloc.0
-  IL_005b:  br.s       IL_006c
-  IL_005d:  ldc.i4.s   67
-  IL_005f:  stloc.0
-  IL_0060:  br.s       IL_006c
-  IL_0062:  ldc.i4.s   66
-  IL_0064:  stloc.0
-  IL_0065:  br.s       IL_006c
-  IL_0067:  ldc.i4.s   65
-  IL_0069:  stloc.0
-  IL_006a:  br.s       IL_006c
-  IL_006c:  ldloc.0
-  IL_006d:  ret
-}");
+            compVerifier.VerifyIL("C.Grade", @"
+    {
+      // Code size      118 (0x76)
+      .maxstack  6
+      .locals init (char V_0)
+      IL_0000:  ldc.i4.1
+      IL_0001:  brtrue.s   IL_0004
+      IL_0003:  nop
+      IL_0004:  ldarg.0
+      IL_0005:  ldc.i4     0xea60
+      IL_000a:  ldc.i4.0
+      IL_000b:  ldc.i4.0
+      IL_000c:  ldc.i4.0
+      IL_000d:  ldc.i4.3
+      IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0013:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_0018:  brtrue.s   IL_0057
+      IL_001a:  ldarg.0
+      IL_001b:  ldc.i4     0x1b58
+      IL_0020:  ldc.i4.0
+      IL_0021:  ldc.i4.0
+      IL_0022:  ldc.i4.0
+      IL_0023:  ldc.i4.2
+      IL_0024:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0029:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_002e:  brtrue.s   IL_005c
+      IL_0030:  ldarg.0
+      IL_0031:  ldc.i4     0x320
+      IL_0036:  ldc.i4.0
+      IL_0037:  ldc.i4.0
+      IL_0038:  ldc.i4.0
+      IL_0039:  ldc.i4.1
+      IL_003a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_003f:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_0044:  brtrue.s   IL_0061
+      IL_0046:  ldarg.0
+      IL_0047:  ldc.i4.s   90
+      IL_0049:  newobj     ""decimal..ctor(int)""
+      IL_004e:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_0053:  brtrue.s   IL_0066
+      IL_0055:  br.s       IL_006b
+      IL_0057:  ldc.i4.s   70
+      IL_0059:  stloc.0
+      IL_005a:  br.s       IL_0070
+      IL_005c:  ldc.i4.s   68
+      IL_005e:  stloc.0
+      IL_005f:  br.s       IL_0070
+      IL_0061:  ldc.i4.s   67
+      IL_0063:  stloc.0
+      IL_0064:  br.s       IL_0070
+      IL_0066:  ldc.i4.s   66
+      IL_0068:  stloc.0
+      IL_0069:  br.s       IL_0070
+      IL_006b:  ldc.i4.s   65
+      IL_006d:  stloc.0
+      IL_006e:  br.s       IL_0070
+      IL_0070:  ldc.i4.1
+      IL_0071:  brtrue.s   IL_0074
+      IL_0073:  nop
+      IL_0074:  ldloc.0
+      IL_0075:  ret
+    }
+");
         }
 
         [Fact]
