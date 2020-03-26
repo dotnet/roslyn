@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 CodeActionPriority priority)
                 : base(title, createChangedDocument, title)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

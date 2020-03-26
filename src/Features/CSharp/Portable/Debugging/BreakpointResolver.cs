@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             out IList<NameAndArity> nameParts,
             out int? parameterCount)
         {
-            var text = this.Text;
+            var text = Text;
 
             Debug.Assert(text != null);
 

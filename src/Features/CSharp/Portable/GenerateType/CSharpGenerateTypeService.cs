@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var typeArguments = state.SimpleName.Arity == genericName.TypeArgumentList.Arguments.Count
                     ? genericName.TypeArgumentList.Arguments.OfType<SyntaxNode>().ToList()
                     : Enumerable.Repeat<SyntaxNode>(null, state.SimpleName.Arity);
-                return this.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
+                return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
             }
 
             return ImmutableArray<ITypeParameterSymbol>.Empty;

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 #endif
         }

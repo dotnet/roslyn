@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
             {
-                var info = model.GetSpeculativeTypeInfo(this.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
+                var info = model.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
                 if (Microsoft.CodeAnalysis.Shared.Extensions.ISymbolExtensions.IsErrorType(info.Type))
                 {
                     return null;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
             {
-                var csharpSelectionResult = this.SelectionResult as CSharpSelectionResult;
+                var csharpSelectionResult = SelectionResult as CSharpSelectionResult;
 
                 var first = csharpSelectionResult.GetFirstStatement();
                 var last = csharpSelectionResult.GetLastStatement();
@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override bool ReadOnlyFieldAllowed()
             {
-                var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
+                var scope = SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
             }
 
             protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
             {
-                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+                var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
                 switch (symbol)
                 {

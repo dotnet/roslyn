@@ -32,15 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
-            if (!this.ContainsValidSelection)
+            if (!ContainsValidSelection)
             {
                 return NullSelection;
             }
 
-            var text = this.SemanticDocument.Text;
-            var root = this.SemanticDocument.Root;
-            var model = this.SemanticDocument.SemanticModel;
-            var doc = this.SemanticDocument;
+            var text = SemanticDocument.Text;
+            var root = SemanticDocument.Root;
+            var model = SemanticDocument.SemanticModel;
+            var doc = SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
             var selectionInfo = GetInitialSelectionInfo(root, text);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
-                this.Options,
+                Options,
                 selectionInfo.SelectionInExpression,
                 doc,
                 selectionInfo.FirstTokenInFinalSpan,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
         {
-            var adjustedSpan = GetAdjustedSpan(text, this.OriginalSpan);
+            var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
             var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
@@ -486,14 +486,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public SelectionInfo With(Action<SelectionInfo> valueSetter)
             {
-                var newInfo = this.Clone();
+                var newInfo = Clone();
                 valueSetter(newInfo);
                 return newInfo;
             }
 
             public SelectionInfo Clone()
             {
-                return (SelectionInfo)this.MemberwiseClone();
+                return (SelectionInfo)MemberwiseClone();
             }
         }
     }

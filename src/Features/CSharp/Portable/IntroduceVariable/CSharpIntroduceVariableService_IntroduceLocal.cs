@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, expression, cancellationToken),
+                    GetTypeSyntax(document, expression, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
