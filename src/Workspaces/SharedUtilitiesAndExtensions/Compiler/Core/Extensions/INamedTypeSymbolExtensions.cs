@@ -77,16 +77,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol method: return method.OverriddenMethod;
-                case IPropertySymbol property: return property.OverriddenProperty;
-                case IEventSymbol @event: return @event.OverriddenEvent;
-            }
-
-            return null;
-        }
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
+                _ => null,
+            };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
         {
@@ -179,13 +176,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            switch (implementation)
+            return implementation switch
             {
-                case IEventSymbol @event: return @event.ExplicitInterfaceImplementations.Length > 0;
-                case IMethodSymbol method: return method.ExplicitInterfaceImplementations.Length > 0;
-                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0;
-                default: return false;
-            }
+                IEventSymbol @event => @event.ExplicitInterfaceImplementations.Length > 0,
+                IMethodSymbol method => method.ExplicitInterfaceImplementations.Length > 0,
+                IPropertySymbol property => property.ExplicitInterfaceImplementations.Length > 0,
+                _ => false,
+            };
         }
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(

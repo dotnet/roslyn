@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Technically, we don't need to check project id.
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id &&
                 this.ProjectId == other.ProjectId;
         }

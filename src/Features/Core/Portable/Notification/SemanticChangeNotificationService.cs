@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 // now it runs for all workspace, make sure we get rid of entry from the map
                 // as soon as it is not needed.
                 // this whole thing will go away when workspace disable itself from solution crawler.
-                _map.TryRemove(documentId, out var unused);
+                _map.TryRemove(documentId, out _);
                 return Task.CompletedTask;
             }
 

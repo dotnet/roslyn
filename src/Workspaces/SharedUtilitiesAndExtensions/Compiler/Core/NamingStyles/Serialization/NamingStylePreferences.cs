@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
         {
-            if (ReferenceEquals(left, null) && ReferenceEquals(right, null))
+            if (left is null && right is null)
             {
                 return true;
             }
-            else if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+            else if (left is null || right is null)
             {
                 return false;
             }

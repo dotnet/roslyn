@@ -105,26 +105,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            SyntaxNode root, List<int> positions, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
-            foreach (var index in positions)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-
-                var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
-                {
-                    result.Add(token);
-                }
-            }
-
-            return result.ToImmutable();
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
             var result = ImmutableArray.CreateBuilder<SyntaxToken>();

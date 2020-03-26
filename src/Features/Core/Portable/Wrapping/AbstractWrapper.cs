@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
         protected AbstractSyntaxWrapper(IIndentationService indentationService)
         {
-            this.IndentationService = indentationService;
+            IndentationService = indentationService;
         }
 
         public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
