@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var solution = _semanticDocument.Project.Solution;
-                var syntaxTree = _semanticDocument.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
@@ -61,10 +60,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
+                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
                     var setAccessor = _isReadonly || _refKind != RefKind.None
                         ? null
-                        : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
+                        : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
@@ -98,17 +97,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private IMethodSymbol CreateAccessor(
-                Accessibility accessibility, CancellationToken cancellationToken)
+            private IMethodSymbol CreateAccessor(Accessibility accessibility)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: default,
                     accessibility: accessibility,
-                    statements: GenerateStatements(cancellationToken));
+                    statements: GenerateStatements());
             }
 
-            private ImmutableArray<SyntaxNode> GenerateStatements(
-                CancellationToken cancellationToken)
+            private ImmutableArray<SyntaxNode> GenerateStatements()
             {
                 var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
