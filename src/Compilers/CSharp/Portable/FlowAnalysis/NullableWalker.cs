@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
             enforceMemberNotNull(syntaxOpt: null, this.State);
-            // Note: we don't enforce NotNull attribute on parameters at exit points, but rather on assignments
+            enforceNotNull(null, this.State);
 
             foreach (var pendingReturn in pendingReturns)
             {
@@ -458,6 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
                 {
+                    enforceNotNull(returnStatement.Syntax, pendingReturn.State);
                     enforceNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                     enforceMemberNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                 }
@@ -617,6 +618,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            void enforceNotNull(SyntaxNode syntaxOpt, LocalState state)
+            {
+                if (!state.Reachable)
+                {
+                    return;
+                }
+
+                foreach (var parameter in this.MethodParameters)
+                {
+                    if (parameterHasBadState(parameter, state))
+                    {
+                        // Parameter '{name}' may not have a null value when exiting.
+                        Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                    }
+                }
+            }
+
             void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
             {
                 if (!stateWhen.Reachable)
@@ -626,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in parameters)
                 {
-                    if (parameterHasBadState(parameter, sense, stateWhen))
+                    if (parameterHasBadConditionalState(parameter, sense, stateWhen))
                     {
                         // Parameter '{name}' may not have a null value when exiting with '{sense}'.
                         Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
@@ -634,7 +652,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool parameterHasBadState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
+            bool parameterHasBadState(ParameterSymbol parameter, LocalState state)
+            {
+                var slot = GetOrCreateSlot(parameter);
+                if (slot > 0)
+                {
+                    var parameterState = state[slot];
+                    FlowAnalysisAnnotations annotations = parameter.FlowAnalysisAnnotations;
+                    bool hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    return hasNotNull && parameterState.MayBeNull();
+                }
+
+                return false;
+            }
+
+            bool parameterHasBadConditionalState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
             {
                 var refKind = parameter.RefKind;
                 if (refKind != RefKind.Out && refKind != RefKind.Ref)
@@ -6932,7 +6964,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
                 BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
                 BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
-                BoundParameter { ParameterSymbol: ParameterSymbol parameter } => ToInwardAnnotations(GetParameterAnnotations(parameter)),
+                BoundParameter { ParameterSymbol: ParameterSymbol parameter }
+                    => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
                 _ => FlowAnalysisAnnotations.None
             };
 

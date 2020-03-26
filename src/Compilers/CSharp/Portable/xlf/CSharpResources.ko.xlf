@@ -1849,6 +1849,16 @@
         <target state="translated">일부 조건으로 종료할 때 매개 변수에 null 값을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting.</source>
+        <target state="new">Parameter may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">[DoesNotReturn]으로 표시된 메서드는 반환하지 않아야 합니다.</target>

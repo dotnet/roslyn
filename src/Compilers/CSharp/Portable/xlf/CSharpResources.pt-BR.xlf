@@ -1847,6 +1847,16 @@
         <target state="translated">O parâmetro não pode ter um valor nulo durante a saída em alguma condição.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting.</source>
+        <target state="new">Parameter may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Um método marcado como [DoesNotReturn] não deve ser retornado.</target>

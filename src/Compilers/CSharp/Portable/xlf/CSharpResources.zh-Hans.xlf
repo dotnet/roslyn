@@ -1849,6 +1849,16 @@
         <target state="translated">在某些条件下退出时，参数可能不具有 null 值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting.</source>
+        <target state="new">Parameter may not have a null value when exiting.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">不应返回标记为 [DoesNotReturn] 的方法。</target>
