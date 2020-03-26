@@ -16,14 +16,12 @@ namespace Analyzer.Utilities.Extensions
             this SyntaxNode node,
             DiagnosticDescriptor rule,
             params object[] args)
-        {
-            return node.GetLocation().CreateDiagnostic(rule, args);
-        }
+            => node.CreateDiagnostic(rule, properties: null, args);
 
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
             => node
                 .GetLocation()
@@ -36,8 +34,15 @@ namespace Analyzer.Utilities.Extensions
             this IOperation operation,
             DiagnosticDescriptor rule,
             params object[] args)
+            => operation.CreateDiagnostic(rule, properties: null, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
         {
-            return operation.Syntax.CreateDiagnostic(rule, args);
+            return operation.Syntax.CreateDiagnostic(rule, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -69,7 +74,7 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
             if (!location.IsInSource)
