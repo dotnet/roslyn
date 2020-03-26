@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             InvalidEntryInAnalyzerReleasesFileRule,
             InvalidHeaderInAnalyzerReleasesFileRule,
             InvalidUndetectedEntryInAnalyzerReleasesFileRule,
-            InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRule);
+            InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule);
 
         public override void Initialize(AnalysisContext context)
         {

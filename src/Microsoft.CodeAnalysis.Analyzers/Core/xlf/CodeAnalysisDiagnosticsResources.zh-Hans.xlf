@@ -142,9 +142,9 @@
         <target state="new">Analyzer release file '{0}' has a missing or invalid release header '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has an invalid removed entry without a prior shipped release for the rule '{1}'. Instead, add a separate removed entry for the rule in unshipped release file.</source>
-        <target state="new">Analyzer release file '{0}' has an invalid removed entry without a prior shipped release for the rule '{1}'. Instead, add a separate removed entry for the rule in unshipped release file.</target>
+      <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
+        <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
+        <target state="new">Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">

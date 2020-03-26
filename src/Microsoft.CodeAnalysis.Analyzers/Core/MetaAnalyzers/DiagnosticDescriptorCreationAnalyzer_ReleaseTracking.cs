@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -22,8 +23,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal const string UnshippedFileName = "AnalyzerReleases.Unshipped.md";
         internal const string RemovedPrefix = "*REMOVED*";
         internal const string ReleasePrefix = "## Release";
-        internal const string ReleaseHeaderLine1 = @"Rule ID | Category | Severity | HelpLink (optional)";
-        internal const string ReleaseHeaderLine2 = @"--------|----------|----------|--------------------";
+        internal const string TableTitleNewRules = "### New Rules";
+        internal const string TableTitleRemovedRules = "### Removed Rules";
+        internal const string TableTitleChangedRules = "### Changed Rules";
+        internal const string TableHeaderNewOrRemovedRulesLine1 = @"Rule ID | Category | Severity | HelpLink (optional)";
+        internal const string TableHeaderNewOrRemovedRulesLine2 = @"--------|----------|----------|--------------------";
+        internal const string TableHeaderChangedRulesLine1 = @"Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)";
+        internal const string TableHeaderChangedRulesLine2 = @"--------|--------------|--------------|--------------|--------------|--------------------";
         private const string DisabledText = "Disabled";
         internal const string UndetectedText = @"<Undetected>";
 
@@ -143,10 +149,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
             title: CodeAnalysisDiagnosticsResources.InvalidEntryInAnalyzerReleasesFileRuleTitle,
-            messageFormat: CodeAnalysisDiagnosticsResources.InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRuleMessage,
+            messageFormat: CodeAnalysisDiagnosticsResources.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage,
             category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -216,8 +222,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             var releaseTrackingDataByRulesBuilder = new Dictionary<string, ReleaseTrackingDataForRuleBuilder>();
             var currentVersion = s_unshippedVersion;
-            int? expectedReleaseHeaderLine = isShippedFile ? 0 : 1;
             using var reportedInvalidLines = PooledHashSet<TextLine>.GetInstance();
+            ReleaseTrackingHeaderKind? expectedHeaderKind = isShippedFile ? ReleaseTrackingHeaderKind.ReleaseHeader : ReleaseTrackingHeaderKind.TableHeaderTitle;
+            ReleaseTrackingRuleEntryKind? currentRuleEntryKind = null;
 
             foreach (TextLine line in sourceText.Lines)
             {
@@ -229,21 +236,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 // Parse release header if applicable.
-                switch (expectedReleaseHeaderLine)
+                switch (expectedHeaderKind)
                 {
-                    case 0:
-                    default:
+                    case ReleaseTrackingHeaderKind.ReleaseHeader:
                         // Parse new release, if any.
                         if (lineText.StartsWith(ReleasePrefix, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (!isShippedFile)
-                            {
-                                ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
-                                return ReleaseTrackingData.Default;
-                            }
-
-                            // Expect release header line 1 after this line.
-                            expectedReleaseHeaderLine = 1;
+                            // Expect new table after this line.
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderTitle;
 
                             // Parse the release version.
                             string versionString = lineText.Substring(ReleasePrefix.Length).Trim();
@@ -259,116 +259,163 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                             continue;
                         }
-                        else if (expectedReleaseHeaderLine == 0)
+
+                        ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
+                        return ReleaseTrackingData.Default;
+
+                    case ReleaseTrackingHeaderKind.TableHeaderTitle:
+                        if (lineText.StartsWith(TableTitleNewRules, StringComparison.OrdinalIgnoreCase))
+                        {
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine1;
+                            currentRuleEntryKind = ReleaseTrackingRuleEntryKind.New;
+                        }
+                        else if (lineText.StartsWith(TableTitleRemovedRules, StringComparison.OrdinalIgnoreCase))
+                        {
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine1;
+                            currentRuleEntryKind = ReleaseTrackingRuleEntryKind.Removed;
+                        }
+                        else if (lineText.StartsWith(TableTitleChangedRules, StringComparison.OrdinalIgnoreCase))
+                        {
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine1;
+                            currentRuleEntryKind = ReleaseTrackingRuleEntryKind.Changed;
+                        }
+                        else
                         {
                             ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
                             return ReleaseTrackingData.Default;
                         }
-                        else
-                        {
-                            break;
-                        }
 
-                    case 1:
-                        if (lineText.StartsWith(ReleaseHeaderLine1, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    case ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine1:
+                        if (lineText.StartsWith(TableHeaderNewOrRemovedRulesLine1, StringComparison.OrdinalIgnoreCase))
                         {
-                            expectedReleaseHeaderLine = 2;
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine2;
                             continue;
                         }
 
                         ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
                         return ReleaseTrackingData.Default;
 
-                    case 2:
-                        expectedReleaseHeaderLine = null;
-                        if (lineText.StartsWith(ReleaseHeaderLine2, StringComparison.OrdinalIgnoreCase))
+                    case ReleaseTrackingHeaderKind.TableHeaderNewOrRemovedRulesLine2:
+                        expectedHeaderKind = null;
+                        if (lineText.StartsWith(TableHeaderNewOrRemovedRulesLine2, StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
 
                         ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
                         return ReleaseTrackingData.Default;
+
+                    case ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine1:
+                        if (lineText.StartsWith(TableHeaderChangedRulesLine1, StringComparison.OrdinalIgnoreCase))
+                        {
+                            expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine2;
+                            continue;
+                        }
+
+                        ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
+                        return ReleaseTrackingData.Default;
+
+                    case ReleaseTrackingHeaderKind.TableHeaderChangedRulesLine2:
+                        expectedHeaderKind = null;
+                        if (lineText.StartsWith(TableHeaderChangedRulesLine2, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Header);
+                        return ReleaseTrackingData.Default;
+
+                    default:
+                        // We might be starting a new release or table.
+                        if (lineText.StartsWith("## ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            goto case ReleaseTrackingHeaderKind.ReleaseHeader;
+                        }
+                        else if (lineText.StartsWith("### ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            goto case ReleaseTrackingHeaderKind.TableHeaderTitle;
+                        }
+
+                        break;
                 }
 
-                bool hasRemovedPrefix;
-                if (lineText.StartsWith(RemovedPrefix, StringComparison.Ordinal))
+                RoslynDebug.Assert(currentRuleEntryKind != null);
+
+                var parts = lineText.Split('|').Select(s => s.Trim()).ToArray();
+                if (IsInvalidEntry(parts, currentRuleEntryKind.Value))
                 {
-                    hasRemovedPrefix = true;
-                    lineText = lineText.Substring(RemovedPrefix.Length);
+                    // Report invalid entry, but continue parsing remaining entries.
+                    ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Other);
+                    continue;
+                }
+
+                //  New or Removed rule entry: 
+                //      "Rule ID | Category | Severity | HelpLink (optional)"
+                //      "   0    |     1    |    2     |        3           "
+                //
+                //  Changed rule entry:
+                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)"
+                //      "   0    |     1        |     2        |     3        |     4        |        5           "
+
+                string ruleId = parts[0];
+
+                InvalidEntryKind? invalidEntryKind = TryParseFields(parts, categoryIndex: 1, severityIndex: 2,
+                    out var category, out var defaultSeverity, out var enabledByDefault);
+                if (invalidEntryKind.HasValue)
+                {
+                    ReportInvalidEntryDiagnostic(line, invalidEntryKind.Value);
+                }
+
+                ReleaseTrackingLine releaseTrackingLine;
+                if (currentRuleEntryKind.Value == ReleaseTrackingRuleEntryKind.Changed)
+                {
+                    invalidEntryKind = TryParseFields(parts, categoryIndex: 3, severityIndex: 4,
+                        out var oldCategory, out var oldDefaultSeverity, out var oldEnabledByDefault);
+                    if (invalidEntryKind.HasValue)
+                    {
+                        ReportInvalidEntryDiagnostic(line, invalidEntryKind.Value);
+                    }
+
+                    // Verify at least one field is changed for the entry:
+                    if (string.Equals(category, oldCategory, StringComparison.OrdinalIgnoreCase) &&
+                        defaultSeverity == oldDefaultSeverity &&
+                        enabledByDefault == oldEnabledByDefault)
+                    {
+                        ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Other);
+                        return ReleaseTrackingData.Default;
+                    }
+
+                    releaseTrackingLine = new ChangedRuleReleaseTrackingLine(ruleId,
+                        category, enabledByDefault, defaultSeverity,
+                        oldCategory, oldEnabledByDefault, oldDefaultSeverity,
+                        line.Span, sourceText, path, isShippedFile);
                 }
                 else
                 {
-                    hasRemovedPrefix = false;
+                    releaseTrackingLine = new NewOrRemovedRuleReleaseTrackingLine(ruleId,
+                        category, enabledByDefault, defaultSeverity, line.Span, sourceText,
+                        path, isShippedFile, currentRuleEntryKind.Value);
                 }
 
-                var parts = lineText.Split('|').Select(s => s.Trim()).ToArray();
-                switch (parts.Length)
+                if (!releaseTrackingDataByRulesBuilder.TryGetValue(ruleId, out var releaseTrackingDataForRuleBuilder))
                 {
-                    // Last field 'Helplink' is optional
-                    case 3:
-                    case 4:
-                        string ruleId = parts[0];
+                    releaseTrackingDataForRuleBuilder = new ReleaseTrackingDataForRuleBuilder();
+                    releaseTrackingDataByRulesBuilder.Add(ruleId, releaseTrackingDataForRuleBuilder);
+                }
 
-                        string category = parts[1];
-                        if (category.Equals(UndetectedText, StringComparison.OrdinalIgnoreCase))
-                        {
-                            ReportInvalidEntryDiagnostic(line, InvalidEntryKind.UndetectedField);
-                        }
-
-                        DiagnosticSeverity? defaultSeverity;
-                        bool? enabledByDefault;
-                        var severityPart = parts[2];
-                        if (Enum.TryParse(severityPart, ignoreCase: true, out DiagnosticSeverity parsedSeverity))
-                        {
-                            defaultSeverity = parsedSeverity;
-                            enabledByDefault = true;
-                        }
-                        else
-                        {
-                            defaultSeverity = null;
-                            if (string.Equals(severityPart, DisabledText, StringComparison.OrdinalIgnoreCase))
-                            {
-                                enabledByDefault = false;
-                            }
-                            else if (severityPart.Equals(UndetectedText, StringComparison.OrdinalIgnoreCase))
-                            {
-                                enabledByDefault = null;
-                                ReportInvalidEntryDiagnostic(line, InvalidEntryKind.UndetectedField);
-                            }
-                            else
-                            {
-                                enabledByDefault = null;
-                                ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Other);
-                            }
-                        }
-
-                        var releaseTrackingLine = new ReleaseTrackingLine(ruleId, category, enabledByDefault,
-                            defaultSeverity, line.Span, sourceText, path, isShippedFile, hasRemovedPrefix);
-
-                        if (!releaseTrackingDataByRulesBuilder.TryGetValue(ruleId, out var releaseTrackingDataForRuleBuilder))
-                        {
-                            releaseTrackingDataForRuleBuilder = new ReleaseTrackingDataForRuleBuilder();
-                            releaseTrackingDataByRulesBuilder.Add(ruleId, releaseTrackingDataForRuleBuilder);
-                        }
-
-                        releaseTrackingDataForRuleBuilder.AddEntry(currentVersion, releaseTrackingLine, out var hasExistingEntry);
-                        if (hasExistingEntry && reportedInvalidLines.Add(line))
-                        {
-                            // Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.
-                            string arg1 = ruleId;
-                            string arg2 = currentVersion == s_unshippedVersion ? "unshipped" : currentVersion.ToString();
-                            string arg3 = Path.GetFileName(path);
-                            LinePositionSpan linePositionSpan = sourceText.Lines.GetLinePositionSpan(line.Span);
-                            Location location = Location.Create(path, line.Span, linePositionSpan);
-                            var diagnostic = Diagnostic.Create(RemoveDuplicateEntriesForAnalyzerReleaseRule, location, arg1, arg2, arg3);
-                            addInvalidFileDiagnostic(diagnostic);
-                        }
-
-                        break;
-
-                    default:
-                        ReportInvalidEntryDiagnostic(line, InvalidEntryKind.Other);
-                        break;
+                releaseTrackingDataForRuleBuilder.AddEntry(currentVersion, releaseTrackingLine, out var hasExistingEntry);
+                if (hasExistingEntry && reportedInvalidLines.Add(line))
+                {
+                    // Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.
+                    string arg1 = ruleId;
+                    string arg2 = currentVersion == s_unshippedVersion ? "unshipped" : currentVersion.ToString();
+                    string arg3 = Path.GetFileName(path);
+                    LinePositionSpan linePositionSpan = sourceText.Lines.GetLinePositionSpan(line.Span);
+                    Location location = Location.Create(path, line.Span, linePositionSpan);
+                    var diagnostic = Diagnostic.Create(RemoveDuplicateEntriesForAnalyzerReleaseRule, location, arg1, arg2, arg3);
+                    addInvalidFileDiagnostic(diagnostic);
                 }
             }
 
@@ -410,6 +457,72 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var diagnostic = Diagnostic.Create(rule, location, arg1, arg2);
                 addInvalidFileDiagnostic(diagnostic);
             }
+
+            static bool IsInvalidEntry(string[] parts, ReleaseTrackingRuleEntryKind currentRuleEntryKind)
+            {
+                // Expected entry for New or Removed rules has 3 or 4 parts:
+                //      "Rule ID | Category | Severity | HelpLink (optional)"
+                //
+                // Expected entry for Changed rules has 5 or 6 parts:
+                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)"
+                //
+                // NOTE: Last field 'Helplink' is optional for both cases.
+
+                if (parts.Length < 3 || parts.Length > 6)
+                {
+                    return true;
+                }
+
+                return currentRuleEntryKind switch
+                {
+                    ReleaseTrackingRuleEntryKind.New => parts.Length > 4,
+                    ReleaseTrackingRuleEntryKind.Removed => parts.Length > 4,
+                    ReleaseTrackingRuleEntryKind.Changed => parts.Length <= 4,
+                    _ => throw new NotImplementedException()
+                };
+            }
+
+            static InvalidEntryKind? TryParseFields(
+                string[] parts, int categoryIndex, int severityIndex,
+                out string category,
+                out DiagnosticSeverity? defaultSeverity,
+                out bool? enabledByDefault)
+            {
+                InvalidEntryKind? invalidEntryKind = null;
+
+                category = parts[categoryIndex];
+                if (category.Equals(UndetectedText, StringComparison.OrdinalIgnoreCase))
+                {
+                    invalidEntryKind = InvalidEntryKind.UndetectedField;
+                }
+
+                var severityPart = parts[severityIndex];
+                if (Enum.TryParse(severityPart, ignoreCase: true, out DiagnosticSeverity parsedSeverity))
+                {
+                    defaultSeverity = parsedSeverity;
+                    enabledByDefault = true;
+                }
+                else
+                {
+                    defaultSeverity = null;
+                    if (string.Equals(severityPart, DisabledText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        enabledByDefault = false;
+                    }
+                    else if (severityPart.Equals(UndetectedText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        enabledByDefault = null;
+                        invalidEntryKind = InvalidEntryKind.UndetectedField;
+                    }
+                    else
+                    {
+                        enabledByDefault = null;
+                        invalidEntryKind = InvalidEntryKind.Other;
+                    }
+                }
+
+                return invalidEntryKind;
+            }
         }
 
         private enum InvalidEntryKind
@@ -430,8 +543,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             ReleaseTrackingData unshippedData,
             Action<Diagnostic> addDiagnostic)
         {
-            if (!TryGetLatestReleaseTrackingLine(ruleId, shippedData, unshippedData, out var version, out var releaseTrackingLine) ||
-                releaseTrackingLine.IsShipped && releaseTrackingLine.HasRemovedPrefix)
+            if (!TryGetLatestReleaseTrackingLine(ruleId, shippedData, unshippedData, out _, out var releaseTrackingLine) ||
+                releaseTrackingLine.IsShipped && releaseTrackingLine.IsRemovedRule)
             {
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(
                     EntryToAddPropertyName, GetEntry(ruleId, category, helpLink, isEnabledByDefault, defaultSeverity));
@@ -440,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            if (releaseTrackingLine.HasRemovedPrefix)
+            if (releaseTrackingLine.IsRemovedRule)
             {
                 var diagnostic = ruleIdArgument.CreateDiagnostic(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule, ruleId);
                 addDiagnostic(diagnostic);
@@ -451,10 +564,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 isEnabledByDefault != null && isEnabledByDefault != releaseTrackingLine.EnabledByDefault ||
                 defaultSeverity != null && defaultSeverity != releaseTrackingLine.DefaultSeverity)
             {
-                var propertyName = version == s_unshippedVersion ?
-                    EntryToUpdatePropertyName :
-                    EntryToAddPropertyName;
-                var newEntry = GetEntry(ruleId, category, helpLink, isEnabledByDefault, defaultSeverity);
+                string propertyName;
+                (string category, bool? isEnabledByDefault, DiagnosticSeverity? defaultSeverity)? oldRule = null;
+                if (!releaseTrackingLine.IsShipped)
+                {
+                    // For existing entry in unshipped file, we can just update.
+                    propertyName = EntryToUpdatePropertyName;
+                    if (releaseTrackingLine is ChangedRuleReleaseTrackingLine changedLine)
+                    {
+                        oldRule = (changedLine.OldCategory, changedLine.OldEnabledByDefault, changedLine.OldDefaultSeverity);
+                    }
+                }
+                else
+                {
+                    // Need to add a new changed rule entry in unshipped file.
+                    propertyName = EntryToAddPropertyName;
+                    oldRule = (releaseTrackingLine.Category, releaseTrackingLine.EnabledByDefault, releaseTrackingLine.DefaultSeverity);
+                }
+
+                var newEntry = GetEntry(ruleId, category, helpLink, isEnabledByDefault, defaultSeverity, oldRule);
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(propertyName, newEntry);
                 var diagnostic = ruleIdArgument.CreateDiagnostic(UpdateDiagnosticIdInAnalyzerReleaseRule, properties, ruleId);
                 addDiagnostic(diagnostic);
@@ -467,13 +595,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             string? category,
             string? helpLink,
             bool? isEnabledByDefault,
-            DiagnosticSeverity? defaultSeverity)
+            DiagnosticSeverity? defaultSeverity,
+            (string category, bool? isEnabledByDefault, DiagnosticSeverity? defaultSeverity)? oldRule = null)
         {
-            var categoryText = category ?? UndetectedText;
-            var defaultSeverityText = isEnabledByDefault == false ? DisabledText : (defaultSeverity?.ToString() ?? UndetectedText);
-
             // Rule ID | Category | Severity | HelpLink (optional)
-            var entry = $"{ruleId} | {categoryText} | {defaultSeverityText} |";
+            //      OR
+            // Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)
+            var entry = $"{ruleId} | {GetCategoryText(category)} | {GetSeverityText(isEnabledByDefault, defaultSeverity)} |";
+
+            if (oldRule.HasValue)
+            {
+                entry += $" {GetCategoryText(oldRule.Value.category)} | {GetSeverityText(oldRule.Value.isEnabledByDefault, oldRule.Value.defaultSeverity)} |";
+            }
 
             helpLink ??= TryGetHelpLinkForCARule(ruleId);
             if (!string.IsNullOrEmpty(helpLink))
@@ -482,6 +615,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             return entry;
+
+            static string GetCategoryText(string? category)
+                => category ?? UndetectedText;
+
+            static string GetSeverityText(bool? isEnabledByDefault, DiagnosticSeverity? defaultSeverity)
+                => isEnabledByDefault == false ? DisabledText : (defaultSeverity?.ToString() ?? UndetectedText);
 
             static string? TryGetHelpLinkForCARule(string ruleId)
             {
@@ -535,9 +674,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             // Process each entry in unshipped file to flag rules which are not seen.
             foreach (var (ruleId, releaseTrackingDataForRule) in unshippedData.ReleaseTrackingDataByRuleIdMap)
             {
-                var releaseTrackingLine = releaseTrackingDataForRule.ReleasesByVersionMap[s_unshippedVersion];
-                lastEntriesByRuleMap[ruleId] = (s_unshippedVersion, releaseTrackingLine);
-                if (seenRuleIds.Add(ruleId) && !releaseTrackingLine.HasRemovedPrefix)
+                var (unshippedVersion, releaseTrackingLine) = releaseTrackingDataForRule.ReleasesByVersionMap.First();
+                lastEntriesByRuleMap[ruleId] = (unshippedVersion, releaseTrackingLine);
+                if (seenRuleIds.Add(ruleId) && !releaseTrackingLine.IsRemovedRule)
                 {
                     compilationEndContext.ReportNoLocationDiagnostic(RemoveUnshippedDeletedDiagnosticIdRule, ruleId);
                 }
@@ -548,7 +687,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 foreach (var (version, releaseTrackingLine) in releaseTrackingDataForRule.ReleasesByVersionMap)
                 {
-                    if (seenRuleIds.Add(ruleId) && !releaseTrackingLine.HasRemovedPrefix)
+                    if (seenRuleIds.Add(ruleId) && !releaseTrackingLine.IsRemovedRule)
                     {
                         compilationEndContext.ReportNoLocationDiagnostic(RemoveShippedDeletedDiagnosticIdRule, ruleId, version);
                     }
@@ -558,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         lastEntry.releaseTrackingLine.Category.Equals(releaseTrackingLine.Category, StringComparison.OrdinalIgnoreCase) &&
                         lastEntry.releaseTrackingLine.EnabledByDefault == releaseTrackingLine.EnabledByDefault &&
                         lastEntry.releaseTrackingLine.DefaultSeverity == releaseTrackingLine.DefaultSeverity &&
-                        lastEntry.releaseTrackingLine.HasRemovedPrefix == releaseTrackingLine.HasRemovedPrefix)
+                        lastEntry.releaseTrackingLine.Kind == releaseTrackingLine.Kind)
                     {
                         // Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.
                         string arg1 = ruleId;
@@ -575,17 +714,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             // 'lastEntriesByRuleMap' should now have the first entry for each rule.
-            // Flag each such first entry that is marked as removed - a removed entry without a prior shipped entry is invalid.
+            // Flag each such first entry that is not marked as new rule - a removed/changed rule entry without a prior new entry is invalid.
             foreach (var (_, releaseTrackingLine) in lastEntriesByRuleMap.Values)
             {
-                if (releaseTrackingLine.HasRemovedPrefix)
+                if (releaseTrackingLine.Kind != ReleaseTrackingRuleEntryKind.New)
                 {
-                    // Analyzer release file '{0}' has an invalid removed entry without a prior shipped release for the rule '{1}'. Instead, add a separate removed entry for the rule in unshipped release file.
+                    // Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.
                     string arg1 = Path.GetFileName(releaseTrackingLine.Path);
-                    string arg2 = releaseTrackingLine.RuleId;
+                    string arg2 = releaseTrackingLine.Kind.ToString();
+                    string arg3 = releaseTrackingLine.RuleId;
                     LinePositionSpan linePositionSpan = releaseTrackingLine.SourceText.Lines.GetLinePositionSpan(releaseTrackingLine.Span);
                     Location location = Location.Create(releaseTrackingLine.Path, releaseTrackingLine.Span, linePositionSpan);
-                    var diagnostic = Diagnostic.Create(InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRule, location, arg1, arg2);
+                    var diagnostic = Diagnostic.Create(InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule, location, arg1, arg2, arg3);
                     compilationEndContext.ReportDiagnostic(diagnostic);
                 }
             }
@@ -666,7 +806,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        private sealed class ReleaseTrackingLine
+        private abstract class ReleaseTrackingLine
         {
             public string RuleId { get; }
             public string Category { get; }
@@ -677,12 +817,23 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             public SourceText SourceText { get; }
             public string Path { get; }
             public bool IsShipped { get; }
-            public bool HasRemovedPrefix { get; }
+            public bool IsRemovedRule => Kind == ReleaseTrackingRuleEntryKind.Removed;
+            public ReleaseTrackingRuleEntryKind Kind { get; }
 
-            internal ReleaseTrackingLine(
+            internal static ReleaseTrackingLine Create(
                 string ruleId, string category, bool? enabledByDefault,
-                DiagnosticSeverity? defaultSeverity, TextSpan span, SourceText sourceText,
-                string path, bool isShipped, bool hasRemovedPrefix)
+                DiagnosticSeverity? defaultSeverity,
+                TextSpan span, SourceText sourceText,
+                string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
+            {
+                return new NewOrRemovedRuleReleaseTrackingLine(ruleId, category,
+                    enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, kind);
+            }
+
+            protected ReleaseTrackingLine(string ruleId, string category, bool? enabledByDefault,
+                DiagnosticSeverity? defaultSeverity,
+                TextSpan span, SourceText sourceText,
+                string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
             {
                 RuleId = ruleId;
                 Category = category;
@@ -692,8 +843,59 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 SourceText = sourceText;
                 Path = path;
                 IsShipped = isShipped;
-                HasRemovedPrefix = hasRemovedPrefix;
+                Kind = kind;
             }
+        }
+
+        private sealed class NewOrRemovedRuleReleaseTrackingLine : ReleaseTrackingLine
+        {
+            internal NewOrRemovedRuleReleaseTrackingLine(
+                string ruleId, string category, bool? enabledByDefault,
+                DiagnosticSeverity? defaultSeverity,
+                TextSpan span, SourceText sourceText,
+                string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
+                : base(ruleId, category, enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, kind)
+            {
+                Debug.Assert(kind == ReleaseTrackingRuleEntryKind.New || kind == ReleaseTrackingRuleEntryKind.Removed);
+            }
+        }
+
+        private sealed class ChangedRuleReleaseTrackingLine : ReleaseTrackingLine
+        {
+            public string OldCategory { get; }
+            public bool? OldEnabledByDefault { get; }
+            public DiagnosticSeverity? OldDefaultSeverity { get; }
+
+            internal ChangedRuleReleaseTrackingLine(
+                string ruleId, string category, bool? enabledByDefault,
+                DiagnosticSeverity? defaultSeverity,
+                string oldCategory, bool? oldEnabledByDefault,
+                DiagnosticSeverity? oldDefaultSeverity,
+                TextSpan span, SourceText sourceText,
+                string path, bool isShipped)
+                : base(ruleId, category, enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, ReleaseTrackingRuleEntryKind.Changed)
+            {
+                OldCategory = oldCategory;
+                OldEnabledByDefault = oldEnabledByDefault;
+                OldDefaultSeverity = oldDefaultSeverity;
+            }
+        }
+
+        private enum ReleaseTrackingHeaderKind
+        {
+            ReleaseHeader,
+            TableHeaderTitle,
+            TableHeaderNewOrRemovedRulesLine1,
+            TableHeaderNewOrRemovedRulesLine2,
+            TableHeaderChangedRulesLine1,
+            TableHeaderChangedRulesLine2,
+        }
+
+        private enum ReleaseTrackingRuleEntryKind
+        {
+            New,
+            Removed,
+            Changed,
         }
     }
 }

@@ -22,22 +22,36 @@ Consider the following example:
 
 ```
 ## Release 1.0
+
+### New Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA1000  |  Design  |  Warning | CA1000_Documentation_Link
 CA2000  | Security |  Info    | CA2000_Documentation_Link
 CA3000  |  Usage   | Disabled | CA3000_Documentation_Link
 
+
 ## Release 2.0
+
+### New Rules
+Rule ID | Category | Severity | HelpLink (optional)
+--------|----------|----------|--------------------
+CA4000  |  Design  |  Warning | CA4000_Documentation_Link
+
+### Removed Rules
+Rule ID | Category | Severity | HelpLink (optional)
+--------|----------|----------|--------------------
+CA3000  |  Usage   |  Disable | CA3000_Documentation_Link
+
+### Changed Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA2000  | Security | Disabled | CA2000_Documentation_Link
-*REMOVED*CA3000  |  Usage   |  Disable | CA3000_Documentation_Link
-CA4000  |  Design  |  Warning | CA4000_Documentation_Link
 ```
 
 2. `AnalyzerReleases.Unshipped.md`:
 ```
+### New Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA5000  | Security |  Warning |
@@ -55,20 +69,36 @@ When the next release is shipped, say version '3.0', a new release section for 3
 
 ```
 ## Release 1.0
+
+### New Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA1000  |  Design  |  Warning | CA1000_Documentation_Link
 CA2000  | Security |  Info    | CA2000_Documentation_Link
 CA3000  |  Usage   | Disabled | CA3000_Documentation_Link
 
+
 ## Release 2.0
+
+### New Rules
+Rule ID | Category | Severity | HelpLink (optional)
+--------|----------|----------|--------------------
+CA4000  |  Design  |  Warning | CA4000_Documentation_Link
+
+### Removed Rules
+Rule ID | Category | Severity | HelpLink (optional)
+--------|----------|----------|--------------------
+CA3000  |  Usage   |  Disable | CA3000_Documentation_Link
+
+### Changed Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA2000  | Security | Disabled | CA2000_Documentation_Link
-*REMOVED*CA3000  |  Usage   |  Disable | CA3000_Documentation_Link
-CA4000  |  Design  |  Warning | CA4000_Documentation_Link
+
 
 ## Release 3.0
+
+### New Rules
 Rule ID | Category | Severity | HelpLink (optional)
 --------|----------|----------|--------------------
 CA5000  | Security |  Warning |

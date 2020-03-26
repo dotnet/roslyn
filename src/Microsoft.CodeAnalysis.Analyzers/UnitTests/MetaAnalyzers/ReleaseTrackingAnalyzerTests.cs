@@ -55,8 +55,27 @@ class MyAnalyzer : DiagnosticAnalyzer
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        // Unshipped release with existing new rules table.
         [InlineData("", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
+        // Shipped release with existing new rules table.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", "")]
+        // Releases with separate new rules and changed rules table.
+        [InlineData(DefaultShippedHeader + "Id1 | Category0 | Warning |" + BlankLine +
+                    DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category0 | Warning |", "")]
+        // Releases with separate new rules and removed rules table.
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "Id2 | Category1 | Warning |" + BlankLine +
+                    DefaultRemovedShippedHeader2 + "Id2 | Category1 | Warning ", "")]
+        // Release with new rules and changed rules table.
+        [InlineData(DefaultShippedHeader + "Id2 | Category0 | Warning |" + BlankLine +
+                    DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "Id2 | Category1 | Warning | Category0 | Warning |",
+                    DefaultRemovedUnshippedHeader + "Id2 | Category1 | Warning |")]
+        // Release with new rules and removed rules table.
+        [InlineData(DefaultShippedHeader + "Id2 | Category0 | Warning |" + BlankLine +
+                    DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "Id2 | Category0 | Warning |", "")]
+        // Release with all 3 tables
+        [InlineData(DefaultShippedHeader + "Id3 | Category1 | Warning |" + BlankLine + "Id2 | Category0 | Warning |" + BlankLine +
+                    DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "Id3 | Category2 | Warning | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "Id2 | Category1 | Warning |",
+                    DefaultRemovedUnshippedHeader + "Id3 | Category2 | Warning |")]
         [Theory]
         public async Task TestReleasesFileAlreadyHasEntry(string shippedText, string unshippedText)
         {
@@ -159,9 +178,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             var shippedText = @"";
             var unshippedText = @"";
             var fixedUnshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | Category1 | Warning |
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |
 Id2 | Category2 | Disabled |
 Id3 | Category3 | Warning | [Documentation](Dummy)";
 
@@ -203,9 +220,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             var shippedText = @"";
             var unshippedText = @"";
             var fixedUnshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | Category1 | Warning |
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |
 Id2 | Category2 | Disabled |
 Id3 | Category3 | Warning | [Documentation](Dummy)";
 
@@ -215,11 +230,17 @@ Id3 | Category3 | Warning | [Documentation](Dummy)";
         private const string BlankLine = @"
 ";
 
-        [InlineData(DefaultUnshippedHeader + @"; Comments are preserved")]
-        [InlineData(DefaultUnshippedHeader + BlankLine)] // Blank lines are preserved
-        [InlineData(DefaultUnshippedHeader + BlankLine + @"; Comments are preserved" + BlankLine)] // Mixed
+        // Comments
+        [InlineData(DefaultUnshippedHeader + @"; Comments are preserved" + BlankLine,
+                    DefaultUnshippedHeader + @"; Comments are preserved" + BlankLine + @"Id1 | Category1 | Warning |" + BlankLine)]
+        // Blank lines are preserved
+        [InlineData(DefaultUnshippedHeader + BlankLine,
+                    DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine)]
+        // Mixed
+        [InlineData(DefaultUnshippedHeader + BlankLine + @"; Comments are preserved" + BlankLine,
+                    DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine + @"; Comments are preserved" + BlankLine)]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreserved(string unshippedText)
+        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreserved(string unshippedText, string fixedUnshippedText)
         {
             var source = @"
 using System;
@@ -238,9 +259,6 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
 
             var shippedText = @"";
-            var fixedUnshippedText = unshippedText + @"
-Id1 | Category1 | Warning |";
-
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
@@ -250,8 +268,16 @@ Id1 | Category1 | Warning |";
         // Added before current entry.
         [InlineData("Id2", DefaultUnshippedHeader + @"Id2 | DifferentCategory | Warning |",
                            DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + @"Id2 | DifferentCategory | Warning |")]
+        // Has existing changed rules table.
+        [InlineData("Id2", DefaultChangedUnshippedHeader + @"Id2 | DifferentCategory | Warning | Category | Warning |",
+                           DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id2 | DifferentCategory | Warning | Category | Warning |",
+                           DefaultShippedHeader + @"Id2 | Category | Warning |")]
+        // Has existing removed rules table.
+        [InlineData("Id2", DefaultRemovedUnshippedHeader + @"Id3 | Category | Warning |",
+                           DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader + @"Id3 | Category | Warning |",
+                           DefaultShippedHeader + @"Id2 | DifferentCategory | Warning |" + BlankLine + @"Id3 | Category | Warning |")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntries(string differentRuleId, string unshippedText, string fixedUnshippedText)
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntries(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
             var source = $@"
 using System;
@@ -272,16 +298,59 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) {{ }}
 }}";
 
-            var shippedText = @"";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [InlineData("", "RS2000")]
-        [InlineData(DefaultShippedHeader + "Id1 | DifferentCategory | Warning |", "RS2001")]
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Disabled |", "RS2001")]
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Info |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Info |", "RS2000")]
+        // Adds to existing new rules table and creates a new changed rules table.
+        [InlineData(DefaultUnshippedHeader + @"Id0 | Category0 | Warning |",
+                    DefaultUnshippedHeader + @"Id0 | Category0 | Warning |" + BlankLine + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id2 | DifferentCategory | Warning | Category | Warning |",
+                    DefaultShippedHeader + @"Id2 | Category | Warning |")]
+        // Adds to existing new rules table and changed rules table.
+        [InlineData(DefaultChangedUnshippedHeader + @"Id0 | Category0 | Warning | Category | Warning |",
+                    DefaultUnshippedHeader + @"Id1 | Category1 | Warning |" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id0 | Category0 | Warning | Category | Warning |" + BlankLine + @"Id2 | DifferentCategory | Warning | Category | Warning |",
+                    DefaultShippedHeader + @"Id0 | Category | Warning |" + BlankLine + @"Id2 | Category | Warning |")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntry(string shippedText, string expectedDiagnosticId)
+        public async Task TestCodeFixToAddUnshippedEntriesToMultipleTables(string unshippedText, string fixedUnshippedText, string shippedText = "")
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor0 =
+        new DiagnosticDescriptor(""Id0"", ""Title0"", ""Message0"", ""Category0"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor({|RS2000:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        new DiagnosticDescriptor({|RS2001:""Id2""|}, ""DifferentTitle"", ""DifferentMessage"", ""DifferentCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor0, descriptor1, descriptor2);
+    public override void Initialize(AnalysisContext context) { }
+}";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [InlineData("",
+                    DefaultUnshippedHeader + "Id1 | Category1 | Warning |",
+                    "RS2000")]
+        [InlineData(DefaultShippedHeader + "Id1 | DifferentCategory | Warning |",
+                    DefaultChangedUnshippedHeader + "Id1 | Category1 | Warning | DifferentCategory | Warning |",
+                    "RS2001")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Disabled |",
+                    DefaultChangedUnshippedHeader + "Id1 | Category1 | Warning | Category1 | Disabled |",
+                    "RS2001")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Info |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |",
+                    DefaultUnshippedHeader + "Id1 | Category1 | Warning |",
+                    "RS2000")]
+        [Theory]
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntry(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
         {
             var source = $@"
 using System;
@@ -301,11 +370,6 @@ class MyAnalyzer : DiagnosticAnalyzer
 }}";
 
             var unshippedText = @"";
-            var fixedUnshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | Category1 | Warning |";
-
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
@@ -340,16 +404,12 @@ class MyAnalyzer : DiagnosticAnalyzer
             var shippedText = @"";
 
             var unshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | DifferentCategory | Warning |
+$@"{DefaultUnshippedHeader}Id1 | DifferentCategory | Warning |
 Id2 | Category2 | Warning |
 Id3 | Category3 | Warning |";
 
             var fixedUnshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | Category1 | Warning |
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |
 Id2 | Category2 | Disabled |
 Id3 | Category3 | Warning |";
 
@@ -386,14 +446,11 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             var shippedText = @"";
             var unshippedText = @"";
-            var fixedUnshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | <Undetected> | <Undetected> |";
+            var fixedUnshippedText = $@"{DefaultUnshippedHeader}Id1 | <Undetected> | <Undetected> |";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText, additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
                 additionalExpectedDiagnosticsInResult: ImmutableArray.Create(
-                    GetAdditionalFileResultAt(3, 1,
+                    GetAdditionalFileResultAt(4, 1,
                         DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
                         DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule,
                         DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
@@ -429,10 +486,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
 
             var shippedText = @"";
-            var unshippedText =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-Id1 | CustomCategory | Warning |";
+            var unshippedText = $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
@@ -441,22 +495,30 @@ Id1 | CustomCategory | Warning |";
         [InlineData("", "Id1 | Category1 | Warning |")]
         // No header in shipped
         [InlineData("Id1 | Category1 | Warning |", "")]
-        // Missing ReleaseHeaderLine1 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.ReleaseHeaderLine2 + BlankLine + "Id1 | Category1 | Warning |")]
-        // Missing ReleaseHeaderLine2 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.ReleaseHeaderLine1 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        // Missing TableTitle in unshipped
+        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |")]
+        // Missing TableHeaderLine1 in unshipped
+        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        // Missing TableHeaderLine2 in unshipped
+        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", 3)]
         // Missing Release Version line in shipped
         [InlineData(DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Missing Release Version in shipped
         [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Invalid Release Version in shipped
         [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " InvalidVersion" + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
-        // Missing ReleaseHeaderLine1 in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + "1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.ReleaseHeaderLine2 + BlankLine + "Id1 | Category1 | Warning |", "", 2)]
-        // Missing ReleaseHeaderLine2 in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.ReleaseHeaderLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
+        // Missing TableTitle in shipped
+        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + "1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 2)]
+        // Missing TableHeaderLine1 in shipped
+        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + "1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
+        // Missing TableHeaderLine2 in shipped
+        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 4)]
         // Invalid Release Version line in unshipped
         [InlineData("", DefaultShippedHeader + "Id1 | Category1 | Warning |")]
+        // Mismatch Table title and TableHeaderLine1 in unshipped
+        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        // Mismatch Table title and TableHeaderLine2 in unshipped
+        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 3)]
         [Theory]
         public async Task TestInvalidHeaderDiagnostic(string shippedText, string unshippedText, int line = 1)
         {
@@ -528,7 +590,68 @@ class MyAnalyzer : DiagnosticAnalyzer
             var unshippedText = DefaultUnshippedHeader + entry;
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                    GetAdditionalFileResultAt(3, 1,
+                    GetAdditionalFileResultAt(4, 1,
+                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        rule,
+                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        entry));
+        }
+
+        // Undetected category
+        [InlineData("Id1 | <Undetected> | Warning | Category1 | Warning |", true)]
+        // Undetected old category
+        [InlineData("Id1 | Category1 | Warning | <Undetected> | Warning |", true)]
+        // Undetected severity
+        [InlineData("Id1 | Category1 | <Undetected> | Category1 | Warning |", true)]
+        // Undetected old severity
+        [InlineData("Id1 | Category1 | Warning | Category1 | <Undetected> |", true)]
+        // Undetected category and severity
+        [InlineData("Id1 | <Undetected> | <Undetected> | Category1 | Warning |", true)]
+        // Invalid severity
+        [InlineData("Id1 | Category1 | Invalid | Category1 | Warning |", false)]
+        // Invalid old severity
+        [InlineData("Id1 | Category1 | Warning | Category1 | Invalid |", false)]
+        // Unchanged old category and old severity
+        [InlineData("Id1 | Category1 | Warning | Category1 | Warning |", false)]
+        // Missing required fields - category + severity + old category + old severity
+        [InlineData("Id1", false)]
+        // Missing required fields - category + old category + old severity
+        [InlineData("Id1 | Warning ", false)]
+        // Missing required fields - old category + old severity
+        [InlineData("Id1 | Category1 | Warning ", false)]
+        // Missing required fields - old severity
+        [InlineData("Id1 | Category1 | Warning | OldCategory ", false)]
+        // Missing required field - severity
+        [InlineData("Id1 | Category1 |", false)]
+        // Extra fields
+        [InlineData("Id1 | Category1 | Warning | Category2 | Warning | HelpLink | InvalidField", false)]
+        [Theory]
+        public async Task TestInvalidEntryDiagnostic_ChangedRules(string entry, bool hasUndetectedField)
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+    public override void Initialize(AnalysisContext context) { }
+}";
+            var rule = hasUndetectedField ?
+                DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule :
+                DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
+
+            var shippedText = @"";
+            var unshippedText = DefaultChangedUnshippedHeader + entry;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    GetAdditionalFileResultAt(4, 1,
                         DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
                         rule,
                         DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
@@ -539,14 +662,16 @@ class MyAnalyzer : DiagnosticAnalyzer
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:Id1 | Category1 | Warning ||}", "")]
         // Duplicate entries in unshipped.
         [InlineData("", DefaultUnshippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:Id1 | Category1 | Warning ||}")]
+        // Duplicate changed entries in unshipped.
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultChangedUnshippedHeader + "Id1 | Category1 | Info | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "{|RS2005:Id1 | Category1 | Info | Category1 | Warning ||}")]
         // Duplicate entries with changed field in shipped.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         // Duplicate entries with changed field in unshipped.
         [InlineData("", DefaultUnshippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:Id1 | Category1 | Info ||}")]
         // Duplicate entries with in shipped with first removed entry.
-        [InlineData(DefaultShippedHeader + "*REMOVED*Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
+        [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultUnshippedHeader + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         // Duplicate entries with in shipped with second removed entry.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "{|RS2005:*REMOVED*Id1 | Category2 | Warning ||}", "")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         [Theory]
         public async Task TestDuplicateEntryInReleaseDiagnostic(string shippedText, string unshippedText)
         {
@@ -579,7 +704,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Duplicate entries across shipped and unshipped, but with an intermediate entry with changed severity - no diagnostic expected.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "Id1 | Category1 | Info |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
         // Duplicate entries across shipped and unshipped, but with an intermediate entry with removed prefix - no diagnostic expected.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Warning |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
+        // Duplicate changed entries across consecutive shipped releases.
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category1 | Info |" + BlankLine + DefaultChangedShippedHeader3 + "{|RS2006:Id1 | Category1 | Warning | Category1 | Info ||}", "")]
         [Theory]
         public async Task TestDuplicateEntryBetweenReleasesDiagnostic(string shippedText, string unshippedText)
         {
@@ -602,11 +729,11 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         // Remove entry in unshipped for already shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "*REMOVED*Id1 | Category1 | Warning |", "RS2004")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |", "RS2004")]
         // Remove entry in shipped for a prior shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Warning |", "", "RS2000")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Warning |", "", "RS2000")]
         // Remove entry with changed severity in shipped for a prior shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Info |", "", "RS2000")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "", "RS2000")]
         [Theory]
         public async Task TestRemoveEntryInReleaseFile_DiagnosticCases(string shippedText, string unshippedText, string expectedDiagnosticId)
         {
@@ -629,9 +756,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         // Invalid remove entry without prior shipped entry in shipped.
-        [InlineData(DefaultShippedHeader + "*REMOVED*Id1 | Category1 | Warning |", "")]
+        [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |", "")]
         // Invalid remove entry without prior shipped entry in unshipped.
-        [InlineData("", DefaultUnshippedHeader + "*REMOVED*Id1 | Category1 | Warning |")]
+        [InlineData("", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |")]
         [Theory]
         public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile(string shippedText, string unshippedText)
         {
@@ -652,15 +779,49 @@ class MyAnalyzer : DiagnosticAnalyzer
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
-                        DiagnosticDescriptorCreationAnalyzer.InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRule,
+                        DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
                         fileWithDiagnostics,
+                        "Removed",
+                        "Id1"));
+        }
+
+        // Invalid changed entry without prior shipped entry in shipped.
+        [InlineData(DefaultChangedShippedHeader + "Id1 | Category1 | Hidden | Category1 | Warning |", "")]
+        // Invalid changed entry without prior shipped entry in unshipped.
+        [InlineData("", DefaultChangedUnshippedHeader + "Id1 | Category1 | Hidden | Category1 | Warning |")]
+        [Theory]
+        public async Task TestInvalidChangedWithoutShippedEntryInReleaseFile(string shippedText, string unshippedText)
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+    public override void Initialize(AnalysisContext context) { }
+}";
+            var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
+            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    GetAdditionalFileResultAt(lineCount, 1,
+                        fileWithDiagnostics,
+                        DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
+                        fileWithDiagnostics,
+                        "Changed",
                         "Id1"));
         }
 
         // Invalid remove entry without prior shipped entry in shipped, followed by a shipped entry.
-        [InlineData(DefaultShippedHeader + "*REMOVED*Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "Id1 | Category1 | Warning |", "")]
+        [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "Id1 | Category1 | Warning |", "")]
         // Invalid remove entry without prior shipped entry in shipped, followed by an unshipped entry.
-        [InlineData(DefaultShippedHeader + "*REMOVED*Id1 | Category1 | Warning |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
+        [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
         [Theory]
         public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile_02(string shippedText, string unshippedText)
         {
@@ -681,19 +842,20 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                    GetAdditionalFileResultAt(5, 1,
+                    GetAdditionalFileResultAt(6, 1,
                         fileWithDiagnostics,
-                        DiagnosticDescriptorCreationAnalyzer.InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRule,
+                        DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
                         fileWithDiagnostics,
+                        "Removed",
                         "Id1"));
         }
 
         // Remove entry in unshipped for already shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "*REMOVED*Id1 | Category1 | Warning |")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |")]
         // Remove entry in shipped for a prior shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Warning |", "")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Warning |", "")]
         // Remove entry with changed severity in shipped for a prior shipped release.
-        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultShippedHeader2 + "*REMOVED*Id1 | Category1 | Info |", "")]
+        [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "")]
         [Theory]
         public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCases(string shippedText, string unshippedText)
         {
@@ -713,31 +875,28 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
         #region Helpers
 
-        private const string DefaultUnshippedHeader =
-@"Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-";
+        private const string DefaultUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-        private const string DefaultShippedHeader =
-@"## Release 1.0
+        private const string DefaultRemovedUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleRemovedRules + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-";
+        private const string DefaultChangedUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine +
+            DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine;
 
-        private const string DefaultShippedHeader2 =
-@"## Release 2.0
+        private const string DefaultShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultRemovedShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
+        private const string DefaultChangedShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
-Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-";
+        private const string DefaultShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultRemovedShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
+        private const string DefaultChangedShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
-        private const string DefaultShippedHeader3 =
-@"## Release 3.0
-
-Rule ID | Category | Severity | HelpLink (optional)
---------|----------|----------|--------------------
-";
+        private const string DefaultShippedHeader3 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultChangedShippedHeader3 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {

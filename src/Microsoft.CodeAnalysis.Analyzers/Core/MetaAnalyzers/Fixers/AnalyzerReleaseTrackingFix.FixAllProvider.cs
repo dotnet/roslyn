@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     var entriesToUpdate = new Dictionary<string, string>();
                     foreach (var diagnostic in diagnostics)
                     {
-                        if (IsUpdateEntryToUnshippedFileDiagnostic(diagnostic, out var ruleId, out var entryToUpdate))
+                        if (IsUpdateEntryToUnshippedFileDiagnostic(diagnostic, out var ruleId, out var entryToUpdate) &&
+                            !entriesToUpdate.ContainsKey(ruleId))
                         {
                             entriesToUpdate.Add(ruleId, entryToUpdate);
                         }

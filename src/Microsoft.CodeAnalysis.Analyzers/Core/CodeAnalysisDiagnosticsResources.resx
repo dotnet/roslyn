@@ -488,8 +488,8 @@
   <data name="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
     <value>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</value>
   </data>
-  <data name="InvalidRemovedWithoutShippedEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
-    <value>Analyzer release file '{0}' has an invalid removed entry without a prior shipped release for the rule '{1}'. Instead, add a separate removed entry for the rule in unshipped release file.</value>
+  <data name="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage" xml:space="preserve">
+    <value>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</value>
   </data>
   <data name="InvalidEntryInAnalyzerReleasesFileRuleDescription" xml:space="preserve">
     <value>Invalid entry in analyzer release file.</value>
