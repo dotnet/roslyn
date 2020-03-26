@@ -301,10 +301,10 @@ namespace Microsoft.CodeAnalysis
             {
                 switch (pair.Key)
                 {
-                    case "DiagnosticId" when IsProperty("DiagnosticId"):
+                    case "DiagnosticId" when IsStringProperty("DiagnosticId"):
                         diagnosticId = pair.Value.ValueInternal as string;
                         break;
-                    case "UrlFormat" when IsProperty("UrlFormat"):
+                    case "UrlFormat" when IsStringProperty("UrlFormat"):
                         urlFormat = pair.Value.ValueInternal as string;
                         break;
                     default:
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
         // Note: it is disallowed to declare a property and a field
         // with the same name in C# or VB source, even if it is allowed in IL.
         // We use an abstract method to prevent having to realize the public symbols just to decode obsolete attributes.
-        private protected abstract bool IsProperty(string memberName);
+        private protected abstract bool IsStringProperty(string memberName);
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.

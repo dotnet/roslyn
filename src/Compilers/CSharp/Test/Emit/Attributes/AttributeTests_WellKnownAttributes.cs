@@ -8574,6 +8574,49 @@ class C2 : C1
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_FromMetadata_04()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+public class C1
+{
+    [Obsolete(DiagnosticId = null, UrlFormat = null)]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(new[] { ObsoleteAttributeSource, source1 });
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+
+                var diag = diags.Single();
+                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_01()
         {
             var source1 = @"
@@ -8821,7 +8864,7 @@ namespace System
 
 public class C1
 {
-    [Obsolete(DiagnosticId = new[] { 'A' })]
+    [Obsolete(DiagnosticId = new[] { 'A' }, UrlFormat = new[] { 'B' })]
     public void M1() { }
 }
 ";
@@ -8857,6 +8900,57 @@ class C2 : C1
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
         public void Obsolete_CustomDiagnosticId_BadMetadata_06()
+        {
+            var source1 = @"
+using System;
+#pragma warning disable 436
+
+namespace System
+{
+    public class ObsoleteAttribute : Attribute
+    {
+        public char[] DiagnosticId { get; set; }
+        public char[] UrlFormat { get; set; }
+    }
+}
+
+public class C1
+{
+    [Obsolete(DiagnosticId = null, UrlFormat = null)]
+    public void M1() { }
+}
+";
+
+            var source2 = @"
+class C2 : C1
+{
+    void M2()
+    {
+        M1(); // 1
+    }
+}";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: new[] { reference });
+                var diags = comp2.GetDiagnostics();
+                diags.Verify(
+                    // (6,9): warning CS0612: 'C1.M1()' is obsolete
+                    //         M1(); // 1
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
+
+                var diag = diags.Single();
+                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+            }
+        }
+
+        [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
+        public void Obsolete_CustomDiagnosticId_BadMetadata_07()
         {
             // In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
             var ilSource = @"
@@ -8994,11 +9088,6 @@ class C2 : C1
             var diag = diags.Single();
             Assert.Equal("C", diag.Descriptor.HelpLinkUri);
         }
-
-        // Missing tests:
-        // - named argument has well-known name but bad type, non-null value
-        // - named argument has well-known name but bad type, null value
-        // - ??
 
         [Fact]
         [WorkItem(656345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656345")]
