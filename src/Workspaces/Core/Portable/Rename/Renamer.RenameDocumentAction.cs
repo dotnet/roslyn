@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Rename
     public static partial class Renamer
     {
         /// <summary>
-        /// Individual action from RenameDocument apis in <see cref="Renamer"/>.
+        /// Individual action from RenameDocument APIs in <see cref="Renamer"/>.
         /// 
         /// See <see cref="Renamer.RenameDocumentFoldersAsync(Document, System.Collections.Generic.IReadOnlyList{string}, Options.OptionSet, System.Threading.CancellationToken)" />
         /// and <see cref="Renamer.RenameDocumentNameAsync(Document, string, Options.OptionSet, System.Threading.CancellationToken)" />
