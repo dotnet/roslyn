@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.UseNamedArguments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
