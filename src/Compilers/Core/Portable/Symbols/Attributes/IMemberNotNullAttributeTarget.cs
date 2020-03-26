@@ -9,9 +9,13 @@ namespace Microsoft.CodeAnalysis
 {
     interface IMemberNotNullAttributeTarget
     {
+        void AddNotNullMember(string memberName);
+
         void AddNotNullMember(ArrayBuilder<string> memberNames);
 
         ImmutableArray<string> NotNullMembers { get; }
+
+        void AddNotNullWhenMember(bool sense, string memberName);
 
         void AddNotNullWhenMember(bool sense, ArrayBuilder<string> memberNames);
 
