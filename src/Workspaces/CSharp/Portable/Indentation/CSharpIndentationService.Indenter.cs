@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
         }
 
-        protected override IndentationResult GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
+        protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
             => TryGetDesiredIndentation(indenter, triviaOpt) ??
-               TryGetDesiredIndentation(indenter, tokenOpt) ?? default;
+               TryGetDesiredIndentation(indenter, tokenOpt);
 
         private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxTrivia? triviaOpt)
         {

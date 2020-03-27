@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 Document = document;
 
                 _service = service;
-                _syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                _syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 OptionSet = optionSet;
                 OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
                 Root = (TSyntaxRoot)document.Root;
@@ -66,11 +68,11 @@ namespace Microsoft.CodeAnalysis.Indentation
                     tokenStream: null);
             }
 
-            public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
+            public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {
                 // If the caller wants no indent, then we'll return an effective '0' indent.
                 if (indentStyle == FormattingOptions.IndentStyle.None)
-                    return default;
+                    return null;
 
                 // If the user has explicitly set 'block' indentation, or they're in an inactive preprocessor region,
                 // then just do simple block indentation.
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return GetDesiredSmartIndentation();
             }
 
-            private readonly IndentationResult GetDesiredSmartIndentation()
+            private readonly IndentationResult? GetDesiredSmartIndentation()
             {
                 // For smart indent, we generally will be computing from either the previous token in the code, or in a
                 // few special cases, the previous trivia.
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 var trivia = TryGetImmediatelyPrecedingVisibleTrivia();
 
                 if (token == null && trivia == null)
-                    return default;
+                    return null;
 
                 return _service.GetDesiredIndentationWorker(this, token, trivia);
             }
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return token;
             }
 
-            private IndentationResult GetDesiredBlockIndentation()
+            private IndentationResult? GetDesiredBlockIndentation()
             {
                 // Block indentation is simple, we keep walking back lines until we find a line with any sort of
                 // text on it.  We then set our indentation to whatever the indentation of that line was.
@@ -158,8 +160,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                     return new IndentationResult(basePosition: line.Start + offset.Value, offset: 0);
                 }
 
-                // Couldn't find a previous non-blank line.  Don't indent at all.
-                return default;
+                // Couldn't find a previous non-blank line.
+                return null;
             }
 
             public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)

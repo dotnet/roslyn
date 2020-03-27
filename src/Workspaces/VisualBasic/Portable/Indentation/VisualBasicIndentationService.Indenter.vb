@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Protected Overrides Function GetDesiredIndentationWorker(
                 indenter As Indenter,
                 tokenOpt As SyntaxToken?,
-                triviaOpt As SyntaxTrivia?) As IndentationResult
+                triviaOpt As SyntaxTrivia?) As IndentationResult?
 
             If triviaOpt.HasValue Then
                 Dim trivia = triviaOpt.Value

@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return indentationResult;
             }
 
-            return indenter.GetDesiredIndentation(indentStyle);
+            // If the indenter can't produce a valid result, just default to 0 as our indentation.
+            return indenter.GetDesiredIndentation(indentStyle) ?? default;
         }
 
         private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter);
 
-        protected abstract IndentationResult GetDesiredIndentationWorker(
+        protected abstract IndentationResult? GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
     }
 }
