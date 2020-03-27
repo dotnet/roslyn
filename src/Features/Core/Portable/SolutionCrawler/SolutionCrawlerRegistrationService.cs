@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void Unregister(Workspace workspace, bool blockingShutdown = false)
         {
-            var coordinator = default(WorkCoordinator);
+            var coordinator = (WorkCoordinator)null;
 
             lock (_gate)
             {

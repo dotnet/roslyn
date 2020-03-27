@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void EntireRangeWithTransformation_RemoveClass()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void EntireRangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_RemoveMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -282,7 +282,7 @@ End Module";
         [Fact]
         public void RangeWithTransformation_OutsideOfRange()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -326,7 +326,7 @@ End Module";
 
         private void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
         {
-            var result = default(IEnumerable<TextSpan>);
+            var result = (IEnumerable<TextSpan>)null;
             var spanCodeCleanup = new SimpleCodeCleanupProvider("TestCodeCleanup", (d, s, c) =>
             {
                 result = s;

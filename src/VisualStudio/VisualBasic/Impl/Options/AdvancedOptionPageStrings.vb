@@ -6,13 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
-
-        Public ReadOnly Property Option_AllowMovingDeclaration As String
-            Get
-                Return BasicVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere
-            End Get
-        End Property
-
         Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String
             Get
                 Return BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members

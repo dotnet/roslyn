@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType = BindCrefParameterOrReturnType(syntax.Type, syntax, diagnostics);
 
             // Filter out methods with the wrong return type, since overload resolution won't catch these.
-            sortedSymbols = sortedSymbols.WhereAsArray(symbol =>
-                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType, returnType, TypeCompareKind.ConsiderEverything2));
+            sortedSymbols = sortedSymbols.WhereAsArray((symbol, returnType) =>
+                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType, returnType, TypeCompareKind.ConsiderEverything2), returnType);
 
             if (!sortedSymbols.Any())
             {

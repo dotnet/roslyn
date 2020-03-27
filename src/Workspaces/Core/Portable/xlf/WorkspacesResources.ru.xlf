@@ -57,16 +57,6 @@
         <target state="translated">Отступы и интервалы</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">Правила именования</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">Стили именования</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Предпочтения для новых строк</target>
@@ -1282,11 +1272,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Добавление проектов не поддерживается.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">Спецификации символов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Файлы Visual Basic</target>
@@ -1755,21 +1740,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Предупреждение</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Заполнить оператор switch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Доступ к члену должен быть квалифицирован.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Добавить фигурные скобки в оператор "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

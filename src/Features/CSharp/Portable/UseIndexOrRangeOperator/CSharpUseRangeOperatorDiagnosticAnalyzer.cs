@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
                 invocationSyntax.ArgumentList is null)
             {
-                return default;
+                return null;
             }
 
-            CodeStyleOption<bool> option = null;
+            CodeStyleOption2<bool> option = null;
             if (analyzerOptionsOpt != null)
             {
                 // Check if we're at least on C# 8, and that the user wants these operators.
@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 var parseOptions = (CSharpParseOptions)syntaxTree.Options;
                 if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
                 {
-                    return default;
+                    return null;
                 }
 
                 option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
                 if (!option.Value)
                 {
-                    return default;
+                    return null;
                 }
             }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (invocation.Instance is null ||
                 invocation.Arguments.Length != 2)
             {
-                return default;
+                return null;
             }
 
             // See if the call is to something slice-like.
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
                 !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
-                return default;
+                return null;
             }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     startOperation, subtraction.RightOperand);
             }
 
-            return default;
+            return null;
         }
 
         private Diagnostic CreateDiagnostic(Result result)

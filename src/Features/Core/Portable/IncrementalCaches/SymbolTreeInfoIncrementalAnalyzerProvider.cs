@@ -291,11 +291,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 metadataInfo.ReferencingProjects.Add(project.Id);
             }
 
-            public override void RemoveProject(ProjectId projectId)
+            public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 _projectToInfo.TryRemove(projectId, out var info);
-
                 RemoveMetadataReferences(projectId);
+
+                return Task.CompletedTask;
             }
 
             private void RemoveMetadataReferences(ProjectId projectId)

@@ -5,13 +5,13 @@
 #nullable enable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Internal.Options;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IOption2 option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
             {
@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (T)option.DefaultValue!;
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option2<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             return GetOption<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption2<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return GetOption<T>(analyzerOptions, (IOption)option, language, syntaxTree, cancellationToken);
+            return GetOption<T>(analyzerOptions, (IOption2)option, language, syntaxTree, cancellationToken);
         }
 
         public static AnalyzerConfigOptions GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)

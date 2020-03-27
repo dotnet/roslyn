@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var boxedItems = (IEnumerable<TValue>)ImmutableArray.Create(item);
             TestProperty(instance, factory, getter, boxedItems, defaultThrows: false);
 
-            var instanceWithNoItem = factory(instance, default);
+            var instanceWithNoItem = factory(instance, null);
             Assert.Empty(getter(instanceWithNoItem));
 
             var instanceWithItem = factory(instanceWithNoItem, boxedItems);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // the factory preserves the identity of a boxed immutable array:
             Assert.Same(boxedItems, getter(instanceWithItem));
 
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, default));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, null));
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<TValue>()));
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<TValue>.Empty));
 

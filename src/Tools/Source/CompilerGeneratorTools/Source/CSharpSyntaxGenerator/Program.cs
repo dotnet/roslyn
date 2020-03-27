@@ -204,7 +204,7 @@ namespace CSharpSyntaxGenerator
             do
             {
                 length = text.Length;
-                text = text.Replace("{\r\n\r\n", "{\r\n");
+                text = text.Replace($"{{{Environment.NewLine}{Environment.NewLine}", $"{{{Environment.NewLine}");
             } while (text.Length != length);
 
             try

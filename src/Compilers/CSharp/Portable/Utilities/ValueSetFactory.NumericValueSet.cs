@@ -62,19 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case Interval.Mixed mixed:
                             switch (relation)
                             {
-                                case LessThan when tc.Related(LessThan, value, minValue):
+                                case LessThan when tc.Related(LessThanOrEqual, value, minValue):
                                     return false;
                                 case LessThan when tc.Related(LessThan, maxValue, value):
                                     return true;
-                                case GreaterThan when tc.Related(GreaterThan, value, maxValue):
+                                case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
                                     return false;
                                 case GreaterThan when tc.Related(GreaterThan, minValue, value):
                                     return true;
-                                case LessThanOrEqual when tc.Related(LessThanOrEqual, value, minValue):
+                                case LessThanOrEqual when tc.Related(LessThan, value, minValue):
                                     return false;
                                 case LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value):
                                     return true;
-                                case GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue):
+                                case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
                                     return false;
                                 case GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value):
                                     return true;
@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case Interval.Mixed mixed:
                             switch (relation)
                             {
-                                case LessThan when tc.Related(LessThan, value, minValue):
+                                case LessThan when tc.Related(LessThanOrEqual, value, minValue):
                                     return false;
                                 case LessThan when tc.Related(LessThan, maxValue, value):
                                     return true;
-                                case GreaterThan when tc.Related(GreaterThan, value, maxValue):
+                                case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
                                     return false;
                                 case GreaterThan when tc.Related(GreaterThan, minValue, value):
                                     return true;

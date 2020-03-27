@@ -203,6 +203,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
+            var remarksDocumentationContent = GetRemarksDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (!remarksDocumentationContent.IsDefaultOrEmpty)
+            {
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                if (!documentationContent.IsDefaultOrEmpty)
+                {
+                    builder.AddLineBreak();
+                }
+
+                builder.AddRange(remarksDocumentationContent);
+                AddSection(QuickInfoSectionKinds.RemarksDocumentationComments, builder.ToImmutable());
+            }
+
             var returnsDocumentationContent = GetReturnsDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
             if (!returnsDocumentationContent.IsDefaultOrEmpty)
             {
@@ -306,6 +319,30 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             else if (documentedSymbol is object)
             {
                 var documentation = documentedSymbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
+                if (documentation != null)
+                {
+                    return documentation.ToImmutableArray();
+                }
+            }
+
+            return default;
+        }
+
+        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+            ISymbol? documentedSymbol,
+            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            IDocumentationCommentFormattingService formatter,
+            CancellationToken cancellationToken)
+        {
+            if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
+            {
+                return parts;
+            }
+            else if (documentedSymbol is object)
+            {
+                var documentation = documentedSymbol.GetRemarksDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
                 if (documentation != null)
                 {
                     return documentation.ToImmutableArray();

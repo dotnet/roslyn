@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Create solution for given checksum from base solution
     /// </summary>
-    internal class SolutionCreator
+    internal sealed class SolutionCreator
     {
         private readonly AssetProvider _assetProvider;
         private readonly Solution _baseSolution;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var newMap = await GetProjectMapAsync(_assetProvider, newChecksums).ConfigureAwait(false);
 
             // bulk sync assets
-            await SynchronizeAssetsAsync(solution, oldMap, newMap).ConfigureAwait(false);
+            await SynchronizeAssetsAsync(oldMap, newMap).ConfigureAwait(false);
 
             // added project
             foreach (var (projectId, newProjectChecksums) in newMap)
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfTrue(oldProjectChecksums.Checksum == newProjectChecksums.Checksum);
 
-                solution = await UpdateProjectAsync(solution.GetProject(projectId), oldProjectChecksums, newProjectChecksums).ConfigureAwait(false);
+                solution = await UpdateProjectAsync(solution.GetProject(projectId)!, oldProjectChecksums, newProjectChecksums).ConfigureAwait(false);
             }
 
             // removed project
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return solution;
         }
 
-        private async Task SynchronizeAssetsAsync(Solution solution, Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap)
+        private async Task SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap)
         {
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
@@ -254,51 +256,53 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<Project> UpdateProjectInfoAsync(Project project, Checksum infoChecksum)
         {
-            var newProjectInfo = await _assetProvider.GetAssetAsync<ProjectInfo.ProjectAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
+            var newProjectAttributes = await _assetProvider.GetAssetAsync<ProjectInfo.ProjectAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no API to change these once project is created
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id == newProjectInfo.Id);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectInfo.Language);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectInfo.IsSubmission);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id == newProjectAttributes.Id);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectAttributes.Language);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectAttributes.IsSubmission);
 
-            if (project.State.ProjectInfo.Attributes.Name != newProjectInfo.Name)
+            var projectId = project.Id;
+
+            if (project.State.ProjectInfo.Attributes.Name != newProjectAttributes.Name)
             {
-                project = project.Solution.WithProjectName(project.Id, newProjectInfo.Name).GetProject(project.Id);
+                project = project.Solution.WithProjectName(projectId, newProjectAttributes.Name).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.AssemblyName != newProjectInfo.AssemblyName)
+            if (project.State.ProjectInfo.Attributes.AssemblyName != newProjectAttributes.AssemblyName)
             {
-                project = project.Solution.WithProjectAssemblyName(project.Id, newProjectInfo.AssemblyName).GetProject(project.Id);
+                project = project.Solution.WithProjectAssemblyName(projectId, newProjectAttributes.AssemblyName).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.FilePath != newProjectInfo.FilePath)
+            if (project.State.ProjectInfo.Attributes.FilePath != newProjectAttributes.FilePath)
             {
-                project = project.Solution.WithProjectFilePath(project.Id, newProjectInfo.FilePath).GetProject(project.Id);
+                project = project.Solution.WithProjectFilePath(projectId, newProjectAttributes.FilePath).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.OutputFilePath != newProjectInfo.OutputFilePath)
+            if (project.State.ProjectInfo.Attributes.OutputFilePath != newProjectAttributes.OutputFilePath)
             {
-                project = project.Solution.WithProjectOutputFilePath(project.Id, newProjectInfo.OutputFilePath).GetProject(project.Id);
+                project = project.Solution.WithProjectOutputFilePath(projectId, newProjectAttributes.OutputFilePath).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectInfo.OutputRefFilePath)
+            if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
             {
-                project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
+                project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectInfo.DefaultNamespace)
+            if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)
             {
-                project = project.Solution.WithProjectDefaultNamespace(project.Id, newProjectInfo.DefaultNamespace).GetProject(project.Id);
+                project = project.Solution.WithProjectDefaultNamespace(projectId, newProjectAttributes.DefaultNamespace).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
+            if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectAttributes.HasAllInformation)
             {
-                project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
+                project = project.Solution.WithHasAllInformation(projectId, newProjectAttributes.HasAllInformation).GetProject(projectId)!;
             }
 
-            if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectInfo.RunAnalyzers)
+            if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectAttributes.RunAnalyzers)
             {
-                project = project.Solution.WithRunAnalyzers(project.Id, newProjectInfo.RunAnalyzers).GetProject(project.Id);
+                project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetProject(projectId)!;
             }
 
             return project;
@@ -326,22 +330,22 @@ namespace Microsoft.CodeAnalysis.Remote
             var newMap = await GetDocumentMapAsync(_assetProvider, news.Object).ConfigureAwait(false);
 
             // added document
-            ImmutableArray<DocumentInfo>.Builder documentsToAdd = null;
+            ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
             foreach (var (documentId, newDocumentChecksums) in newMap)
             {
                 if (!oldMap.ContainsKey(documentId))
                 {
-                    documentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
+                    lazyDocumentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
 
                     // we have new document added
                     var documentInfo = await _assetProvider.CreateDocumentInfoAsync(newDocumentChecksums.Checksum, _cancellationToken).ConfigureAwait(false);
-                    documentsToAdd.Add(documentInfo);
+                    lazyDocumentsToAdd.Add(documentInfo);
                 }
             }
 
-            if (documentsToAdd != null)
+            if (lazyDocumentsToAdd != null)
             {
-                project = addDocuments(project.Solution, documentsToAdd.ToImmutable()).GetProject(project.Id);
+                project = addDocuments(project.Solution, lazyDocumentsToAdd.ToImmutable()).GetProject(project.Id)!;
             }
 
             // changed document
@@ -355,6 +359,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
 
                 var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
+                Contract.ThrowIfNull(document);
+
                 project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
             }
 
@@ -364,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (!newMap.ContainsKey(documentId))
                 {
                     // we have a document removed
-                    project = removeDocument(project.Solution, documentId).GetProject(project.Id);
+                    project = removeDocument(project.Solution, documentId).GetProject(project.Id)!;
                 }
             }
 
@@ -386,9 +392,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 document = document.Kind switch
                 {
-                    TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id),
-                    TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id),
-                    TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id),
+                    TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id)!,
+                    TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id)!,
+                    TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id)!,
                     _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
                 };
             }
@@ -410,14 +416,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // additional document can't change folder once created
                 Contract.ThrowIfFalse(document is Document);
-                document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
+                document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id)!;
             }
 
             if (document.State.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
                 // additional document can't change sourcecode kind once created
                 Contract.ThrowIfFalse(document is Document);
-                document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetDocument(document.Id);
+                document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetDocument(document.Id)!;
             }
 
             return document;
@@ -475,12 +481,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var map = new Dictionary<ProjectId, ProjectStateChecksums>();
 
-            foreach (var kv in solution.State.ProjectStates)
+            foreach (var (projectId, projectState) in solution.State.ProjectStates)
             {
-                var projectChecksums = await kv.Value.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                var projectChecksums = await projectState.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
                 if (projects.Contains(projectChecksums.Checksum))
                 {
-                    map.Add(kv.Key, projectChecksums);
+                    map.Add(projectId, projectChecksums);
                 }
             }
 

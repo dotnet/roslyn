@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -428,7 +429,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // file.cs(7,42): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         y = /*<bind>*/x switch { _ => 5, 1 => 2 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(7, 42)
             };
@@ -1343,6 +1344,170 @@ Block[B10] - Exit
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchExpression_Combinators()
+        {
+            string source = @"
+#pragma warning disable CS8509
+public sealed class MyClass
+{
+    bool M(char input)
+    /*<bind>*/{
+        return input switch
+        {
+            >= 'A' and <= 'Z' or >= 'a' and <= 'z' => true,
+            '_' => false,
+            not (>= '0' and <= '9') => true,
+            _ => false,
+        };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                };
+            string expectedFlowGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1} {R2}
+    .locals {R1}
+    {
+        CaptureIds: [0]
+        .locals {R2}
+        {
+            CaptureIds: [1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+                      Value: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Char) (Syntax: 'input')
+                Jump if False (Regular) to Block[B3]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '>= 'A' and  ... 'z' => true')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
+                      Pattern: 
+                        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and  ...  and <= 'z'') (InputType: System.Char)
+                          LeftPattern: 
+                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and <= 'Z'') (InputType: System.Char)
+                              LeftPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'A'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: A) (Syntax: ''A'')
+                              RightPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'Z'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: Z) (Syntax: ''Z'')
+                          RightPattern: 
+                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'a' and <= 'z'') (InputType: System.Char)
+                              LeftPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'a'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
+                              RightPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'z'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: z) (Syntax: ''z'')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Next (Regular) Block[B10]
+                    Leaving: {R2}
+            Block[B3] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B5]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: ''_' => false')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
+                      Pattern: 
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: ''_'') (InputType: System.Char)
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: _) (Syntax: ''_'')
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'false')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                Next (Regular) Block[B10]
+                    Leaving: {R2}
+            Block[B5] - Block
+                Predecessors: [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B7]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'not (>= '0' ... 9') => true')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
+                      Pattern: 
+                        INegatedPatternOperationNegatedPattern: 
+                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= '0' and <= '9'') (InputType: System.Char)
+                              LeftPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= '0'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 0) (Syntax: ''0'')
+                              RightPattern: 
+                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= '9'') (InputType: System.Char)
+                                  Value: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 9) (Syntax: ''9'')
+                         (OperationKind.NegatedPattern, Type: null) (Syntax: 'not (>= '0' and <= '9')') (InputType: System.Char)
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Next (Regular) Block[B10]
+                    Leaving: {R2}
+            Block[B7] - Block
+                Predecessors: [B5]
+                Statements (0)
+                Jump if False (Regular) to Block[B9]
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '_ => false')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
+                      Pattern: 
+                        IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Char)
+                    Leaving: {R2}
+                Next (Regular) Block[B8]
+            Block[B8] - Block
+                Predecessors: [B7]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'false')
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                Next (Regular) Block[B10]
+                    Leaving: {R2}
+        }
+        Block[B9] - Block
+            Predecessors: [B7]
+            Statements (0)
+            Next (Throw) Block[null]
+                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsImplicit) (Syntax: 'input switc ... }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Block[B10] - Block
+            Predecessors: [B2] [B4] [B6] [B8]
+            Statements (0)
+            Next (Return) Block[B11]
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'input switc ... }')
+                Leaving: {R1}
+    }
+    Block[B11] - Exit
+        Predecessors: [B10]
+        Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
     }
 }

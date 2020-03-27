@@ -20,10 +20,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using CodeStyleOptions = Microsoft.CodeAnalysis.Internal.Options.CodeStyleOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.

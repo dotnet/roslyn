@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,8 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = BadExpression(expression.Syntax, expression);
             }
 
+            Debug.Assert(expression.Type is { });
             uint inputValEscape = GetValEscape(expression, LocalScopeDepth);
-            BoundPattern pattern = BindPattern(node.Pattern, expression.Type!, inputValEscape, permitDesignations: true, hasErrors, diagnostics);
+            BoundPattern pattern = BindPattern(node.Pattern, expression.Type, inputValEscape, permitDesignations: true, hasErrors, diagnostics);
             hasErrors |= pattern.HasErrors;
             return MakeIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not actually emitted into the lowered code.
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
@@ -60,8 +61,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                 hasErrors = true;
             }
-
-            if (expression.ConstantValue != null)
+            else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
+            {
+                switch (pattern)
+                {
+                    case BoundConstantPattern _:
+                    case BoundITuplePattern _:
+                        // these patterns can fail in practice
+                        throw ExceptionUtilities.Unreachable;
+                    case BoundRelationalPattern _:
+                    case BoundTypePattern _:
+                    case BoundNegatedPattern _:
+                    case BoundBinaryPattern _:
+                        diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                        break;
+                    case BoundDiscardPattern _:
+                        // we do not give a warning on this because it is an existing scenario, and it should
+                        // have been obvious in source that it would always match.
+                        break;
+                    case BoundDeclarationPattern _:
+                    case BoundRecursivePattern _:
+                        // We do not give a warning on these because people do this to give a name to a value
+                        break;
+                }
+            }
+            else if (expression.ConstantValue != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
                 if (!hasErrors)
@@ -70,9 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
-                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel) && pattern.Kind == BoundKind.ConstantPattern)
+                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
                     {
-                        diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                        switch (pattern)
+                        {
+                            case BoundConstantPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                                break;
+                            case BoundRelationalPattern _:
+                            case BoundTypePattern _:
+                            case BoundNegatedPattern _:
+                            case BoundBinaryPattern _:
+                            case BoundDiscardPattern _:
+                                diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, node.Location);
+                                break;
+                        }
                     }
                 }
             }
@@ -124,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
-            return new BoundDiscardPattern(node, inputType);
+            return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
         }
 
         private BoundPattern BindConstantPatternWithFallbackToTypePattern(
@@ -150,10 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
+            var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
-                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors || constantValueOpt is null);
+                return new BoundConstantPattern(
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedExpression.Type ?? inputType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -162,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
-                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, hasErrors);
+                return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
         }
 
@@ -173,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindExpressionOrTypeForPattern(
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
-            bool hasErrors,
+            ref bool hasErrors,
             DiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
             out bool wasExpression)
@@ -183,11 +220,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             wasExpression = expression.Kind != BoundKind.TypeExpression;
             if (wasExpression)
             {
-                return BindExpressionForPatternContinued(expression, inputType, patternExpression, hasErrors, diagnostics, out constantValueOpt);
+                return BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt);
             }
             else
             {
-                Debug.Assert(expression.Kind == BoundKind.TypeExpression);
+                Debug.Assert(expression is { Kind: BoundKind.TypeExpression, Type: { } });
+                hasErrors |= CheckValidPatternType(patternExpression, inputType, expression.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
                 return expression;
             }
         }
@@ -198,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindExpressionForPattern(
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
-            bool hasErrors,
+            ref bool hasErrors,
             DiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
             out bool wasExpression)
@@ -207,14 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = BindExpression(patternExpression, diagnostics: diagnostics, invoked: false, indexed: false);
             expression = CheckValue(expression, BindValueKind.RValue, diagnostics);
             wasExpression = expression.Kind switch { BoundKind.BadExpression => false, BoundKind.TypeExpression => false, _ => true };
-            return wasExpression ? BindExpressionForPatternContinued(expression, inputType, patternExpression, hasErrors, diagnostics, out constantValueOpt) : expression;
+            return wasExpression ? BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt) : expression;
         }
 
         private BoundExpression BindExpressionForPatternContinued(
             BoundExpression expression,
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
-            bool hasErrors,
+            ref bool hasErrors,
             DiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt)
         {
@@ -241,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(hasErrors);
                 convertedExpression = new BoundConversion(
                     convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
+                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: null, type: CreateErrorType(), hasErrors: true)
                 { WasCompilerGenerated = true };
             }
 
@@ -453,12 +491,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSyntax typeSyntax = node.Type;
             BoundTypeExpression boundDeclType = BindTypeForPattern(typeSyntax, inputType, diagnostics, ref hasErrors);
-            TypeSymbol declType = boundDeclType.Type;
-            inputValEscape = GetValEscape(declType, inputValEscape);
+            var valEscape = GetValEscape(boundDeclType.Type, inputValEscape);
             BindPatternDesignation(
-                node.Designation, boundDeclType.TypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
-                ref hasErrors, out Symbol? variableSymbol, out BoundExpression? variableAccess);
-            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
+                designation: node.Designation, declType: boundDeclType.TypeWithAnnotations, valEscape, permitDesignations, typeSyntax, diagnostics,
+                hasErrors: ref hasErrors, variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
+            return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, boundDeclType.Type, hasErrors);
         }
 
         private BoundTypeExpression BindTypeForPattern(
@@ -638,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         deconstructDiagnostics.Free();
                         BindITupleSubpatterns(positionalClause, patternsBuilder, permitDesignations, diagnostics);
                         deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, inputType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, inputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -670,7 +707,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
-                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType, hasErrors: hasErrors);
+                variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
+                convertedType: boundDeclType?.Type ?? inputType, hasErrors: hasErrors);
         }
 
         private MethodSymbol? BindDeconstructSubpatterns(
@@ -961,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DiscardDesignation:
                     {
-                        return new BoundDiscardPattern(node, inputType);
+                        return new BoundDiscardPattern(node, inputType: inputType, convertedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
@@ -974,7 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
-                            variableSymbol, variableAccess, boundOperandType, isVar: true, inputType: inputType, hasErrors: hasErrors);
+                            variableSymbol, variableAccess, boundOperandType, isVar: true,
+                            inputType: inputType, convertedType: inputType, hasErrors: hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -1011,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Use that and forget any errors from trying to bind Deconstruct.
                                 deconstructDiagnostics.Free();
                                 BindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics);
-                                return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), strippedInputType, hasErrors);
+                                return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), strippedInputType, iTupleType, hasErrors);
                             }
                             else
                             {
@@ -1035,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundRecursivePattern(
                             syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                             deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                            isExplicitNotNullTest: false, inputType: inputType, hasErrors: hasErrors);
+                            isExplicitNotNullTest: false, inputType: inputType, convertedType: inputType, hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {
@@ -1100,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol? LookupMemberForPropertyPattern(
             TypeSymbol inputType, IdentifierNameSyntax name, DiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
-            Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
+            Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
             if (inputType.IsErrorType() || hasErrors || symbol is null)
                 memberType = CreateErrorType();
@@ -1110,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private Symbol BindPropertyPatternMember(
+        private Symbol? BindPropertyPatternMember(
             TypeSymbol inputType,
             IdentifierNameSyntax memberName,
             ref bool hasErrors,
@@ -1190,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var patternType = BindTypeForPattern(node.Type, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
-            return new BoundTypePattern(node.Type, patternType, isExplicitNotNullTest, inputType, hasErrors);
+            return new BoundTypePattern(node, patternType, isExplicitNotNullTest, inputType, patternType.Type, hasErrors);
         }
 
         private BoundPattern BindRelationalPattern(
@@ -1199,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            BoundExpression value = BindExpressionForPattern(inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+            BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
             RoslynDebug.Assert(value.Type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)
@@ -1236,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValueOpt = ConstantValue.Bad;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, hasErrors);
+            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, value.Type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {
@@ -1282,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const bool permitDesignations = false; // prevent designators under 'not'
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-            return new BoundNegatedPattern(node, subPattern, inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, convertedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(
@@ -1294,10 +1333,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
-            permitDesignations = permitDesignations & !isDisjunction; // prevent designators under 'or'
-            var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-            var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-            return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType, hasErrors);
+            if (isDisjunction)
+            {
+                permitDesignations = false; // prevent designators under 'or'
+                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var convertedType = commonType(node, left.ConvertedType, right.ConvertedType, diagnostics) ?? inputType;
+                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: convertedType, hasErrors);
+            }
+            else
+            {
+                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
+                var right = BindPattern(node.RightPattern, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
+                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
+            }
+
+            TypeSymbol commonType(SyntaxNode node, TypeSymbol t1, TypeSymbol t2, DiagnosticBag diagnostics)
+            {
+                if (t1.Equals(t2, TypeCompareKind.AllIgnoreOptions))
+                    return t2;
+
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                TypeSymbol result =
+                    (ExpressionOfTypeMatchesPatternType(Conversions, expressionType: t1, patternType: t2, ref useSiteDiagnostics, out _) == true) ? t2 :
+                    (ExpressionOfTypeMatchesPatternType(Conversions, expressionType: t2, patternType: t1, ref useSiteDiagnostics, out _) == true) ? t1 :
+                    inputType;
+                diagnostics.Add(node.Location, useSiteDiagnostics);
+                return result;
+            }
         }
     }
 }

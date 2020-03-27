@@ -263,14 +263,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var assembly = metadata.GetAssembly();
-
+                Debug.Assert(assembly is object);
                 var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
 
                 assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences);
 
                 var assemblySymbol = new PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked: false, importOptions: importOptions);
 
-                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false));
+                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(
+                    (unified, referencedAssembliesByIdentity) => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false), referencedAssembliesByIdentity);
+
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies);
 
                 if (assembly.ContainsNoPiaLocalTypes())

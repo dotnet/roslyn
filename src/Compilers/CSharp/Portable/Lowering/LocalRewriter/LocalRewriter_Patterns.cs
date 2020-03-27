@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -191,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagTypeEvaluation t:
                         {
                             TypeSymbol inputType = input.Type;
+                            Debug.Assert(inputType is { });
                             if (inputType.IsDynamic())
                             {
                                 // Avoid using dynamic conversions for pattern-matching.
@@ -251,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.Syntax = test.Syntax;
                 BoundExpression input = _tempAllocator.GetTemp(test.Input);
+                Debug.Assert(input.Type is { });
                 switch (test)
                 {
                     case BoundDagNonNullTest d:
@@ -333,8 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected bool TryLowerTypeTestAndCast(
                 BoundDagTest test,
                 BoundDagEvaluation evaluation,
-                out BoundExpression sideEffect,
-                out BoundExpression testExpression)
+                [NotNullWhen(true)] out BoundExpression sideEffect,
+                [NotNullWhen(true)] out BoundExpression testExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -347,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));
+                    Debug.Assert(output.Type is { });
                     sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation1.Type));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
                     return true;
@@ -382,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Action<BoundExpression> addCode,
                 out BoundExpression savedInputExpression)
             {
+                Debug.Assert(loweredInput.Type is { });
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
                     && loweredInput.GetRefKind() == RefKind.None)
