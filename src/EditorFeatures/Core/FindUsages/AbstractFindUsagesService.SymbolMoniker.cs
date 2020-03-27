@@ -31,8 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Let the find-refs window know we have outstanding work
             await using var _ = await context.ProgressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
-            var displayParts = GetDisplayParts(definition).Add(
-                new TaggedText(TextTags.Text, EditorFeaturesResources.external));
+            var displayParts = GetDisplayParts(definition).AddRange(new[]
+            {
+                new TaggedText(TextTags.Space, " "),
+                new TaggedText(TextTags.Text, EditorFeaturesResources.external),
+            });
 
             var definitionItem = DefinitionItem.CreateNonNavigableItem(
                 tags: GlyphTags.GetTags(definition.GetGlyph()),
