@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal const string TableTitleNewRules = "### New Rules";
         internal const string TableTitleRemovedRules = "### Removed Rules";
         internal const string TableTitleChangedRules = "### Changed Rules";
-        internal const string TableHeaderNewOrRemovedRulesLine1 = @"Rule ID | Category | Severity | HelpLink (optional)";
-        internal const string TableHeaderNewOrRemovedRulesLine2 = @"--------|----------|----------|--------------------";
-        internal const string TableHeaderChangedRulesLine1 = @"Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)";
-        internal const string TableHeaderChangedRulesLine2 = @"--------|--------------|--------------|--------------|--------------|--------------------";
+        internal const string TableHeaderNewOrRemovedRulesLine1 = @"Rule ID | Category | Severity | Notes";
+        internal const string TableHeaderNewOrRemovedRulesLine2 = @"--------|----------|----------|-------";
+        internal const string TableHeaderChangedRulesLine1 = @"Rule ID | New Category | New Severity | Old Category | Old Severity | Notes";
+        internal const string TableHeaderChangedRulesLine2 = @"--------|--------------|--------------|--------------|--------------|-------";
         private const string DisabledText = "Disabled";
-        internal const string UndetectedText = @"<Undetected>";
+        internal const string UndetectedText = @"`<Undetected>`";
 
         // Property names which are keys for diagnostic property bag passed to the code fixer.
         internal const string EntryToAddPropertyName = nameof(EntryToAddPropertyName);
@@ -351,11 +351,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 //  New or Removed rule entry: 
-                //      "Rule ID | Category | Severity | HelpLink (optional)"
+                //      "Rule ID | Category | Severity | Notes"
                 //      "   0    |     1    |    2     |        3           "
                 //
                 //  Changed rule entry:
-                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)"
+                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | Notes"
                 //      "   0    |     1        |     2        |     3        |     4        |        5           "
 
                 string ruleId = parts[0];
@@ -460,10 +460,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             static bool IsInvalidEntry(string[] parts, ReleaseTrackingRuleEntryKind currentRuleEntryKind)
             {
                 // Expected entry for New or Removed rules has 3 or 4 parts:
-                //      "Rule ID | Category | Severity | HelpLink (optional)"
+                //      "Rule ID | Category | Severity | Notes"
                 //
                 // Expected entry for Changed rules has 5 or 6 parts:
-                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)"
+                //      "Rule ID | New Category | New Severity | Old Category | Old Severity | Notes"
                 //
                 // NOTE: Last field 'Helplink' is optional for both cases.
 
@@ -535,6 +535,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             string ruleId,
             IArgumentOperation ruleIdArgument,
             string? category,
+            string analyzerName,
             string? helpLink,
             bool? isEnabledByDefault,
             DiagnosticSeverity? defaultSeverity,
@@ -546,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 releaseTrackingLine.IsShipped && releaseTrackingLine.IsRemovedRule)
             {
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(
-                    EntryToAddPropertyName, GetEntry(ruleId, category, helpLink, isEnabledByDefault, defaultSeverity));
+                    EntryToAddPropertyName, GetEntry(ruleId, category, analyzerName, helpLink, isEnabledByDefault, defaultSeverity));
                 var diagnostic = ruleIdArgument.CreateDiagnostic(DeclareDiagnosticIdInAnalyzerReleaseRule, properties, ruleId);
                 addDiagnostic(diagnostic);
                 return;
@@ -581,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     oldRule = (releaseTrackingLine.Category, releaseTrackingLine.EnabledByDefault, releaseTrackingLine.DefaultSeverity);
                 }
 
-                var newEntry = GetEntry(ruleId, category, helpLink, isEnabledByDefault, defaultSeverity, oldRule);
+                var newEntry = GetEntry(ruleId, category, analyzerName, helpLink, isEnabledByDefault, defaultSeverity, oldRule);
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(propertyName, newEntry);
                 var diagnostic = ruleIdArgument.CreateDiagnostic(UpdateDiagnosticIdInAnalyzerReleaseRule, properties, ruleId);
                 addDiagnostic(diagnostic);
@@ -592,14 +593,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static string GetEntry(
             string ruleId,
             string? category,
+            string analyzerName,
             string? helpLink,
             bool? isEnabledByDefault,
             DiagnosticSeverity? defaultSeverity,
             (string category, bool? isEnabledByDefault, DiagnosticSeverity? defaultSeverity)? oldRule = null)
         {
-            // Rule ID | Category | Severity | HelpLink (optional)
+            // Rule ID | Category | Severity | Notes
             //      OR
-            // Rule ID | New Category | New Severity | Old Category | Old Severity | HelpLink (optional)
+            // Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
             var entry = $"{ruleId} | {GetCategoryText(category)} | {GetSeverityText(isEnabledByDefault, defaultSeverity)} |";
 
             if (oldRule.HasValue)
@@ -607,10 +609,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 entry += $" {GetCategoryText(oldRule.Value.category)} | {GetSeverityText(oldRule.Value.isEnabledByDefault, oldRule.Value.defaultSeverity)} |";
             }
 
+            entry += $" {analyzerName}";
+
             helpLink ??= TryGetHelpLinkForCARule(ruleId);
             if (!string.IsNullOrEmpty(helpLink))
             {
-                entry += $" [Documentation]({helpLink})";
+                entry += $", [Documentation]({helpLink})";
             }
 
             return entry;

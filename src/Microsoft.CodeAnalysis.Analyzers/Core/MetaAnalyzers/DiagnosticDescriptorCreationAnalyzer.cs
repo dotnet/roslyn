@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out category, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
-                        category = null;
                     }
 
+                    var analyzerName = fieldInitializer.InitializedFields.First().ContainingType.Name;
                     AnalyzeRuleId(operationAnalysisContext, creationArguments,
                         isAnalyzerReleaseTracking, shippedData, unshippedData, seenRuleIds, diagnosticCategoryAndIdRangeTextOpt,
-                        category, helpLink, isEnabledByDefault, defaultSeverity, allowedIdsInfoList, idToAnalyzerMap);
+                        category, analyzerName, helpLink, isEnabledByDefault, defaultSeverity, allowedIdsInfoList, idToAnalyzerMap);
 
                 }, OperationKind.FieldInitializer);
 
@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             PooledConcurrentSet<string> seenRuleIds,
             AdditionalText? diagnosticCategoryAndIdRangeTextOpt,
             string? category,
+            string analyzerName,
             string? helpLink,
             bool? isEnabledByDefault,
             DiagnosticSeverity? defaultSeverity,
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             RoslynDebug.Assert(shippedData != null);
                             RoslynDebug.Assert(unshippedData != null);
 
-                            AnalyzeAnalyzerReleases(ruleId, argument, category, helpLink, isEnabledByDefault,
+                            AnalyzeAnalyzerReleases(ruleId, argument, category, analyzerName, helpLink, isEnabledByDefault,
                                 defaultSeverity, shippedData, unshippedData, operationAnalysisContext.ReportDiagnostic);
                         }
                     }
