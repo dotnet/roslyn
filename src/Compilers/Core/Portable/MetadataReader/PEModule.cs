@@ -1675,12 +1675,12 @@ namespace Microsoft.CodeAnalysis
             string? diagnosticId = null;
             string? urlFormat = null;
 
-            // See CIL spec section II.23.3 Custom attributes
-
-            // Next is a description of the optional “named” fields and properties.
-            // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
             try
             {
+                // See CIL spec section II.23.3 Custom attributes
+                //
+                // Next is a description of the optional “named” fields and properties.
+                // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
                 var numNamed = sig.ReadUInt16();
                 for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
@@ -1688,9 +1688,13 @@ namespace Microsoft.CodeAnalysis
                     if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
                         if (diagnosticId is null && name == "DiagnosticId")
+                        {
                             diagnosticId = stringValue;
+                        }
                         else if (urlFormat is null && name == "UrlFormat")
+                        {
                             urlFormat = stringValue;
+                        }
                     }
                 }
             }

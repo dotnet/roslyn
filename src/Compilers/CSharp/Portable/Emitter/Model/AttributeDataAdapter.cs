@@ -173,22 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics), value);
         }
 
-        private protected sealed override bool IsStringProperty(string memberName)
-        {
-            if (AttributeClass is object)
-            {
-                foreach (var member in AttributeClass.GetMembers(memberName))
-                {
-                    if (member is PropertySymbol { Type: { SpecialType: SpecialType.System_String } })
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         private Symbol LookupName(string name)
         {
             var type = this.AttributeClass;

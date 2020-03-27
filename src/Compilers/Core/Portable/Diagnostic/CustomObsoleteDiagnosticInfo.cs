@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class CustomObsoleteDiagnosticInfo : DiagnosticInfo
+    internal sealed class CustomObsoleteDiagnosticInfo : DiagnosticInfo
     {
         internal ObsoleteAttributeData Data { get; }
 

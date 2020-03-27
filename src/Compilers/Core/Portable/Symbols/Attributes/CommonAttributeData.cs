@@ -317,7 +317,11 @@ namespace Microsoft.CodeAnalysis
 
         // Note: it is disallowed to declare a property and a field
         // with the same name in C# or VB source, even if it is allowed in IL.
+        //
         // We use a virtual method and override to prevent having to realize the public symbols just to decode obsolete attributes.
+        // Ideally we would use an abstract method, but that would require making the method visible to
+        // public consumers who inherit from this class, which we don't want to do.
+        // Therefore we just make it a 'private protected virtual' method instead.
         private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
