@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' comment before a Case Statement case
             If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
                Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                Return LineColumnRule.Preserve()
+                Return LineColumnRule.Preserve
             End If
 
             ' comment case
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 _succeeded = False
             End If
 
-            Return LineColumnRule.Preserve()
+            Return LineColumnRule.Preserve
         End Function
 
         Protected Overrides Function ContainsImplicitLineBreak(syntaxTrivia As SyntaxTrivia) As Boolean

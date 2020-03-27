@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
                 }
 
-                return LineColumnRule.Preserve();
+                return LineColumnRule.Preserve;
             }
 
             // preprocessor case
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
                     _succeeded = false;
-                    return LineColumnRule.Preserve();
+                    return LineColumnRule.Preserve;
                 }
 
                 // if current line is the first line of the file, don't put extra line 1
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation();
+                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation;
             }
 
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _succeeded = false;
             }
 
-            return LineColumnRule.Preserve();
+            return LineColumnRule.Preserve;
         }
 
         protected override bool ContainsImplicitLineBreak(SyntaxTrivia trivia)
