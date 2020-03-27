@@ -62,14 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (caretPosition == null)
                 return false;
 
-            var exteriorText = GetExteriorTextForCurrentLine(caretPosition.Value);
-            if (exteriorText == null)
+            var textToInsert = GetTextToInsert(caretPosition.Value);
+            if (textToInsert == null)
                 return false;
 
             using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
 
             var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
-            editorOperations.ReplaceText(GetReplacementSpan(caretPosition.Value), exteriorText);
+            editorOperations.ReplaceText(GetReplacementSpan(caretPosition.Value), textToInsert);
 
             transaction.Complete();
             return true;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return Span.FromBounds(start, end);
         }
 
-        private string GetExteriorTextForCurrentLine(SnapshotPoint caretPosition)
+        private string GetTextToInsert(SnapshotPoint caretPosition)
         {
             var currentLine = caretPosition.GetContainingLine();
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
