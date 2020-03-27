@@ -39,6 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                         Return New IndentationResult(trivia.SpanStart, 0)
                     End If
 
+                    ' if the comment is the only thing on a line, then preserve its indentation for the next line.
+                    Dim line = indenter.Text.Lines.GetLineFromPosition(trivia.SpanStart)
+                    If line.GetFirstNonWhitespacePosition() = trivia.SpanStart Then
+                        Return New IndentationResult(trivia.SpanStart, 0)
+                    End If
+
                     ' Line ends in comment
                     ' Two cases a line ending comment or _ comment
                     If tokenOpt.HasValue Then
