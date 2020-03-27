@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // nullability from these symbols.  This also ensures we can do reference-equality checks later as
                     // stripping nullability returns the underlying symbol and does not produce new symbols with the
                     // updated nullability value.
-                    x = xType.WithNullableAnnotation(NullableAnnotation.None);
-                    y = yType.WithNullableAnnotation(NullableAnnotation.None);
+
+                    x = xType.WithNullableAnnotation(xType.IsValueType ? NullableAnnotation.NotAnnotated : NullableAnnotation.None);
+                    y = yType.WithNullableAnnotation(yType.IsValueType ? NullableAnnotation.NotAnnotated : NullableAnnotation.None);
                 }
 
                 if (ReferenceEquals(x, y))
