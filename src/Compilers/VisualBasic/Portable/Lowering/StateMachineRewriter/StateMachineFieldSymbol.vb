@@ -34,7 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    slotIndex:=-1,
                    accessibility:=accessibility,
                    isReadOnly:=isReadOnly,
-                   isShared:=isShared)
+                   isShared:=isShared,
+                   isSpecialNameAndRuntimeSpecial:=isSpecialNameAndRuntimeSpecial)
         End Sub
 
         Public Sub New(stateMachineType As NamedTypeSymbol,
@@ -55,7 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    slotIndex:=slotindex,
                    accessibility:=accessibility,
                    isReadOnly:=isReadOnly,
-                   isShared:=isShared)
+                   isShared:=isShared,
+                   isSpecialNameAndRuntimeSpecial:=isSpecialNameAndRuntimeSpecial)
         End Sub
 
         Public Sub New(stateMachineType As NamedTypeSymbol,
