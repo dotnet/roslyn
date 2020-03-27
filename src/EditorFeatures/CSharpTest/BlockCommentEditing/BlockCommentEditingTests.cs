@@ -144,7 +144,7 @@ $$";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             Verify(code, expected);
         }
@@ -243,7 +243,7 @@ $$*
             var expected = @"
     /*
      *
-     * $$
+     *$$
 ";
             Verify(code, expected);
         }
@@ -342,7 +342,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*
+     $$*
      */
 ";
             Verify(code, expected);
@@ -359,7 +359,7 @@ $$*
             var expected = @"
     /*
      *************
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -376,7 +376,7 @@ $$*
             var expected = @"
     /**
      *
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -392,7 +392,7 @@ $$*
             var expected = @"
     /**
       *
-      * $$
+      *$$
 ";
             Verify(code, expected);
         }
@@ -454,7 +454,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*/
+     $$*/
 ";
             Verify(code, expected);
         }
@@ -528,7 +528,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$";
+     * $$";
             Verify(code, expected);
         }
 
@@ -566,7 +566,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             VerifyTabs(code, expected);
         }

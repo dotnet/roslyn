@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -55,186 +56,199 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
         private bool TryHandleReturnKey(ITextBuffer subjectBuffer, ITextView textView)
         {
             if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
-            {
                 return false;
-            }
 
             var caretPosition = textView.GetCaretPoint(subjectBuffer);
             if (caretPosition == null)
-            {
                 return false;
-            }
 
-            var exteriorText = GetExteriorTextForNextLine(caretPosition.Value);
+            var exteriorText = GetExteriorTextForCurrentLine(caretPosition.Value);
             if (exteriorText == null)
-            {
                 return false;
-            }
 
             using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
 
             var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
-
-            editorOperations.InsertNewLine();
-            editorOperations.InsertText(exteriorText);
+            editorOperations.ReplaceText(GetReplacementSpan(caretPosition.Value), exteriorText);
 
             transaction.Complete();
             return true;
         }
 
-        private string GetExteriorTextForNextLine(SnapshotPoint caretPosition)
+        private Span GetReplacementSpan(SnapshotPoint caretPosition)
+        {
+            // We want to replace all the whitespace following the caret.  This is standard <enter> behavior in VS that
+            // we want to mimic.
+            var snapshot = caretPosition.Snapshot;
+            var start = caretPosition.Position;
+            var end = caretPosition;
+            while (end < snapshot.Length && char.IsWhiteSpace(end.GetChar()) && !SyntaxFacts.IsNewLine(end.GetChar()))
+                end = end + 1;
+
+            return Span.FromBounds(start, end);
+        }
+
+        private string GetExteriorTextForCurrentLine(SnapshotPoint caretPosition)
         {
             var currentLine = caretPosition.GetContainingLine();
-
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
             if (firstNonWhitespacePosition == -1)
+                return null;
+
+            var startsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", ignoreCase: false);
+            var startsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
+            var startsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", ignoreCase: false);
+
+            if (!startsWithBlockCommentStartString &&
+                !startsWithBlockCommentMiddleString)
             {
                 return null;
             }
 
-            var currentLineStartsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", ignoreCase: false);
-            var currentLineStartsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
-            var currentLineStartsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", ignoreCase: false);
+            if (!IsCaretInsideBlockCommentSyntax(caretPosition, out var document, out var blockComment))
+                return null;
 
-            if (!currentLineStartsWithBlockCommentStartString && !currentLineStartsWithBlockCommentMiddleString)
+            var textSnapshot = caretPosition.Snapshot;
+
+            // The whitespace indentation on the line where the block-comment starts.
+            var commentIndentation = textSnapshot.GetText(Span.FromBounds(
+                textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start).Start,
+                blockComment.FullSpan.Start));
+
+            // The whitespace indentation on the current line up to the first non-whitespace char.
+            var lineIndentation = textSnapshot.GetText(Span.FromBounds(
+                currentLine.Start,
+                firstNonWhitespacePosition));
+
+            var exteriorText = GetExteriorText();
+            if (exteriorText == null)
+                return null;
+
+            var options = document.Project.Solution.Options;
+            var newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+            return newLine + exteriorText;
+
+            string GetExteriorText()
             {
+                if (startsWithBlockCommentStartString)
+                {
+                    if (BlockCommentEndsRightAfterCaret(caretPosition))
+                    {
+                        //      /*|*/
+                        return commentIndentation + " ";
+                    }
+                    else if (caretPosition == firstNonWhitespacePosition + 1)
+                    {
+                        //      /|*
+                        return null; // The newline inserted could break the syntax in a way that this handler cannot fix, let's leave it.
+                    }
+                    else
+                    {
+                        //      /*|
+                        // This is directly after the comment starts.  Insert ' * ' to continue the comment and to put
+                        // the user one space in.  This is the idiomatic style for C#.  Note: if the user is hitting
+                        // enter after
+                        //
+                        //  /*
+                        //   *
+                        //   *$$
+                        //
+                        // Then we don't add the space.  In this case, they are indicating they don't want this extra
+                        // space added.
+                        var padding = GetPaddingAfterCommentCharacter();
+                        return commentIndentation + " *" + (padding == "" ? " " : padding);
+                    }
+                }
+
+                if (startsWithBlockCommentEndString)
+                {
+                    if (BlockCommentEndsRightAfterCaret(caretPosition))
+                    {
+                        //      /*
+                        //      |*/
+                        return commentIndentation + " ";
+                    }
+                    else if (caretPosition == firstNonWhitespacePosition + 1)
+                    {
+                        //      *|/
+                        return lineIndentation + "*";
+                    }
+                    else
+                    {
+                        //      /*
+                        //   |   */
+                        return commentIndentation + " ";
+                    }
+                }
+
+                if (startsWithBlockCommentMiddleString)
+                {
+                    if (BlockCommentEndsRightAfterCaret(caretPosition))
+                    {
+                        //      *|*/
+                        return lineIndentation;
+                    }
+                    else if (caretPosition > firstNonWhitespacePosition)
+                    {
+                        //      *|
+                        return lineIndentation + "*" + GetPaddingAfterCommentCharacter();
+                    }
+                    else
+                    {
+                        //      /*
+                        //   |   *
+                        return commentIndentation + " ";
+                    }
+                }
+
                 return null;
             }
 
-            if (!IsCaretInsideBlockCommentSyntax(caretPosition))
+            string GetPaddingAfterCommentCharacter()
             {
-                return null;
-            }
+                var currentChar = firstNonWhitespacePosition;
+                Debug.Assert(textSnapshot[currentChar] == '/' || textSnapshot[currentChar] == '*');
 
-            if (currentLineStartsWithBlockCommentStartString)
-            {
-                if (BlockCommentEndsRightAfterCaret(caretPosition))
-                {
-                    //      /*|*/
-                    return " ";
-                }
-                else if (caretPosition == firstNonWhitespacePosition + 1)
-                {
-                    //      /|*
-                    return null; // The newline inserted could break the syntax in a way that this handler cannot fix, let's leave it.
-                }
-                else
-                {
-                    //      /*|
-                    return " *" + GetPaddingOrIndentation(currentLine, caretPosition, firstNonWhitespacePosition, "/*");
-                }
-            }
+                // Skip past the first comment char.
+                currentChar++;
 
-            if (currentLineStartsWithBlockCommentEndString)
-            {
-                if (BlockCommentEndsRightAfterCaret(caretPosition))
-                {
-                    //      /*
-                    //      |*/
-                    return " ";
-                }
-                else if (caretPosition == firstNonWhitespacePosition + 1)
-                {
-                    //      *|/
-                    return "*";
-                }
-                else
-                {
-                    //      /*
-                    //   |   */
-                    return " * ";
-                }
-            }
+                // Skip past any banner of ****'s 
+                while (currentChar < caretPosition && textSnapshot[currentChar] == '*')
+                    currentChar++;
 
-            if (currentLineStartsWithBlockCommentMiddleString)
-            {
-                if (BlockCommentEndsRightAfterCaret(caretPosition))
-                {
-                    //      *|*/
-                    return "";
-                }
-                else if (caretPosition > firstNonWhitespacePosition)
-                {
-                    //      *|
-                    return "*" + GetPaddingOrIndentation(currentLine, caretPosition, firstNonWhitespacePosition, "*");
-                }
-                else
-                {
-                    //      /*
-                    //   |   *
-                    return " * ";
-                }
-            }
+                var start = currentChar;
+                while (currentChar < caretPosition && char.IsWhiteSpace(textSnapshot[currentChar]))
+                    currentChar++;
 
-            return null;
+                return textSnapshot.GetText(Span.FromBounds(start, currentChar));
+            }
         }
 
         private static bool BlockCommentEndsRightAfterCaret(SnapshotPoint caretPosition)
         {
             var snapshot = caretPosition.Snapshot;
-            return ((int)caretPosition + 2 <= snapshot.Length) ? snapshot.GetText(caretPosition, 2) == "*/" : false;
+            return (int)caretPosition + 2 <= snapshot.Length && snapshot.GetText(caretPosition, 2) == "*/";
         }
 
-        private static string GetPaddingOrIndentation(ITextSnapshotLine currentLine, int caretPosition, int firstNonWhitespacePosition, string exteriorText)
+        public static bool IsCaretInsideBlockCommentSyntax(
+            SnapshotPoint caretPosition, out Document document, out SyntaxTrivia trivia)
         {
-            Debug.Assert(caretPosition >= firstNonWhitespacePosition + exteriorText.Length);
+            trivia = default;
 
-            var firstNonWhitespaceOffset = firstNonWhitespacePosition - currentLine.Start;
-            Debug.Assert(firstNonWhitespaceOffset > -1);
-
-            var lineText = currentLine.GetText();
-            if (lineText.Length == firstNonWhitespaceOffset + exteriorText.Length)
-            {
-                //     *|
-                return " ";
-            }
-
-            var interiorText = lineText.Substring(firstNonWhitespaceOffset + exteriorText.Length);
-            var interiorFirstNonWhitespaceOffset = interiorText.GetFirstNonWhitespaceOffset() ?? -1;
-
-            if (interiorFirstNonWhitespaceOffset == 0)
-            {
-                //    /****|
-                return " ";
-            }
-
-            var interiorFirstWhitespacePosition = firstNonWhitespacePosition + exteriorText.Length;
-            if (interiorFirstNonWhitespaceOffset == -1 || caretPosition <= interiorFirstWhitespacePosition + interiorFirstNonWhitespaceOffset)
-            {
-                // *  |
-                // or
-                // *  |  1.
-                //  ^^
-                return currentLine.Snapshot.GetText(interiorFirstWhitespacePosition, caretPosition - interiorFirstWhitespacePosition);
-            }
-            else
-            {
-                // *   1. |
-                //  ^^^
-                return currentLine.Snapshot.GetText(interiorFirstWhitespacePosition, interiorFirstNonWhitespaceOffset);
-            }
-        }
-
-        public static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
-        {
             var snapshot = caretPosition.Snapshot;
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return false;
-            }
 
             var syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
-            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
+            trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
             if (isBlockComment)
             {
                 var span = trivia.FullSpan;
                 if (span.Start < caretPosition && caretPosition < span.End)
-                {
                     return true;
-                }
 
                 // FindTriviaAndAdjustForEndOfFile always returns something if position is EOF,
                 // whether or not the result includes the position.
@@ -246,16 +260,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 if (caretPosition == snapshot.Length)
                 {
                     if (span.Length < "/**/".Length)
-                    {
                         return true;
-                    }
 
                     // If the block comment is not closed, SyntaxTrivia contains diagnostics
                     // So when the SyntaxTrivia is clean, the block comment should be closed
                     if (!trivia.ContainsDiagnostics)
-                    {
                         return false;
-                    }
 
                     var textBeforeCaret = snapshot.GetText(caretPosition.Position - 2, 2);
                     return textBeforeCaret != "*/";

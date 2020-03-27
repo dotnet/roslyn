@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,15 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return null;
 
             var trivia = triviaOpt.Value;
-            if (!trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+            if (!trivia.IsSingleOrMultiLineComment() && !trivia.IsDocComment())
                 return null;
 
-            var line = indenter.Text.Lines.GetLineFromPosition(trivia.SpanStart);
-            if (line.GetFirstNonWhitespacePosition() != trivia.SpanStart)
+            var line = indenter.Text.Lines.GetLineFromPosition(trivia.FullSpan.Start);
+            if (line.GetFirstNonWhitespacePosition() != trivia.FullSpan.Start)
                 return null;
 
             // Previous line just contained this single line comment.  Align us with it.
-            return new IndentationResult(trivia.SpanStart, 0);
+            return new IndentationResult(trivia.FullSpan.Start, 0);
         }
 
         private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxToken? tokenOpt)
