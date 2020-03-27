@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var textSnapshot = caretPosition.Snapshot;
 
             // Now that we've found the real start of the comment, ensure that it's accurate with our quick textual check.
-            containsBlockCommentStartString = currentLine == textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start);
+            containsBlockCommentStartString = currentLine.LineNumber == textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start).LineNumber;
 
             // The whitespace indentation on the line where the block-comment starts.
             var commentIndentation = GetCommentIndentation();
@@ -179,19 +179,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 }
                 else
                 {
-                    //      /*|
-                    // This is directly after the comment starts.  Insert ' * ' to continue the comment and to put
-                    // the user one space in.  This is the idiomatic style for C#.  Note: if the user is hitting
-                    // enter after
+                    // /*|    or  /*   |
                     //
-                    //  /*
-                    //   *
-                    //   *$$
-                    //
-                    // Then we don't add the space.  In this case, they are indicating they don't want this extra
-                    // space added.
-                    var padding = GetPaddingAfterCommentCharacter();
-                    return commentIndentation + " *" + (padding == "" ? " " : padding);
+                    // In the latter case, keep the whitespace the user has typed.  in the former, insert at least one
+                    // space. This is the idiomatic style for C#.
+                    var whitespace = GetWhitespaceBetweenCommentAsteriskAndCaret();
+                    return commentIndentation + " *" + (whitespace == "" ? " " : whitespace);
                 }
             }
 
@@ -225,8 +218,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 }
                 else if (caretPosition > firstNonWhitespacePosition)
                 {
+                    //     /*
+                    //      *
                     //      *|
-                    return lineIndentation + "*" + GetPaddingAfterCommentCharacter();
+                    //
+                    // We don't add a space here. If the user isn't adding spaces at this point, we respect that and
+                    // continue with that style.
+                    return lineIndentation + "*" + GetWhitespaceBetweenCommentAsteriskAndCaret();
                 }
                 else
                 {
@@ -236,21 +234,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 }
             }
 
-            string GetPaddingAfterCommentCharacter()
+            // Returns the whitespace after the * in either '/*' or just '*' and the caret.
+            string GetWhitespaceBetweenCommentAsteriskAndCaret()
             {
                 var currentChar = containsBlockCommentStartString
                     ? blockComment.FullSpan.Start
                     : firstNonWhitespacePosition;
 
-                // Skip past the first comment char.
-                currentChar++;
+                if (textSnapshot[currentChar] == '/')
+                    currentChar++;
 
-                // Skip past any banner of ****'s 
-                while (currentChar < caretPosition && textSnapshot[currentChar] == '*')
+                if (textSnapshot[currentChar] == '*')
                     currentChar++;
 
                 var start = currentChar;
-                while (currentChar < caretPosition && char.IsWhiteSpace(textSnapshot[currentChar]))
+                while (currentChar < caretPosition && SyntaxFacts.IsWhitespace(textSnapshot[currentChar]))
                     currentChar++;
 
                 return textSnapshot.GetText(Span.FromBounds(start, currentChar));

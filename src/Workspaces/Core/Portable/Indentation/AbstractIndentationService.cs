@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
         {
             var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var baseIndentationRule = formattingRuleFactory.CreateRule(document, position);
 
             var formattingRules = new[] { baseIndentationRule, this.GetSpecializedIndentationFormattingRule(indentStyle) }.Concat(Formatter.GetDefaultFormattingRules(document));
