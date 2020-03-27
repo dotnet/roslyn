@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
 
         protected override bool TryInitializeImplicitConversionState(
            SemanticDocument document,

@@ -4,12 +4,8 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {

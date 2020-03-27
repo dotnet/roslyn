@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Options
 {

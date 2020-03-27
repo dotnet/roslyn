@@ -6,7 +6,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;

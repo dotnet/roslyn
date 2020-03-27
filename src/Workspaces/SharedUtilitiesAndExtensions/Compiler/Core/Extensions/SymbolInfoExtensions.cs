@@ -34,11 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ISymbol? GetAnySymbol(this SymbolInfo info)
-        {
-            return info.Symbol != null
-                ? info.Symbol
-                : info.CandidateSymbols.FirstOrDefault();
-        }
+            => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
 
         public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
         {

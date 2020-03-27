@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         protected abstract IVirtualCharService GetVirtualCharService();
+
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -56,8 +59,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                GetVirtualCharService(), interpolation, out _, out var alignment, out _, out var formatString,
-                out var unnecessaryLocations);
+                GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
+                out var formatString, out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {
