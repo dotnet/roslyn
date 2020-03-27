@@ -4087,7 +4087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IsCompareExchangeMethod(MethodSymbol method)
+        private bool IsCompareExchangeMethod(MethodSymbol method)
         {
             if (method is null)
             {
