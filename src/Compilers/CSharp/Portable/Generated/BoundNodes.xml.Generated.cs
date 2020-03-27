@@ -9274,12 +9274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
         {
             BoundMethodGroup operand = (BoundMethodGroup)this.Visit(node.Operand);
-            TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(operand);
         }
         public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
-            TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.TargetMethod, type);
         }
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
