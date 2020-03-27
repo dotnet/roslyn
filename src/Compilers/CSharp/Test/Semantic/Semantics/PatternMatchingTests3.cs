@@ -4126,5 +4126,91 @@ CASES
                 }
             }
         }
+
+        [Fact]
+        public void ByteEnumConstantPattern()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        switch (initializer.Kind)
+        {
+            case BoundKind.CollectionElementInitializer:
+                Console.WriteLine(true);
+                break;
+            default:
+                Console.WriteLine(false);
+                break;
+        }
+    }
+    static void Main2()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        if (initializer.Kind is BoundKind.CollectionElementInitializer)
+        {
+            Console.WriteLine(true);
+        }
+        else
+        {
+            Console.WriteLine(false);
+        }
+    }
+    static void Main3()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        if (initializer.Kind == BoundKind.CollectionElementInitializer)
+        {
+            Console.WriteLine(true);
+        }
+        else
+        {
+            Console.WriteLine(false);
+        }
+    }
+}
+
+enum BoundKind: byte
+{
+    CollectionElementInitializer = 0x94,
+}
+class BoundCollectionElementInitializer: BoundNode
+{
+    public BoundCollectionElementInitializer() : base(BoundKind.CollectionElementInitializer) { }
+}
+class BoundNode
+{
+    public readonly BoundKind Kind;
+    public BoundNode(BoundKind kind) => this.Kind = kind;
+}
+";
+            string expectedOutput = "True";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       31 (0x1f)
+      .maxstack  2
+      IL_0000:  newobj     ""BoundCollectionElementInitializer..ctor()""
+      IL_0005:  ldfld      ""BoundKind BoundNode.Kind""
+      IL_000a:  ldc.i4     0x94
+      IL_000f:  bne.un.s   IL_0018
+      IL_0011:  ldc.i4.1
+      IL_0012:  call       ""void System.Console.WriteLine(bool)""
+      IL_0017:  ret
+      IL_0018:  ldc.i4.0
+      IL_0019:  call       ""void System.Console.WriteLine(bool)""
+      IL_001e:  ret
+    }
+";
+            compVerifier.VerifyIL("C.Main", code);
+            compVerifier.VerifyIL("C.Main2", code);
+            compVerifier.VerifyIL("C.Main3", code);
+        }
     }
 }

@@ -290,8 +290,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected BoundExpression MakeRelationalTest(SyntaxNode syntax, BoundExpression input, BinaryOperatorKind operatorKind, ConstantValue value)
             {
+                if (input.Type.SpecialType == SpecialType.System_Double && double.IsNaN(value.DoubleValue) ||
+                    input.Type.SpecialType == SpecialType.System_Single && float.IsNaN(value.SingleValue))
+                {
+                    Debug.Assert(operatorKind.Operator() == BinaryOperatorKind.Equal);
+                    return _factory.MakeIsNanTest(input);
+                }
+
+                BoundExpression literal = _localRewriter.MakeLiteral(syntax, value, input.Type);
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
-                BoundExpression literal;
                 if (operatorKind.OperandTypes() == BinaryOperatorKind.Int && comparisonType.SpecialType != SpecialType.System_Int32)
                 {
                     // Promote operands to int before comparison for byte, sbyte, short, ushort
@@ -305,18 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     });
                     comparisonType = _factory.SpecialType(SpecialType.System_Int32);
                     input = _factory.Convert(comparisonType, input);
-                    literal = _factory.Literal(value.Int32Value);
-                }
-                else
-                {
-                    literal = _localRewriter.MakeLiteral(syntax, value, input.Type);
-                }
-
-                if (literal.Type.SpecialType == SpecialType.System_Double && double.IsNaN(value.DoubleValue) ||
-                    literal.Type.SpecialType == SpecialType.System_Single && float.IsNaN(value.SingleValue))
-                {
-                    Debug.Assert(operatorKind.Operator() == BinaryOperatorKind.Equal);
-                    return _factory.MakeIsNanTest(input);
+                    literal = _factory.Convert(comparisonType, literal);
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
