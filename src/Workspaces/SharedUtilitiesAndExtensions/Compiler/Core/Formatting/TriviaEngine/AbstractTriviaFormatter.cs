@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly SyntaxToken Token1;
         protected readonly SyntaxToken Token2;
 
-        private readonly string _language;
         private readonly int _indentation;
         private readonly bool _firstLineBlank;
 
@@ -82,15 +81,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             this.Token1 = token1;
             this.Token2 = token2;
-
-            if (token1 == default)
-            {
-                _language = token2.Language;
-            }
-            else
-            {
-                _language = token1.Language;
-            }
 
             this.LineBreaks = lineBreaks;
             this.Spaces = spaces;
@@ -224,8 +214,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get { return this.Context.Options; }
         }
-
-        protected string Language => _language;
 
         protected TokenStream TokenStream
         {
