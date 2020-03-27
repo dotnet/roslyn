@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
         Public ReadOnly Property Options As ImmutableArray(Of IOption) Implements IOptionProvider.Options
             Get
-                Return VisualBasicCodeStyleOptions.AllOptions
+                Return VisualBasicCodeStyleOptions.AllOptions.As(Of IOption)
             End Get
         End Property
     End Class

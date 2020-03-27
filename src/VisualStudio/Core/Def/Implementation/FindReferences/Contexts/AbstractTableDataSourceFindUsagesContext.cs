@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportProgressAsync(int current, int maximum)
+            protected sealed override Task ReportProgressAsync(int current, int maximum)
             {
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // Right now VS actually responds to each SetProgess call by enqueueing a UI task

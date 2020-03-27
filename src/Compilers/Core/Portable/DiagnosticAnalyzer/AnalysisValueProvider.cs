@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new WrappedValue { Value = value };
         }
 
-        internal bool TryGetValue(TKey key, out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNull] [NotNullWhen(true)] out TValue value)
         {
             // Catch any exceptions from the computeValue callback, which calls into user code.
             try
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception)
             {
-                value = default(TValue);
+                value = default;
                 return false;
             }
         }

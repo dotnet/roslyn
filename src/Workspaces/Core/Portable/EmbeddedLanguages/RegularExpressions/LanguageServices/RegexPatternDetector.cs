@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector =
-            new Regex(@"\blang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new Regex(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
@@ -90,36 +90,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 semanticModel, info, regexType, methodNamesOfInterest);
         }
 
-        public static bool IsDefinitelyNotPattern(SyntaxToken token, ISyntaxFacts syntaxFacts)
+        public static bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
-            {
-                return true;
-            }
+                return false;
 
-            if (!IsMethodOrConstructorArgument(token, syntaxFacts) &&
-                !HasRegexLanguageComment(token, syntaxFacts, out _))
-            {
-                return true;
-            }
-
-            return false;
+            return IsMethodOrConstructorArgument(token, syntaxFacts) ||
+                   HasRegexLanguageComment(token, syntaxFacts, out _);
         }
 
         private static bool HasRegexLanguageComment(
             SyntaxToken token, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             if (HasRegexLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
-            {
                 return true;
-            }
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (HasRegexLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
-                {
                     return true;
-                }
+
+                // Stop walking up once we hit a statement.  We don't need/want statements higher up the parent chain to
+                // have any impact on this token.
+                if (syntaxFacts.IsStatement(node))
+                    break;
             }
 
             options = default;
@@ -219,7 +213,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public bool IsRegexPattern(SyntaxToken token, CancellationToken cancellationToken, out RegexOptions options)
         {
             options = default;
-            if (IsDefinitelyNotPattern(token, _info.SyntaxFacts))
+            if (!IsPossiblyPatternToken(token, _info.SyntaxFacts))
             {
                 return false;
             }

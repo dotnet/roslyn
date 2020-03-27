@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion fastConversion = FastClassifyConversion(sourceType, destination);
                 if (fastConversion.Exists)
                 {
-                    return fastConversion.IsImplicit ? fastConversion : Conversion.NoConversion;
+                    if (fastConversion.IsImplicit)
+                    {
+                        return fastConversion;
+                    }
                 }
                 else
                 {

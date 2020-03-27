@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var indentSwitchCase = options.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
-            var indentSwitchCaseWhenBlock = options.GetOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock);
+            var indentSwitchCase = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection);
+            var indentSwitchCaseWhenBlock = options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock);
             if (!indentSwitchCase && !indentSwitchCaseWhenBlock)
             {
                 // Never indent
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // label statement
             if (node is LabeledStatementSyntax labeledStatement)
             {
-                var labelPositioningOption = options.GetOption(CSharpFormattingOptions.LabelPositioning);
+                var labelPositioningOption = options.GetOption(CSharpFormattingOptions2.LabelPositioning);
 
                 if (labelPositioningOption == LabelPositionOptions.OneLess)
                 {
@@ -197,13 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
-            if (node is BlockSyntax && !options.GetOption(CSharpFormattingOptions.IndentBlock))
+            if (node is BlockSyntax && !options.GetOption(CSharpFormattingOptions2.IndentBlock))
             {
                 // do not add indent operation for block
                 return;
             }
 
-            if (node is SwitchStatementSyntax && !options.GetOption(CSharpFormattingOptions.IndentSwitchSection))
+            if (node is SwitchStatementSyntax && !options.GetOption(CSharpFormattingOptions2.IndentSwitchSection))
             {
                 // do not add indent operation for switch statement
                 return;

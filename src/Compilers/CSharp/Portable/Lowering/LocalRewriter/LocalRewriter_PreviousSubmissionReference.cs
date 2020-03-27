@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -13,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var targetType = (ImplicitNamedTypeSymbol)node.Type;
             Debug.Assert(targetType.TypeKind == TypeKind.Submission);
-            Debug.Assert(!_factory.TopLevelMethod.IsStatic);
+            Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
+            Debug.Assert(_factory.CurrentType is { });
 
             Debug.Assert(_previousSubmissionFields != null);
 

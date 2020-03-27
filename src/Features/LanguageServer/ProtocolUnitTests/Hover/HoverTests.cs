@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
             var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n> A great method");
 
-            var results = await RunGetHoverAsync(solution, expectedLocation).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
         }
 
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGetHoverAsync(solution, locations["caret"].Single()).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, locations["caret"].Single()).ConfigureAwait(false);
             Assert.Null(results);
         }
 

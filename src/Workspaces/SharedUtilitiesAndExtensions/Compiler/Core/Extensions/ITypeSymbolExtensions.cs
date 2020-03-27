@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // immutable, treat it as potentially mutable.
                 foreach (var attributeData in type.ContainingAssembly.GetAttributes())
                 {
-                    if (attributeData.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                    if (attributeData.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
                         && attributeData.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName)
                     {
                         return null;
