@@ -113,7 +113,7 @@ namespace Roslyn.Utilities
             AddWork(items);
         }
 
-        public void AddWork(ArrayBuilder<TItem> items)
+        public void AddWork(IEnumerable<TItem> items)
         {
             // Don't do any more work if we've been asked to shutdown.
             if (_cancellationToken.IsCancellationRequested)
@@ -127,7 +127,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void AddItemsToBatch(ArrayBuilder<TItem> items)
+        private void AddItemsToBatch(IEnumerable<TItem> items)
         {
             // no equality comparer.  We want to process all items.
             if (_equalityComparer == null)

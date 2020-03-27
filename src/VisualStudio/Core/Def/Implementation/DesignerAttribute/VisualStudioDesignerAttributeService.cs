@@ -317,9 +317,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
-
-            using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var temp);
-            temp.AddRange(data);
             _workQueue.AddWork(temp);
             return Task.CompletedTask;
         }
