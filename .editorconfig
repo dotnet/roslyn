@@ -16,7 +16,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 # Xml project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,runsettings}]
 indent_size = 2
 
 # Xml config files
