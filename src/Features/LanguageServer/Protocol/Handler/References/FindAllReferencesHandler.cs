@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task<LSP.VSReferenceItem[]> GetReferenceItemsAsync(LSP.ReferenceParams request, SimpleFindUsagesContext context, CancellationToken cancellationToken)
         {
+            // Mapping each reference to its definition
             var definitionMap = new Dictionary<DefinitionItem, List<SourceReferenceItem>>();
             foreach (var reference in context.GetReferences())
             {
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 definitionMap[reference.Definition].Add(reference);
             }
 
-            // Parts of FAR currently do not display correctly due to a bug in VSReferenceItem on the LSP side.
+            // NOTE: Parts of FAR currently do not display correctly due to a bug in LSP.VSReferenceItem.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1088938/
             var referenceItems = ArrayBuilder<LSP.VSReferenceItem>.GetInstance();
 
@@ -100,7 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var references = definitionAndReferencesPair.Value;
                 foreach (var reference in references)
                 {
-                    var referenceItem = await GenerateReferenceItem(id, definitionId, reference.SourceSpan, context, reference.AdditionalProperties, cancellationToken).ConfigureAwait(false);
+                    var referenceItem = await GenerateReferenceItem(id, definitionId, reference.SourceSpan, context, reference.AdditionalProperties, cancellationToken,
+                        symbolUsageInfo: reference.SymbolUsageInfo).ConfigureAwait(false);
                     referenceItems.Add(referenceItem);
                     id++;
                 };
@@ -108,28 +111,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return referenceItems.ToArrayAndFree();
 
-            static async Task<VSReferenceItem> GenerateReferenceItem(
+            static async Task<LSP.VSReferenceItem> GenerateReferenceItem(
                 int id,
                 int? definitionId,
                 DocumentSpan documentSpan,
                 SimpleFindUsagesContext context,
                 ImmutableDictionary<string, string> properties,
                 CancellationToken cancellationToken,
-                ClassifiedTextElement definitionText = null)
+                ClassifiedTextElement definitionText = null,
+                SymbolUsageInfo? symbolUsageInfo = null)
             {
                 var location = await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, context.CancellationToken).ConfigureAwait(false);
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await documentSpan.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
+                // TO-DO: The Origin property should be added once Rich-Nav is completed.
+                // https://github.com/dotnet/roslyn/issues/42847
                 return new LSP.VSReferenceItem
                 {
                     ContainingMember = properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
                     ContainingType = properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
-                    DefinitionId = definitionId,
+                    DefinitionId = definitionId,    // DefinitionId will be the same as Id for definitions
                     DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
+                    DisplayPath = location.Uri.LocalPath,
                     DocumentName = documentSpan.Document.Name,
                     Id = id,
+                    Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : new ReferenceKind[] { },
                     Location = new LSP.Location { Range = location.Range, Uri = location.Uri },
                     ProjectName = documentSpan.Document.Project.Name,
                     ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
