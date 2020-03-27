@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
+using System.Windows;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -38,7 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    dialog.NameContentControl.Text = parameterName;
+                    ((IntellisenseTextBox)dialog.NameContentControl.Content).Text = parameterName;
                 });
             }
         }
@@ -51,7 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    dialog.TypeContentControl.Text = typeName;
+                    ((IntellisenseTextBox)dialog.TypeContentControl.Content).Text = typeName;
                 });
             }
         }
