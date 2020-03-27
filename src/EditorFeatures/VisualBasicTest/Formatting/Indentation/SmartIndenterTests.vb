@@ -179,7 +179,7 @@ End Module
             AssertSmartIndent(
                 code,
                 indentationLine:=1,
-                expectedIndentation:=0)
+                expectedIndentation:=8)
         End Sub
 
         <WpfFact>

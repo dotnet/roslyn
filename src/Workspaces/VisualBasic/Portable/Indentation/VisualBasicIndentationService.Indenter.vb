@@ -32,16 +32,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             If triviaOpt.HasValue Then
                 Dim trivia = triviaOpt.Value
 
+                If trivia.Kind = SyntaxKind.CommentTrivia OrElse
+                   trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
+
+                    ' if the comment is the only thing on a line, then preserve its indentation for the next line.
+                    Dim line = indenter.Text.Lines.GetLineFromPosition(trivia.FullSpan.Start)
+                    If line.GetFirstNonWhitespacePosition() = trivia.FullSpan.Start Then
+                        Return New IndentationResult(trivia.FullSpan.Start, 0)
+                    End If
+                End If
+
                 ' preserve the indentation of the comment trivia before a case statement
                 If trivia.Kind = SyntaxKind.CommentTrivia Then
                     If trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso
                        trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                        Return New IndentationResult(trivia.SpanStart, 0)
-                    End If
-
-                    ' if the comment is the only thing on a line, then preserve its indentation for the next line.
-                    Dim line = indenter.Text.Lines.GetLineFromPosition(trivia.SpanStart)
-                    If line.GetFirstNonWhitespacePosition() = trivia.SpanStart Then
                         Return New IndentationResult(trivia.SpanStart, 0)
                     End If
 
