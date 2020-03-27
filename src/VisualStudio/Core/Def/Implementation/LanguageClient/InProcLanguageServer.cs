@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Utilities.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -248,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// When we get empty diagnostics for the document we need to find the uris we previously published for this document.
         /// Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic contributions from other documents).
         /// </summary>
-        private readonly Dictionary<DocumentId, ImmutableArray<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableArray<Uri>>();
+        private readonly Dictionary<DocumentId, ImmutableHashSet<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableHashSet<Uri>>();
 
         private async Task PublishDiagnosticsAsync(Document document)
         {
@@ -256,15 +255,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
 
             // Get the list of file uris with diagnostics (for the document).
-            // If we found no diagnostics use previously published uris so we can clear out diagnostics from this document.
-            var urisForCurrentDocument = fileUriToDiagnostics.Keys.Any() ? fileUriToDiagnostics.Keys.ToImmutableArray()
-                : GetOrEmpty(_documentsToPublishedUris, document.Id);
+            // We need to join the uris from current diagnostics with those previously published
+            // so that we clear out any diagnostics in mapped files that are no longer a part
+            // of the current diagnostics set (because the diagnostics was fixed).
+            var urisForCurrentDocument = GetOrValue(_documentsToPublishedUris, document.Id, ImmutableHashSet<Uri>.Empty).Union(fileUriToDiagnostics.Keys);
+
+            // Update the mapping for this document to be the uris we're about to publish diagnostics for.
+            _documentsToPublishedUris[document.Id] = urisForCurrentDocument;
 
             // Go through each uri and publish the updated set of diagnostics per uri.
             foreach (var fileUri in urisForCurrentDocument)
             {
                 // Get the updated diagnostics for a single uri that were contributed by the current document.
-                var diagnostics = GetOrEmpty(fileUriToDiagnostics, fileUri);
+                var diagnostics = GetOrValue(fileUriToDiagnostics, fileUri, ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty);
 
                 if (_publishedFileToDiagnostics.ContainsKey(fileUri))
                 {
@@ -279,13 +282,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 await SendDiagnosticsNotificationAsync(fileUri, diagnostics).ConfigureAwait(false);
 
+                if (diagnostics.IsEmpty)
+                {
+                    // We published an empty set of diagnostics for this uri.  We no longer need to keep track of this mapping
+                    // since there will be no previous diagnostics that we need to clear out.
+                    _documentsToPublishedUris[document.Id] = _documentsToPublishedUris[document.Id].Remove(fileUri);
+                }
+
                 // Update the published diagnostics map to contain the new diagnostics for this document and mapped uri.
                 _publishedFileToDiagnostics.GetOrAdd(fileUri,
                     (_) => { return new Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>(); })[document.Id] = diagnostics;
             }
-
-            // Update the mapping for this document to be the uris we just published diagnostics for.
-            _documentsToPublishedUris[document.Id] = urisForCurrentDocument;
         }
 
         private async Task SendDiagnosticsNotificationAsync(Uri uri, ImmutableArray<LanguageServer.Protocol.Diagnostic> diagnostics)
@@ -359,14 +366,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
-        private static ImmutableArray<V> GetOrEmpty<K, V>(Dictionary<K, ImmutableArray<V>> dict, K key)
+        private static V GetOrValue<K, V>(Dictionary<K, V> dict, K key, V defaultValue)
         {
             if (dict.TryGetValue(key, out var immutableArray))
             {
                 return immutableArray;
             }
 
-            return ImmutableArray<V>.Empty;
+            return defaultValue;
         }
     }
 }
