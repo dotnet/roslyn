@@ -46,18 +46,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 #endif
 
-                // https://github.com/dotnet/roslyn/issues/39643 This is a temporary workaround sufficient to get existing tests passing.
-                // This component should be modified to properly deal with differences caused by nullability.
-                if (x is ITypeSymbol xType && y is ITypeSymbol yType && xType.IsDefinition != yType.IsDefinition)
+                if (x is ITypeSymbol xType && y is ITypeSymbol yType)
                 {
-                    if (x.IsDefinition)
-                    {
-                        y = yType.WithNullableAnnotationFrom(xType);
-                    }
-                    else
-                    {
-                        x = xType.WithNullableAnnotationFrom(yType);
-                    }
+                    // Nullability is not considered a distinguishing factor between symbols in this component.  Strip
+                    // nullability from these symbols.  This also ensures we can do reference-equality checks later as
+                    // stripping nullability returns the underlying symbol and does not produce new symbols with the
+                    // updated nullability value.
+                    x = xType.WithNullableAnnotation(NullableAnnotation.None);
+                    y = yType.WithNullableAnnotation(NullableAnnotation.None);
                 }
 
                 if (ReferenceEquals(x, y))
