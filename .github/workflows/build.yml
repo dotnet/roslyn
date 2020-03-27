@@ -20,6 +20,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
         - ubuntu-18.04
@@ -91,7 +92,7 @@ jobs:
       with:
         name: deployables
         path: obj/_artifacts/deployables
-      if: runner.os == 'Windows'
+      if: always() && runner.os == 'Windows'
     - name: Publish code coverage results to codecov.io
       run: bash <(curl -s https://codecov.io/bash)
       shell: bash
