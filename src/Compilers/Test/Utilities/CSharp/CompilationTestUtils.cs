@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Extensions;
@@ -348,6 +349,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbols.Select(s => s.Name).Distinct().ToList();
         }
 
+        internal static TypeInfo GetTypeInfoAndVerifyIOperation(this SemanticModel model, SyntaxNode expression)
+        {
+            var typeInfo = model.GetTypeInfo(expression);
+            var iop = model.GetOperation(expression);
+            if (typeInfo.Type is null)
+            {
+                Assert.True(iop?.Type is null ||
+                            iop is ITupleOperation { NaturalType: null });
+            }
+            else if (iop is { Type: { } })
+            {
+                Assert.Equal(typeInfo.Type.NullableAnnotation, iop.Type.NullableAnnotation);
+            }
+            else
+            {
+                Assert.True(isValidDeclaration(expression));
+
+                static bool isValidDeclaration(SyntaxNode expression)
+                    => (expression.Parent is VariableDeclarationSyntax decl && decl.Type == expression) ||
+                       (expression.Parent is ForEachStatementSyntax forEach && forEach.Type == expression) ||
+                       (expression.Parent is DeclarationExpressionSyntax declExpr && declExpr.Type == expression) ||
+                       (expression.Parent is RefTypeSyntax refType && isValidDeclaration(refType));
+            }
+
+            if (iop is { Parent: IConversionOperation parentConversion })
+            {
+                iop = parentConversion;
+            }
+
+            if (typeInfo.ConvertedType is null)
+            {
+                Assert.Null(iop?.Type);
+            }
+            else if (iop is { Type: { } })
+            {
+                Assert.Equal(typeInfo.ConvertedType.NullableAnnotation, iop.Type.NullableAnnotation);
+            }
+
+            return typeInfo;
+        }
+
         /// <summary>
         /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
         /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
@@ -383,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation =>
                     {
-                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        var typeInfo = model.GetTypeInfoAndVerifyIOperation(annotation.Expression);
                         Assert.NotEqual(CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
                         // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
                         var type = TypeWithState.Create(

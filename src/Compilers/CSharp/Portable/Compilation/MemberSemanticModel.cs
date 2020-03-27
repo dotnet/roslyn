@@ -1145,6 +1145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // Nullable suppressions are not directly represented in the bound tree. Rather, they are set
+            // as flags on the bound node underlying the node. Therefore, there is similarly no representation
+            // in the IOperation tree, and we should retrieve the IOperation node underlying the suppression.
+            if (node.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+            {
+                node = ((PostfixUnaryExpressionSyntax)node).Operand;
+            }
+
             // we might optimize it later
             // https://github.com/dotnet/roslyn/issues/22180
             return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
