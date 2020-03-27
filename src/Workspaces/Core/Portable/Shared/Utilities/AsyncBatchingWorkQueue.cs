@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,17 +22,15 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class AsyncBatchingWorkQueue<TItem>
     {
-        public delegate void AddItemsToBatch(ArrayBuilder<TItem> batch, ArrayBuilder<TItem> newItems);
-
         /// <summary>
         /// Delay we wait after finishing the processing of one batch and starting up on then.
         /// </summary>
         private readonly TimeSpan _delay;
 
         /// <summary>
-        /// Callback that actually adds items to the current batch.
+        /// Equality comparer uses to dedupe items if present.
         /// </summary>
-        private readonly AddItemsToBatch _addItemsToBatch;
+        private readonly IEqualityComparer<TItem>? _equalityComparer;
 
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
@@ -56,6 +55,12 @@ namespace Roslyn.Utilities
         private readonly ArrayBuilder<TItem> _nextBatch = ArrayBuilder<TItem>.GetInstance();
 
         /// <summary>
+        /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are added to <see
+        /// cref="_nextBatch"/>.
+        /// </summary>
+        private readonly HashSet<TItem> _uniqueItems;
+
+        /// <summary>
         /// Task kicked off to do the next batch of processing of <see cref="_nextBatch"/>. These
         /// tasks form a chain so that the next task only processes when the previous one completes.
         /// </summary>
@@ -75,8 +80,8 @@ namespace Roslyn.Utilities
             Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
             CancellationToken cancellationToken)
             : this(delay,
-                   (batch, items) => batch.AddRange(items),
                    processBatchAsync,
+                   equalityComparer: null,
                    asyncListener: null,
                    cancellationToken)
         {
@@ -86,16 +91,18 @@ namespace Roslyn.Utilities
         /// the current batch (for example, clearing the batch or deduplicating)</param>
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            AddItemsToBatch addItemsToBatch,
             Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener? asyncListener,
             CancellationToken cancellationToken)
         {
             _delay = delay;
-            _addItemsToBatch = addItemsToBatch;
             _processBatchAsync = processBatchAsync;
+            _equalityComparer = equalityComparer;
             _asyncListener = asyncListener;
             _cancellationToken = cancellationToken;
+
+            _uniqueItems = new HashSet<TItem>(equalityComparer);
         }
 
         public void AddWork(TItem item)
@@ -115,8 +122,25 @@ namespace Roslyn.Utilities
             lock (_gate)
             {
                 // add our work to the set we'll process in the next batch.
-                _addItemsToBatch(batch: _nextBatch, newItems: items);
+                AddItemsToBatch(items);
                 TryKickOffNextBatchTask();
+            }
+        }
+
+        private void AddItemsToBatch(ArrayBuilder<TItem> items)
+        {
+            // no equality comparer.  We want to process all items.
+            if (_equalityComparer == null)
+            {
+                _nextBatch.AddRange(items);
+                return;
+            }
+
+            // We're deduping items.  Only add the item if it's the first time we've seen it.
+            foreach (var item in items)
+            {
+                if (_uniqueItems.Add(item))
+                    _nextBatch.Add(item);
             }
         }
 
@@ -156,6 +180,7 @@ namespace Roslyn.Utilities
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
                 _nextBatch.Clear();
+                _uniqueItems.Clear();
                 _taskInFlight = false;
 
                 return result.ToImmutableAndFree();
