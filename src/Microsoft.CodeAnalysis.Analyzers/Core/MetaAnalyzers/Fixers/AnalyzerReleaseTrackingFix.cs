@@ -24,8 +24,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         private const string EntryFieldSeparator = "|";
         private static readonly string[] s_entryFieldSeparators = new[] { EntryFieldSeparator };
 
+        internal const string ShippedAnalyzerReleaseTrackingFileDefaultContent = @"; Shipped analyzer releases
+" + CommonAnalyzerReleaseTrackingContent;
+        internal const string UnshippedAnalyzerReleaseTrackingFileDefaultContent = @"; Unshipped analyzer release
+" + CommonAnalyzerReleaseTrackingContent;
+        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+
+";
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId);
+            ImmutableArray.Create(DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId);
 
         public override FixAllProvider GetFixAllProvider()
             => new ReleaseTrackingFixAllProvider();
@@ -65,6 +73,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         }
                         break;
 
+                    case DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId:
+                        codeAction = CodeAction.Create(
+                            CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle,
+                            cancellationToken => AddAnalyzerReleaseTrackingFilesAsync(context.Document.Project),
+                            equivalenceKey: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle);
+                        break;
+
                     default:
                         Debug.Fail($"Unsupported diagnostic ID {diagnostic.Id}");
                         continue;
@@ -77,6 +92,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             }
 
             return Task.CompletedTask;
+        }
+
+        private static Task<Solution> AddAnalyzerReleaseTrackingFilesAsync(Project project)
+        {
+            project = AddAdditionalDocument(project, DiagnosticDescriptorCreationAnalyzer.ShippedFileName, ShippedAnalyzerReleaseTrackingFileDefaultContent);
+            project = AddAdditionalDocument(project, DiagnosticDescriptorCreationAnalyzer.UnshippedFileName, UnshippedAnalyzerReleaseTrackingFileDefaultContent);
+            return Task.FromResult(project.Solution);
+
+            // Local functions.
+            static Project AddAdditionalDocument(Project project, string name, string fileContent)
+            {
+                TextDocument? additionalDocument = project.AdditionalDocuments.FirstOrDefault(doc => string.Equals(doc.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (additionalDocument == null)
+                {
+                    project = project.AddAdditionalDocument(name, fileContent).Project;
+                }
+
+                return project;
+            }
         }
 
         private static bool IsAddEntryToUnshippedFileDiagnostic(Diagnostic diagnostic, [NotNullWhen(returnValue: true)] out string? entryToAdd)

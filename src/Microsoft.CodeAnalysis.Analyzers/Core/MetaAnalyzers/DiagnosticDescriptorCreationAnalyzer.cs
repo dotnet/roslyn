@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             InvalidEntryInAnalyzerReleasesFileRule,
             InvalidHeaderInAnalyzerReleasesFileRule,
             InvalidUndetectedEntryInAnalyzerReleasesFileRule,
-            InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule);
+            InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
+            EnableAnalyzerReleaseTrackingRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -504,6 +505,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                             AnalyzeAnalyzerReleases(ruleId, argument, category, analyzerName, helpLink, isEnabledByDefault,
                                 defaultSeverity, shippedData, unshippedData, operationAnalysisContext.ReportDiagnostic);
+                        }
+                        else if (shippedData == null && unshippedData == null)
+                        {
+                            var diagnostic = argument.CreateDiagnostic(EnableAnalyzerReleaseTrackingRule, ruleId);
+                            operationAnalysisContext.ReportDiagnostic(diagnostic);
                         }
                     }
                     else
