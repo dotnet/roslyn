@@ -154,15 +154,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
-        /// TO-DO fix summary
-        /// Answers a document highlights request by returning the reference locations for a given document location.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentHighlight
+        /// Answers a document references request by returning references information associated with the symbol at a given document location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_references
         /// </summary>
         /// <param name="solution">the solution containing the request document.</param>
-        /// <param name="request">the document to get references from.</param>
+        /// <param name="request">the references request.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the reference locations for the given document location.</returns>
+        /// <returns>references information associated with the symbol at the given document location.</returns>
         public Task<object[]> GetDocumentReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => ExecuteRequestAsync<LSP.ReferenceParams, object[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken);
 
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_hover
         /// </summary>
         /// <param name="solution">the solution containing any documents in the request.</param>
-        /// <param name="request">the hover requesst.</param>
+        /// <param name="request">the hover request.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the Hover using MarkupContent.</returns>
