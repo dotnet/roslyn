@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             EnumDeclarationSyntax enumDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans, isMetadataAsSource);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)

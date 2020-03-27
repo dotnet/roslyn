@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             => GetDiagnosticLocation((TDeclaration)declaration);
 
         protected virtual Location GetDiagnosticLocation(TDeclaration declaration)
-            => this.GetBody(declaration).Statements[0].GetLocation();
+            => GetBody(declaration).Statements[0].GetLocation();
 
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             if (userPrefersExpressionBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled))
             {
-                var expressionBody = this.GetExpressionBody(declaration);
+                var expressionBody = GetExpressionBody(declaration);
                 if (expressionBody == null)
                 {
                     // They don't have an expression body.  See if we could convert the block they
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             SyntaxNode declaration, ParseOptions options, ExpressionBodyPreference conversionPreference,
             out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, out SyntaxToken semicolonWhenOnSingleLine)
         {
-            var body = this.GetBody(declaration);
+            var body = GetBody(declaration);
 
             return body.TryConvertToArrowExpressionBody(
                 declaration.Kind(), options, conversionPreference,
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            if (this.TryConvertToExpressionBodyWorker(
+            if (TryConvertToExpressionBodyWorker(
                     declaration, options, conversionPreference,
                     out arrowExpression, out semicolonToken))
             {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
             var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
-            var expressionBodyOpt = this.GetExpressionBody(declaration);
+            var expressionBodyOpt = GetExpressionBody(declaration);
             var canOffer = expressionBodyOpt?.TryConvertToBlock(
                 SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) == true;
             if (!canOffer)

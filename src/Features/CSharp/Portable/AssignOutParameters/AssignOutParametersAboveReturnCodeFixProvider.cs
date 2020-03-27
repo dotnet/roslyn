@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -84,17 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                     lambda.WithBody((CSharpSyntaxNode)newBody)
                           .WithAdditionalAnnotations(Formatter.Annotation));
             }
-        }
-
-        private static void ReplaceWithBlock(
-            SyntaxEditor editor, SyntaxNode exprOrStatement, ImmutableArray<SyntaxNode> statements)
-        {
-            editor.ReplaceNode(
-                exprOrStatement,
-                editor.Generator.ScopeBlock(statements));
-            editor.ReplaceNode(
-                exprOrStatement.Parent,
-                (c, _) => c.WithAdditionalAnnotations(Formatter.Annotation));
         }
     }
 }

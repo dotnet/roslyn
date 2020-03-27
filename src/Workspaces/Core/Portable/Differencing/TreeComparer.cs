@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             var hasParent = TryGetParent(node, out var parent);
             Debug.Assert(hasParent);
-            return parent;
+            return parent!;
         }
 
         internal TNode GetAncestor(TNode node, int level)

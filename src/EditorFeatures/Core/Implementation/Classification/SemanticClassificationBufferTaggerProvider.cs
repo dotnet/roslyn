@@ -28,20 +28,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IForegroundNotificationService _notificationService;
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
         public SemanticClassificationBufferTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _notificationService = notificationService;
-            _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
-            return new Tagger(this, buffer) as IAccurateTagger<T>;
+            return new Tagger(this, buffer, _asyncListener) as IAccurateTagger<T>;
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)

@@ -11,11 +11,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         private class GenerateDefaultConstructorCodeAction : AbstractCodeAction
         {
             public GenerateDefaultConstructorCodeAction(
-                TService service,
                 Document document,
                 State state,
                 IMethodSymbol constructor)
-                : base(service, document, state, new[] { constructor }, GetDisplayText(state, constructor))
+                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor))
             {
             }
 

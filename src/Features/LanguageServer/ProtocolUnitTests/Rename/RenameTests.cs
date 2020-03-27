@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {|renamed:M|}()
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var renameLocation = ranges["caret"].First();
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var renameLocation = locations["caret"].First();
             var renameValue = "RENAME";
-            var expectedEdits = ranges["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
-            var results = await RunRenameAsync(solution, renameLocation, renameValue);
+            var results = await RunRenameAsync(workspace.CurrentSolution, renameLocation, renameValue);
             AssertJsonEquals(expectedEdits, results.DocumentChanges.First().Edits);
         }
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 _listSyntax = listSyntax;
                 _listItems = listItems;
 
-                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());

@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
             // tuple expression.
             return SyntaxFactory.ForEachVariableStatement(
+                forEachStatement.AttributeLists,
+                forEachStatement.AwaitKeyword,
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
                 CreateTupleOrDeclarationExpression(tupleType, forEachStatement.Type),

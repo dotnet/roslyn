@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                                       .CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    this.GetSmartIndentationAfter(_exprsAndOperators[1])));
+                    GetSmartIndentationAfter(_exprsAndOperators[1])));
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
