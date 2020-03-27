@@ -638,7 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var ctor = WellKnownMethod(wm);
             return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
         }
-        public BoundExpression MakeIsNanTest(BoundExpression input)
+
+        public BoundExpression MakeIsNotANumberTest(BoundExpression input)
         {
             switch (input.Type)
             {

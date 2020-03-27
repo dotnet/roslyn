@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     input.Type.SpecialType == SpecialType.System_Single && float.IsNaN(value.SingleValue))
                 {
                     Debug.Assert(operatorKind.Operator() == BinaryOperatorKind.Equal);
-                    return _factory.MakeIsNanTest(input);
+                    return _factory.MakeIsNotANumberTest(input);
                 }
 
                 BoundExpression literal = _localRewriter.MakeLiteral(syntax, value, input.Type);

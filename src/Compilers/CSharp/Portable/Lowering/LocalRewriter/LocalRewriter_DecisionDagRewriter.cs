@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// temporary variables and use user-declared variables instead, because we can conclude that they
             /// are not mutated while the pattern-matching automaton is running.
             /// </summary>
-            protected class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+            protected sealed class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
                 private bool _mightAssignSomething;
 
@@ -437,13 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool CanDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
                 {
-                    if (loweredNodes.Contains(test2))
-                    {
-                        Debug.Assert(this._dagNodeLabels.ContainsKey(test2));
-                        return false;
-                    }
                     if (this._dagNodeLabels.ContainsKey(test2))
                         return false;
+
+                    Debug.Assert(!loweredNodes.Contains(test2));
                     var t1 = test1.Test;
                     var t2 = test2.Test;
                     if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
@@ -578,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// A node representing the dispatch by value (equality). This corresponds to a classical C switch
                 /// statement, except that it also handles values of type float, double, decimal, and string.
                 /// </summary>
-                internal class SwitchDispatch : ValueDispatchNode
+                internal sealed class SwitchDispatch : ValueDispatchNode
                 {
                     public readonly ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases;
                     public readonly LabelSymbol Otherwise;
@@ -593,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// A node representing a final destination that requires no further dispatch.
                 /// </summary>
-                internal class LeafDispatchNode : ValueDispatchNode
+                internal sealed class LeafDispatchNode : ValueDispatchNode
                 {
                     public readonly LabelSymbol Label;
                     public LeafDispatchNode(SyntaxNode syntax, LabelSymbol Label) : base(syntax) => this.Label = Label;
@@ -605,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// Nodes of this kind are required to be height-balanced when constructed, so that when the full
                 /// decision tree is produced it generates a balanced tree of comparisons.
                 /// </summary>
-                internal class RelationalDispatch : ValueDispatchNode
+                internal sealed class RelationalDispatch : ValueDispatchNode
                 {
                     private int _height;
                     protected override int Height => _height;
@@ -617,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     private ValueDispatchNode Right { get; set; }
                     private RelationalDispatch(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right) : base(syntax)
                     {
+                        Debug.Assert(op.OperandTypes() != 0);
                         this.Value = value;
                         this.Operator = op;
                         WithLeftAndRight(left, right);
@@ -648,19 +646,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(whenTrue.Height == this.WhenTrue.Height);
                         Debug.Assert(whenFalse.Height == this.WhenFalse.Height);
-                        var (left, right) = IsReversed(Operator.Operator()) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
+                        var (left, right) = IsReversed(Operator) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
                         return WithLeftAndRight(left, right);
                     }
 
                     public static ValueDispatchNode CreateBalanced(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode whenTrue, ValueDispatchNode whenFalse)
                     {
                         // Keep the lower numbers on the left and the higher numbers on the right.
-                        var (left, right) = IsReversed(op.Operator()) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
+                        var (left, right) = IsReversed(op) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
                         return CreateBalancedCore(syntax, value, op, left: left, right: right);
                     }
 
                     private static ValueDispatchNode CreateBalancedCore(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right)
                     {
+                        Debug.Assert(op.OperandTypes() != 0);
+
                         // Build a height-balanced tree node that is semantically equivalent to a node with the given parameters.
                         // See http://www.cs.ecu.edu/karl/3300/spr16/Notes/DataStructure/Tree/balance.html
 
@@ -828,20 +828,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A comparer for sorting cases containing values of type float, double, or decimal.
             /// </summary>
-            private sealed class CasesComparer : IComparer
+            private sealed class CasesComparer : IComparer<(ConstantValue value, LabelSymbol label)>
             {
                 private readonly IValueSetFactory _fac;
-                private readonly BinaryOperatorKind _lessThanOrEqualOperator;
-                public CasesComparer(SpecialType type, BinaryOperatorKind lessThanOrEqualOperator)
+                public CasesComparer(SpecialType type)
                 {
                     _fac = ValueSetFactory.ForSpecialType(type);
-                    this._lessThanOrEqualOperator = lessThanOrEqualOperator.Operator();
                 }
 
-                int IComparer.Compare(object left, object right)
+                int IComparer<(ConstantValue value, LabelSymbol label)>.Compare((ConstantValue value, LabelSymbol label) left, (ConstantValue value, LabelSymbol label) right)
                 {
-                    var x = (((ConstantValue value, LabelSymbol label))left).value;
-                    var y = (((ConstantValue value, LabelSymbol label))right).value;
+                    var x = left.value;
+                    var y = right.value;
                     Debug.Assert(x.Discriminator switch
                     {
                         ConstantValueTypeDiscriminator.Decimal => true,
@@ -853,11 +851,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Sort NaN values into the "highest" position so they fall naturally into the last bucket
                     // when partitioned using less-than.
                     return
-                        x.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(x.DoubleValue) ? 1 :
-                        y.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(y.DoubleValue) ? -1 :
-                        _fac.Related(_lessThanOrEqualOperator, x, y) ?
-                            (_fac.Related(_lessThanOrEqualOperator, y, x) ? 0 : -1) :
+                        isNaN(x) ? 1 :
+                        isNaN(y) ? -1 :
+                        _fac.Related(BinaryOperatorKind.LessThanOrEqual, x, y) ?
+                            (_fac.Related(BinaryOperatorKind.LessThanOrEqual, y, x) ? 0 : -1) :
                         1;
+
+                    static bool isNaN(ConstantValue value) =>
+                        value.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(value.DoubleValue);
                 }
             }
 
@@ -891,9 +892,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(input.Type.SpecialType)
                     };
 
-                    var cases = node.Cases.ToArray();
-                    Array.Sort(cases, new CasesComparer(input.Type.SpecialType, lessThanOrEqualOperator));
+                    var cases = node.Cases.Sort(new CasesComparer(input.Type.SpecialType));
                     lowerFloatDispatch(0, cases.Length);
+
                     void lowerFloatDispatch(int firstIndex, int count)
                     {
                         if (count <= 3)
