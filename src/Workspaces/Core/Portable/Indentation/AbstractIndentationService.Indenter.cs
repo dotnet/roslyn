@@ -30,15 +30,13 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             public readonly SyntacticDocument Document;
             public readonly TSyntaxRoot Root;
-            public SyntaxTree Tree => Document.SyntaxTree;
             public readonly IEnumerable<AbstractFormattingRule> Rules;
             public readonly BottomUpBaseIndentationFinder Finder;
 
-            private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
-                                                  (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
-
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly int _tabSize;
+
+            public SyntaxTree Tree => Document.SyntaxTree;
 
             public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
@@ -50,19 +48,19 @@ namespace Microsoft.CodeAnalysis.Indentation
             {
                 Document = document;
 
-                this._service = service;
-                this._syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-                this.OptionSet = optionSet;
-                this.OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                this.Root = (TSyntaxRoot)document.Root;
-                this.LineToBeIndented = lineToBeIndented;
-                this._tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
-                this.CancellationToken = cancellationToken;
+                _service = service;
+                _syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                OptionSet = optionSet;
+                OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                Root = (TSyntaxRoot)document.Root;
+                LineToBeIndented = lineToBeIndented;
+                _tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
+                CancellationToken = cancellationToken;
 
-                this.Rules = rules;
-                this.Finder = new BottomUpBaseIndentationFinder(
+                Rules = rules;
+                Finder = new BottomUpBaseIndentationFinder(
                     new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
-                    this._tabSize,
+                    _tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null);
             }
@@ -71,48 +69,54 @@ namespace Microsoft.CodeAnalysis.Indentation
             {
                 // If the caller wants no indent, then we'll return an effective '0' indent.
                 if (indentStyle == FormattingOptions.IndentStyle.None)
-                {
                     return new IndentationResult(basePosition: 0, offset: 0);
-                }
 
-                // find previous line that is not blank.  this will skip over things like preprocessor
-                // regions and inactive code.
-                var previousLineOpt = GetPreviousNonBlankOrPreprocessorLine();
-
-                // it is beginning of the file, there is no previous line exists. 
-                // in that case, indentation 0 is our base indentation.
-                if (previousLineOpt == null)
+                // If the user has explicitly set 'block' indentation, or they're in an inactive preprocessor region,
+                // then just do simple block indentation.
+                if (indentStyle == FormattingOptions.IndentStyle.Block ||
+                    _syntaxFacts.IsInInactiveRegion(Document.SyntaxTree, LineToBeIndented.Start, this.CancellationToken))
                 {
-                    return IndentFromStartOfLine(0);
-                }
-
-                var previousNonWhitespaceOrPreprocessorLine = previousLineOpt.Value;
-
-                // If the user wants block indentation, then we just return the indentation
-                // of the last piece of real code.  
-                //
-                // TODO(cyrusn): It's not clear to me that this is correct.  Block indentation
-                // should probably follow the indentation of hte last non-blank line *regardless
-                // if it is inactive/preprocessor region.  By skipping over thse, we are essentially
-                // being 'smart', and that seems to be overriding the user desire to have Block
-                // indentation.
-                if (indentStyle == FormattingOptions.IndentStyle.Block)
-                {
-                    // If it's block indentation, then just base 
-                    return GetIndentationOfLine(previousNonWhitespaceOrPreprocessorLine);
+                    return GetDesiredBlockIndentation();
                 }
 
                 Debug.Assert(indentStyle == FormattingOptions.IndentStyle.Smart);
 
-                // Because we know that previousLine is not-whitespace, we know that we should be
-                // able to get the last non-whitespace position.
-                var lastNonWhitespacePosition = previousNonWhitespaceOrPreprocessorLine.GetLastNonWhitespacePosition().Value;
+                // For smart indent, we want the previous to compute indentation from.
+                var token = Root.FindToken(LineToBeIndented.Start);
 
-                var token = Root.FindToken(lastNonWhitespacePosition);
-                Debug.Assert(token.RawKind != 0, "FindToken should always return a valid token");
+                // we'll either be after the token at the end of a line, or before a token.  We compute indentation
+                // based on the preceding token.  So if we're before a token, look back to the previous token to
+                // determine what our indentation is based off of.
+                if (token.SpanStart >= LineToBeIndented.Start)
+                    token = token.GetPreviousToken();
+
+                if (token == default)
+                {
+                    // we're at the start of the file.  No indentation here.
+                    return new IndentationResult(basePosition: 0, offset: 0);
+                }
 
                 return _service.GetDesiredIndentationWorker(
-                    this, token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
+                    this, token, default, default/*previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition*/);
+            }
+
+            private IndentationResult GetDesiredBlockIndentation()
+            {
+                // Block indentation is simple, we keep walking back lines until we find a line with any sort of
+                // text on it.  We then set our indentation to whatever the indentation of that line was.
+                for (var currentLine = this.LineToBeIndented.LineNumber - 1; currentLine >= 0; currentLine--)
+                {
+                    var line = this.Document.Text.Lines[currentLine];
+                    var offset = line.GetFirstNonWhitespaceOffset();
+                    if (offset == null)
+                        continue;
+
+                    // Found the previous non-blank line.  indent to the same level that it is at
+                    return new IndentationResult(basePosition: line.Start + offset.Value, offset: 0);
+                }
+
+                // Couldn't find a previous non-blank line.  Don't indent at all.
+                return new IndentationResult(basePosition: 0, offset: 0);
             }
 
             public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
@@ -199,58 +203,6 @@ namespace Microsoft.CodeAnalysis.Indentation
                 }
 
                 return TextSpan.FromBounds(position, LineToBeIndented.Start);
-            }
-
-            private TextLine? GetPreviousNonBlankOrPreprocessorLine()
-            {
-                if (LineToBeIndented.LineNumber <= 0)
-                {
-                    return null;
-                }
-
-                var sourceText = this.LineToBeIndented.Text;
-
-                var lineNumber = this.LineToBeIndented.LineNumber - 1;
-                while (lineNumber >= 0)
-                {
-                    var actualLine = sourceText.Lines[lineNumber];
-
-                    // Empty line, no indentation to match.
-                    if (string.IsNullOrWhiteSpace(actualLine.ToString()))
-                    {
-                        lineNumber--;
-                        continue;
-                    }
-
-                    // No preprocessors in the entire tree, so this
-                    // line definitely doesn't have one
-                    if (!Root.ContainsDirectives)
-                    {
-                        return sourceText.Lines[lineNumber];
-                    }
-
-                    // This line is inside an inactive region. Examine the 
-                    // first preceding line not in an inactive region.
-                    var disabledSpan = _syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Span.Start, CancellationToken);
-                    if (disabledSpan != default)
-                    {
-                        var targetLine = sourceText.Lines.GetLineFromPosition(disabledSpan.Start).LineNumber;
-                        lineNumber = targetLine - 1;
-                        continue;
-                    }
-
-                    // A preprocessor directive starts on this line.
-                    if (HasPreprocessorCharacter(actualLine) &&
-                        Root.DescendantTokens(actualLine.Span, tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
-                    {
-                        lineNumber--;
-                        continue;
-                    }
-
-                    return sourceText.Lines[lineNumber];
-                }
-
-                return null;
             }
 
             public int GetCurrentPositionNotBelongToEndOfFileToken(int position)

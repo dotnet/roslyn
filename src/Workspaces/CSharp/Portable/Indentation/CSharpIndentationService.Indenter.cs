@@ -34,72 +34,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         protected override IndentationResult GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
         {
-            // okay, now check whether the text we found is trivia or actual token.
-            if (token.Span.Contains(lastNonWhitespacePosition))
-            {
+            //// okay, now check whether the text we found is trivia or actual token.
+            //if (token.Span.Contains(lastNonWhitespacePosition))
+            //{
                 // okay, it is a token case, do special work based on type of last token on previous line
                 return GetIndentationBasedOnToken(indenter, token);
-            }
-            else
-            {
-                // there must be trivia that contains or touch this position
-                Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
+            //}
+            //else
+            //{
+            //    // there must be trivia that contains or touch this position
+            //    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
 
-                // okay, now check whether the trivia is at the beginning of the line
-                var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
-                if (!firstNonWhitespacePosition.HasValue)
-                {
-                    return indenter.IndentFromStartOfLine(0);
-                }
+            //    // okay, now check whether the trivia is at the beginning of the line
+            //    var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
+            //    if (!firstNonWhitespacePosition.HasValue)
+            //    {
+            //        return indenter.IndentFromStartOfLine(0);
+            //    }
 
-                var trivia = indenter.Root.FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
-                if (trivia.Kind() == SyntaxKind.None || indenter.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
-                {
-                    // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants
-                    // to start type a new statement. So get indentation from the start of the line but not based on the token.
-                    // Case:
-                    // static void Main(string[] args)
-                    // {
-                    //     // A
-                    //     // B
-                    //     
-                    //     $$
-                    //     return;
-                    // }
+            //    var trivia = indenter.Root.FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
+            //    if (trivia.Kind() == SyntaxKind.None || indenter.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
+            //    {
+            //        // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants
+            //        // to start type a new statement. So get indentation from the start of the line but not based on the token.
+            //        // Case:
+            //        // static void Main(string[] args)
+            //        // {
+            //        //     // A
+            //        //     // B
+            //        //     
+            //        //     $$
+            //        //     return;
+            //        // }
 
-                    var containingStatement = token.GetAncestor<StatementSyntax>();
-                    if (containingStatement != null && containingStatement.GetFirstToken() == token)
-                    {
-                        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
-                        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
-                    }
+            //        var containingStatement = token.GetAncestor<StatementSyntax>();
+            //        if (containingStatement != null && containingStatement.GetFirstToken() == token)
+            //        {
+            //            var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
+            //            return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+            //        }
 
-                    // If the token previous of the base token happens to be a Comma from a separation list then we need to handle it different
-                    // Case:
-                    // var s = new List<string>
-                    //                 {
-                    //                     """",
-                    //                             """",/*sdfsdfsdfsdf*/
-                    //                                  // dfsdfsdfsdfsdf
-                    //                                  
-                    //                             $$
-                    //                 };
-                    var previousToken = token.GetPreviousToken();
-                    if (previousToken.IsKind(SyntaxKind.CommaToken))
-                    {
-                        return GetIndentationFromCommaSeparatedList(indenter, previousToken);
-                    }
-                    else if (!previousToken.IsKind(SyntaxKind.None))
-                    {
-                        // okay, beginning of the line is not trivia, use the last token on the line as base token
-                        return GetIndentationBasedOnToken(indenter, token);
-                    }
-                }
+            //        // If the token previous of the base token happens to be a Comma from a separation list then we need to handle it different
+            //        // Case:
+            //        // var s = new List<string>
+            //        //                 {
+            //        //                     """",
+            //        //                             """",/*sdfsdfsdfsdf*/
+            //        //                                  // dfsdfsdfsdfsdf
+            //        //                                  
+            //        //                             $$
+            //        //                 };
+            //        var previousToken = token.GetPreviousToken();
+            //        if (previousToken.IsKind(SyntaxKind.CommaToken))
+            //        {
+            //            return GetIndentationFromCommaSeparatedList(indenter, previousToken);
+            //        }
+            //        else if (!previousToken.IsKind(SyntaxKind.None))
+            //        {
+            //            // okay, beginning of the line is not trivia, use the last token on the line as base token
+            //            return GetIndentationBasedOnToken(indenter, token);
+            //        }
+            //    }
 
-                // this case we will keep the indentation of this trivia line
-                // this trivia can't be preprocessor by the way.
-                return indenter.GetIndentationOfLine(previousLine);
-            }
+            //    // this case we will keep the indentation of this trivia line
+            //    // this trivia can't be preprocessor by the way.
+            //    return indenter.GetIndentationOfLine(previousLine);
+            //}
         }
 
         private IndentationResult GetIndentationBasedOnToken(Indenter indenter, SyntaxToken token)
