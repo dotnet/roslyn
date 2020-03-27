@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal abstract partial class AbstractFindUsagesService : IFindUsagesService
+    internal abstract partial class AbstractFindUsagesService : IFindUsagesService, IFindUsagesLSPService
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public async Task FindReferencesAsync(
+        async Task IFindUsagesService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -86,6 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // Don't need ConfigureAwait(true) here 
                 await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
             }
+        }
+
+        async Task IFindUsagesLSPService.FindReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            var definitionTrackingContext = new DefinitionTrackingContext(context);
+            await FindLiteralOrSymbolReferencesAsync(
+                document, position, definitionTrackingContext).ConfigureAwait(false);
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
