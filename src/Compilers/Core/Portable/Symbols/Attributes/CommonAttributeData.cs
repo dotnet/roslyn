@@ -293,8 +293,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Debug.Assert(AttributeClass is object);
-
             string? diagnosticId = null;
             string? urlFormat = null;
             foreach (var (name, value) in this.CommonNamedArguments)
