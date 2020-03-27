@@ -29,9 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = propertyDeclaration;
+            var nextSibling = current.GetNextSibling();
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 propertyDeclaration,
                 propertyDeclaration.Identifier,
+                compressEmptyLines: !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.PropertyDeclaration) || nextSibling.IsKind(SyntaxKind.IndexerDeclaration),
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

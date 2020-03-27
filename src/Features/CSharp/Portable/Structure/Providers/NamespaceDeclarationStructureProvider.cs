@@ -26,9 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
             {
+                SyntaxNodeOrToken current = namespaceDeclaration;
+                var nextSibling = current.GetNextSibling();
+
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
+                    compressEmptyLines: !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.NamespaceDeclaration),
                     autoCollapse: false,
                     type: BlockTypes.Namespace,
                     isCollapsible: true));
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings, autoCollapse: true,
+                externsAndUsings, compressEmptyLines: true, autoCollapse: true,
                 type: BlockTypes.Imports, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block

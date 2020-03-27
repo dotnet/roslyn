@@ -24,9 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
             {
+                SyntaxNodeOrToken current = enumDeclaration;
+                var nextSibling = current.GetNextSibling();
+
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,
                     enumDeclaration.Identifier,
+                    compressEmptyLines: !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax,
                     autoCollapse: false,
                     type: BlockTypes.Member,
                     isCollapsible: true));

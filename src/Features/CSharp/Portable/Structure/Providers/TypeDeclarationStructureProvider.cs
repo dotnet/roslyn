@@ -28,9 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     ? typeDeclaration.Identifier
                     : typeDeclaration.TypeParameterList.GetLastToken(includeZeroWidth: true);
 
+                SyntaxNodeOrToken current = typeDeclaration;
+                var nextSibling = current.GetNextSibling();
+
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     typeDeclaration,
                     lastToken,
+                    compressEmptyLines: !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax,
                     autoCollapse: false,
                     type: BlockTypes.Type,
                     isCollapsible: true));
