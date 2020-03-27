@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,6 +58,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         return null;
                 }
 
+                if (fixAllContext.CodeActionEquivalenceKey == CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle)
+                {
+                    var projectIds = diagnosticsToFix.Select(d => d.Key.Id).ToImmutableArray();
+                    return new FixAllAddAdditionalDocumentsAction(projectIds, fixAllContext.Solution);
+                }
+
                 return new FixAllAdditionalDocumentChangeAction(fixAllContext.Scope, fixAllContext.Solution, diagnosticsToFix, fixAllContext.CodeActionEquivalenceKey);
             }
 
@@ -101,6 +108,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                             var newText = await UpdateEntriesInUnshippedFileForDiagnosticsAsync(unshippedDocument, diagnostics, cancellationToken).ConfigureAwait(false);
                             updatedUnshippedText.Add((unshippedDocument.Id, newText));
                         }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
                     }
 
                     Solution newSolution = _solution;
@@ -139,6 +150,32 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     }
 
                     return await UpdateEntriesInUnshippedFileAsync(unshippedDataDocument, entriesToUpdate, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            private sealed class FixAllAddAdditionalDocumentsAction : CodeAction
+            {
+                private readonly ImmutableArray<ProjectId> _projectIds;
+                private readonly Solution _solution;
+
+                public FixAllAddAdditionalDocumentsAction(ImmutableArray<ProjectId> projectIds, Solution solution)
+                {
+                    _projectIds = projectIds;
+                    _solution = solution;
+                }
+
+                public override string Title => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;
+                public override string EquivalenceKey => CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle;
+
+                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                {
+                    var newSolution = _solution;
+                    foreach (var projectId in _projectIds)
+                    {
+                        newSolution = await AddAnalyzerReleaseTrackingFilesAsync(newSolution.GetProject(projectId)).ConfigureAwait(false);
+                    }
+
+                    return newSolution;
                 }
             }
         }

@@ -92,7 +92,8 @@ class MyAnalyzer : DiagnosticAnalyzer
             var test = new CSharpCodeFixVerifier<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix>.Test()
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default,
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
                 TestState =
                 {
                     Sources = { source },
@@ -104,13 +105,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                         (DiagnosticDescriptorCreationAnalyzer.ShippedFileName,
                             AnalyzerReleaseTrackingFix.ShippedAnalyzerReleaseTrackingFileDefaultContent),
                         (DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
-                            AnalyzerReleaseTrackingFix.UnshippedAnalyzerReleaseTrackingFileDefaultContent)
-                    },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.DeclareDiagnosticIdInAnalyzerReleaseRule)
-                            .WithArguments("Id1")
-                            .WithLocation(11, 34),
+                            AnalyzerReleaseTrackingFix.UnshippedAnalyzerReleaseTrackingFileDefaultContent + DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer")
                     }
                 },
             };
