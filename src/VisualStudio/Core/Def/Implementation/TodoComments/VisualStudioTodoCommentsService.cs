@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -25,8 +26,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
-    using Microsoft.CodeAnalysis.PooledObjects;
-
     [Export(typeof(IVisualStudioTodoCommentsService))]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject, IVisualStudioTodoCommentsService, ITodoCommentsListener, ITodoListProvider
