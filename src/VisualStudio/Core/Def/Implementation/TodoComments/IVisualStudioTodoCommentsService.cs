@@ -4,12 +4,7 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
