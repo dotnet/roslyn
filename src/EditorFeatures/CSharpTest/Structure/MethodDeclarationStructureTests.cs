@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMethod()
+        public async Task TestMethod1()
         {
             const string code = @"
 class C
@@ -24,6 +25,66 @@ class C
     {|hint:$$public string Goo(){|textspan:
     {
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string Goo(){|textspan:
+    {
+    }|}|}
+    public string Goo2()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod3()
+        {
+            const string code = @"
+class C
+{
+    $$public string Goo()
+    {
+    }
+
+    public string Goo2()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(37, 53),
+                    hintSpan: TextSpan.FromBounds(18, 51),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod4()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string Goo(){|textspan:
+    {
+    }|}|}
+
+    public string Goo2 => null;
 }";
 
             await VerifyBlockSpansAsync(code,
