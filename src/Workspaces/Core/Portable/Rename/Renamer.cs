@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(newDocumentName));
             }
 
-            var actions = new ArrayBuilder<RenameDocumentAction>();
+            using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
 
             if (!newDocumentName.Equals(document.Name))
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return new RenameDocumentActionSet(
-                actions.ToImmutableAndFree(),
+                actions.ToImmutable(),
                 document.Project.Id,
                 document.Id,
                 newDocumentName,
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(newFolders));
             }
 
-            var actions = new ArrayBuilder<RenameDocumentAction>();
+            using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
 
             if (!newFolders.SequenceEqual(document.Folders))
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return new RenameDocumentActionSet(
-                actions.ToImmutableAndFree(),
+                actions.ToImmutable(),
                 document.Project.Id,
                 document.Id,
                 document.Name,

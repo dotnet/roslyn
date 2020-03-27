@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
             {
-                var errors = new ArrayBuilder<ErrorResource>();
+                using var _ = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
 
                 var analysisResult = Analyze(document);
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     return Task.FromResult<SyncNamespaceDocumentAction?>(null);
                 }
 
-                return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutableAndFree()));
+                return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutable()));
             }
 
             private static AnalysisResult Analyze(Document document)
