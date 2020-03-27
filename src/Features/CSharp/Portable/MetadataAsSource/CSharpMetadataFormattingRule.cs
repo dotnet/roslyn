@@ -22,11 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         {
         }
 
-        protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
+        protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var previousToken = token1;
-            var currentToken = token2;
-
             // We are not between members or usings if the last token wasn't the end of a statement or if the current token
             // is the end of a scope.
             if (previousToken.Kind() != SyntaxKind.SemicolonToken && previousToken.Kind() != SyntaxKind.CloseBraceToken)
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
             // See what sort of trivia we have between the items already.  If we have nothing, then just force a single
             // blank line.
-            var triviaList = token1.TrailingTrivia.Concat(token2.LeadingTrivia);
+            var triviaList = previousToken.TrailingTrivia.Concat(currentToken.LeadingTrivia);
             if (triviaList.All(t => t.IsWhitespaceOrEndOfLine()))
                 return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
 
