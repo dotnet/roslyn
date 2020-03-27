@@ -4,6 +4,7 @@
 
 ////#define TRACKDEPTH
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -360,56 +361,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsTupleType || y.IsTupleType)
-                {
-                    if (x.IsTupleType != y.IsTupleType)
-                    {
-                        return false;
-                    }
-
-                    var xElements = x.TupleElements;
-                    var yElements = y.TupleElements;
-
-                    if (xElements.Length != yElements.Length)
-                    {
-                        return false;
-                    }
-
-                    var tupleNamesMustMatch = _symbolEquivalenceComparer._tupleNamesMustMatch;
-
-                    for (var i = 0; i < xElements.Length; i++)
-                    {
-                        var xElement = xElements[i];
-                        var yElement = yElements[i];
-                        if (tupleNamesMustMatch &&
-                            xElement.Name != yElement.Name)
-                        {
-                            return false;
-                        }
-
-                        if (!AreEquivalent(xElement.Type, yElement.Type, equivalentTypesWithDifferingAssemblies))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-
                 if (x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
-                    x.IsUnboundGenericType != y.IsUnboundGenericType)
+                    x.IsUnboundGenericType != y.IsUnboundGenericType ||
+                    x.IsTupleType != y.IsTupleType)
                 {
                     return false;
                 }
 
+                if (x.IsTupleType)
+                    return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
+
                 if (!AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies))
-                {
                     return false;
-                }
 
                 // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
                 // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
@@ -424,9 +391,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 if (x.IsAnonymousType)
-                {
                     return HandleAnonymousTypes(x, y, equivalentTypesWithDifferingAssemblies);
-                }
 
                 // They look very similar at this point.  In the case of non constructed types, we're
                 // done.  However, if they are constructed, then their type arguments have to match
@@ -435,6 +400,44 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     IsConstructedFromSelf(x) ||
                     x.IsUnboundGenericType ||
                     TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
+            }
+
+            private bool HandleTupleTypes(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            {
+                Debug.Assert(y.IsTupleType);
+
+                var xElements = x.TupleElements;
+                var yElements = y.TupleElements;
+
+                if (xElements.Length != yElements.Length)
+                    return false;
+
+                // Check names first if necessary.
+                if (_symbolEquivalenceComparer._tupleNamesMustMatch)
+                {
+                    for (var i = 0; i < xElements.Length; i++)
+                    {
+                        var xElement = xElements[i];
+                        var yElement = yElements[i];
+                        if (xElement.Name != yElement.Name)
+                            return false;
+                    }
+                }
+
+                // If we're validating the actual unconstructed ValueTuple type itself, we're done at this point.  No need to check field types.
+                if (IsConstructedFromSelf(x) || x.IsUnboundGenericType)
+                    return true;
+
+                for (var i = 0; i < xElements.Length; i++)
+                {
+                    var xElement = xElements[i];
+                    var yElement = yElements[i];
+
+                    if (!AreEquivalent(xElement.Type, yElement.Type, equivalentTypesWithDifferingAssemblies))
+                        return false;
+                }
+
+                return true;
             }
 
             private bool ParametersAreEquivalent(
