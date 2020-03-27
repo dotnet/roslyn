@@ -27,56 +27,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Protected Overrides Function GetDesiredIndentationWorker(
                 indenter As Indenter,
                 token As SyntaxToken,
-                previousLine As TextLine,
-                lastNonWhitespacePosition As Integer) As IndentationResult
+                previousLine1 As TextLine,
+                lastNonWhitespacePosition1 As Integer) As IndentationResult
 
-            'If token.Span.End = lastNonWhitespacePosition + 1 Then
-            Return GetIndentationBasedOnToken(indenter, token)
-            'Else
-            '    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
+            ' in VB the trivia following the preceding token is relevant for determining what indentation we should be
+            ' at.  For example, it's very different to get indentation after
+            '
+            '       dim x _
+            '
+            ' versus
+            '
+            '       dim x
 
-            '    Dim trivia = indenter.Root.FindTrivia(lastNonWhitespacePosition)
+            Dim trivia = token.TrailingTrivia().LastOrDefault(Function(t) Not t.IsWhitespaceOrEndOfLine())
+            If trivia = Nothing Then
+                Return GetIndentationBasedOnToken(indenter, token)
+            End If
 
-            '    ' preserve the indentation of the comment trivia before a case statement
-            '    If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
-            '        Return indenter.GetIndentationOfLine(previousLine)
-            '    End If
-
-            '    If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
-            '        Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
-            '    End If
-
-            '    ' Line ends in comment
-            '    If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases a line ending comment or _ comment
-            '        Dim firstTrivia As SyntaxTrivia = indenter.Tree.GetRoot(indenter.CancellationToken).FindTrivia(token.Span.End + 1)
-            '        ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
-            '        If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
-            '            Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(firstTrivia), firstTrivia)
-            '        Else
-            '            ' This is we have just a comment
-            '            Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
-            '        End If
-            '    End If
-
-            '    ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation
-            '    If trivia.Kind = SyntaxKind.SkippedTokensTrivia AndAlso trivia.Token.IsLastTokenOfStatement() Then
-            '        Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
-            '    End If
-
-            '    ' okay, now check whether the trivia is at the beginning of the line
-            '    Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
-            '    If Not firstNonWhitespacePosition.HasValue Then
-            '        Return indenter.IndentFromStartOfLine(0)
-            '    End If
-
-            '    Dim firstTokenOnLine = indenter.Root.FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
-            '    If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
-            '        'okay, beginning of the line is not trivia, use this token as the base token
-            '        Return GetIndentationBasedOnToken(indenter, firstTokenOnLine)
-            '    End If
-
+            ' preserve the indentation of the comment trivia before a case statement
+            'If trivia.Kind = SyntaxKind.CommentTrivia AndAlso
+            '   trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso
+            '   trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
             '    Return indenter.GetIndentationOfLine(previousLine)
             'End If
+
+            If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
+            End If
+
+            ' Line ends in comment
+            If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases a line ending comment or _ comment
+                Dim firstTrivia As SyntaxTrivia = indenter.Tree.GetRoot(indenter.CancellationToken).FindTrivia(token.Span.End + 1)
+                ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
+                If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                    Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(firstTrivia), firstTrivia)
+                Else
+                    ' This is we have just a comment
+                    Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
+                End If
+            End If
+
+            ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation
+            If trivia.Kind = SyntaxKind.SkippedTokensTrivia AndAlso trivia.Token.IsLastTokenOfStatement() Then
+                Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
+            End If
+
+            ' okay, now check whether the trivia is at the beginning of the line
+            'Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
+            'If Not firstNonWhitespacePosition.HasValue Then
+            '    Return indenter.IndentFromStartOfLine(0)
+            'End If
+
+            'Dim firstTokenOnLine = indenter.Root.FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
+            'If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
+            '    'okay, beginning of the line is not trivia, use this token as the base token
+            '    Return GetIndentationBasedOnToken(indenter, firstTokenOnLine)
+            'End If
+
+            Return GetIndentationBasedOnToken(indenter, token)
         End Function
 
         Private Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken

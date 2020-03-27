@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             {
                 // If the caller wants no indent, then we'll return an effective '0' indent.
                 if (indentStyle == FormattingOptions.IndentStyle.None)
-                    return new IndentationResult(basePosition: 0, offset: 0);
+                    return default;
 
                 // If the user has explicitly set 'block' indentation, or they're in an inactive preprocessor region,
                 // then just do simple block indentation.
@@ -80,7 +80,11 @@ namespace Microsoft.CodeAnalysis.Indentation
                 }
 
                 Debug.Assert(indentStyle == FormattingOptions.IndentStyle.Smart);
+                return GetDesiredSmartIndentation();
+            }
 
+            private readonly IndentationResult GetDesiredSmartIndentation()
+            {
                 // For smart indent, we want the previous to compute indentation from.
                 var token = Root.FindToken(LineToBeIndented.Start);
 
@@ -88,13 +92,19 @@ namespace Microsoft.CodeAnalysis.Indentation
                 // based on the preceding token.  So if we're before a token, look back to the previous token to
                 // determine what our indentation is based off of.
                 if (token.SpanStart >= LineToBeIndented.Start)
+                {
                     token = token.GetPreviousToken();
 
-                if (token == default)
-                {
-                    // we're at the start of the file.  No indentation here.
-                    return new IndentationResult(basePosition: 0, offset: 0);
+                    // Skip past preceding blank tokens.  This can happen in VB for example where there can be
+                    // whitespace tokens in things like xml literals.  We want to get the first visible token that we
+                    // would actually anch would anchor indentation off of.
+                    while (token != default && string.IsNullOrWhiteSpace(token.ToString()))
+                        token = token.GetPreviousToken();
                 }
+
+                // if we're at the start of the file then there's no indentation here.
+                if (token == default)
+                    return default;
 
                 return _service.GetDesiredIndentationWorker(
                     this, token, default, default/*previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition*/);
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 }
 
                 // Couldn't find a previous non-blank line.  Don't indent at all.
-                return new IndentationResult(basePosition: 0, offset: 0);
+                return default;
             }
 
             public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
