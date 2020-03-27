@@ -10,4 +10,7 @@
   <PropertyGroup />
   <Import Project="CompilerExtensions.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\CodeSharing\Microsoft.CodeSharing.CSharp.targets" />
+  <ItemGroup>
+    <ExpectedCompile Remove="Formatting\TriviaEngine\TriviaHelpers.cs" />
+  </ItemGroup>
 </Project>
