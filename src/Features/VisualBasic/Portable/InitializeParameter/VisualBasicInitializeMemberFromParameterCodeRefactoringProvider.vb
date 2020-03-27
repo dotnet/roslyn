@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.Wrapping)>
     Friend Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
         Inherits AbstractInitializeMemberFromParameterCodeRefactoringProvider(Of
+            TypeBlockSyntax,
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax)
@@ -27,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
-        Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
-            Return DirectCast(node, TypeStatementSyntax).Parent
-        End Function
-
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function
@@ -39,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, returnsVoid As Boolean, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
 

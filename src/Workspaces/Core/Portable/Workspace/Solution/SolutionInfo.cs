@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
                     filePath),
-                projects.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projects)));
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()

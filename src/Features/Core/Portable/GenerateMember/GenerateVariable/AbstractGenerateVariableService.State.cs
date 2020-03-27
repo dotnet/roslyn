@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
-            public TSimpleNameSyntax SimpleNameOpt { get; private set; }
 
             // The entire expression containing the name.  i.e. "X.Goo"
             public TExpressionSyntax SimpleNameOrMemberAccessExpressionOpt { get; private set; }
@@ -209,7 +208,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return false;
                 }
 
-                SimpleNameOpt = simpleName;
                 IdentifierToken = identifierToken;
                 SimpleNameOrMemberAccessExpressionOpt = simpleNameOrMemberAccessExpression;
                 IsInExecutableBlock = isInExecutableBlock;
@@ -267,9 +265,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsInOutContext = semanticFacts.IsInOutContext(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 IsOnlyWrittenTo = semanticFacts.IsOnlyWrittenTo(semanticModel, SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
-                IsInConstructor = DetermineIsInConstructor(semanticDocument);
-                IsInMemberContext = SimpleNameOpt != SimpleNameOrMemberAccessExpressionOpt ||
-                                         syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                IsInConstructor = DetermineIsInConstructor(semanticDocument, simpleName);
+                IsInMemberContext =
+                    simpleName != SimpleNameOrMemberAccessExpressionOpt ||
+                    syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
 
                 ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
 
@@ -428,15 +427,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private bool DetermineIsInConstructor(SemanticDocument semanticDocument)
+            private bool DetermineIsInConstructor(SemanticDocument semanticDocument, SyntaxNode simpleName)
             {
                 if (!ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition))
-                {
                     return false;
-                }
 
-                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                return syntaxFacts.IsInConstructor(SimpleNameOpt);
+                // If we're in an lambda/local function we're not actually 'in' the constructor.
+                // i.e. we can't actually write to read-only fields here.
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (simpleName.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                    return false;
+
+                return syntaxFacts.IsInConstructor(simpleName);
             }
         }
     }

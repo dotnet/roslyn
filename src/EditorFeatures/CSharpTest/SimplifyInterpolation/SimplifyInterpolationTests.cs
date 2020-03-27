@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         const string someConst = ""some format code"";
         _ = $""prefix {someValue[||].ToString(someConst)} suffix"";
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void M(string someValue)
+    void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix"";
     }
@@ -750,6 +750,55 @@ public static class Sample
             Console.WriteLine ($""{i}.{str[||].PadRight(maxLength, ' ')}"");
         }
     }
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToString()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringEvenWhenNotOverridden()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    string M() => $""Test: {base[||].ToString()}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task MissingOnBaseToStringWithArgument()
+        {
+            await TestMissingAsync(
+@"class Base
+{
+    public string ToString(string format) => format;
+}
+
+class Derived : Base
+{
+    public override string ToString() => $""Test: {base[||].ToString(""a"")}"";
+}");
+        }
+
+        [Fact, WorkItem(42669, "https://github.com/dotnet/roslyn/issues/42669")]
+        public async Task PadLeftSimplificationIsStillOfferedOnBaseToString()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString()[||].PadLeft(10)}"";
+}",
+@"class C
+{
+    public override string ToString() => $""Test: {base.ToString(),10}"";
 }");
         }
     }

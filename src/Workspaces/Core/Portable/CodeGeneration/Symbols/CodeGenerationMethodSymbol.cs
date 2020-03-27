@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {

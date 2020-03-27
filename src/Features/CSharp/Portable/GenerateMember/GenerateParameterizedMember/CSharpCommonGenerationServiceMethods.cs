@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
 {
     internal static class CSharpCommonGenerationServiceMethods
     {
-        public static bool AreSpecialOptionsActive(SemanticModel semanticModel)
+        public static bool AreSpecialOptionsActive()
         {
             return false;
         }
 
-        public static bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
+        public static bool IsValidSymbol()
         {
             return false;
         }

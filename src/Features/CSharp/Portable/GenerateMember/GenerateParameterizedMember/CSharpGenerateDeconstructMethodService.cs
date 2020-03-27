@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             => new CSharpGenerateParameterizedMemberService<CSharpGenerateDeconstructMethodService>.InvocationExpressionInfo(document, state);
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
     }
 }
