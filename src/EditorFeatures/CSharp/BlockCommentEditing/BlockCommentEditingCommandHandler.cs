@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             return Span.FromBounds(start, end);
         }
 
-        private string GetTextToInsert(SnapshotPoint caretPosition)
+        private string? GetTextToInsert(SnapshotPoint caretPosition)
         {
             var currentLine = caretPosition.GetContainingLine();
             var firstNonWhitespacePosition = currentLine.GetFirstNonWhitespacePosition() ?? -1;
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
             return newLine + exteriorText;
 
-            string GetExteriorText()
+            string? GetExteriorText()
             {
                 if (startsWithBlockCommentStartString)
                 {
@@ -231,7 +234,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
         }
 
         public static bool IsCaretInsideBlockCommentSyntax(
-            SnapshotPoint caretPosition, out Document document, out SyntaxTrivia trivia)
+            SnapshotPoint caretPosition,
+            [NotNullWhen(true)] out Document? document, out SyntaxTrivia trivia)
         {
             trivia = default;
 
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (document == null)
                 return false;
 
-            var syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
+            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
             trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
