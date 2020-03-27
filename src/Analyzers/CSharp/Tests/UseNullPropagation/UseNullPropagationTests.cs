@@ -412,6 +412,65 @@ class Program
 }");
         }
 
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
+        [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestInExpressionTree2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Linq;
+
+class C
+{
+    void Main()
+    {
+        _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
+            select [||]item == null ? null : item.Value.x;
+    }
+}");
+        }
+
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
+        [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestInExpressionTree3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Linq;
+
+class C
+{
+    void Main()
+    {
+        _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
+            where ([||]item == null ? null : item.Value.x) > 0
+            select item;
+    }
+}");
+        }
+
+        [WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")]
+        [WorkItem(17623, "https://github.com/dotnet/roslyn/issues/17623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestInExpressionTree4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Linq;
+
+class C
+{
+    void Main()
+    {
+        _ = from item in Enumerable.Empty<(int? x, int? y)?>().AsQueryable()
+            let x = [||]item == null ? null : item.Value.x
+            select x;
+    }
+}");
+        }
+
         [WorkItem(19774, "https://github.com/dotnet/roslyn/issues/19774")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestNullableMemberAccess()

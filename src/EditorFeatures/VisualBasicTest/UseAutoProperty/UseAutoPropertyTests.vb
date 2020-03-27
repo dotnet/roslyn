@@ -1126,7 +1126,7 @@ end class")
 End Class",
 "Public Class Foo
 	Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions.UseTabs, True))
+End Class", options:=[Option](FormattingOptions2.UseTabs, True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -1144,7 +1144,7 @@ End Class", options:=[Option](FormattingOptions.UseTabs, True))
 End Class",
 "Public Class Foo
     Public ReadOnly Property O As Object
-End Class", options:=[Option](FormattingOptions.UseTabs, False))
+End Class", options:=[Option](FormattingOptions2.UseTabs, False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>

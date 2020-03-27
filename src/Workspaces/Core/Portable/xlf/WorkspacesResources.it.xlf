@@ -57,16 +57,6 @@
         <target state="translated">Rientro e spaziatura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">Regole di denominazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">Stili di denominazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Preferenze per nuova riga</target>
@@ -75,6 +65,11 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Le opzioni non provengono dalla soluzione specificata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="new">Project does not contain specified reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1292,9 +1287,9 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">L'aggiunta di progetti non è supportata.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">Specifiche dei simboli</target>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="new">The project already contains the specified reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_namespace_to_folder_structure">

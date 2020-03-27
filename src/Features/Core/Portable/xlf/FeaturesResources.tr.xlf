@@ -182,6 +182,26 @@
         <target state="translated">Başlığa dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable uygulayan bir tür, kendileri de IDisposable uygulayan türlerde alanlar bildiriyor. Alanın Dispose metodu, bildirim türünün Dispose metodu tarafından çağrılmıyor. Bu kural ihlalini düzeltmek için, alan tarafından tutulan yönetilmeyen kaynakları ayırmak ve serbest bırakmaktan sorumluysanız, IDisposable uygulayan türlerdeki alanlarda Dispose çağrısı yapın.</target>
@@ -270,6 +290,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Belge biçimlendiriliyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -2208,16 +2238,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
         <target state="translated">'string.IsNullOrWhiteSpace' denetimi ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">{0}' alanını oluştur ve başlat</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">{0}' özelliğini oluştur ve başlat</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

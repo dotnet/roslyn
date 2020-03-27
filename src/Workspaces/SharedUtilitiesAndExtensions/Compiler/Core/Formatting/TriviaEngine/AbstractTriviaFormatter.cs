@@ -576,8 +576,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return this.Spaces;
             }
 
-            var position = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, index);
-            var tokenPosition = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, lastText.Length);
+            var position = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, index);
+            var tokenPosition = lastText.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, lastText.Length);
 
             return this.Spaces - (tokenPosition - position);
         }
@@ -749,8 +749,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var useTabs = this.Options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = this.Options.GetOption(FormattingOptions.TabSize);
+            var useTabs = this.Options.GetOption(FormattingOptions2.UseTabs);
+            var tabSize = this.Options.GetOption(FormattingOptions2.TabSize);
 
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var sb = StringBuilderPool.Allocate();
 
-            var newLine = this.Options.GetOption(FormattingOptions.NewLine);
+            var newLine = this.Options.GetOption(FormattingOptions2.NewLine);
             for (var i = 0; i < delta.Lines; i++)
             {
                 sb.Append(newLine);
@@ -778,8 +778,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
-            var useTabs = this.Options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = this.Options.GetOption(FormattingOptions.TabSize);
+            var useTabs = this.Options.GetOption(FormattingOptions2.UseTabs);
+            var tabSize = this.Options.GetOption(FormattingOptions2.TabSize);
 
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var text = trivia2.ToFullString();
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), lineColumn.With(whitespaceBetween).Column, text.Length),
+                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), lineColumn.With(whitespaceBetween).Column, text.Length),
                 whitespaceOnly: true,
                 forceUpdate: false);
         }
@@ -900,13 +900,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 return new LineColumnDelta(
                     lines: text.GetNumberOfLineBreaks(),
-                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, this.Options.GetOption(FormattingOptions.TabSize)),
+                    spaces: lineText.GetColumnFromLineOffset(lineText.Length, this.Options.GetOption(FormattingOptions2.TabSize)),
                     whitespaceOnly: IsNullOrWhitespace(lineText));
             }
 
             return new LineColumnDelta(
                 lines: 0,
-                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, text.Length),
+                spaces: text.ConvertTabToSpace(this.Options.GetOption(FormattingOptions2.TabSize), initialColumn, text.Length),
                 whitespaceOnly: IsNullOrWhitespace(lineText));
         }
 

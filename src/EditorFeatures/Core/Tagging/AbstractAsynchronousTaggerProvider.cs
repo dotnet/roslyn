@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable, or null, can be returned to indicate that this tagger should 
         /// run unconditionally.
         /// </summary>
-        protected virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
-        protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
+        protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
+        protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
 
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags

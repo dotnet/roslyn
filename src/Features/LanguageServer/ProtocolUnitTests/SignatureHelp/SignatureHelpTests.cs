@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
                 Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
             };
 
-            var results = await RunGetSignatureHelpAsync(solution, locations["caret"].Single());
+            var results = await RunGetSignatureHelpAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 

@@ -258,4 +258,16 @@
   <data name="Cast_is_redundant" xml:space="preserve">
     <value>Cast is redundant.</value>
   </data>
+  <data name="Naming_styles" xml:space="preserve">
+    <value>Naming styles</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Symbol_specifications" xml:space="preserve">
+    <value>Symbol specifications</value>
+  </data>
+  <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
+    <value>Specified sequence has duplicate items</value>
+  </data>
 </root>

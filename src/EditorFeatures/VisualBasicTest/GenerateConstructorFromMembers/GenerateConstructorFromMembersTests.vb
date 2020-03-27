@@ -366,8 +366,8 @@ End Class", chosenSymbols:={"i"})
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog1WithNullCheck() As Task
-            Dim options = New Dictionary(Of OptionKey, Object)
-            options(New OptionKey(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
+            Dim options = New Dictionary(Of OptionKey2, Object)
+            options(New OptionKey2(GenerateConstructorFromMembersOptions.AddNullChecks, language:=LanguageNames.VisualBasic)) = True
 
             Dim parameters = New TestParameters()
             parameters = parameters.WithOptions(options)

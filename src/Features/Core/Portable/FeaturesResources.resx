@@ -1111,11 +1111,11 @@ This version used in: {2}</value>
   <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
     <value>Add 'string.IsNullOrWhiteSpace' check</value>
   </data>
-  <data name="Create_and_initialize_field_0" xml:space="preserve">
-    <value>Create and initialize field '{0}'</value>
+  <data name="Create_and_assign_field_0" xml:space="preserve">
+    <value>Create and assign field '{0}'</value>
   </data>
-  <data name="Create_and_initialize_property_0" xml:space="preserve">
-    <value>Create and initialize property '{0}'</value>
+  <data name="Create_and_assign_property_0" xml:space="preserve">
+    <value>Create and assign property '{0}'</value>
   </data>
   <data name="Initialize_field_0" xml:space="preserve">
     <value>Initialize field '{0}'</value>
@@ -1594,5 +1594,17 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_remaining_members_explicitly" xml:space="preserve">
     <value>Implement remaining members explicitly</value>
+  </data>
+  <data name="Generate_for_0" xml:space="preserve">
+    <value>Generate for '{0}'</value>
+  </data>
+  <data name="Generate_comparison_operators" xml:space="preserve">
+    <value>Generate comparison operators</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_fields" xml:space="preserve">
+    <value>Create and assign remaining as fields</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
+    <value>Create and assign remaining as properties</value>
   </data>
 </root>

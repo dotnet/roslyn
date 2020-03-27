@@ -182,6 +182,26 @@
         <target state="translated">轉換為元組</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">實作 System.IDisposable 的類型，宣告的欄位會是也實作 IDisposable 的類型。該欄位的 Dispose 方法，並非由宣告類型的 Dispose 方法呼叫。若要修正此規則違規，如果由您負責配置及釋放由該欄位所保留的非受控資源，則請在會實作 IDisposable 的欄位類型欄位上，呼叫 Dispose。</target>
@@ -270,6 +290,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">正在將文件格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -2208,16 +2238,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
         <target state="translated">新增 'string.IsNullOrWhiteSpace' 檢查</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">建立並初始化欄位 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">建立並初始化屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

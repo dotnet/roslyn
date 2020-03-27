@@ -4435,7 +4435,7 @@ class C
 
             var expected = @"class Program
 {
-    void AddClass(string name, [OptionalAttribute]    object position, [OptionalAttribute]    object bases)
+    void AddClass(string name, [OptionalAttribute] object position, [OptionalAttribute] object bases)
     {
     }
 }";
@@ -9554,6 +9554,46 @@ class C
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
     };
 }".Replace("&nbsp;", "\u00A0"));
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute()
+        {
+            var code = @"class C
+{
+    void M([My]string?[]?[] x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My] string?[]?[] x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple()
+        {
+            var code = @"class C
+{
+    void M([My][My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
         }
     }
 }

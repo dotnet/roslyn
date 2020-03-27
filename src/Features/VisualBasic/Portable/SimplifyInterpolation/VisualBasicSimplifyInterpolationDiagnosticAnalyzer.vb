@@ -4,8 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SimplifyInterpolation
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
@@ -15,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
 
         Protected Overrides Function GetVirtualCharService() As IVirtualCharService
             Return VisualBasicVirtualCharService.Instance
+        End Function
+
+        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
+            Return VisualBasicSyntaxFacts.Instance
         End Function
     End Class
 End Namespace
