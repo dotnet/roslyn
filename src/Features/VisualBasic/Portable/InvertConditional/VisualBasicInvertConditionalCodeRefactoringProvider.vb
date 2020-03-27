@@ -6,7 +6,6 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.InvertConditional
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertConditional
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>

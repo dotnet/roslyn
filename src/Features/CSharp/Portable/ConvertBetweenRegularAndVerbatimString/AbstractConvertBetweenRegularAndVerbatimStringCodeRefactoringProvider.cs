@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         protected void AddVerbatimStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
-            var isInterpolation = this.IsInterpolation;
+            var isInterpolation = IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
             foreach (var vc in chars)
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         protected void AddRegularStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
         {
-            var isInterpolation = this.IsInterpolation;
+            var isInterpolation = IsInterpolation;
             var chars = charService.TryConvertToVirtualChars(stringToken);
 
             foreach (var vc in chars)

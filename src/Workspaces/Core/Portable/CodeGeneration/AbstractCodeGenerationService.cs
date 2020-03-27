@@ -290,22 +290,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return currentDestination;
         }
 
-        private SyntaxNode GetNewMember(
-            CodeGenerationOptions options, CodeGenerationDestination codeGenerationDestination,
-            ISymbol member, CancellationToken cancellationToken)
-        {
-            switch (member)
+        private SyntaxNode GetNewMember(CodeGenerationOptions options, CodeGenerationDestination codeGenerationDestination, ISymbol member, CancellationToken cancellationToken)
+            => member switch
             {
-                case IEventSymbol @event: return this.CreateEventDeclaration(@event, codeGenerationDestination, options);
-                case IFieldSymbol field: return this.CreateFieldDeclaration(field, codeGenerationDestination, options);
-                case IPropertySymbol property: return this.CreatePropertyDeclaration(property, codeGenerationDestination, options);
-                case IMethodSymbol method: return this.CreateMethodDeclaration(method, codeGenerationDestination, options);
-                case INamedTypeSymbol namedType: return this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken);
-                case INamespaceSymbol @namespace: return this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken);
-            }
-
-            return null;
-        }
+                IEventSymbol @event => this.CreateEventDeclaration(@event, codeGenerationDestination, options),
+                IFieldSymbol field => this.CreateFieldDeclaration(field, codeGenerationDestination, options),
+                IPropertySymbol property => this.CreatePropertyDeclaration(property, codeGenerationDestination, options),
+                IMethodSymbol method => this.CreateMethodDeclaration(method, codeGenerationDestination, options),
+                INamedTypeSymbol namedType => this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken),
+                INamespaceSymbol @namespace => this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken),
+                _ => null,
+            };
 
         private TDeclarationNode UpdateDestination<TDeclarationNode>(
             IList<bool> availableIndices,
@@ -314,17 +309,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ISymbol member,
             CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
         {
-            switch (member)
+            return member switch
             {
-                case IEventSymbol @event: return this.AddEvent(currentDestination, @event, options, availableIndices);
-                case IFieldSymbol field: return this.AddField(currentDestination, field, options, availableIndices);
-                case IPropertySymbol property: return this.AddProperty(currentDestination, property, options, availableIndices);
-                case IMethodSymbol method: return this.AddMethod(currentDestination, method, options, availableIndices);
-                case INamedTypeSymbol namedType: return this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken);
-                case INamespaceSymbol @namespace: return this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken);
-            }
-
-            return currentDestination;
+                IEventSymbol @event => this.AddEvent(currentDestination, @event, options, availableIndices),
+                IFieldSymbol field => this.AddField(currentDestination, field, options, availableIndices),
+                IPropertySymbol property => this.AddProperty(currentDestination, property, options, availableIndices),
+                IMethodSymbol method => this.AddMethod(currentDestination, method, options, availableIndices),
+                INamedTypeSymbol namedType => this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken),
+                INamespaceSymbol @namespace => this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken),
+                _ => currentDestination,
+            };
         }
 
         private bool GeneratingEnum(IEnumerable<ISymbol> members)

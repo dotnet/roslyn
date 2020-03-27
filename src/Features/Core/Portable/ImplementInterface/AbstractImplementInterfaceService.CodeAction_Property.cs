@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
 
                 var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
-                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                return generator.GetSetAccessorStatements(compilation, property, ThroughMember,
                     propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 

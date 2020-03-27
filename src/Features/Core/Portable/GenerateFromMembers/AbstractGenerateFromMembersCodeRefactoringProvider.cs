@@ -58,25 +58,21 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
         private static bool IsReadableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return IsViableField(field);
-                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field),
+                IPropertySymbol property => IsViableProperty(property) && !property.IsWriteOnly,
+                _ => false,
+            };
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
                 // Can use non const fields and properties with setters in them.
-                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
-                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field) && !field.IsConst,
+                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
+                _ => false,
+            };
 
         private static bool IsViableField(IFieldSymbol field)
             => field.AssociatedSymbol == null;
@@ -119,8 +115,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
             return parameters.ToImmutableAndFree();
         }
-
-        private static readonly char[] s_underscore = { '_' };
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(

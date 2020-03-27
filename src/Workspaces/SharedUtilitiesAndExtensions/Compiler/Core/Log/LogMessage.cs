@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(SolutionId other)
         {
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id;
         }
 
