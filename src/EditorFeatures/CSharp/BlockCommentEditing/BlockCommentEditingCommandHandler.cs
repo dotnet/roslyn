@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var snapshot = caretPosition.Snapshot;
             var start = caretPosition.Position;
             var end = caretPosition;
-            while (end < snapshot.Length && char.IsWhiteSpace(end.GetChar()) && !SyntaxFacts.IsNewLine(end.GetChar()))
+            while (end < snapshot.Length && SyntaxFacts.IsWhitespace(end.GetChar()) && !SyntaxFacts.IsNewLine(end.GetChar()))
                 end = end + 1;
 
             return Span.FromBounds(start, end);
