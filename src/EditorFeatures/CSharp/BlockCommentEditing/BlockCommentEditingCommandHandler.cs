@@ -226,8 +226,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
             string GetPaddingAfterCommentCharacter()
             {
-                var currentChar = firstNonWhitespacePosition;
-                Debug.Assert(textSnapshot[currentChar] == '/' || textSnapshot[currentChar] == '*');
+                var currentChar = currentLine == textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start)
+                    ? blockComment.FullSpan.Start
+                    : firstNonWhitespacePosition;
 
                 // Skip past the first comment char.
                 currentChar++;
