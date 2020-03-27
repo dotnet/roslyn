@@ -38,16 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             SyntaxNode previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
             SyntaxNode nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);
 
-            // Ensure that we're only updating the whitespace between members.
-            if (previousMember?.GetLastToken() != previousToken || nextMember?.GetFirstToken() != currentToken)
-                return null;
-
             // Is the previous statement an using directive? If so, treat it like a member to add
             // the right number of lines.
             if (previousToken.Kind() == SyntaxKind.SemicolonToken && previousToken.Parent.Kind() == SyntaxKind.UsingDirective)
                 previousMember = previousToken.Parent;
 
             if (previousMember == null || nextMember == null || previousMember == nextMember)
+                return null;
+
+            // Ensure that we're only updating the whitespace between members.
+            if (previousMember.GetLastToken() != previousToken || nextMember.GetFirstToken() != currentToken)
                 return null;
 
             // If we have two members of the same kind, we won't insert a blank line 
