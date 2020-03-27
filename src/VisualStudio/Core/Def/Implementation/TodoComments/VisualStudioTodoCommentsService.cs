@@ -21,14 +21,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     [Export(typeof(IVisualStudioTodoCommentsService))]
+    [Export(typeof(IVsTypeScriptTodoCommentService))]
     internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject, IVisualStudioTodoCommentsService, ITodoCommentsListener, ITodoListProvider
+        : ForegroundThreadAffinitizedObject,
+          IVisualStudioTodoCommentsService,
+          ITodoCommentsListener,
+          ITodoListProvider,
+          IVsTypeScriptTodoCommentService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -197,8 +203,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc cref="IVisualStudioTodoCommentsService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
-        public async Task ReportTodoCommentsAsync(
+        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
+        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
             Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
