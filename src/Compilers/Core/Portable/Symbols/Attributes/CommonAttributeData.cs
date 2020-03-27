@@ -297,11 +297,11 @@ namespace Microsoft.CodeAnalysis
             string? urlFormat = null;
             foreach (var (name, value) in this.CommonNamedArguments)
             {
-                if (diagnosticId is null && name == "DiagnosticId" && IsStringProperty("DiagnosticId"))
+                if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName && IsStringProperty(ObsoleteAttributeData.DiagnosticIdPropertyName))
                 {
                     diagnosticId = value.ValueInternal as string;
                 }
-                else if (urlFormat is null && name == "UrlFormat" && IsStringProperty("UrlFormat"))
+                else if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
                 {
                     urlFormat = value.ValueInternal as string;
                 }

@@ -1687,11 +1687,11 @@ namespace Microsoft.CodeAnalysis
                     var ((name, value), isProperty, typeCode) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                     if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
-                        if (diagnosticId is null && name == "DiagnosticId")
+                        if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName)
                         {
                             diagnosticId = stringValue;
                         }
-                        else if (urlFormat is null && name == "UrlFormat")
+                        else if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName)
                         {
                             urlFormat = stringValue;
                         }

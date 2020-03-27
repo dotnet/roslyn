@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class CustomObsoleteDiagnosticInfo : DiagnosticInfo
     {
+        private DiagnosticDescriptor? _descriptor;
         internal ObsoleteAttributeData Data { get; }
 
         internal CustomObsoleteDiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, ObsoleteAttributeData data, params object[] arguments)
@@ -36,7 +37,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private DiagnosticDescriptor? _descriptor;
         public override DiagnosticDescriptor Descriptor
         {
             get

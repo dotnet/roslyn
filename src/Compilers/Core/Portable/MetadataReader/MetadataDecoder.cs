@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 #nullable enable
     internal interface IAttributeNamedArgumentDecoder
     {
-        (KeyValuePair<string, TypedConstant>, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader);
+        (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader);
     }
 
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
@@ -1608,7 +1608,7 @@ tryAgain:
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded named argument is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        public (KeyValuePair<string, TypedConstant>, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
+        public (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
         {
             // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
             // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
