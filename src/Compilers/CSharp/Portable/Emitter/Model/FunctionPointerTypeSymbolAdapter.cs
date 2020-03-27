@@ -54,29 +54,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE(func-ptr): Provide a way for nullability info to compare correctly in MetadataEntityReferenceComparer.
         private sealed class FunctionPointerMethodSignature : ISignature
         {
-            private readonly ISignature _underlying;
+            private readonly FunctionPointerMethodSymbol _underlying;
+            internal ISignature Underlying => _underlying;
 
-            internal FunctionPointerMethodSignature(ISignature underlying)
+            internal FunctionPointerMethodSignature(FunctionPointerMethodSymbol underlying)
             {
                 _underlying = underlying;
             }
 
-            public CallingConvention CallingConvention => _underlying.CallingConvention;
-            public ushort ParameterCount => _underlying.ParameterCount;
-            public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => _underlying.ReturnValueCustomModifiers;
-            public ImmutableArray<ICustomModifier> RefCustomModifiers => _underlying.RefCustomModifiers;
-            public bool ReturnValueIsByRef => _underlying.ReturnValueIsByRef;
+            public CallingConvention CallingConvention => Underlying.CallingConvention;
+            public ushort ParameterCount => Underlying.ParameterCount;
+            public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => Underlying.ReturnValueCustomModifiers;
+            public ImmutableArray<ICustomModifier> RefCustomModifiers => Underlying.RefCustomModifiers;
+            public bool ReturnValueIsByRef => Underlying.ReturnValueIsByRef;
+
             public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
-                => _underlying.GetParameters(context);
-            public ITypeReference GetType(EmitContext context) => _underlying.GetType(context);
+                => Underlying.GetParameters(context);
+            public ITypeReference GetType(EmitContext context) => Underlying.GetType(context);
 
             public override bool Equals(object? obj)
             {
-                return obj is FunctionPointerMethodSignature { _underlying: var otherUnderlying } &&
-                    _underlying.Equals(otherUnderlying);
+                return obj is FunctionPointerMethodSignature { Underlying: var otherUnderlying } &&
+                    Underlying.Equals(otherUnderlying);
             }
 
-            public override int GetHashCode() => _underlying.GetHashCode();
+            public override int GetHashCode() => Underlying.GetHashCode();
+
+            public override string ToString() => _underlying.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
         }
     }
 }

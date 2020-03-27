@@ -70,18 +70,19 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return result;
         }
 
-        internal static GreenNode List(GreenNode[] nodes)
+        internal static GreenNode List(GreenNode?[] nodes)
         {
             return List(nodes, nodes.Length);
         }
 
-        internal static GreenNode List(GreenNode[] nodes, int count)
+        internal static GreenNode List(GreenNode?[] nodes, int count)
         {
             var array = new ArrayElement<GreenNode>[count];
             for (int i = 0; i < count; i++)
             {
-                Debug.Assert(nodes[i] != null);
-                array[i].Value = nodes[i];
+                var node = nodes[i];
+                Debug.Assert(node is object);
+                array[i].Value = node;
             }
 
             return List(array);

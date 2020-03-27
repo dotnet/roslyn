@@ -445,8 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxTree WithChangedText(SourceText newText)
         {
             // try to find the changes between the old text and the new text.
-            SourceText oldText;
-            if (this.TryGetText(out oldText))
+            if (this.TryGetText(out SourceText? oldText))
             {
                 var changes = newText.GetChangeRanges(oldText);
 

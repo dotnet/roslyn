@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (_newLine == default)
             {
-                var text = this.Context.Options.GetOption(FormattingOptions.NewLine);
+                var text = this.Context.Options.GetOption(FormattingOptions2.NewLine);
                 _newLine = SyntaxFactory.EndOfLine(text);
             }
 
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     false /* forceIndentation */,
                     indentation,
                     indentationDelta,
-                    this.Options.GetOption(FormattingOptions.UseTabs),
-                    this.Options.GetOption(FormattingOptions.TabSize),
-                    this.Options.GetOption(FormattingOptions.NewLine));
+                    this.Options.GetOption(FormattingOptions2.UseTabs),
+                    this.Options.GetOption(FormattingOptions2.TabSize),
+                    this.Options.GetOption(FormattingOptions2.NewLine));
 
                 var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
                 Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);

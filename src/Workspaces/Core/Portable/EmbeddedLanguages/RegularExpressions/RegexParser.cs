@@ -478,8 +478,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             out RegexToken? secondNumberToken, out RegexToken closeBraceToken)
         {
             firstNumberToken = default;
-            commaToken = default;
-            secondNumberToken = default;
+            commaToken = null;
+            secondNumberToken = null;
             closeBraceToken = default;
 
             var firstNumber = _lexer.TryScanNumber();
@@ -2004,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             openBraceToken = default;
             categoryToken = default;
             closeBraceToken = default;
-            message = default;
+            message = null;
 
             if (_lexer.Text.Length - _lexer.Position < "{x}".Length)
             {

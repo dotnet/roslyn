@@ -427,6 +427,11 @@
         <target state="translated">優先使用簡單的 'using' 陳述式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">優先使用靜態區域函式</target>

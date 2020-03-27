@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     internal class SplitStringLiteralOptions
     {
-        public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
+        public static PerLanguageOption2<bool> Enabled =
+            new PerLanguageOption2<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 

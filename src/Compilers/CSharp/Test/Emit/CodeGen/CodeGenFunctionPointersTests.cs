@@ -501,7 +501,7 @@ class Caller
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  calli      0x2
+  IL_0001:  calli      ""delegate*<void>""
   IL_0006:  ret
 }");
         }
@@ -566,7 +566,7 @@ unsafe class Caller
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldsfld     ""delegate*<void> Caller._field""
-  IL_0005:  calli      0x3
+  IL_0005:  calli      ""delegate*<void>""
   IL_000a:  ret
 }");
         }
@@ -635,7 +635,7 @@ unsafe class Caller
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Called""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x3
+  IL_000c:  calli      ""delegate*<string,void>""
   IL_0011:  ret
 }");
         }
@@ -764,7 +764,7 @@ class Caller
   IL_0002:  ldstr      ""Hello""
   IL_0007:  ldstr      "" World""
   IL_000c:  ldloc.0
-  IL_000d:  calli      0x2
+  IL_000d:  calli      ""delegate*<string,string,string>""
   IL_0012:  call       ""void System.Console.WriteLine(string)""
   IL_0017:  ret
 }");
@@ -1007,7 +1007,7 @@ unsafe class C
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      0x5
+  IL_001a:  calli      ""delegate*<S*,int>""
   IL_001f:  call       ""void System.Console.Write(int)""
   IL_0024:  ret
 }
@@ -1030,7 +1030,7 @@ unsafe class C
   IL_0018:  conv.u
   IL_0019:  ldc.i4.3
   IL_001a:  ldloc.1
-  IL_001b:  calli      0x8
+  IL_001b:  calli      ""delegate*<S*,int,int>""
   IL_0020:  call       ""void System.Console.Write(int)""
   IL_0025:  ret
 }
@@ -1331,7 +1331,7 @@ unsafe class C
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      0x5
+  IL_001a:  calli      ""delegate*<S*,IntWrapper>""
   IL_001f:  ldfld      ""int IntWrapper.i""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
   IL_0029:  ret
@@ -1354,7 +1354,7 @@ unsafe class C
   IL_0018:  conv.u
   IL_0019:  ldc.r4     3.5
   IL_001e:  ldloc.1
-  IL_001f:  calli      0x9
+  IL_001f:  calli      ""delegate*<S*,float,ReturnWrapper>""
   IL_0024:  dup
   IL_0025:  ldfld      ""int ReturnWrapper.i1""
   IL_002a:  call       ""void System.Console.Write(int)""
@@ -1473,7 +1473,7 @@ Getting 4
   IL_0010:  ldstr      ""2""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      0x5
+  IL_001b:  calli      ""delegate*<string,string,void>""
   IL_0020:  ret
 }");
 
@@ -1489,7 +1489,7 @@ Getting 4
   IL_0010:  ldstr      ""4""
   IL_0015:  call       ""string C.GetArg(string)""
   IL_001a:  ldloc.0
-  IL_001b:  calli      0x5
+  IL_001b:  calli      ""delegate*<string,string,void>""
   IL_0020:  ret
 }");
         }
@@ -1557,7 +1557,7 @@ Returned");
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Returned""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x1
+  IL_000c:  calli      ""delegate*<string,string>""
   IL_0011:  call       ""void System.Console.WriteLine(string)""
   IL_0016:  ret
 }");
@@ -1626,7 +1626,7 @@ Constant");
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""Unused""
   IL_000b:  ldloc.0
-  IL_000c:  calli      0x1
+  IL_000c:  calli      ""delegate*<string,string>""
   IL_0011:  pop
   IL_0012:  ldstr      ""Constant""
   IL_0017:  call       ""void System.Console.WriteLine(string)""
@@ -1705,11 +1705,11 @@ Returned");
   .maxstack  2
   .locals init (delegate*<string,string> V_0)
   IL_0000:  call       ""delegate*<delegate*<string,string>> Program.LoadPtr()""
-  IL_0005:  calli      0x1
+  IL_0005:  calli      ""delegate*<delegate*<string,string>>""
   IL_000a:  stloc.0
   IL_000b:  ldstr      ""Returned""
   IL_0010:  ldloc.0
-  IL_0011:  calli      0x2
+  IL_0011:  calli      ""delegate*<string,string>""
   IL_0016:  call       ""void System.Console.WriteLine(string)""
   IL_001b:  ret
 }");
@@ -1788,7 +1788,7 @@ Implicit conversion
   IL_0006:  newobj     ""C..ctor()""
   IL_000b:  call       ""Program C.op_Implicit(C)""
   IL_0010:  ldloc.0
-  IL_0011:  calli      0x3
+  IL_0011:  calli      ""delegate*<Program,void>""
   IL_0016:  ret
 }");
         }
@@ -1858,7 +1858,7 @@ unsafe class C
   IL_000b:  stloc.1
   IL_000c:  ldloca.s   V_0
   IL_000e:  ldloc.1
-  IL_000f:  calli      0x2
+  IL_000f:  calli      ""delegate*<ref string,void>""
   IL_0014:  ldloc.0
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
@@ -1924,7 +1924,7 @@ unsafe class C
   IL_0000:  ldstr      ""Field""
   IL_0005:  stsfld     ""string Program.field""
   IL_000a:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_000f:  calli      0x2
+  IL_000f:  calli      ""delegate*<string>""
   IL_0014:  ldind.ref
   IL_0015:  call       ""void System.Console.WriteLine(string)""
   IL_001a:  ret
@@ -1987,7 +1987,7 @@ unsafe class C
   // Code size       27 (0x1b)
   .maxstack  2
   IL_0000:  call       ""delegate*<string> Program.LoadPtr()""
-  IL_0005:  calli      0x1
+  IL_0005:  calli      ""delegate*<string>""
   IL_000a:  ldstr      ""Field""
   IL_000f:  stind.ref
   IL_0010:  ldsfld     ""string Program.field""
@@ -2095,15 +2095,15 @@ Returned From Function 2");
   IL_000f:  stloc.2
   IL_0010:  ldstr      ""Argument To Function 2""
   IL_0015:  ldloc.2
-  IL_0016:  calli      0x3
+  IL_0016:  calli      ""delegate*<string,string>""
   IL_001b:  ldloc.1
-  IL_001c:  calli      0x3
+  IL_001c:  calli      ""delegate*<string,string>""
   IL_0021:  call       ""void System.Console.WriteLine(string)""
   IL_0026:  ldloc.0
   IL_0027:  stloc.1
   IL_0028:  ldstr      ""Argument To Function 2""
   IL_002d:  ldloc.1
-  IL_002e:  calli      0x3
+  IL_002e:  calli      ""delegate*<string,string>""
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ret
 }");

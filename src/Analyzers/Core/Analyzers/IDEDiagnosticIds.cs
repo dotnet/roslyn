@@ -126,6 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public const string FileHeaderMismatch = "IDE0073";
 
+        public const string UseCoalesceCompoundAssignmentDiagnosticId = "IDE0074";
+
+        public const string SimplifyConditionalExpressionDiagnosticId = "IDE0075";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

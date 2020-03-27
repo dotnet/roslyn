@@ -605,6 +605,10 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+  if ($testVsi) {
+    . (Join-Path $PSScriptRoot "build-utils-win.ps1")
+  }
+
   Push-Location $RepoRoot
 
   if ($ci) {

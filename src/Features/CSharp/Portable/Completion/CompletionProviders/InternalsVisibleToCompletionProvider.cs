@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot)
         {
-            var builder = default(ImmutableList<SyntaxNode>.Builder);
+            var builder = (ImmutableList<SyntaxNode>.Builder)null;
             if (documentRoot is CompilationUnitSyntax compilationUnit)
             {
                 foreach (var attributeList in compilationUnit.AttributeLists)
@@ -49,5 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ? arguments[0].Expression
                 : null;
         }
+
+        protected override bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition)
+            => CompletionUtilities.IsStartingNewWord(text, insertedCharacterPosition);
     }
 }

@@ -423,10 +423,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => !IsCPSProject(project);
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
+            => IsCPSProject(project.Id);
+
+        internal bool IsCPSProject(ProjectId projectId)
         {
             _foregroundObject.AssertIsForeground();
 
-            if (this.TryGetHierarchy(project.Id, out var hierarchy))
+            if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
@@ -528,7 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
         {
             return analyzerReference.FullPath;
         }
@@ -1491,6 +1494,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
+        /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
+        /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
+        /// </summary>
+        public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
+        {
+            lock (_gate)
+            {
+                SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
+            }
+        }
+
+        /// <summary>
         /// Applies a change to the workspace that can do any number of project changes.
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
@@ -1661,7 +1676,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             projectIdsChanged.Add(projectIdToRetarget);
 
                             GetReferenceInfo_NoLock(projectIdToRetarget).ConvertedProjectReferences.Add(
-                                (reference.FilePath, projectReference));
+                                (reference.FilePath!, projectReference));
 
                             // We have converted one, but you could have more than one reference with different aliases
                             // that we need to convert, so we'll keep going

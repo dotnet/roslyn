@@ -92,6 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
+        /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
+
+        /// <summary>
         /// Returns true if this method is an extension method.
         /// </summary>
         public abstract bool IsExtensionMethod { get; }
