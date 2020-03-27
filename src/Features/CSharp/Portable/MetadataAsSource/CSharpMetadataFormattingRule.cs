@@ -35,13 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
                 return null;
 
-            SyntaxNode previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
-            SyntaxNode nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);
-
-            // Is the previous statement an using directive? If so, treat it like a member to add
-            // the right number of lines.
-            if (previousToken.Kind() == SyntaxKind.SemicolonToken && previousToken.Parent.Kind() == SyntaxKind.UsingDirective)
-                previousMember = previousToken.Parent;
+            var previousMember = previousToken.Kind() == SyntaxKind.SemicolonToken && previousToken.Parent.Kind() == SyntaxKind.UsingDirective
+                ? previousToken.Parent
+                : FormattingRangeHelper.GetEnclosingMember(previousToken);
+            var nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);
 
             if (previousMember == null || nextMember == null || previousMember == nextMember)
                 return null;
