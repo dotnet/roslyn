@@ -36,22 +36,14 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             public override string GetDescription(CultureInfo? culture)
-             => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
+                => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
-
-                if (!_analysis.SupportsSyncNamespace)
-                {
-                    return solution;
-                }
-
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var targetNamespace = BuildNamespaceFromFolders(document.Folders, syntaxFacts);
-
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // Don't descend into anything other than top level declarations from the root.
@@ -85,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
             {
-                using var _ = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
+                using var _1 = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
 
                 var analysisResult = Analyze(document);
 

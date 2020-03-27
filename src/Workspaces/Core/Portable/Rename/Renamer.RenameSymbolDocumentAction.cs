@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 public string NewSymbolName { get; }
                 public string? OriginalSymbolName { get; }
                 public bool ShouldApplyAction => OriginalSymbolName != null && NewSymbolName != OriginalSymbolName;
+
                 private AnalysisResult(
                     Document document,
                     string newName,
