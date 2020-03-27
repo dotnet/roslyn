@@ -21,14 +21,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     [Export(typeof(IVisualStudioTodoCommentsService))]
+    [Export(typeof(IVsTypeScriptTodoCommentService))]
     internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject, IVisualStudioTodoCommentsService, ITodoCommentsListener, ITodoListProvider
+        : ForegroundThreadAffinitizedObject,
+          IVisualStudioTodoCommentsService,
+          ITodoCommentsListener,
+          ITodoListProvider,
+          IVsTypeScriptTodoCommentService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -181,6 +187,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
+        public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            _documentToInfos.TryRemove(documentId, out _);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Callback from the OOP service back into us.
+        /// </summary>
         public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
@@ -188,13 +203,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
+        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
+            Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
         {
-            _documentToInfos.TryRemove(documentId, out _);
-            return Task.CompletedTask;
+            using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var tree = document.SupportsSyntaxTree
+                ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                : null;
+
+            foreach (var comment in todoComments)
+                converted.Add(comment.CreateSerializableData(document, text, tree));
+
+            await ReportTodoCommentDataAsync(
+                document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
     }
 }
