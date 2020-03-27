@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Indentation
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly int _tabSize;
 
-            public SyntaxTree Tree => Document.SyntaxTree;
+            public readonly SyntaxTree Tree => Document.SyntaxTree;
+            public readonly SourceText Text => Document.Text;
 
             public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
@@ -85,7 +86,41 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             private readonly IndentationResult GetDesiredSmartIndentation()
             {
-                // For smart indent, we want the previous to compute indentation from.
+                // For smart indent, we generally will be computing from either the previous token in the code, or in a
+                // few special cases, the previous trivia.
+                var token = TryGetPrecedingVisibleToken();
+
+                // Look to see if we're immediately following some visible piece of trivia.  There may
+                // be some cases where we'll base our indent off of that.  However, we only do this as 
+                // long as we're immediately after the trivia.  If there are any blank lines between us
+                // then we consider that unimportant for indentation.
+                var trivia = TryGetImmediatelyPrecedingVisibleTrivia();
+
+                if (token == null && trivia == null)
+                    return default;
+
+                return _service.GetDesiredIndentationWorker(this, token, trivia);
+            }
+
+            private readonly SyntaxTrivia? TryGetImmediatelyPrecedingVisibleTrivia()
+            {
+                if (LineToBeIndented.LineNumber == 0)
+                    return null;
+
+                var previousLine = this.Text.Lines[LineToBeIndented.LineNumber - 1];
+                var lastPos = previousLine.GetLastNonWhitespacePosition();
+                if (lastPos == null)
+                    return null;
+
+                var trivia = Root.FindTrivia(lastPos.Value);
+                if (trivia == default)
+                    return null;
+
+                return trivia;
+            }
+
+            private readonly SyntaxToken? TryGetPrecedingVisibleToken()
+            {
                 var token = Root.FindToken(LineToBeIndented.Start);
 
                 // we'll either be after the token at the end of a line, or before a token.  We compute indentation
@@ -102,12 +137,10 @@ namespace Microsoft.CodeAnalysis.Indentation
                         token = token.GetPreviousToken();
                 }
 
-                // if we're at the start of the file then there's no indentation here.
                 if (token == default)
-                    return default;
+                    return null;
 
-                return _service.GetDesiredIndentationWorker(
-                    this, token, default, default/*previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition*/);
+                return token;
             }
 
             private IndentationResult GetDesiredBlockIndentation()
@@ -217,16 +250,6 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             public int GetCurrentPositionNotBelongToEndOfFileToken(int position)
                 => Math.Min(Root.EndOfFileToken.FullSpan.Start, position);
-
-            private bool HasPreprocessorCharacter(TextLine currentLine)
-            {
-                var text = currentLine.ToString();
-                Debug.Assert(!string.IsNullOrWhiteSpace(text));
-
-                var trimmedText = text.Trim();
-
-                return trimmedText[0] == '#';
-            }
         }
     }
 }

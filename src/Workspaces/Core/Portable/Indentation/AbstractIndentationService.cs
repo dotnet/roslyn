@@ -71,6 +71,6 @@ namespace Microsoft.CodeAnalysis.Indentation
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter);
 
         protected abstract IndentationResult GetDesiredIndentationWorker(
-            Indenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
+            Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
     }
 }
