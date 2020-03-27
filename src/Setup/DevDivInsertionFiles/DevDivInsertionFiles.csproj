@@ -66,7 +66,6 @@
       TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
     -->
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
-    <ExpectedDependency Include="Microsoft.Bcl.AsyncInterfaces"/>
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
@@ -122,6 +121,7 @@
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
