@@ -98,25 +98,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (firstNonWhitespacePosition == -1)
                 return null;
 
-            var startsWithBlockCommentStartString = currentLine.StartsWith(firstNonWhitespacePosition, "/*", ignoreCase: false);
-            var startsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
+            // Do quick textual checks to see if it looks like we're inside a comment. That way we only do the expensive
+            // syntactic work when necessary.
+            //
+            // The line either has to contain `/*` or it has to start with `*`.  The former looks like we're starting a
+            // comment in this line.  The latter looks like the continuation of a block comment.
+            var containsBlockCommentStartString = currentLine.Contains(firstNonWhitespacePosition, "/*", ignoreCase: false);
             var startsWithBlockCommentMiddleString = currentLine.StartsWith(firstNonWhitespacePosition, "*", ignoreCase: false);
 
-            if (!startsWithBlockCommentStartString &&
+            if (!containsBlockCommentStartString &&
                 !startsWithBlockCommentMiddleString)
             {
                 return null;
             }
 
-            if (!IsCaretInsideBlockCommentSyntax(caretPosition, out var document, out var blockComment))
+            // Now do more expensive syntactic check to see if we're actually in the block comment.
+            if (!IsCaretInsideBlockCommentSyntax(caretPosition, out var blockComment, out var newLine))
                 return null;
 
             var textSnapshot = caretPosition.Snapshot;
 
             // The whitespace indentation on the line where the block-comment starts.
-            var commentIndentation = textSnapshot.GetText(Span.FromBounds(
-                textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start).Start,
-                blockComment.FullSpan.Start));
+            var commentIndentation = GetCommentIndentation();
 
             // The whitespace indentation on the current line up to the first non-whitespace char.
             var lineIndentation = textSnapshot.GetText(Span.FromBounds(
@@ -127,13 +130,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (exteriorText == null)
                 return null;
 
-            var options = document.Project.Solution.Options;
-            var newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
             return newLine + exteriorText;
+
+            string GetCommentIndentation()
+            {
+                var sb = PooledStringBuilder.GetInstance();
+
+                var commentStart = blockComment.FullSpan.Start;
+                var commentLine = textSnapshot.GetLineFromPosition(commentStart);
+                for (var i = commentLine.Start.Position; i < commentStart; i++)
+                {
+                    var ch = textSnapshot[i];
+                    sb.Builder.Append(ch == '\t' ? ch : ' ');
+                }
+
+                return sb.ToStringAndFree();
+            }
 
             string? GetExteriorText()
             {
-                if (startsWithBlockCommentStartString)
+                if (containsBlockCommentStartString)
                 {
                     if (BlockCommentEndsRightAfterCaret(caretPosition))
                     {
@@ -163,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                     }
                 }
 
+                var startsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
                 if (startsWithBlockCommentEndString)
                 {
                     if (BlockCommentEndsRightAfterCaret(caretPosition))
@@ -235,12 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         public static bool IsCaretInsideBlockCommentSyntax(
             SnapshotPoint caretPosition,
-            [NotNullWhen(true)] out Document? document, out SyntaxTrivia trivia)
+            out SyntaxTrivia trivia,
+            [NotNullWhen(true)] out string? newLine)
         {
             trivia = default;
+            newLine = null;
 
             var snapshot = caretPosition.Snapshot;
-            document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return false;
 
@@ -250,6 +269,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
             if (isBlockComment)
             {
+                var options = document.Project.Solution.Options;
+                newLine = options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+
                 var span = trivia.FullSpan;
                 if (span.Start < caretPosition && caretPosition < span.End)
                     return true;
