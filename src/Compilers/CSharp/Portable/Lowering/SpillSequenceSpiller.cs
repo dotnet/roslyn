@@ -677,10 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic) break;
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
-                        var receiver = spillReceiver(field, ref leftBuilder);
-                        left = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
-                        // dummy field access for side effects
-                        Spill(leftBuilder, left, sideEffectsOnly: true);
+                        left = spillReceiver(field, ref leftBuilder, isFieldLeft: true);
                         break;
 
                     case BoundKind.ArrayAccess:
@@ -690,8 +687,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = Spill(leftBuilder, expression, RefKind.None);
                         var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
                         left = arrayAccess.Update(expression, indices, arrayAccess.Type);
-                        // dummy array access for side effects
-                        Spill(leftBuilder, left, sideEffectsOnly: true);
                         break;
 
                     default:
@@ -714,27 +709,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
 
-            BoundExpression spillReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder)
+            BoundExpression spillReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder, bool isFieldLeft)
             {
+                BoundExpression receiver;
                 if (field.FieldSymbol.ContainingType.IsReferenceType)
                 {
                     // a reference type can always live across await so Spill using leftBuilder
-                    return Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt));
+                    receiver = Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt));
                 }
-                if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
+                else if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
                 {
                     // an arrayAccess returns a ref so can only be called after the await, but spill expression and indices
                     var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
                     expression = Spill(leftBuilder, expression, RefKind.None);
                     var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
-                    return arrayAccess.Update(expression, indices, arrayAccess.Type);
+                    receiver = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                    // dummy array access to trigger IndexOutRangeException or NRE
+                    // we only need this if the array access is a receiver since
+                    // a[0] = b triggers a NRE/IORE on assignment
+                    // but a[0].b = c triggers an NRE/IORE before evaluating c
+                    Spill(leftBuilder, receiver, sideEffectsOnly: true);
                 }
-                if (field.ReceiverOpt is BoundFieldAccess receiverField)
+                else if (field.ReceiverOpt is BoundFieldAccess receiverField)
                 {
-                    var receiverReceiver = spillReceiver(receiverField, ref leftBuilder);
-                    return receiverField.Update(receiverReceiver, receiverField.FieldSymbol, receiverField.ConstantValueOpt, receiverField.ResultKind, receiverField.Type);
+                    receiver = spillReceiver(receiverField, ref leftBuilder, isFieldLeft: false);
                 }
-                return Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt), RefKind.Ref);
+                else
+                {
+                    receiver = Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt), RefKind.Ref);
+                }
+
+                field = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+
+                // a.b = c will trigger a NRE if a is null on assignment,
+                // but a.b.c = d will trigger a NRE if a is null before evaluating d
+                // so check whether we assign to the field directly
+                if (!isFieldLeft && field.FieldSymbol.ContainingType.IsReferenceType)
+                {
+                    // dummy field access to trigger NRE
+                    Spill(leftBuilder, field, sideEffectsOnly: true);
+                }
+
+                return field;
             }
         }
 
