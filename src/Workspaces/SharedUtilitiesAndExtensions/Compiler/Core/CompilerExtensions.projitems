@@ -280,6 +280,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumn.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumnRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\TriviaHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\TriviaList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\IUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
