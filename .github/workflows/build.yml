@@ -35,6 +35,10 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
+        if ($env:RUNNER_OS -eq "Windows") {
+          choco install procdump
+          Write-Host "##[set-env name=PROCDUMP_PATH;]$env:PROGRAMDATA\chocolatey\bin\"
+        }
       shell: pwsh
     - name: Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
@@ -44,7 +48,7 @@ jobs:
     - name: pack
       run: dotnet pack src --no-build -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
     - name: test
-      run: dotnet test src --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+      run: dotnet test src --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
     - name: Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
@@ -72,6 +76,13 @@ jobs:
       with:
         name: build_logs-${{ runner.os }}
         path: obj/_artifacts/build_logs
+      continue-on-error: true
+    - name: Upload testResults
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: testResults-${{ runner.os }}
+        path: obj/_artifacts/testResults
       continue-on-error: true
     - name: Upload coverageResults
       if: always()
