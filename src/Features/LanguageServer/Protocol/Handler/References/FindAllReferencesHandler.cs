@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     ContainingMember = properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
                     ContainingType = properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
-                    DefinitionId = definitionId,    // DefinitionId will be the same as Id for definitions
+                    DefinitionId = definitionId,
                     DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                     DisplayPath = location.Uri.LocalPath,
                     DocumentName = documentSpan.Document.Name,
