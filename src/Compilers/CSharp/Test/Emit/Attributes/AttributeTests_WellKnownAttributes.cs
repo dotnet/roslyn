@@ -8377,15 +8377,6 @@ class C
 using System;
 #pragma warning disable 436
 
-namespace System
-{
-    public class ObsoleteAttribute : Attribute
-    {
-        public string DiagnosticId { get; set; }
-        public string UrlFormat { get; set; }
-    }
-}
-
 class C
 {
     [Obsolete(
@@ -8402,19 +8393,19 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { ObsoleteAttributeSource, source });
             var diags = comp.GetDiagnostics();
 
             diags.Verify(
-                // (18,9): error CS0643: 'DiagnosticId' duplicate named attribute argument
+                // (9,9): error CS0643: 'DiagnosticId' duplicate named attribute argument
                 //         DiagnosticId = "B", // 1
-                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"DiagnosticId = ""B""").WithArguments("DiagnosticId").WithLocation(18, 9),
-                // (20,9): error CS0643: 'UrlFormat' duplicate named attribute argument
+                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"DiagnosticId = ""B""").WithArguments("DiagnosticId").WithLocation(9, 9),
+                // (11,9): error CS0643: 'UrlFormat' duplicate named attribute argument
                 //         UrlFormat = "D")] // 2
-                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"UrlFormat = ""D""").WithArguments("UrlFormat").WithLocation(20, 9),
-                // (25,9): warning A: 'C.M1()' is obsolete
+                Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, @"UrlFormat = ""D""").WithArguments("UrlFormat").WithLocation(11, 9),
+                // (16,9): warning A: 'C.M1()' is obsolete
                 //         M1(); // 3
-                Diagnostic("A", "M1()").WithArguments("C.M1()").WithLocation(25, 9));
+                Diagnostic("A", "M1()").WithArguments("C.M1()").WithLocation(16, 9));
 
             var diag = diags.Last();
             Assert.Equal("C", diag.Descriptor.HelpLinkUri);
