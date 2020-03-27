@@ -118,6 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
             var textSnapshot = caretPosition.Snapshot;
 
+            // Now that we've found the real start of the comment, ensure that it's accurate with our quick textual check.
+            containsBlockCommentStartString = currentLine == textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start);
+
             // The whitespace indentation on the line where the block-comment starts.
             var commentIndentation = GetCommentIndentation();
 
@@ -150,83 +153,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             string? GetExteriorText()
             {
                 if (containsBlockCommentStartString)
-                {
-                    if (BlockCommentEndsRightAfterCaret(caretPosition))
-                    {
-                        //      /*|*/
-                        return commentIndentation + " ";
-                    }
-                    else if (caretPosition == firstNonWhitespacePosition + 1)
-                    {
-                        //      /|*
-                        return null; // The newline inserted could break the syntax in a way that this handler cannot fix, let's leave it.
-                    }
-                    else
-                    {
-                        //      /*|
-                        // This is directly after the comment starts.  Insert ' * ' to continue the comment and to put
-                        // the user one space in.  This is the idiomatic style for C#.  Note: if the user is hitting
-                        // enter after
-                        //
-                        //  /*
-                        //   *
-                        //   *$$
-                        //
-                        // Then we don't add the space.  In this case, they are indicating they don't want this extra
-                        // space added.
-                        var padding = GetPaddingAfterCommentCharacter();
-                        return commentIndentation + " *" + (padding == "" ? " " : padding);
-                    }
-                }
+                    return GetExteriorTextAfterBlockCommentStart();
 
                 var startsWithBlockCommentEndString = currentLine.StartsWith(firstNonWhitespacePosition, "*/", ignoreCase: false);
                 if (startsWithBlockCommentEndString)
-                {
-                    if (BlockCommentEndsRightAfterCaret(caretPosition))
-                    {
-                        //      /*
-                        //      |*/
-                        return commentIndentation + " ";
-                    }
-                    else if (caretPosition == firstNonWhitespacePosition + 1)
-                    {
-                        //      *|/
-                        return lineIndentation + "*";
-                    }
-                    else
-                    {
-                        //      /*
-                        //   |   */
-                        return commentIndentation + " ";
-                    }
-                }
+                    return GetExteriorTextBeforeBlockCommentEnd();
 
                 if (startsWithBlockCommentMiddleString)
-                {
-                    if (BlockCommentEndsRightAfterCaret(caretPosition))
-                    {
-                        //      *|*/
-                        return lineIndentation;
-                    }
-                    else if (caretPosition > firstNonWhitespacePosition)
-                    {
-                        //      *|
-                        return lineIndentation + "*" + GetPaddingAfterCommentCharacter();
-                    }
-                    else
-                    {
-                        //      /*
-                        //   |   *
-                        return commentIndentation + " ";
-                    }
-                }
+                    return GetExteriorTextInBlockCommentMiddle();
 
                 return null;
             }
 
+            string? GetExteriorTextAfterBlockCommentStart()
+            {
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
+                {
+                    //      /*|*/
+                    return commentIndentation + " ";
+                }
+                else if (caretPosition == firstNonWhitespacePosition + 1)
+                {
+                    //      /|*
+                    return null; // The newline inserted could break the syntax in a way that this handler cannot fix, let's leave it.
+                }
+                else
+                {
+                    //      /*|
+                    // This is directly after the comment starts.  Insert ' * ' to continue the comment and to put
+                    // the user one space in.  This is the idiomatic style for C#.  Note: if the user is hitting
+                    // enter after
+                    //
+                    //  /*
+                    //   *
+                    //   *$$
+                    //
+                    // Then we don't add the space.  In this case, they are indicating they don't want this extra
+                    // space added.
+                    var padding = GetPaddingAfterCommentCharacter();
+                    return commentIndentation + " *" + (padding == "" ? " " : padding);
+                }
+            }
+
+            string? GetExteriorTextBeforeBlockCommentEnd()
+            {
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
+                {
+                    //      /*
+                    //      |*/
+                    return commentIndentation + " ";
+                }
+                else if (caretPosition == firstNonWhitespacePosition + 1)
+                {
+                    //      *|/
+                    return lineIndentation + "*";
+                }
+                else
+                {
+                    //      /*
+                    //   |   */
+                    return commentIndentation + " ";
+                }
+            }
+
+            string? GetExteriorTextInBlockCommentMiddle()
+            {
+                if (BlockCommentEndsRightAfterCaret(caretPosition))
+                {
+                    //      *|*/
+                    return lineIndentation;
+                }
+                else if (caretPosition > firstNonWhitespacePosition)
+                {
+                    //      *|
+                    return lineIndentation + "*" + GetPaddingAfterCommentCharacter();
+                }
+                else
+                {
+                    //      /*
+                    //   |   *
+                    return commentIndentation + " ";
+                }
+            }
+
             string GetPaddingAfterCommentCharacter()
             {
-                var currentChar = currentLine == textSnapshot.GetLineFromPosition(blockComment.FullSpan.Start)
+                var currentChar = containsBlockCommentStartString
                     ? blockComment.FullSpan.Start
                     : firstNonWhitespacePosition;
 
