@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     internal sealed class InteractiveScriptEnvironmentServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveScriptEnvironmentServiceFactory()
         {
         }

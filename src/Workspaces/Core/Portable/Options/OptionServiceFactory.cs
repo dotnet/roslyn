@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
         {
             _globalOptionService = globalOptionService;

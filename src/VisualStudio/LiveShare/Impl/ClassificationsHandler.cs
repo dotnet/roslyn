@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynClassificationsHandler : ClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynClassificationsHandler()
         {
         }
@@ -43,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpClassificationsHandler : ClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpClassificationsHandler()
         {
         }
@@ -52,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicClassificationsHandler : ClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicClassificationsHandler()
         {
         }
@@ -61,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptClassificationsHandler : ClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptClassificationsHandler()
         {
         }

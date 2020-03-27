@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultSymbolSearchService()
         {
         }
