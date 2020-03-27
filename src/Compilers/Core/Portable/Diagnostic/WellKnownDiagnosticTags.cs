@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis
         public const string AnalyzerException = nameof(AnalyzerException);
 
         /// <summary>
-        /// Indicates that the diagnostic is an obsolete diagnostic with a custom ID or URL
-        /// specified by the 'DiagnosticId' or 'UrlFormat' properties on 'ObsoleteAttribute'.
+        /// Indicates that the diagnostic is an obsolete diagnostic with a custom ID
+        /// specified by the 'DiagnosticId' property on 'ObsoleteAttribute'.
         /// </summary>
         public const string CustomObsolete = nameof(CustomObsolete);
     }
