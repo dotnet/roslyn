@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <IsShipping>false</IsShipping>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />
