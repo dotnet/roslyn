@@ -42,13 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     End If
                 End If
 
-                ' preserve the indentation of the comment trivia before a case statement
                 If trivia.Kind = SyntaxKind.CommentTrivia Then
-                    If trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso
-                       trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                        Return New IndentationResult(trivia.SpanStart, 0)
-                    End If
-
                     ' Line ends in comment
                     ' Two cases a line ending comment or _ comment
                     If tokenOpt.HasValue Then
