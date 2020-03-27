@@ -7,7 +7,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;

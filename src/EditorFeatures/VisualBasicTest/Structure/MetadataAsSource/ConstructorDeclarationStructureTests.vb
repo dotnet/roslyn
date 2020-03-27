@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
-Imports Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
@@ -18,19 +18,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Property
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New MetadataConstructorDeclarationStructureProvider()
+            Return New ConstructorDeclarationStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
-    Sub $$New()
-    End Sub
+    {|hint:{|textspan:Sub $$New()
+    End Sub|}|}
 End Class
 "
 
-            Await VerifyNoBlockSpansAsync(code)
+            Await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", "Sub New() " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
 
@@ -46,7 +47,14 @@ End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
+                New BlockSpan(
+                    isCollapsible:=True,
+                    textSpan:=TextSpan.FromBounds(15, 48),
+                    hintSpan:=TextSpan.FromBounds(26, 48),
+                    type:=BlockTypes.Nonstructural,
+                    bannerText:="<Goo> Sub New() " & Ellipsis,
+                    autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -62,7 +70,14 @@ End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
+                New BlockSpan(
+                    isCollapsible:=True,
+                    textSpan:=TextSpan.FromBounds(60, 93),
+                    hintSpan:=TextSpan.FromBounds(71, 93),
+                    type:=BlockTypes.Nonstructural,
+                    bannerText:="<Goo> Sub New() " & Ellipsis,
+                    autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -78,7 +93,14 @@ End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True),
+                New BlockSpan(
+                    isCollapsible:=True,
+                    textSpan:=TextSpan.FromBounds(61, 101),
+                    hintSpan:=TextSpan.FromBounds(72, 101),
+                    type:=BlockTypes.Nonstructural,
+                    bannerText:="<Goo> Public Sub New() " & Ellipsis,
+                    autoCollapse:=True))
         End Function
     End Class
 End Namespace

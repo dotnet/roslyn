@@ -84,13 +84,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // If not, just replace the if-statement with a single assignment of the new
                 // conditional.
                 ConvertOnlyIfToConditionalExpression(
-                    editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
+                    editor, ifOperation, trueAssignment, conditionalExpression);
             }
         }
 
         private void ConvertOnlyIfToConditionalExpression(
-            SyntaxEditor editor, IConditionalOperation ifOperation,
-            ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
+            SyntaxEditor editor,
+            IConditionalOperation ifOperation,
+            ISimpleAssignmentOperation trueAssignment,
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
@@ -193,8 +194,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // wasn't a declaration of the local we're assigning to.
                 return false;
             }
-
-            var variableName = variable.Name;
 
             var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)

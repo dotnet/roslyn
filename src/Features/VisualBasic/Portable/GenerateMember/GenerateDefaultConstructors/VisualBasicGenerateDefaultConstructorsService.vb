@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateFromMembers
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices

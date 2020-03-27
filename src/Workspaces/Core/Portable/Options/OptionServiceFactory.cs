@@ -36,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
         /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
-        /// and forwards them along using the same <see cref="IWorkspaceTaskScheduler"/> used by the
+        /// and forwards them along using the same <see cref="TaskQueue"/> used by the
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        internal class OptionService : IWorkspaceOptionService
+        internal sealed class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-            private readonly IWorkspaceTaskScheduler _taskQueue;
+            private readonly TaskQueue _taskQueue;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -62,8 +62,9 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 _globalOptionService = globalOptionService;
 
-                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+                var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
+                var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                _taskQueue.ScheduleTask(() =>
+                _taskQueue.ScheduleTask(nameof(OptionService) + "." + nameof(OnGlobalOptionServiceOptionChanged), () =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
+                }, CancellationToken.None);
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()

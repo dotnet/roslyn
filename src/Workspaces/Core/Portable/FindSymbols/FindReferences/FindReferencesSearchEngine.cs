@@ -30,14 +30,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
 
-        /// <summary>
-        /// Mapping from a document to the list of reference locations found in it.  Kept around so
-        /// we only notify the callback once when a location is found for a reference (in case
-        /// multiple finders find the same reference location for a symbol).
-        /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
-
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,

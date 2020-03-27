@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return context.InferredTypes.Any(t => t.SpecialType == this.SpecialType);
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType);
         }
     }
 }

@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             MethodDeclarationSyntax methodDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, spans, isMetadataAsSource);
 
             // fault tolerance
             if (methodDeclaration.Body == null ||
