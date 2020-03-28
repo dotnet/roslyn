@@ -26,7 +26,7 @@
              WindowStartupLocation="CenterOwner"
              vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
              vs2:ImageThemingUtilities.ThemeScrollBars="True"
-             Background="{DynamicResource {x:Static vs:EnvironmentColors.EnvironmentBackgroundBrushKey}}">
+             Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
             <Setter Property="IsTabStop" Value="False" />
