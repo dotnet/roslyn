@@ -24,6 +24,7 @@
              HasDialogFrame="True"
              WindowStartupLocation="CenterOwner"
              vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             vs2:ImageThemingUtilities.ThemeScrollBars="True"
              Background="{DynamicResource {x:Static vs:EnvironmentColors.EnvironmentBackgroundBrushKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
@@ -51,8 +52,7 @@
         <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
         <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
     </Window.InputBindings>
-    <Grid Margin="11,6,11,11"
-          vs2:ImageThemingUtilities.ThemeScrollBars="True">
+    <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
