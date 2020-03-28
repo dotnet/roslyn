@@ -11,19 +11,20 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     /// <summary>
-    /// The Regex and Json parsers wants to work over an array of characters, however this array of
-    /// characters is not the same as the array of characters a user types into a string in C# or
-    /// VB. For example In C# someone may write: @"\z".  This should appear to the user the same as
-    /// if they wrote "\\z" and the same as "\\\u007a".  However, as these all have wildly different
-    /// presentations for the user, there needs to be a way to map back the characters it sees ( '\'
-    /// and 'z' ) back to the  ranges of characters the user wrote.  
-    ///
-    /// VirtualChar serves this purpose.  It contains the interpreted value of any language
-    /// character/character-escape-sequence, as well as the original SourceText span where that
-    /// interpreted character was created from.  This allows the regex and json parsers to both
-    /// process input from any language uniformly, but then also produce trees and diagnostics that
-    /// map back properly to the original source text locations that make sense to the user.
+    /// <see cref="VirtualChar"/> provides a uniform view of a language's string token characters regardless if they
+    /// were written raw in source, or are the production of a language escape sequence.  For example, in C#, in a
+    /// normal <c>""</c> string a <c>Tab</c> character can be written either as the raw tab character (value <c>9</c> in
+    /// ASCII),  or as <c>\t</c>.  The format is a single character in the source, while the latter is two characters
+    /// (<c>\</c> and <c>t</c>).  <see cref="VirtualChar"/> will represent both, providing the raw <see cref="char"/>
+    /// value of <c>9</c> as well as what <see cref="TextSpan"/> in the original <see cref="SourceText"/> they occupied.
     /// </summary>
+    /// <remarks>
+    /// A core consumer of this system is the Regex parser.  That parser wants to work over an array of characters,
+    /// however this array of characters is not the same as the array of characters a user types into a string in C# or
+    /// VB. For example In C# someone may write: @"\z".  This should appear to the user the same as if they wrote "\\z"
+    /// and the same as "\\\u007a".  However, as these all have wildly different presentations for the user, there needs
+    /// to be a way to map back the characters it sees ( '\' and 'z' ) back to the  ranges of characters the user wrote.
+    /// </remarks>
     internal readonly struct VirtualChar : IEquatable<VirtualChar>
     {
         /// <summary>
