@@ -563,4 +563,11 @@
   <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
     <value>Sync namespace to folder structure</value>
   </data>
+  <data name="Project_does_not_contain_specified_reference" xml:space="preserve">
+    <value>Project does not contain specified reference</value>
+  </data>
+  <data name="Cannot_apply_action_that_is_not_in_applicableactions" xml:space="preserve">
+    <value>Cannot apply action that is not in ApplicableActions</value>
+    <comment>Used to return an error for public API. ApplicableActions is a property on RenameDocumentActionSet</comment>
+  </data>
 </root>

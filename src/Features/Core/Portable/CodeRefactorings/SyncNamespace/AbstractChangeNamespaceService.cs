@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
+        public abstract string TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
+        public abstract string EscapeIdentifier(string identifier);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -102,11 +104,17 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return !applicableContainers.IsDefault;
         }
 
+        public override string TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
+        {
+            var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(EscapeIdentifier);
+            return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
+        }
+
         public override async Task<Solution> ChangeNamespaceAsync(
-            Document document,
-            SyntaxNode container,
-            string targetNamespace,
-            CancellationToken cancellationToken)
+                Document document,
+                SyntaxNode container,
+                string targetNamespace,
+                CancellationToken cancellationToken)
         {
             // Make sure given namespace name is valid, "" means global namespace.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

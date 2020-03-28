@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (actions.Any(a => !ApplicableActions.Contains(a)))
                 {
-                    throw new InvalidOperationException("Cannot apply action that is not in ApplicableActions");
+                    throw new ArgumentException(WorkspacesResources.Cannot_apply_action_that_is_not_in_applicableactions);
                 }
 
                 // Prior to updating the solution it's possible the document id has changed between the time 

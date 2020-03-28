@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         {
         }
 
+        public override string EscapeIdentifier(string identifier)
+            => identifier.EscapeIdentifier();
+
         protected override async Task<ImmutableArray<(DocumentId, SyntaxNode)>> GetValidContainersFromAllLinkedDocumentsAsync(
             Document document,
             SyntaxNode container,
