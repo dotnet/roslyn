@@ -32,10 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxNodeOrToken current = constructorDeclaration;
             var nextSibling = current.GetNextSibling();
 
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.ConstructorDeclaration);
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 constructorDeclaration,
                 constructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                compressEmptyLines: !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.ConstructorDeclaration),
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

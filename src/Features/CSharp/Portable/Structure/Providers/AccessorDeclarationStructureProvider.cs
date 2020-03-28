@@ -32,10 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxNodeOrToken current = accessorDeclaration;
             var nextSibling = current.GetNextSibling();
 
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // All accessor kinds are grouped together.
+            var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax;
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 accessorDeclaration,
                 accessorDeclaration.Keyword,
-                compressEmptyLines: !nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax,
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

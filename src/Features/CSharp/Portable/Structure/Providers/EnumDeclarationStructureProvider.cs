@@ -27,10 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 SyntaxNodeOrToken current = enumDeclaration;
                 var nextSibling = current.GetNextSibling();
 
+                // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+                var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax;
+
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,
                     enumDeclaration.Identifier,
-                    compressEmptyLines: !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax,
+                    compressEmptyLines: compressEmptyLines,
                     autoCollapse: false,
                     type: BlockTypes.Member,
                     isCollapsible: true));

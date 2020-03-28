@@ -33,10 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxNodeOrToken current = indexerDeclaration;
             var nextSibling = current.GetNextSibling();
 
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // Indexers are grouped together with properties.
+            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration);
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 indexerDeclaration,
                 indexerDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                compressEmptyLines: !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration),
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));
