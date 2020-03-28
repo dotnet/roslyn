@@ -349,20 +349,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void ClearSolutionInternal()
-        {
-            if (LegacySemanticsEnabled)
-            {
-#pragma warning disable CS0612 // Type or member is obsolete
-                ClearSolution();
-                return;
-#pragma warning restore
-            }
-
-            ClearSolutionDataInternal();
-            SetCurrentSolution(oldSolution => TransformationResult(CreateSolution(CurrentSolution.Id), WorkspaceChangeKind.SolutionCleared));
-        }
-
         /// <summary>
         /// This method is called when a solution is cleared.
         ///
@@ -378,17 +364,18 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(this.CreateSolution(this.CurrentSolution.Id));
         }
 
-        internal void ClearSolutionDataInternal()
+        internal void ClearSolutionInternal()
         {
             if (LegacySemanticsEnabled)
             {
 #pragma warning disable CS0612 // Type or member is obsolete
-                ClearSolutionData();
+                ClearSolution();
                 return;
 #pragma warning restore
             }
 
             ClearOpenDocuments();
+            SetCurrentSolution(oldSolution => TransformationResult(CreateSolution(CurrentSolution.Id), WorkspaceChangeKind.SolutionCleared));
         }
 
         /// <summary>
