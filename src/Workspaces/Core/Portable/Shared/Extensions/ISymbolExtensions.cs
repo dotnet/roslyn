@@ -693,17 +693,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
                 .WhereAsArray(s => !s.RequiresUnsafeModifier());
         }
-
-        public static bool IsKind<TSymbol>(this ISymbol symbol, SymbolKind kind, [NotNullWhen(true)] out TSymbol? result) where TSymbol : class, ISymbol
-        {
-            if (!symbol.IsKind(kind))
-            {
-                result = null;
-                return false;
-            }
-
-            result = (TSymbol)symbol;
-            return true;
-        }
     }
 }
