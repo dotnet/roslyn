@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal sealed class CSharpProjectExistsUIContextProviderLanguageService : IProjectExistsUIContextProviderLanguageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpProjectExistsUIContextProviderLanguageService()
         {
         }

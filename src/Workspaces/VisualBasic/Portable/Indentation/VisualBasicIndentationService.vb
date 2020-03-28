@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
         Public Sub New()
             Me.New(Nothing)
         End Sub

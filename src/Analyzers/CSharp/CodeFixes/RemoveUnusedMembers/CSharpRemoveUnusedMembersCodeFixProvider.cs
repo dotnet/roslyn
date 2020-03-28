@@ -7,6 +7,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
 {
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
     internal class CSharpRemoveUnusedMembersCodeFixProvider : AbstractRemoveUnusedMembersCodeFixProvider<FieldDeclarationSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRemoveUnusedMembersCodeFixProvider()
         {
         }

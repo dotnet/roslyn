@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameService _inlineRenameService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UndoManagerServiceFactory(InlineRenameService inlineRenameService)
         {
             _inlineRenameService = inlineRenameService;

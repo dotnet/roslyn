@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

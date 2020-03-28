@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> _executeCommandHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExecuteWorkspaceCommandHandler([ImportMany] IEnumerable<Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> executeCommandHandlers)
         {
             _executeCommandHandlers = CreateMap(executeCommandHandlers);
