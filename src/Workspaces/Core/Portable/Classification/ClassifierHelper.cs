@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Classification
             // name), we'll do a later merging step to get the final correct list of 
             // classifications.  For tagging, normally the editor handles this.  But as
             // we're producing the list of Inlines ourselves, we have to handles this here.
-            var syntaxSpans = ListPool<ClassifiedSpan>.Allocate();
-            var semanticSpans = ListPool<ClassifiedSpan>.Allocate();
+            var syntaxSpans = SharedPools.Default<List<ClassifiedSpan>>().AllocateAndClear();
+            var semanticSpans = SharedPools.Default<List<ClassifiedSpan>>().AllocateAndClear();
             try
             {
                 await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Classification
             }
             finally
             {
-                ListPool<ClassifiedSpan>.Free(syntaxSpans);
-                ListPool<ClassifiedSpan>.Free(semanticSpans);
+                SharedPools.Default<List<ClassifiedSpan>>().ClearAndFree(syntaxSpans);
+                SharedPools.Default<List<ClassifiedSpan>>().ClearAndFree(semanticSpans);
             }
         }
 
