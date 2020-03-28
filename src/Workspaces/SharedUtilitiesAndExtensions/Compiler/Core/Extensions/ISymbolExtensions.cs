@@ -330,47 +330,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsWriteableFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol fieldSymbol:
-                    return !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst;
-                case IPropertySymbol propertySymbol:
-                    return !propertySymbol.IsReadOnly;
-            }
-
-            return false;
-        }
+                IFieldSymbol fieldSymbol => !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst,
+                IPropertySymbol propertySymbol => !propertySymbol.IsReadOnly,
+                _ => false,
+            };
 
         public static ITypeSymbol? GetMemberType(this ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.ReturnType;
-                case IEventSymbol eventSymbol:
-                    return eventSymbol.Type;
-            }
-
-            return null;
-        }
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
+                IEventSymbol eventSymbol => eventSymbol.Type,
+                _ => null,
+            };
 
         public static int GetArity(this ISymbol symbol)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.NamedType:
-                    return ((INamedTypeSymbol)symbol).Arity;
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).Arity;
-                default:
-                    return 0;
-            }
-        }
+                SymbolKind.NamedType => ((INamedTypeSymbol)symbol).Arity,
+                SymbolKind.Method => ((IMethodSymbol)symbol).Arity,
+                _ => 0,
+            };
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
