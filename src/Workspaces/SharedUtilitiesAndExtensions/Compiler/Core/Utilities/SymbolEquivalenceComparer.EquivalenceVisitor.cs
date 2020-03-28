@@ -77,9 +77,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // Special case.  If we're comparing signatures then we want to compare 'object'
                     // and 'dynamic' as the same.  However, since they're different types, we don't
                     // want to bail out using the above check.
-                    return _objectAndDynamicCompareEqually &&
-                           ((yKind == SymbolKind.DynamicType && xKind == SymbolKind.NamedType && ((ITypeSymbol)x).SpecialType == SpecialType.System_Object) ||
-                            (xKind == SymbolKind.DynamicType && yKind == SymbolKind.NamedType && ((ITypeSymbol)y).SpecialType == SpecialType.System_Object));
+                    if (_objectAndDynamicCompareEqually)
+                    {
+                        if ((xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                            (yKind == SymbolKind.DynamicType && IsObjectType(x)))
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
@@ -120,46 +125,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(x.Kind == y.Kind && x.Kind == k);
-                switch (k)
+                return k switch
                 {
-                    case SymbolKind.ArrayType:
-                        return ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Assembly:
-                        return AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y);
-                    case SymbolKind.DynamicType:
-                        return DynamicTypesAreEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y);
-                    case SymbolKind.Event:
-                        return EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Field:
-                        return FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Label:
-                        return LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y);
-                    case SymbolKind.Local:
-                        return LocalsAreEquivalent((ILocalSymbol)x, (ILocalSymbol)y);
-                    case SymbolKind.Method:
-                        return MethodsAreEquivalent((IMethodSymbol)x, (IMethodSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.NetModule:
-                        return ModulesAreEquivalent((IModuleSymbol)x, (IModuleSymbol)y);
-                    case SymbolKind.NamedType:
-                    case SymbolKind.ErrorType: // ErrorType is handled in NamedTypesAreEquivalent
-                        return NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Namespace:
-                        return NamespacesAreEquivalent((INamespaceSymbol)x, (INamespaceSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Parameter:
-                        return ParametersAreEquivalent((IParameterSymbol)x, (IParameterSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.PointerType:
-                        return PointerTypesAreEquivalent((IPointerTypeSymbol)x, (IPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Property:
-                        return PropertiesAreEquivalent((IPropertySymbol)x, (IPropertySymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.RangeVariable:
-                        return RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y);
-                    case SymbolKind.TypeParameter:
-                        return TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Preprocessing:
-                        return PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y);
-                    default:
-                        return false;
-                }
+                    SymbolKind.ArrayType => ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Assembly => AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y),
+                    SymbolKind.DynamicType => DynamicTypesAreEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y),
+                    SymbolKind.Event => EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Field => FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Label => LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y),
+                    SymbolKind.Local => LocalsAreEquivalent((ILocalSymbol)x, (ILocalSymbol)y),
+                    SymbolKind.Method => MethodsAreEquivalent((IMethodSymbol)x, (IMethodSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.NetModule => ModulesAreEquivalent((IModuleSymbol)x, (IModuleSymbol)y),
+                    SymbolKind.NamedType => NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.ErrorType => NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Namespace => NamespacesAreEquivalent((INamespaceSymbol)x, (INamespaceSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Parameter => ParametersAreEquivalent((IParameterSymbol)x, (IParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.PointerType => PointerTypesAreEquivalent((IPointerTypeSymbol)x, (IPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Property => PropertiesAreEquivalent((IPropertySymbol)x, (IPropertySymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
+                    SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
+                    _ => false,
+                };
             }
 
             private bool ArrayTypesAreEquivalent(IArrayTypeSymbol x, IArrayTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
