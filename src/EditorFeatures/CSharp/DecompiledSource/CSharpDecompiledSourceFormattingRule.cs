@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return operation ?? nextOperation.Invoke();
         }
 
-        private AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+        private AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // To help code not look too tightly packed, we place a blank line after every statement that ends with a
             // `}` (unless it's also followed by another `}`).
@@ -32,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 return null;
 
             if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
+                return null;
+
+            if (previousToken.Parent == null || currentToken.Parent == null)
                 return null;
 
             var previousStatement = previousToken.Parent.FirstAncestorOrSelf<StatementSyntax>();

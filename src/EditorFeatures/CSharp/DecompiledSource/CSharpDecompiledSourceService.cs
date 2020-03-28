@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
+            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
