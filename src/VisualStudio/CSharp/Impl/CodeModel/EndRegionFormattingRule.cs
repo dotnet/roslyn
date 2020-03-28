@@ -28,12 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return false;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsAfterEndRegionBeforeMethodDeclaration(previousToken))
-            {
                 return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
-            }
 
             return nextOperation.Invoke();
         }
