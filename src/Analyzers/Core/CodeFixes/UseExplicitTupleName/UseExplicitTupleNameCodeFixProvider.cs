@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_explicitly_provided_tuple_name,
+                : base(AnalyzersResources.Use_explicitly_provided_tuple_name,
                        createChangedDocument,
-                       FeaturesResources.Use_explicitly_provided_tuple_name)
+                       AnalyzersResources.Use_explicitly_provided_tuple_name)
             {
             }
         }
