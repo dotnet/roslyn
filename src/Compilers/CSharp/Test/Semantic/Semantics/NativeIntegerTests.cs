@@ -4331,6 +4331,15 @@ $@"{{
 }}";
             void conversions(string sourceType, string destType, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
             {
+                // https://github.com/dotnet/roslyn/issues/42834: Invalid code generated for nullable conversions
+                // involving System.[U]IntPtr: the conversion is dropped. And when converting from System.[U]IntPtr,
+                // an assert in LocalRewriter.MakeLiftedUserDefinedConversionConsequence fails.
+                bool verify = !(sourceType.EndsWith("?") &&
+                    destType.EndsWith("?") &&
+                    (usesIntPtrOrUIntPtr(sourceType) || usesIntPtrOrUIntPtr(destType)));
+#if DEBUG
+                if (!verify) return;
+#endif
                 convert(
                     sourceType,
                     destType,
@@ -4339,15 +4348,10 @@ $@"{{
                     skipTypeChecks: usesIntPtrOrUIntPtr(sourceType) || usesIntPtrOrUIntPtr(destType),
                     useExplicitCast: false,
                     useChecked: false,
+                    verify: verify,
                     expectedImplicitIL is null ?
                         expectedExplicitIL is null ? ErrorCode.ERR_NoImplicitConv : ErrorCode.ERR_NoImplicitConvCast :
                         0);
-#if DEBUG
-                // https://github.com/dotnet/roslyn/issues/42834: Invalid code generated for nullable conversions
-                // involving System.[U]IntPtr: the conversion is dropped. And when converting from System.[U]IntPtr,
-                // an assert in LocalRewriter.MakeLiftedUserDefinedConversionConsequence fails. 
-                if ((sourceType == "System.IntPtr?" || sourceType == "System.UIntPtr?") && destType.EndsWith("?")) return;
-#endif
                 convert(
                     sourceType,
                     destType,
@@ -4355,6 +4359,7 @@ $@"{{
                     skipTypeChecks: true,
                     useExplicitCast: true,
                     useChecked: false,
+                    verify: verify,
                     expectedExplicitIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
                 expectedCheckedIL ??= expectedExplicitIL;
                 convert(
@@ -4364,6 +4369,7 @@ $@"{{
                     skipTypeChecks: true,
                     useExplicitCast: true,
                     useChecked: true,
+                    verify: verify,
                     expectedCheckedIL is null ? ErrorCode.ERR_NoExplicitConv : 0);
 
                 static bool usesIntPtrOrUIntPtr(string underlyingType) => underlyingType.Contains("IntPtr");
@@ -5852,6 +5858,7 @@ $@"{{
                 bool skipTypeChecks,
                 bool useExplicitCast,
                 bool useChecked,
+                bool verify,
                 ErrorCode expectedErrorCode)
             {
                 bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
@@ -5891,7 +5898,7 @@ $@"{{
 
                 if (expectedIL != null)
                 {
-                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.Passes);
+                    var verifier = CompileAndVerify(comp, verify: useUnsafeContext || !verify ? Verification.Skipped : Verification.Passes);
                     verifier.VerifyIL("Program.Convert", expectedIL);
                 }
 
