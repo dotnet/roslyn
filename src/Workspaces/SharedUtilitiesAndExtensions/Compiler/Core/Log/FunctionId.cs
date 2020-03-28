@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHost_Disconnect = 298,
 
         // obsolete: RemoteHostClientService_AddGlobalAssetsAsync = 299,
-        RemoteHostClientService_RemoveGlobalAssets = 300,
+        // obsolete: RemoteHostClientService_RemoveGlobalAssets = 300,
         RemoteHostClientService_Enabled = 301,
         RemoteHostClientService_Restarted = 302,
 

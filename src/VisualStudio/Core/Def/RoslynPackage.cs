@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -152,6 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void InitializeHostAnalyzerReferences(VisualStudioDiagnosticAnalyzerProvider provider)
         {
+            Contract.ThrowIfNull(_workspace);
+
             try
             {
                 var references = provider.GetAnalyzerReferencesInExtensions();
