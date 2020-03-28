@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public int GetHashCode(ISymbol x, int currentHash)
             {
                 if (x == null)
-                {
                     return 0;
-                }
 
                 x = UnwrapAlias(x);
 

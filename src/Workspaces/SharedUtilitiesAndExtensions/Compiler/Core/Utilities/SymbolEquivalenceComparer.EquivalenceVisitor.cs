@@ -415,19 +415,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 //
                 // For VB we have to unwrap tuples to their underlying types to do this check.
                 // https://github.com/dotnet/roslyn/issues/42860
-
-                var xUnderlying = x.TupleUnderlyingType;
-                if (xUnderlying != null)
-                {
-                    if (IsConstructedFromSelf(xUnderlying))
-                        return true;
-                }
-                else
-                {
-                    if (IsConstructedFromSelf(x))
-                        return true;
-                }
-
+                if (IsConstructedFromSelf(x.TupleUnderlyingType ?? x))
+                    return true;
 
                 for (var i = 0; i < xElements.Length; i++)
                 {
