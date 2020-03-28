@@ -25,20 +25,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// and the same as "\\\u007a".  However, as these all have wildly different presentations for the user, there needs
     /// to be a way to map back the characters it sees ( '\' and 'z' ) back to the  ranges of characters the user wrote.
     /// </remarks>
-    internal readonly struct VirtualChar : IEquatable<VirtualChar>
+    internal readonly struct VirtualChar : IEquatable<VirtualChar>, IComparable<VirtualChar>, IComparable<char>
     {
         /// <summary>
-        /// The value of this <see cref="VirtualChar"/> as a <see cref="Rune"/> if its possible to be represented as a
-        /// <see cref="Rune"/>.  <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see
-        /// cref="string"/> except for unpaired surrogates.  If an unpaired high or low surrogate character is present,
-        /// this value will be <see cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
+        /// The value of this <see cref="VirtualChar"/> as a <see cref="Rune"/> if such a represention is possible.
+        /// <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see cref="string"/> except for
+        /// unpaired surrogates.  If an unpaired high or low surrogate character is present, this value will be <see
+        /// cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
         /// <see cref="SurrogateChar"/>.
         /// </summary>
         public readonly Rune Rune;
 
         /// <summary>
         /// The unpaired high or low surrogate character that was encountered that could not be represented in <see
-        /// cref="Rune"/>.
+        /// cref="Rune"/>.  If <see cref="Rune"/> is not <see cref="Rune.ReplacementChar"/> this will be <c>0</c>.
         /// </summary>
         public readonly char SurrogateChar;
 
@@ -48,11 +48,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public readonly TextSpan Span;
 
+        /// <summary>
+        /// Creates a new <see cref="VirtualChar"/> from the provided <paramref name="rune"/>.  This operation cannot
+        /// fail.
+        /// </summary>
         public static VirtualChar Create(Rune rune, TextSpan span)
             => new VirtualChar(rune, surrogateChar: default, span);
 
         /// <summary>
-        /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.
+        /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.  This will throw
+        /// if <paramref name="surrogateChar"/> is not actually a surrogate character. The resultant <see cref="Rune"/>
+        /// value will be <see cref="Rune.ReplacementChar"/>.
         /// </summary>
         public static VirtualChar Create(char surrogateChar, TextSpan span)
         {
@@ -82,23 +88,40 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
 
+        #region equality
+
+        public static bool operator ==(VirtualChar char1, VirtualChar char2)
+            => char1.Equals(char2);
+
+        public static bool operator !=(VirtualChar char1, VirtualChar char2)
+            => !(char1 == char2);
+
         public static bool operator ==(VirtualChar ch1, char ch2)
-            => ch1.Value == ch2;
+            => ch1.Equals(ch2);
 
         public static bool operator !=(VirtualChar ch1, char ch2)
-            => ch1.Value != ch2;
+            => !(ch1 == ch2);
 
-        public static bool operator <(VirtualChar ch1, char ch2)
-            => ch1.Value < ch2;
+        public override bool Equals(object obj)
+            => obj is VirtualChar vc && Equals(vc);
 
-        public static bool operator <=(VirtualChar ch1, char ch2)
-            => ch1.Value <= ch2;
+        public bool Equals(VirtualChar other)
+            => Rune == other.Rune &&
+               SurrogateChar == other.SurrogateChar &&
+               Span == other.Span;
 
-        public static bool operator >(VirtualChar ch1, char ch2)
-            => ch1.Value > ch2;
+        public override int GetHashCode()
+        {
+            var hashCode = 1985253839;
+            hashCode = hashCode * -1521134295 + Rune.GetHashCode();
+            hashCode = hashCode * -1521134295 + SurrogateChar.GetHashCode();
+            hashCode = hashCode * -1521134295 + Span.GetHashCode();
+            return hashCode;
+        }
 
-        public static bool operator >=(VirtualChar ch1, char ch2)
-            => ch1.Value >= ch2;
+        #endregion
+
+        #region string operations
 
         public override string ToString()
             => Rune.ToString();
@@ -119,27 +142,40 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 builder.Append(chars[1]);
         }
 
-        public override bool Equals(object obj)
-            => obj is VirtualChar vc && Equals(vc);
+        #endregion
 
-        public bool Equals(VirtualChar other)
-            => Rune == other.Rune &&
-               SurrogateChar == other.SurrogateChar &&
-               Span == other.Span;
+        #region comparable
 
-        public override int GetHashCode()
-        {
-            var hashCode = 1985253839;
-            hashCode = hashCode * -1521134295 + Rune.GetHashCode();
-            hashCode = hashCode * -1521134295 + SurrogateChar.GetHashCode();
-            hashCode = hashCode * -1521134295 + Span.GetHashCode();
-            return hashCode;
-        }
+        public int CompareTo(VirtualChar other)
+            => this.Value - other.Value;
 
-        public static bool operator ==(VirtualChar char1, VirtualChar char2)
-            => char1.Equals(char2);
+        public static bool operator <(VirtualChar ch1, VirtualChar ch2)
+            => ch1.Value < ch2.Value;
 
-        public static bool operator !=(VirtualChar char1, VirtualChar char2)
-            => !(char1 == char2);
+        public static bool operator <=(VirtualChar ch1, VirtualChar ch2)
+            => ch1.Value <= ch2.Value;
+
+        public static bool operator >(VirtualChar ch1, VirtualChar ch2)
+            => ch1.Value > ch2.Value;
+
+        public static bool operator >=(VirtualChar ch1, VirtualChar ch2)
+            => ch1.Value >= ch2.Value;
+
+        public int CompareTo(char other)
+            => this.Value - other;
+
+        public static bool operator <(VirtualChar ch1, char ch2)
+            => ch1.Value < ch2;
+
+        public static bool operator <=(VirtualChar ch1, char ch2)
+            => ch1.Value <= ch2;
+
+        public static bool operator >(VirtualChar ch1, char ch2)
+            => ch1.Value > ch2;
+
+        public static bool operator >=(VirtualChar ch1, char ch2)
+            => ch1.Value >= ch2;
+
+        #endregion
     }
 }
