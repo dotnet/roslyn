@@ -1,6 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
-' The .NET Foundation licenses this file to you under the MIT license.
-' See the LICENSE file in the project root for more information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Symbols
@@ -36,7 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    slotIndex:=-1,
                    accessibility:=accessibility,
                    isReadOnly:=isReadOnly,
-                   isShared:=isShared)
+                   isShared:=isShared,
+                   isSpecialNameAndRuntimeSpecial:=isSpecialNameAndRuntimeSpecial)
         End Sub
 
         Public Sub New(stateMachineType As NamedTypeSymbol,
@@ -57,7 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    slotIndex:=slotindex,
                    accessibility:=accessibility,
                    isReadOnly:=isReadOnly,
-                   isShared:=isShared)
+                   isShared:=isShared,
+                   isSpecialNameAndRuntimeSpecial:=isSpecialNameAndRuntimeSpecial)
         End Sub
 
         Public Sub New(stateMachineType As NamedTypeSymbol,
