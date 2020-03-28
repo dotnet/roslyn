@@ -26,13 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
             {
-                SyntaxNodeOrToken current = namespaceDeclaration;
-                var nextSibling = current.GetNextSibling();
-
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
-                    compressEmptyLines: !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.NamespaceDeclaration),
+                    compressEmptyLines: false,
                     autoCollapse: false,
                     type: BlockTypes.Namespace,
                     isCollapsible: true));
