@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
+                compressEmptyLines: false,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));
