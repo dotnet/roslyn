@@ -32,7 +32,6 @@
         </Style>
         <Style TargetType="GroupBox">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBorderBrushKey}}"/>
         </Style>
         <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
         <Style TargetType="u:AutomationDelegatingListViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewItemStyleKey}}" />
