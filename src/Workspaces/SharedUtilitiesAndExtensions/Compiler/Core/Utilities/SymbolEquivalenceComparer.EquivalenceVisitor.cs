@@ -424,9 +424,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                 }
 
-                // If we're validating the actual unconstructed ValueTuple type itself, we're done at this point.  No need to check field types.
-                if (IsConstructedFromSelf(x) || x.IsUnboundGenericType)
-                    return true;
+                // If we're validating the actual unconstructed ValueTuple type itself, we're done at this point.  No
+                // need to check field types. For VB we have to unwrap tuples to their underlying types to do this
+                // check.
+                var xUnderlying = x.TupleUnderlyingType;
+                if (xUnderlying != null)
+                {
+                    if (IsConstructedFromSelf(xUnderlying))
+                        return true;
+                }
+                else
+                {
+                    if (IsConstructedFromSelf(x))
+                        return true;
+                }
+
 
                 for (var i = 0; i < xElements.Length; i++)
                 {

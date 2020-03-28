@@ -184,14 +184,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static bool IsConstructedFromSelf(INamedTypeSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsConstructedFromSelf(IMethodSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsObjectType(ISymbol symbol)
         {
