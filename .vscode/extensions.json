@@ -4,7 +4,7 @@
   // List of extensions which should be recommended for users of this workspace.
   "recommendations": [
     "ms-azure-devops.azure-pipelines",
-    "ms-vscode.csharp",
+    "ms-dotnettools.csharp",
     "k--kato.docomment",
     "editorconfig.editorconfig",
     "pflannery.vscode-versionlens",
