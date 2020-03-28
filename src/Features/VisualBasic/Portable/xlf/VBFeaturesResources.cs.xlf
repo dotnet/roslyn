@@ -1787,16 +1787,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">Převést na asynchronní proceduru Sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Použít kontrolu „Is Nothing“</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Použít kontrolu „IsNot Nothing“</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
         <target state="translated">Převést na Select Case</target>
