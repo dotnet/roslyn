@@ -74,21 +74,6 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { }
 }";
 
-            var fixedSource = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}";
             var test = new CSharpCodeFixVerifier<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix>.Test()
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default,
@@ -100,7 +85,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 },
                 FixedState =
                 {
-                    Sources = { fixedSource },
+                    Sources = { source },
                     AdditionalFiles = {
                         (DiagnosticDescriptorCreationAnalyzer.ShippedFileName,
                             AnalyzerReleaseTrackingFix.ShippedAnalyzerReleaseTrackingFileDefaultContent),
