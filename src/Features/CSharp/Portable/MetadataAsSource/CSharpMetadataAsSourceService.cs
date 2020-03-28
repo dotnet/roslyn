@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
         private class FormattingRule : AbstractMetadataFormattingRule
         {
-            protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
+            protected override AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
                 var previousToken = token1;
                 var currentToken = token2;

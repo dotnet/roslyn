@@ -10,46 +10,34 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// it holds onto space and wrapping operation need to run between two tokens.
     /// </summary>
-    internal struct TokenPairWithOperations
+    internal readonly struct TokenPairWithOperations
     {
-        public TokenStream TokenStream { get; }
-        public AdjustSpacesOperation SpaceOperation { get; }
-        public AdjustNewLinesOperation LineOperation { get; }
+        public readonly TokenStream TokenStream;
+        public readonly AdjustSpacesOperation SpaceOperation;
+        public readonly AdjustNewLinesOperation? LineOperation;
 
-        public int PairIndex { get; }
+        public readonly int PairIndex;
 
         public TokenPairWithOperations(
             TokenStream tokenStream,
             int tokenPairIndex,
             AdjustSpacesOperation spaceOperations,
-            AdjustNewLinesOperation lineOperations)
-            : this()
+            AdjustNewLinesOperation? lineOperations)
         {
             Contract.ThrowIfNull(tokenStream);
 
             Contract.ThrowIfFalse(0 <= tokenPairIndex && tokenPairIndex < tokenStream.TokenCount - 1);
 
-            this.TokenStream = tokenStream;
-            this.PairIndex = tokenPairIndex;
-
+            TokenStream = tokenStream;
+            PairIndex = tokenPairIndex;
             SpaceOperation = spaceOperations;
             LineOperation = lineOperations;
         }
 
         public SyntaxToken Token1
-        {
-            get
-            {
-                return this.TokenStream.GetToken(this.PairIndex);
-            }
-        }
+            => this.TokenStream.GetToken(this.PairIndex);
 
         public SyntaxToken Token2
-        {
-            get
-            {
-                return this.TokenStream.GetToken(this.PairIndex + 1);
-            }
-        }
+            => this.TokenStream.GetToken(this.PairIndex + 1);
     }
 }

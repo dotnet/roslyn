@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
             if (operation == null)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // if operation is already forced, return as it is.
-            if (operation.Option == AdjustNewLinesOption.ForceLines)
+            if (operation.Value.Option == AdjustNewLinesOption.ForceLines)
             {
                 return operation;
             }
@@ -139,21 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return betweenMemberOperation;
             }
 
-            var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Line);
+            var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Value.Line);
             if (line == 0)
-            {
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
-            }
 
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
-            {
                 return null;
-            }
 
             var previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
             var nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);

@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
             }
 
-            if (pair.LineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+            if (pair.LineOperation.Value.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 return !pair.TokenStream.TwoTokensOriginallyOnSameLine(pair.Token1, pair.Token2) &&
                         pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // are conflicting each other by forcing new lines and removing new lines.
                     //
                     // if wrapping operation applied, no need to run any other operation
-                    if (applier.Apply(operation.LineOperation, operation.PairIndex, cancellationToken))
+                    if (applier.Apply(operation.LineOperation.Value, operation.PairIndex, cancellationToken))
                     {
                         return;
                     }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private NextGetAdjustNewLinesOperation NextOperation
             => new NextGetAdjustNewLinesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
 
-        public AdjustNewLinesOperation Invoke()
+        public AdjustNewLinesOperation? Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (_index >= _formattingRules.Length)

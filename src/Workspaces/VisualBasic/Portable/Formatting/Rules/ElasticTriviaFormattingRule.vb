@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 previousToken As SyntaxToken,
                 currentToken As SyntaxToken,
                 options As AnalyzerConfigOptions,
-                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation?
 
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' if it has one, check whether there is a forced one
             Dim operation = nextOperation.Invoke()
 
-            If operation IsNot Nothing AndAlso operation.Option = AdjustNewLinesOption.ForceLines Then
+            If operation IsNot Nothing AndAlso operation.Value.Option = AdjustNewLinesOption.ForceLines Then
                 Return operation
             End If
 
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
                 End If
 
-                Return CreateAdjustNewLinesOperation(Math.Max(If(operation Is Nothing, 1, operation.Line), 0), AdjustNewLinesOption.PreserveLines)
+                Return CreateAdjustNewLinesOperation(Math.Max(If(operation Is Nothing, 1, operation.Value.Line), 0), AdjustNewLinesOption.PreserveLines)
             End If
 
             If lines = 0 Then

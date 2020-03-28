@@ -17,29 +17,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // for extract method case, for a hybrid case, don't force rule, but preserve user style
-                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
-                if (operation == null)
-                {
+                var operationOpt = base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                if (operationOpt == null)
                     return null;
-                }
 
+                var operation = operationOpt.Value;
                 if (operation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
-                {
                     return FormattingOperations.CreateAdjustNewLinesOperation(operation.Line, AdjustNewLinesOption.PreserveLines);
-                }
 
                 if (operation.Option != AdjustNewLinesOption.ForceLines)
-                {
                     return operation;
-                }
 
                 if (previousToken.RawKind == (int)SyntaxKind.OpenBraceToken)
-                {
                     return operation;
-                }
 
                 if (previousToken.BetweenFieldAndNonFieldMember(currentToken))
                 {
@@ -48,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 if (previousToken.HasHybridTriviaBetween(currentToken))
-                {
                     return FormattingOperations.CreateAdjustNewLinesOperation(operation.Line, AdjustNewLinesOption.PreserveLines);
-                }
 
                 return operation;
             }

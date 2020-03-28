@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             /// <summary>
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.
             /// </summary>
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
                 SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (_syntaxFacts.IsLogicalAndExpression(previousToken.Parent))

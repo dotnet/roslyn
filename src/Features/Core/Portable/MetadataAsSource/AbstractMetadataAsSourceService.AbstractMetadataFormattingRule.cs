@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         protected abstract class AbstractMetadataFormattingRule : FormattingRule
         {
-            protected abstract AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
+            protected abstract AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
             protected abstract bool IsNewLine(char c);
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
                     SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (previousToken.RawKind == 0 || currentToken.RawKind == 0)
