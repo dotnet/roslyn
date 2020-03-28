@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OverrideCompletionProvider()
         {
         }

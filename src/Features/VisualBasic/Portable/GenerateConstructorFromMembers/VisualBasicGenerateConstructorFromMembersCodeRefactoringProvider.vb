@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
 
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
         Inherits AbstractGenerateConstructorFromMembersCodeRefactoringProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

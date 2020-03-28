@@ -110,10 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
             {

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 

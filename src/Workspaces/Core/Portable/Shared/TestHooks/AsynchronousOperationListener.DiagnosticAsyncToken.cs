@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using System.IO;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {

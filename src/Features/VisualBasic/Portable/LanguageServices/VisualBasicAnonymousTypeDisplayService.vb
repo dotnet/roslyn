@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeMemberKeyword)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

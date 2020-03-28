@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

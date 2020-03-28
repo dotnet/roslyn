@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IClassificationType _classificationType;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RenameClassificationTaggerProvider(
             InlineRenameService renameService,
             IClassificationTypeRegistryService classificationTypeRegistryService)

@@ -225,39 +225,36 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private OperatorKind GetOperatorKind(IMethodSymbol method)
-        {
-            switch (method.Name)
+            => method.Name switch
             {
-                case WellKnownMemberNames.ImplicitConversionName: return OperatorKind.ImplicitConversion;
-                case WellKnownMemberNames.ExplicitConversionName: return OperatorKind.ExplicitConversion;
-                case WellKnownMemberNames.AdditionOperatorName: return OperatorKind.Addition;
-                case WellKnownMemberNames.BitwiseAndOperatorName: return OperatorKind.BitwiseAnd;
-                case WellKnownMemberNames.BitwiseOrOperatorName: return OperatorKind.BitwiseOr;
-                case WellKnownMemberNames.DecrementOperatorName: return OperatorKind.Decrement;
-                case WellKnownMemberNames.DivisionOperatorName: return OperatorKind.Division;
-                case WellKnownMemberNames.EqualityOperatorName: return OperatorKind.Equality;
-                case WellKnownMemberNames.ExclusiveOrOperatorName: return OperatorKind.ExclusiveOr;
-                case WellKnownMemberNames.FalseOperatorName: return OperatorKind.False;
-                case WellKnownMemberNames.GreaterThanOperatorName: return OperatorKind.GreaterThan;
-                case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return OperatorKind.GreaterThanOrEqual;
-                case WellKnownMemberNames.IncrementOperatorName: return OperatorKind.Increment;
-                case WellKnownMemberNames.InequalityOperatorName: return OperatorKind.Inequality;
-                case WellKnownMemberNames.LeftShiftOperatorName: return OperatorKind.LeftShift;
-                case WellKnownMemberNames.LessThanOperatorName: return OperatorKind.LessThan;
-                case WellKnownMemberNames.LessThanOrEqualOperatorName: return OperatorKind.LessThanOrEqual;
-                case WellKnownMemberNames.LogicalNotOperatorName: return OperatorKind.LogicalNot;
-                case WellKnownMemberNames.ModulusOperatorName: return OperatorKind.Modulus;
-                case WellKnownMemberNames.MultiplyOperatorName: return OperatorKind.Multiply;
-                case WellKnownMemberNames.OnesComplementOperatorName: return OperatorKind.OnesComplement;
-                case WellKnownMemberNames.RightShiftOperatorName: return OperatorKind.RightShift;
-                case WellKnownMemberNames.SubtractionOperatorName: return OperatorKind.Subtraction;
-                case WellKnownMemberNames.TrueOperatorName: return OperatorKind.True;
-                case WellKnownMemberNames.UnaryNegationOperatorName: return OperatorKind.UnaryNegation;
-                case WellKnownMemberNames.UnaryPlusOperatorName: return OperatorKind.UnaryPlus;
-                default:
-                    throw new ArgumentException("Unknown operator kind.");
-            }
-        }
+                WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
+                WellKnownMemberNames.ExplicitConversionName => OperatorKind.ExplicitConversion,
+                WellKnownMemberNames.AdditionOperatorName => OperatorKind.Addition,
+                WellKnownMemberNames.BitwiseAndOperatorName => OperatorKind.BitwiseAnd,
+                WellKnownMemberNames.BitwiseOrOperatorName => OperatorKind.BitwiseOr,
+                WellKnownMemberNames.DecrementOperatorName => OperatorKind.Decrement,
+                WellKnownMemberNames.DivisionOperatorName => OperatorKind.Division,
+                WellKnownMemberNames.EqualityOperatorName => OperatorKind.Equality,
+                WellKnownMemberNames.ExclusiveOrOperatorName => OperatorKind.ExclusiveOr,
+                WellKnownMemberNames.FalseOperatorName => OperatorKind.False,
+                WellKnownMemberNames.GreaterThanOperatorName => OperatorKind.GreaterThan,
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => OperatorKind.GreaterThanOrEqual,
+                WellKnownMemberNames.IncrementOperatorName => OperatorKind.Increment,
+                WellKnownMemberNames.InequalityOperatorName => OperatorKind.Inequality,
+                WellKnownMemberNames.LeftShiftOperatorName => OperatorKind.LeftShift,
+                WellKnownMemberNames.LessThanOperatorName => OperatorKind.LessThan,
+                WellKnownMemberNames.LessThanOrEqualOperatorName => OperatorKind.LessThanOrEqual,
+                WellKnownMemberNames.LogicalNotOperatorName => OperatorKind.LogicalNot,
+                WellKnownMemberNames.ModulusOperatorName => OperatorKind.Modulus,
+                WellKnownMemberNames.MultiplyOperatorName => OperatorKind.Multiply,
+                WellKnownMemberNames.OnesComplementOperatorName => OperatorKind.OnesComplement,
+                WellKnownMemberNames.RightShiftOperatorName => OperatorKind.RightShift,
+                WellKnownMemberNames.SubtractionOperatorName => OperatorKind.Subtraction,
+                WellKnownMemberNames.TrueOperatorName => OperatorKind.True,
+                WellKnownMemberNames.UnaryNegationOperatorName => OperatorKind.UnaryNegation,
+                WellKnownMemberNames.UnaryPlusOperatorName => OperatorKind.UnaryPlus,
+                _ => throw new ArgumentException("Unknown operator kind."),
+            };
 
         /// <summary>
         /// Creates a parameter declaration.

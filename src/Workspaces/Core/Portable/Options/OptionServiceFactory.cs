@@ -13,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
         {
             _globalOptionService = globalOptionService;

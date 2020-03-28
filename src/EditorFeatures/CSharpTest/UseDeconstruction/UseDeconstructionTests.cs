@@ -723,5 +723,54 @@ class C
     IEnumerable<(string name, int age)> GetPeople() => default;
 }");
         }
+
+        [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestPreserveAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        [Goo]
+        await foreach (var [|t|] in Sequence())
+        {
+            Console.WriteLine(t.x + t.y);
+        }
+    }
+
+    static async IAsyncEnumerable<(int x, int y)> Sequence()
+    {
+        yield return (0, 0);
+        await Task.Yield();
+    }
+}" + IAsyncEnumerable,
+@"using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        [Goo]
+        await foreach (var (x, y) in Sequence())
+        {
+            Console.WriteLine(x + y);
+        }
+    }
+
+    static async IAsyncEnumerable<(int x, int y)> Sequence()
+    {
+        yield return (0, 0);
+        await Task.Yield();
+    }
+}" + IAsyncEnumerable);
+        }
     }
 }

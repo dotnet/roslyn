@@ -247,8 +247,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.CSharpProject),
                 (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
-                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateProjectReference),
-                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole));
+                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateReferences),
+                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole),
+                (@"CSharpProject\EmptyLibrary.dll", Resources.Dlls.EmptyLibrary));
         }
 
         protected FileSet GetAnalyzerReferenceSolutionFiles()

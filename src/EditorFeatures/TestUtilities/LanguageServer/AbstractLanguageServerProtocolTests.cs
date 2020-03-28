@@ -204,8 +204,7 @@ namespace Roslyn.Test.Utilities
                         .AddRange(spans.Select(span => ProtocolConversions.TextSpanToLocation(span, text, new Uri(GetDocumentFilePathFromName(document.Name)))));
                 }
 
-                // Pass in the text without markup.
-                solution = ChangeDocumentFilePathToValidURI(solution, document, text);
+                solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
             }
 
             workspace.ChangeSolution(solution);
@@ -222,21 +221,5 @@ namespace Roslyn.Test.Utilities
 
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
-
-        /// <summary>
-        /// Changes the document file path.
-        /// Adds/Removes the document instead of updating file path due to
-        /// https://github.com/dotnet/roslyn/issues/34837
-        /// </summary>
-        private static Solution ChangeDocumentFilePathToValidURI(Solution solution, TestHostDocument document, SourceText text)
-        {
-            var documentId = document.Id;
-            var documentName = document.Name;
-            var documentPath = GetDocumentFilePathFromName(documentName);
-
-            return solution
-                .RemoveDocument(documentId)
-                .AddDocument(documentId, documentName, text, filePath: documentPath);
-        }
     }
 }

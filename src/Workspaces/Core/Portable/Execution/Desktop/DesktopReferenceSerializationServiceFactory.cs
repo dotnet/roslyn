@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private static readonly SerializationAnalyzerAssemblyLoader s_loader = new SerializationAnalyzerAssemblyLoader();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DesktopReferenceSerializationServiceFactory()
         {
         }

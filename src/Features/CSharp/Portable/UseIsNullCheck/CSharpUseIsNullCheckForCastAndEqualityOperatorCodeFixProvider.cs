@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
         {
         }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(CSharpFeaturesResources.Use_is_null_check,
-                    c => this.FixAsync(context.Document, diagnostic, c)),
+                    c => FixAsync(context.Document, diagnostic, c)),
                     context.Diagnostics);
             }
 

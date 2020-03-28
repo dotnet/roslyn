@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpDefaultExpressionReducer());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSimplificationService() : base(s_reducers)
         {
         }

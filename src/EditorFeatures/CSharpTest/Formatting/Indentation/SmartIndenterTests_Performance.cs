@@ -2211,7 +2211,7 @@ class Program
 
             AssertSmartIndent(
                 code,
-                expectedIndentation: 4);
+                expectedIndentation: 12);
         }
     }
 }

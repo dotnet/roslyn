@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         }
 
         protected override AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => new SymbolDescriptionBuilder(semanticModel, position, workspace, this.AnonymousTypeDisplayService, cancellationToken);
+            => new SymbolDescriptionBuilder(semanticModel, position, workspace, AnonymousTypeDisplayService, cancellationToken);
     }
 }

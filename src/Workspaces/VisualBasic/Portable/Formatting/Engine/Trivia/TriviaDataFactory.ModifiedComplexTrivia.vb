@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Throw New NotImplementedException()
             End Function
         End Class

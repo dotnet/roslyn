@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.InvertLogical;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
         AbstractInvertLogicalCodeRefactoringProvider<SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpInvertLogicalCodeRefactoringProvider()
         {
         }
