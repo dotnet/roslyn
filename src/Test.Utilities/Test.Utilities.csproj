@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <IsShipping>false</IsShipping>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
