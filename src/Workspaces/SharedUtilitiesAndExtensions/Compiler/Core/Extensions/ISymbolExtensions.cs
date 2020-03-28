@@ -716,5 +716,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // void GetResult() || T GetResult()
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
         }
+
+        public static bool IsKind<TSymbol>(this ISymbol symbol, SymbolKind kind, [NotNullWhen(true)] out TSymbol? result) where TSymbol : class, ISymbol
+        {
+            if (!symbol.IsKind(kind))
+            {
+                result = null;
+                return false;
+            }
+
+            result = (TSymbol)symbol;
+            return true;
+        }
     }
 }

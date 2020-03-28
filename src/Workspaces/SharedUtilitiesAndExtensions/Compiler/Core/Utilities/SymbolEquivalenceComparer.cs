@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -125,17 +126,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)
-        {
-            return GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
-        }
+            => GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence.
         /// </summary>
         public bool Equals(ISymbol x, ISymbol y)
-        {
-            return EqualsCore(x, y, null);
-        }
+            => EqualsCore(x, y, equivalentTypesWithDifferingAssemblies: null);
 
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence and populates <paramref name="equivalentTypesWithDifferingAssemblies"/>
@@ -150,26 +147,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private bool EqualsCore(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
-        {
-            return GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
-        }
+            => GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         public int GetHashCode(ISymbol x)
-        {
-            return GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
-        }
+            => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
 
         private static ISymbol UnwrapAlias(ISymbol symbol)
-        {
-            if (symbol.Kind == SymbolKind.Alias)
-            {
-                return ((IAliasSymbol)symbol).Target;
-            }
-            else
-            {
-                return symbol;
-            }
-        }
+            => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol alias) ? alias.Target : symbol;
 
         private static SymbolKind GetKindAndUnwrapAlias(ref ISymbol symbol)
         {
@@ -184,19 +168,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static bool IsConstructedFromSelf(INamedTypeSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsConstructedFromSelf(IMethodSymbol symbol)
-        {
-            return symbol.Equals(symbol.ConstructedFrom);
-        }
+            => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsObjectType(ISymbol symbol)
-        {
-            return symbol.Kind == SymbolKind.NamedType && ((ITypeSymbol)symbol).SpecialType == SpecialType.System_Object;
-        }
+            => symbol.IsKind(SymbolKind.NamedType, out ITypeSymbol typeSymbol) && typeSymbol.SpecialType == SpecialType.System_Object;
 
         private static bool CheckContainingType(IMethodSymbol x)
         {

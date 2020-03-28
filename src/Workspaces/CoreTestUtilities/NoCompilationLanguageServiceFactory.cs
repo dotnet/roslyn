@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     internal class NoCompilationLanguageServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NoCompilationLanguageServiceFactory()
         {
         }

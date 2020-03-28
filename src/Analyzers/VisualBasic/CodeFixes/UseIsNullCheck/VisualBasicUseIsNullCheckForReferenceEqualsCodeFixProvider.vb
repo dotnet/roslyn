@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.UseIsNullCheck
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 

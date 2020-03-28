@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
         {
             listenerProvider.GetListener(FeatureAttribute.LightBulb);

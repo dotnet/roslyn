@@ -4,11 +4,13 @@
 
 #nullable enable
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InferredIndentationDocumentOptionsProviderFactory(IIndentationManagerService indentationManagerService)
         {
             _indentationManagerService = indentationManagerService;

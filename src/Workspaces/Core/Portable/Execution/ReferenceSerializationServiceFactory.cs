@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ReferenceSerializationServiceFactory()
         {
         }
