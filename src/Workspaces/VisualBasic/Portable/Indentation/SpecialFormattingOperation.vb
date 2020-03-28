@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
@@ -193,9 +194,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             operations.Add(FormattingOperations.CreateAlignTokensOperation(
-                           cases(0).GetFirstToken(includeZeroWidth:=True),
-                           cases.Skip(1).Select(Function(n) n.GetFirstToken(includeZeroWidth:=True)),
-                           AlignTokensOption.AlignIndentationOfTokensToBaseToken))
+                cases(0).GetFirstToken(includeZeroWidth:=True),
+                cases.Skip(1).SelectAsArray(Function(n) n.GetFirstToken(includeZeroWidth:=True)),
+                AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
         Private Overloads Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
@@ -215,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private Overloads Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
             operations.Add(FormattingOperations.CreateAlignTokensOperation(
                            baseToken,
-                           SpecializedCollections.SingletonEnumerable(baseToken.GetNextToken(includeZeroWidth:=True)),
+                           ImmutableArray.Create(baseToken.GetNextToken(includeZeroWidth:=True)),
                            AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
     End Class

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 
@@ -70,12 +71,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
@@ -86,12 +87,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateAnchorIndentationOperation(startToken, endToken))
         End Sub
 
-        Protected Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As IEnumerable(Of SyntaxToken))
-            If containingNode Is Nothing OrElse tokens Is Nothing Then
+        Protected Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As ImmutableArray(Of SyntaxToken))
+            If containingNode Is Nothing OrElse tokens.IsDefaultOrEmpty Then
                 Return
             End If
 
-            operations.Add(FormattingOperations.CreateAlignTokensOperation(baseToken, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken))
+            operations.Add(FormattingOperations.CreateAlignTokensOperation(
+                baseToken, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
         Protected Function CreateAdjustNewLinesOperation(line As Integer, [option] As AdjustNewLinesOption) As AdjustNewLinesOperation

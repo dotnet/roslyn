@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -68,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
                     list.Add(New AlignTokensOperation(
-                             initializer.WithKeyword,
-                             SpecializedCollections.SingletonEnumerable(initializer.CloseBraceToken),
-                             [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
+                        initializer.WithKeyword,
+                        ImmutableArray.Create(initializer.CloseBraceToken),
+                        [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
                 End If
             End If
 
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
                     list.Add(New AlignTokensOperation(
                              collectionInitializer.FromKeyword,
-                             SpecializedCollections.SingletonEnumerable(collectionInitializer.Initializer.CloseBraceToken),
+                             ImmutableArray.Create(collectionInitializer.Initializer.CloseBraceToken),
                              [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
                 End If
             End If

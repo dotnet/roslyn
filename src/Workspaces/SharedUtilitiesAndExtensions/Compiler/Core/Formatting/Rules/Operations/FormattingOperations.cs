@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -94,12 +95,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         /// <summary>
-        /// instruct the engine to try to align first tokens on the lines among the given tokens to be aligned to the base token
+        /// instruct the engine to try to align first tokens on the lines among the given tokens to be aligned to the
+        /// base token
         /// </summary>
-        public static AlignTokensOperation CreateAlignTokensOperation(SyntaxToken baseToken, IEnumerable<SyntaxToken> tokens, AlignTokensOption option)
-        {
-            return new AlignTokensOperation(baseToken, tokens, option);
-        }
+        public static AlignTokensOperation CreateAlignTokensOperation(SyntaxToken baseToken, ImmutableArray<SyntaxToken> tokens, AlignTokensOption option)
+            => new AlignTokensOperation(baseToken, tokens, option);
 
         /// <summary>
         /// instruct the engine to try to put the give lines between two tokens

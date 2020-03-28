@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 End If
 
                 ' make sure we have the given token as one of tokens to be aligned to the base token
-                Dim match = operations.FirstOrDefault(Function(o) o.Tokens.Contains(localToken))
+                Dim match = operations.FirstOrNull(Function(o) o.Tokens.Contains(localToken))
                 If match IsNot Nothing Then
                     Return True
                 End If

@@ -258,11 +258,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 // make sure we have the given token as one of tokens to be aligned to the base token
-                var match = list.FirstOrDefault(o => o != null && o.Tokens.Contains(token));
+                var match = list.FirstOrNull(o => o.Tokens.Contains(token));
                 if (match != null)
-                {
-                    return match.BaseToken;
-                }
+                    return match.Value.BaseToken;
 
                 currentNode = currentNode.Parent;
             }

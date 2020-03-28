@@ -2,29 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
     /// align first tokens on lines among the given tokens to the base token
     /// </summary>
-    internal sealed class AlignTokensOperation
+    internal readonly struct AlignTokensOperation
     {
-        internal AlignTokensOperation(SyntaxToken baseToken, IEnumerable<SyntaxToken> tokens, AlignTokensOption option)
+        public readonly SyntaxToken BaseToken;
+        public readonly ImmutableArray<SyntaxToken> Tokens;
+        public readonly AlignTokensOption Option;
+
+        public AlignTokensOperation(SyntaxToken baseToken, ImmutableArray<SyntaxToken> tokens, AlignTokensOption option)
         {
-            Contract.ThrowIfNull(tokens);
-            Debug.Assert(!tokens.IsEmpty());
+            Debug.Assert(!tokens.IsDefaultOrEmpty);
 
-            this.Option = option;
-            this.BaseToken = baseToken;
-            this.Tokens = tokens;
+            Option = option;
+            BaseToken = baseToken;
+            Tokens = tokens;
         }
-
-        public SyntaxToken BaseToken { get; }
-        public IEnumerable<SyntaxToken> Tokens { get; }
-        public AlignTokensOption Option { get; }
     }
 }
