@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Threading
@@ -36,8 +38,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
-                New LineAdjustmentFormattingRule(),
-                New EndRegionFormattingRule())
+                LineAdjustmentFormattingRule.Instance,
+                EndRegionFormattingRule.Instance)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
@@ -384,6 +386,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return GetAttributeNodes(DirectCast(node, FieldDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ParameterSyntax Then
                 Return GetAttributeNodes(DirectCast(node, ParameterSyntax).AttributeLists)
+            ElseIf TypeOf node Is EnumMemberDeclarationSyntax Then
+                Return GetAttributeNodes(DirectCast(node, EnumMemberDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ModifiedIdentifierSyntax OrElse
                    TypeOf node Is VariableDeclaratorSyntax Then
                 Return GetAttributeNodes(node.Parent)

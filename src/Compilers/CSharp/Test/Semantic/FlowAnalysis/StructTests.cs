@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -401,6 +403,44 @@ public struct Struct
     }
 }";
             CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(30756, "https://github.com/dotnet/roslyn/issues/30756")]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule_PlusNullable()
+        {
+            var source = @"
+internal class C1
+{
+    public struct S
+    {
+#nullable disable
+        public string data;
+#nullable enable
+    }
+}
+public struct Struct
+{
+    internal C1.S data;
+}
+";
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugModule));
+            var moduleReference = comp1.EmitToImageReference();
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -128,21 +130,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return ContainingAssembly.GetSpecialType(SpecialType.System_Void);
+                return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void));
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -286,6 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDeclaredReadOnly => false;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get
@@ -332,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return null;
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType.AreLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation

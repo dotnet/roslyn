@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
-    using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -37,73 +38,63 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal struct RegexLexer
     {
-        public readonly ImmutableArray<VirtualChar> Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public RegexLexer(ImmutableArray<VirtualChar> text) : this()
+        public RegexLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
-        public ImmutableArray<VirtualChar> GetSubPatternToCurrentPos(int start)
+        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
-        {
-            var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
-            for (var i = start; i < end; i++)
-            {
-                result.Add(Text[i]);
-            }
-
-            return result.ToImmutableAndFree();
-        }
+        public VirtualCharSequence GetSubPattern(int start, int end)
+            => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
         {
             var trivia = ScanLeadingTrivia(allowTrivia, options);
             if (Position == Text.Length)
             {
-                return CreateToken(RegexKind.EndOfFile, trivia, ImmutableArray<VirtualChar>.Empty);
+                return CreateToken(RegexKind.EndOfFile, trivia, VirtualCharSequence.Empty);
             }
 
             var ch = this.CurrentChar;
             Position++;
 
-            return CreateToken(GetKind(ch), trivia, ImmutableArray.Create(ch));
+            return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
         private static RegexKind GetKind(char ch)
-        {
-            switch (ch)
+            => ch switch
             {
-                case '|': return RegexKind.BarToken;
-                case '*': return RegexKind.AsteriskToken;
-                case '+': return RegexKind.PlusToken;
-                case '?': return RegexKind.QuestionToken;
-                case '{': return RegexKind.OpenBraceToken;
-                case '}': return RegexKind.CloseBraceToken;
-                case '\\': return RegexKind.BackslashToken;
-                case '[': return RegexKind.OpenBracketToken;
-                case ']': return RegexKind.CloseBracketToken;
-                case '.': return RegexKind.DotToken;
-                case '^': return RegexKind.CaretToken;
-                case '$': return RegexKind.DollarToken;
-                case '(': return RegexKind.OpenParenToken;
-                case ')': return RegexKind.CloseParenToken;
-                case ',': return RegexKind.CommaToken;
-                case ':': return RegexKind.ColonToken;
-                case '=': return RegexKind.EqualsToken;
-                case '!': return RegexKind.ExclamationToken;
-                case '<': return RegexKind.LessThanToken;
-                case '>': return RegexKind.GreaterThanToken;
-                case '-': return RegexKind.MinusToken;
-                case '\'': return RegexKind.SingleQuoteToken;
-                default: return RegexKind.TextToken;
-            }
-        }
+                '|' => RegexKind.BarToken,
+                '*' => RegexKind.AsteriskToken,
+                '+' => RegexKind.PlusToken,
+                '?' => RegexKind.QuestionToken,
+                '{' => RegexKind.OpenBraceToken,
+                '}' => RegexKind.CloseBraceToken,
+                '\\' => RegexKind.BackslashToken,
+                '[' => RegexKind.OpenBracketToken,
+                ']' => RegexKind.CloseBracketToken,
+                '.' => RegexKind.DotToken,
+                '^' => RegexKind.CaretToken,
+                '$' => RegexKind.DollarToken,
+                '(' => RegexKind.OpenParenToken,
+                ')' => RegexKind.CloseParenToken,
+                ',' => RegexKind.CommaToken,
+                ':' => RegexKind.ColonToken,
+                '=' => RegexKind.EqualsToken,
+                '!' => RegexKind.ExclamationToken,
+                '<' => RegexKind.LessThanToken,
+                '>' => RegexKind.GreaterThanToken,
+                '-' => RegexKind.MinusToken,
+                '\'' => RegexKind.SingleQuoteToken,
+                _ => RegexKind.TextToken,
+            };
 
         private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
         {
@@ -113,8 +104,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var result = ArrayBuilder<RegexTrivia>.GetInstance();
-
-            var start = Position;
 
             while (Position < Text.Length)
             {
@@ -356,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return start == Position
-                ? default(RegexToken?)
+                ? (RegexToken?)null
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
@@ -364,12 +353,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (ch)
             {
-                case '+': case '-':
-                case 'i': case 'I':
-                case 'm': case 'M':
-                case 'n': case 'N':
-                case 's': case 'S':
-                case 'x': case 'X':
+                case '+':
+                case '-':
+                case 'i':
+                case 'I':
+                case 'm':
+                case 'M':
+                case 'n':
+                case 'N':
+                case 's':
+                case 'S':
+                case 'x':
+                case 'X':
                     return true;
                 default:
                     return false;
@@ -385,7 +380,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(Text[beforeSlash].Char == '\\');
             Debug.Assert(Text[beforeSlash + 1].Char == 'x' || Text[beforeSlash + 1].Char == 'u');
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (Position < Text.Length && IsHexChar(this.CurrentChar))
                 {
@@ -429,9 +424,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(IsOctalDigit(Text[start].Char));
 
             const int maxChars = 3;
-            int currentVal = 0;
+            var currentVal = 0;
 
-            for (int i = 0; i < maxChars; i++)
+            for (var i = 0; i < maxChars; i++)
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
@@ -443,7 +438,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     Position++;
 
                     // Ecmascript doesn't allow octal values above 32 (0x20 in hex). Note: we do
-                    // *not* add a diagnostic.  This is not an error situation. The .net lexer
+                    // *not* add a diagnostic.  This is not an error situation. The .NET lexer
                     // simply stops once it hits a value greater than a legal octal value.
                     if (HasOption(options, RegexOptions.ECMAScript) && currentVal >= 0x20)
                     {

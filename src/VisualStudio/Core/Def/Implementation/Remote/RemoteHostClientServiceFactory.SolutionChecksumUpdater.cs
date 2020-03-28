@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -17,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
         {
             private readonly RemoteHostClientService _service;
-            private readonly SimpleTaskQueue _textChangeQueue;
+            private readonly TaskQueue _textChangeQueue;
             private readonly SemaphoreSlim _event;
             private readonly object _gate;
 
@@ -26,13 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // hold last async token
             private IAsyncToken _lastToken;
 
-            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(service.Listener,
-                     service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                     service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+            public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken)
+                : base(service.Listener,
+                       service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
+                       service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
-                _textChangeQueue = new SimpleTaskQueue(TaskScheduler.Default);
+                _textChangeQueue = new TaskQueue(service.Listener, TaskScheduler.Default);
 
                 _event = new SemaphoreSlim(initialCount: 0);
                 _gate = new object();
@@ -111,16 +113,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 lock (_gate)
                 {
-                    _lastToken = _lastToken ?? Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
+                    _lastToken ??= Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
                 }
 
                 _event.Release();
             }
 
-            private Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
+            private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                return _service.Workspace.SynchronizePrimaryWorkspaceAsync(_service.Workspace.CurrentSolution, cancellationToken);
+                var workspace = _service.Workspace;
+                var solution = workspace.CurrentSolution;
+                if (solution.BranchId != solution.Workspace.PrimaryBranchId)
+                {
+                    return;
+                }
+
+                var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return;
+                }
+
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+                {
+                    var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                        solution,
+                        new object[] { checksum, solution.WorkspaceVersion },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
+
 
             private static void CancelAndDispose(CancellationTokenSource cancellationSource)
             {
@@ -149,10 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // VS side. this optimization saves times we need to do full text
                 // synchronization for typing scenario.
 
-                SourceText oldText = null;
-                SourceText newText = null;
-                if ((oldDocument.TryGetText(out oldText) == false) ||
-                    (newDocument.TryGetText(out newText) == false))
+                if ((oldDocument.TryGetText(out var oldText) == false) ||
+                    (newDocument.TryGetText(out var newText) == false))
                 {
                     // we only support case where text already exist
                     return;
@@ -174,10 +199,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // only cancelled when remote host gets shutdown
-                var token = Listener.BeginAsyncOperation(nameof(PushTextChanges));
-                _textChangeQueue.ScheduleTask(async () =>
+                _textChangeQueue.ScheduleTask(nameof(PushTextChanges), async () =>
                 {
-                    var client = await _service.Workspace.TryGetRemoteHostClientAsync(CancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(_service.Workspace, CancellationToken).ConfigureAwait(false);
                     if (client == null)
                     {
                         return;
@@ -185,10 +209,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                    await client.TryRunRemoteAsync(
-                        WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
-                        new object[] { oldDocument.Id, state.Text, textChanges }, CancellationToken).ConfigureAwait(false);
-                }, CancellationToken).CompletesAsyncOperation(token);
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizeTextAsync),
+                        solution: null,
+                        new object[] { oldDocument.Id, state.Text, textChanges },
+                        callbackTarget: null,
+                        CancellationToken).ConfigureAwait(false);
+
+                }, CancellationToken);
             }
         }
     }

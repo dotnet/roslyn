@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
@@ -15,16 +17,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public static bool HasOption(RegexOptions options, RegexOptions val)
             => (options & val) != 0;
 
-        public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars)
+        public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, VirtualCharSequence virtualChars)
             => new RegexToken(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
 
         public static RegexToken CreateMissingToken(RegexKind kind)
-            => CreateToken(kind, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<VirtualChar>.Empty);
+            => CreateToken(kind, ImmutableArray<RegexTrivia>.Empty, VirtualCharSequence.Empty);
 
-        public static RegexTrivia CreateTrivia(RegexKind kind, ImmutableArray<VirtualChar> virtualChars)
+        public static RegexTrivia CreateTrivia(RegexKind kind, VirtualCharSequence virtualChars)
             => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        public static RegexTrivia CreateTrivia(RegexKind kind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
+        public static RegexTrivia CreateTrivia(RegexKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new RegexTrivia(kind, virtualChars, diagnostics);
 
         /// <summary>
@@ -33,22 +35,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// '(' this will just map to '(' as that's all that \( does in a regex.
         /// </summary>
         public static char MapEscapeChar(char ch)
-        {
-            switch (ch)
+            => ch switch
             {
-                default:
-                    return ch;
-
-                case 'a': return '\u0007';  // bell
-                case 'b': return '\b';      // backspace
-                case 'e': return '\u001B';  // escape
-                case 'f': return '\f';      // form feed
-                case 'n': return '\n';      // new line
-                case 'r': return '\r';      // carriage return
-                case 't': return '\t';      // tab
-                case 'v': return '\u000B';  // vertical tab
-            }
-        }
+                'a' => '\u0007',    // bell
+                'b' => '\b',        // backspace
+                'e' => '\u001B',    // escape
+                'f' => '\f',        // form feed
+                'n' => '\n',        // new line
+                'r' => '\r',        // carriage return
+                't' => '\t',        // tab
+                'v' => '\u000B',    // vertical tab
+                _ => ch,
+            };
 
         public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
         {

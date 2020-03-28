@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -25,13 +26,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// </summary>
         private struct CaptureInfoAnalyzer
         {
-            private readonly ImmutableArray<VirtualChar> _text;
+            private readonly VirtualCharSequence _text;
             private readonly ImmutableDictionary<int, TextSpan>.Builder _captureNumberToSpan;
             private readonly ImmutableDictionary<string, TextSpan>.Builder _captureNameToSpan;
             private readonly ArrayBuilder<string> _captureNames;
             private int _autoNumber;
 
-            private CaptureInfoAnalyzer(ImmutableArray<VirtualChar> text)
+            private CaptureInfoAnalyzer(VirtualCharSequence text)
             {
                 _text = text;
                 _captureNumberToSpan = ImmutableDictionary.CreateBuilder<int, TextSpan>();
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
-                ImmutableArray<VirtualChar> text, RegexCompilationUnit root, RegexOptions options)
+                VirtualCharSequence text, RegexCompilationUnit root, RegexOptions options)
             {
                 var analyzer = new CaptureInfoAnalyzer(text);
                 return analyzer.Analyze(root, options);

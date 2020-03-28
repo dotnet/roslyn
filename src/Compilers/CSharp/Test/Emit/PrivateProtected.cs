@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#if NET46
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -95,9 +96,9 @@ public class Base
     private protected Base() { Event1?.Invoke(); }
 }";
             var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider),
+                options: TestOptions.SigningReleaseDll,
                 assemblyName: "Paul");
-            var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
+            var bb = (NamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
                 switch (member.Name)
@@ -134,7 +135,7 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -185,7 +186,7 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -237,13 +238,13 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
                 .VerifyDiagnostics(
                 );
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
                 .VerifyDiagnostics(
                 );
         }
@@ -415,9 +416,12 @@ struct Struct
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
-                // (3,27): error CS0106: The modifier 'private protected' is not valid for this item
+                // (3,27): error CS8503: The modifier 'private protected' is not valid for this item in C# 7.2. Please use language version '8.0' or greater.
                 //     private protected int M();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("private protected").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("private protected", "7.2", "8.0").WithLocation(3, 27),
+                // (3,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected int M();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M").WithLocation(3, 27)
                 );
         }
 
@@ -792,4 +796,3 @@ class Client
         }
     }
 }
-#endif

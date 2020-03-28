@@ -1,11 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddRequiredParentheses
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
-Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
     Friend Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
         Inherits AbstractAddRequiredParenthesesDiagnosticAnalyzer(Of
             ExpressionSyntax, BinaryExpressionSyntax, SyntaxKind)
+
+        Public Sub New()
+            MyBase.New(VisualBasicPrecedenceService.Instance)
+        End Sub
 
         Private Shared ReadOnly s_kinds As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
                 SyntaxKind.AddExpression,
@@ -50,10 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 
         Protected Overrides Function GetPrecedence(binary As BinaryExpressionSyntax) As Integer
             Return binary.GetOperatorPrecedence()
-        End Function
-
-        Protected Overrides Function GetPrecedenceKind(binary As BinaryExpressionSyntax) As PrecedenceKind
-            Return VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.GetPrecedenceKind(binary)
         End Function
 
         Protected Overrides Function TryGetParentExpression(binary As BinaryExpressionSyntax) As ExpressionSyntax

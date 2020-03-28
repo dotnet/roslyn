@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -25,16 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string truePreview,
             string falsePreview,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
-            : base(option, description, info, options, groupName, preferences, notificationPreferences)
+            : base(option, description, info, groupName, preferences, notificationPreferences)
         {
             _truePreview = truePreview;
             _falsePreview = falsePreview;
 
-            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var codeStyleOption = ((CodeStyleOption<bool>)optionStore.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public override string GetPreview() 
+        public override string GetPreview()
             => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
     }
 }

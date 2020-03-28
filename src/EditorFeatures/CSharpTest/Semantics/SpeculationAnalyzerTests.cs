@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -151,9 +153,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", true);
+}           ", "c.CompareTo(d)", true);
         }
 
         [Fact]
@@ -170,9 +173,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", false);
+}           ", "c.CompareTo(d)", false);
         }
 
         [Fact]
@@ -287,7 +291,7 @@ class Program
 using System.Collections;
 class Collection : IEnumerable
 {
-    public IEnumerator GetEnumerator() { return null; }
+    public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
     public void Add(string s) { }
     public void Add(int i) { }
     void Main()
@@ -510,7 +514,7 @@ class Program
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
         {
             var langCompilation = compilation;
-            bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
+            static bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
             return !langCompilation.GetDiagnostics().Any(isProblem) &&
                 !langCompilation.Emit(temporaryStream).Diagnostics.Any(isProblem);
         }

@@ -1,12 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.Build.Utilities;
+#nullable enable
+
+using System.Reflection;
+
+#if DEBUG || BOOTSTRAP
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System;
 using System.Threading;
+using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -21,12 +30,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
         private static int s_failedServerConnectionCount = 0;
 
-        private string _bootstrapPath;
+        private string? _tasksAssemblyFullPath;
 
-        public string BootstrapPath
+        [DisallowNull]
+        public string? TasksAssemblyFullPath
         {
-            get { return _bootstrapPath; }
-            set { _bootstrapPath = NormalizePath(value); }
+            get { return _tasksAssemblyFullPath; }
+            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value!)); }
         }
 
         public ValidateBootstrap()
@@ -36,29 +46,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
-            if (_bootstrapPath == null)
+            if (TasksAssemblyFullPath is null)
             {
-                Log.LogError($"{nameof(ValidateBootstrap)} task must have a {nameof(BootstrapPath)} parameter.");
+                Log.LogError($"{nameof(ValidateBootstrap)} task must have a {nameof(TasksAssemblyFullPath)} parameter.");
                 return false;
             }
 
-            var toolsPath = Path.Combine(_bootstrapPath, "tools");
-            var dependencies = new[]
-            {
-                typeof(ValidateBootstrap).GetTypeInfo().Assembly,
-            };
-
             var allGood = true;
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            foreach (var dependency in dependencies)
+            var fullPath = typeof(ValidateBootstrap).Assembly.Location;
+            if (!StringComparer.OrdinalIgnoreCase.Equals(TasksAssemblyFullPath, fullPath))
             {
-                var path = GetDirectory(dependency);
-                path = NormalizePath(path);
-                if (!comparer.Equals(path, toolsPath))
-                {
-                    Log.LogError($"Bootstrap assembly {dependency.GetName().Name} incorrectly loaded from {path} instead of {toolsPath}");
-                    allGood = false;
-                }
+                Log.LogError($"Bootstrap assembly {Path.GetFileName(fullPath)} incorrectly loaded from {fullPath} instead of {TasksAssemblyFullPath}");
+                allGood = false;
             }
 
             var failedLoads = s_failedLoadSet.Keys.ToList();
@@ -87,9 +86,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return allGood;
         }
 
-        private static string NormalizePath(string path)
+        [return: NotNullIfNotNull("path")]
+        private static string? NormalizePath(string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return path;
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
+        private string? GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {

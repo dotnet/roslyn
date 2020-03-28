@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2368,7 +2370,7 @@ class Derived2 : Base1
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Implicit()
         {
             // char
@@ -2467,14 +2469,14 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Implicit("int", "long?", "arg => F(ConvertChecked(ConvertChecked(arg)))");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversionsInExpressionTrees_ImplicitTuple()
         {
             CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_Explicit()
         {
             // char
@@ -2663,7 +2665,7 @@ class Derived2 : Base1
             CheckedConversionInExpressionTree_Explicit("int", "long?", "arg => ConvertChecked(ConvertChecked(arg))");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedConversionsInExpressionTrees_ExplicitTuple()
         {
             CheckedConversionInExpressionTree_Explicit("(int, int)", "(int, int)?", ConvertMethod.Convert);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -116,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim receiver As BoundExpression = Nothing
                             If Not addHandlerMethod.IsShared Then
                                 Dim meParam = constructorMethod.MeParameter
-                                If addHandlerMethod.ContainingType = containingType Then
+                                If TypeSymbol.Equals(addHandlerMethod.ContainingType, containingType, TypeCompareKind.ConsiderEverything) Then
                                     receiver = New BoundMeReference(syntax, meParam.Type).MakeCompilerGenerated()
                                 Else
                                     'Dev10 always performs base call if event is in the base class. 
@@ -270,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim methodSymbol = callExpression.Method
                             If methodSymbol.MethodKind = MethodKind.Constructor Then
                                 isMyBaseConstructorCall = receiver.IsMyBaseReference
-                                Return methodSymbol.ContainingType = container
+                                Return TypeSymbol.Equals(methodSymbol.ContainingType, container, TypeCompareKind.ConsiderEverything)
                             End If
                         End If
                     End If

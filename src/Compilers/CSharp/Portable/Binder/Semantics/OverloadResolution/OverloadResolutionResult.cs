@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -289,7 +291,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch 
+            // Otherwise, if there is any such method where type inference succeeded but inferred
+            // type arguments that violate the constraints on the method, then the first such method is
+            // the best bad method.
+
+            if (HadConstraintFailure(location, diagnostics))
+            {
+                return;
+            }
+
+            // Since we didn't return...
+            AssertNone(MemberResolutionKind.ConstraintFailure);
+
+            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
 
             if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
@@ -299,15 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Since we didn't return...
             AssertNone(MemberResolutionKind.BadArgumentConversion);
-
-            // Otherwise, if there is any such method where type inference succeeded but inferred
-            // type arguments that violate the constraints on the method, then the first such method is 
-            // the best bad method.
-
-            if (HadConstraintFailure(location, diagnostics))
-            {
-                return;
-            }
 
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // a parameter type that violates its own constraints then the first such method is 
@@ -608,9 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ErrorCode errorCode =
-                    symbol.IsStatic ? ErrorCode.ERR_ObjectProhibited :
-                    Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode ? ErrorCode.ERR_FieldInitRefNonstatic :
-                    ErrorCode.ERR_ObjectRequired;
+                    symbol.RequiresInstanceReceiver()
+                    ? Binder.WasImplicitReceiver(receiverOpt) && binder.InFieldInitializer && !binder.BindingTopLevelScriptCode
+                        ? ErrorCode.ERR_FieldInitRefNonstatic
+                        : ErrorCode.ERR_ObjectRequired
+                    : ErrorCode.ERR_ObjectProhibited;
                 // error CS0176: Member 'Program.M(B)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //     -or-
                 // error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(B)'
@@ -881,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadConstructedParameterFailedConstraintCheck(
             ConversionsBase conversions,
-            Compilation compilation,
+            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             Location location)
         {
@@ -973,8 +980,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter];
-            formalParameterType.CheckAllConstraints(conversions, location, diagnostics);
+            TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
+            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
 
             return true;
         }
@@ -1198,8 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            argType,
-                            ImmutableArray<CustomModifier>.Empty,
+                            TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);

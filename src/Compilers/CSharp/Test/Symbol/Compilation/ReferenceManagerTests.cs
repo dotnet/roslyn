@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1019,7 +1021,7 @@ public interface I {}";
 
             var comp = CSharpCompilation.Create(
                 "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular) },
                 new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -2191,25 +2193,25 @@ public class Source
             var refVectors40 = vectors40.EmitToImageReference();
             var refVectors41 = vectors41.EmitToImageReference();
 
-            var c1 = CreateEmptyCompilation("", 
+            var c1 = CreateEmptyCompilation("",
                 TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors40, refVectors41 }),
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c1.VerifyDiagnostics();
 
             var a0 = c1.GetAssemblyOrModuleSymbol(refVectors40);
             var a1 = c1.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
 
-            var c2 = CreateEmptyCompilation("", 
+            var c2 = CreateEmptyCompilation("",
                 TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors41, refVectors40 }),
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c2.VerifyDiagnostics();
 
             a0 = c2.GetAssemblyOrModuleSymbol(refVectors40);
             a1 = c2.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
         }
 
         [Fact]
@@ -2553,7 +2555,7 @@ public class P
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_Aliases()
         {
             // c - a -> b with alias X
@@ -2580,7 +2582,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_AliasesMerge()
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
@@ -2875,7 +2877,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2941,7 +2943,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
         {
             // c - a -> d -> "b,v2"

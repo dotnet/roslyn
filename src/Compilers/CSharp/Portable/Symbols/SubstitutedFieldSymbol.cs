@@ -1,21 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SubstitutedFieldSymbol : WrappedFieldSymbol
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
-        private TypeSymbol _lazyType;
+
+        private TypeWithAnnotations.Boxed _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
             : base((FieldSymbol)substitutedFrom.OriginalDefinition)
@@ -23,14 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            if ((object)_lazyType == null)
+            if (_lazyType == null)
             {
-                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound)).Type, null);
+                var type = _containingType.TypeSubstitution.SubstituteType(OriginalDefinition.GetFieldType(fieldsBeingBound));
+                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
 
-            return _lazyType;
+            return _lazyType.Value;
         }
 
         public override Symbol ContainingSymbol
@@ -57,6 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsImplicitlyDeclared
+        {
+            get
+            {
+                if (this.ContainingType.IsTupleType && this.IsDefaultTupleElement)
+                {
+                    // To improve backwards compatibility with earlier implementation of tuples,
+                    // we pretend that default tuple element fields are implicitly declared, despite having locations
+                    return true;
+                }
+
+                return base.IsImplicitlyDeclared;
+            }
+        }
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return OriginalDefinition.GetAttributes();
@@ -77,14 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _containingType.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.Type, OriginalDefinition.CustomModifiers);
-            }
-        }
-
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct
@@ -94,20 +101,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
                 return true;
             }
 
-            var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && _containingType == other._containingType && OriginalDefinition == other.OriginalDefinition;
+            var other = obj as FieldSymbol;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other.ContainingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_containingType, OriginalDefinition.GetHashCode());
+            var code = this.OriginalDefinition.GetHashCode();
+
+            // If the containing type of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
+            // the containing type part of the hashcode when we know equality isn't possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            {
+                code = Hash.Combine(containingHashCode, code);
+            }
+
+            return code;
         }
     }
 }

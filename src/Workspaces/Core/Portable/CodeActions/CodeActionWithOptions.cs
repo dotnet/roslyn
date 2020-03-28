@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(object options, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object options, CancellationToken cancellationToken)
         {
             if (options == null)
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -76,8 +78,8 @@ static class S2
             CheckTypes(sourceType, retargetingType);
 
             CheckMethods(sourceMethod, retargetingMethod);
-            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType);
-            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType);
+            var sourceReduced = sourceMethod.ReduceExtensionMethod(sourceType, null!);
+            var retargetingReduced = retargetingMethod.ReduceExtensionMethod(retargetingType, null!);
             CheckReducedExtensionMethods(sourceReduced, retargetingReduced);
         }
 
@@ -401,9 +403,9 @@ public class Test : short { }
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
+                // (2,21): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "Test").WithArguments("Test", "short"));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "short").WithArguments("Test", "short"));
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -462,11 +464,11 @@ public class TestS { }
             var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
             var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetingType);
-            Assert.False(((INamedTypeSymbol)retargetingType).IsSerializable);
+            Assert.False(retargetingType.IsSerializable);
 
             var retargetingTypeS = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("TestS");
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetingTypeS);
-            Assert.True(((INamedTypeSymbol)retargetingTypeS).IsSerializable);
+            Assert.True(retargetingTypeS.IsSerializable);
         }
 
         [Fact]
@@ -752,6 +754,11 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
+        public void CheckSymbols(TypeWithAnnotations a, TypeWithAnnotations b, bool recurse)
+        {
+            CheckSymbols(a.Type, b.Type, recurse);
+        }
+
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
         {
             Assert.Equal(a == null, b == null);
@@ -809,8 +816,8 @@ class C1<T>
             Assert.Equal(a == null, b == null);
             if (a != null)
             {
-                CheckSymbols((TypeSymbol)a.TryGetSafeArrayElementUserDefinedSubtype(),
-                             (TypeSymbol)b.TryGetSafeArrayElementUserDefinedSubtype(),
+                CheckSymbols((Symbol)a.TryGetSafeArrayElementUserDefinedSubtype(),
+                             (Symbol)b.TryGetSafeArrayElementUserDefinedSubtype(),
                              recurse: false);
             }
         }
@@ -818,7 +825,7 @@ class C1<T>
         public void CheckFields(FieldSymbol a, FieldSymbol b)
         {
             Assert.Equal(a.Name, b.Name);
-            CheckSymbols(a.Type, b.Type, recurse: false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, recurse: false);
             CheckSymbols(a.AssociatedSymbol, b.AssociatedSymbol, recurse: false);
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation);
         }
@@ -827,7 +834,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             CheckSymbols(a.Parameters, b.Parameters, false);
-            CheckSymbols(a.ReturnType, b.ReturnType, false);
+            CheckSymbols(a.ReturnTypeWithAnnotations, b.ReturnTypeWithAnnotations, false);
             CheckSymbols(a.TypeParameters, b.TypeParameters, true);
             CheckMarshallingInformation(a.ReturnValueMarshallingInformation, b.ReturnValueMarshallingInformation);
         }
@@ -842,7 +849,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             Assert.Equal(a.Ordinal, b.Ordinal);
-            CheckSymbols(a.Type, b.Type, false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, false);
             CheckMarshallingInformation(a.MarshallingInformation, b.MarshallingInformation);
         }
 
@@ -850,7 +857,7 @@ class C1<T>
         {
             Assert.Equal(a.Name, b.Name);
             CheckSymbols(a.Parameters, b.Parameters, false);
-            CheckSymbols(a.Type, b.Type, false);
+            CheckSymbols(a.TypeWithAnnotations, b.TypeWithAnnotations, false);
             CheckSymbols(a.GetMethod, b.GetMethod, true);
             CheckSymbols(a.SetMethod, b.SetMethod, true);
         }
@@ -897,7 +904,7 @@ class C1<T>
                 case SymbolKind.NamedType:
                     {
                         var retargeting = symbol as RetargetingNamedTypeSymbol;
-                        return (retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
+                        return ((object)retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
                     }
                 case SymbolKind.Field:
                     return ((RetargetingFieldSymbol)symbol).UnderlyingField;

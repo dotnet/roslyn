@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -590,7 +592,7 @@ BC30521: Overload resolution failed because no accessible 'Or' is most specific 
 
             compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1), expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() An ... so New B2()')
   Left: 
     IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
       Arguments(0)
@@ -605,7 +607,7 @@ IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperat
 
             compilation.VerifyOperationTree(CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2), expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'New B3() OrElse New B2()')
   Left: 
     IObjectCreationOperation (Constructor: Sub Module1.B3..ctor()) (OperationKind.ObjectCreation, Type: Module1.B3, IsInvalid) (Syntax: 'New B3()')
       Arguments(0)

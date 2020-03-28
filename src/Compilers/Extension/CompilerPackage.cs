@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -16,10 +19,11 @@ namespace Roslyn.Compilers.Extension
 {
     [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97")]
     public sealed class CompilerPackage : AsyncPackage
     {
         public static string RoslynHive = null;
-        
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
@@ -152,7 +156,18 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                 throw new Exception($"Unrecognized Visual Studio Version: {dte.Version}");
             }
 
-            return parts[0] + ".0";
+            int majorVersion = int.Parse(parts[0]);
+
+            if (majorVersion >= 16)
+            {
+                // Starting in Visual Studio 2019, the folder is just called "Current". See
+                // https://github.com/Microsoft/msbuild/issues/4149 for further commentary.
+                return "Current";
+            }
+            else
+            {
+                return majorVersion + ".0";
+            }
         }
 
         private async Task<string> GetMSBuildPathAsync(CancellationToken cancellationToken)

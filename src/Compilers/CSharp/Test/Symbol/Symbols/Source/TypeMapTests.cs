@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private TypeSymbol TypeArg(TypeSymbol t)
         {
             var nts = t as NamedTypeSymbol;
-            Assert.NotEqual(null, nts);
+            Assert.NotNull(nts);
             Assert.Equal(1, nts.Arity);
             return nts.TypeArguments()[0];
         }
@@ -90,7 +92,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(t => TypeWithAnnotations.Create(t))).SubstituteNamedType(type);
         }
 
         [Fact]
@@ -149,9 +151,9 @@ class C1<C1T1, C1T2>
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>.C3<System.Int32, System.Byte>", c1OfByteChar_c2OfIntInt_c3OfIntByte.ToTestDisplayString());
 
             var v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
-            var type = v1.Type;
+            var type = v1.TypeWithAnnotations;
 
-            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.ToTestDisplayString());
+            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.Type.ToTestDisplayString());
         }
 
         [Fact]

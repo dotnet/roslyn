@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -599,7 +601,7 @@ class Test
             var parameter = method.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
-            Assert.False(parameter.CustomModifiers.IsEmpty);
+            Assert.False(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
             Assert.True(parameter.RefCustomModifiers.IsEmpty);
 
             CompileAndVerify(comp, expectedOutput: "2");
@@ -655,7 +657,7 @@ class Test
             var baseParameter = baseMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
-            Assert.False(baseParameter.CustomModifiers.IsEmpty);
+            Assert.False(baseParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
             Assert.True(baseParameter.RefCustomModifiers.IsEmpty);
 
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
@@ -663,7 +665,7 @@ class Test
             var derivedParameter = derivedMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
-            Assert.False(derivedParameter.CustomModifiers.IsEmpty);
+            Assert.False(derivedParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
             Assert.True(derivedParameter.RefCustomModifiers.IsEmpty);
 
             CompileAndVerify(comp, expectedOutput: "2");

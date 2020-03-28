@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -20,38 +23,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly IForegroundNotificationService _notificationService;
+        private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
+            _projectCodeModelFactory = projectCodeModelFactory;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
             {
                 return null;
             }
 
-            return new Analyzer(_notificationService, _listener, visualStudioWorkspace);
+            return new Analyzer(_notificationService, _listener, visualStudioWorkspace, _projectCodeModelFactory);
         }
 
         private class Analyzer : IIncrementalAnalyzer
         {
             private readonly IForegroundNotificationService _notificationService;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly VisualStudioWorkspace _workspace;
+            private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
-            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspaceImpl workspace)
+            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
             {
                 _notificationService = notificationService;
                 _listener = listener;
                 _workspace = workspace;
+                _projectCodeModelFactory = projectCodeModelFactory;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -61,23 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // REVIEW: do we need to fire events when a document is removed from the solution?
                 FireEvents(documentId, CancellationToken.None);
+                return Task.CompletedTask;
             }
 
             public void FireEvents(DocumentId documentId, CancellationToken cancellationToken)
             {
                 _notificationService.RegisterNotification(() =>
                 {
-                    var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-                    if (project == null)
-                    {
-                        return false;
-                    }
+                    var projectCodeModel = _projectCodeModelFactory.TryGetProjectCodeModel(documentId.ProjectId);
 
-                    var projectCodeModel = project.ProjectCodeModel as ProjectCodeModel;
                     if (projectCodeModel == null)
                     {
                         return false;
@@ -137,8 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
             #endregion
         }

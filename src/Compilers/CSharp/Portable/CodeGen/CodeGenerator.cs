@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,6 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private LocalDefinition _returnTemp;
+
+        /// <summary>
+        /// True if there was a <see cref="ILOpCode.Localloc"/> anywhere in the method. This will
+        /// affect whether or not we require the locals init flag to be marked, since locals init
+        /// affects <see cref="ILOpCode.Localloc"/>.
+        /// </summary>
+        private bool _sawStackalloc;
 
         public CodeGenerator(
             MethodSymbol method,
@@ -139,10 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
-        private bool EnablePEVerifyCompat()
-        {
-            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
-        }
+        private bool IsPeVerifyCompatEnabled() => _module.Compilation.IsPeVerifyCompatEnabled;
 
         private LocalDefinition LazyReturnTemp
         {
@@ -160,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
-                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
                             type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
@@ -186,23 +192,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool IsStackLocal(LocalSymbol local)
-        {
-            return _stackLocals != null && _stackLocals.Contains(local);
-        }
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
 
-        public void Generate()
+        private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
+
+        public void Generate(out bool hasStackalloc)
         {
             this.GenerateImpl();
+            hasStackalloc = _sawStackalloc;
 
             Debug.Assert(_asyncCatchHandlerOffset < 0);
             Debug.Assert(_asyncYieldPoints == null);
             Debug.Assert(_asyncResumePoints == null);
         }
 
-        public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
+        public void Generate(
+            out int asyncCatchHandlerOffset,
+            out ImmutableArray<int> asyncYieldPoints,
+            out ImmutableArray<int> asyncResumePoints,
+            out bool hasStackAlloc)
         {
             this.GenerateImpl();
+            hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
             asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
@@ -447,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_expressionTemps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
                     var temp = _expressionTemps[i];
                     FreeTemp(temp);

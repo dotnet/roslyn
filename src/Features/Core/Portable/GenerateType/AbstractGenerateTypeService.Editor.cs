@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // True, Remove the RootNamespace
                 // False, Add Global to the Namespace
                 Debug.Assert(targetProject.Language == LanguageNames.VisualBasic);
-                IGenerateTypeService targetLanguageService = null;
+                IGenerateTypeService targetLanguageService;
                 if (_semanticDocument.Project.Language == LanguageNames.VisualBasic)
                 {
                     targetLanguageService = _service;
@@ -295,8 +297,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // 1: folders -> if triggered from Dialog
                 // 2: containers -> if triggered not from a Dialog but from QualifiedName
                 // 3: triggering document folder structure -> if triggered not from a Dialog and a SimpleName
-                var adjustedContainer = isDialog 
-                    ? folders 
+                var adjustedContainer = isDialog
+                    ? folders
                     : _state.SimpleName != _state.NameOrMemberAccessExpression
                         ? containers.ToList()
                         : _semanticDocument.Document.Folders.ToList();
@@ -317,7 +319,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     triggeringProject,
                     documentName,
                     newRoot,
-                    _semanticDocument.Document,
                     includeUsingsOrImports,
                     adjustedContainer,
                     SourceCodeKind.Regular,
@@ -329,7 +330,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Project triggeringProject,
                 string documentName,
                 SyntaxNode root,
-                Document generatingDocument,
                 string includeUsingsOrImports,
                 IList<string> containers,
                 SourceCodeKind sourceCodeKind,
@@ -402,24 +402,24 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var containers = namespaceContainersAndUsings.containers;
                 var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
-                Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
+                (INamespaceSymbol, INamespaceOrTypeSymbol, Location) enclosingNamespaceGeneratedTypeToAddAndLocation;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
 
                 var solution = _semanticDocument.Project.Solution;
@@ -482,12 +482,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // Generated from the Dialog
                     var containerList = new List<string>();
 
-                    var rootNamespaceOfTheProjectGeneratedInto = 
+                    var rootNamespaceOfTheProjectGeneratedInto =
                         _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange
                             ? _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim()
                             : _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
 
-                    var projectManagementService = _semanticDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                     var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
 
                     // Case 1 : If the type is generated into the same C# project or

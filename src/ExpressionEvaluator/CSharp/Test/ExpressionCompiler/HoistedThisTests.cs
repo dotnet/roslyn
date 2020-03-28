@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -961,7 +963,7 @@ class C
                 var testData = new CompilationTestData();
                 context.CompileExpression("42", out error, testData);
                 Assert.Null(error);
-                Assert.Equal(1, testData.Methods.Count);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
             });
         }
 
@@ -972,7 +974,7 @@ class C
             var testData = new CompilationTestData();
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
             Assert.NotNull(assembly);
-            Assert.NotEqual(assembly.Count, 0);
+            Assert.NotEqual(0, assembly.Count);
             var methods = testData.GetMethodsByName();
             var localAndMethod = locals.Single(l => l.LocalName == "this");
             if (expectedIL != null)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -58,19 +60,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsRefParameterModifierContext(position, context) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
                 IsValidContextForType(context, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
                 IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
         }
 
+        private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)
+        {
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
+            {
+                if (previousModifier == SyntaxKind.None)
+                {
+                    return true;
+                }
+
+                if (previousModifier == SyntaxKind.ThisKeyword &&
+                    parameterIndex == 0 &&
+                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                IsValidRefExpressionContext(syntaxTree, position, context, cancellationToken) ||
+                IsValidRefExpressionContext(context) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
@@ -80,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private static bool IsValidRefExpressionContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidRefExpressionContext(CSharpSyntaxContext context)
         {
             // {
             //     ref var x ...
@@ -146,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: true, cancellationToken);
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: true, cancellationToken);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitQualifiedCref(QualifiedCrefSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitArrayType(ArrayTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitTupleType(TupleTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
+                var oldAlwaysSimplify = this.alwaysSimplify;
                 if (!this.alwaysSimplify)
                 {
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
-                bool isOrAsNode = node.Kind() == SyntaxKind.AsExpression || node.Kind() == SyntaxKind.IsExpression;
+                var isOrAsNode = node.Kind() == SyntaxKind.AsExpression || node.Kind() == SyntaxKind.IsExpression;
 
                 var result = (ExpressionSyntax)base.VisitBinaryExpression(node);
 

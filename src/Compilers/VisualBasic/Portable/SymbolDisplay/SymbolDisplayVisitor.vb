@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SymbolDisplay
@@ -250,7 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' testing purposes we occasionally may print them out.  In this case, give them 
             ' a reasonable name so that tests can clearly describe what these are.
             Dim name = If(symbol.Name, "<anonymous local>")
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+
+            If symbol.IsConst Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, name, noEscaping:=False))
+            Else
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+            End If
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()

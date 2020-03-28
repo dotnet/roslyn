@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBTupleTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Local()
             Dim source = "
 Class C
@@ -21,7 +23,7 @@ End Class
             comp.VerifyPdb("C.F",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="F">
@@ -47,7 +49,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub VariablesAndConstantsInUnreachableCode()
             Dim source = "
 Imports System
@@ -95,7 +98,7 @@ End Class
             c.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C`1" name="F">

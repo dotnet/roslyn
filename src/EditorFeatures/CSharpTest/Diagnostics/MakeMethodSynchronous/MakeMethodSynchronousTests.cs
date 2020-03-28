@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -645,6 +646,185 @@ class C
         throw new NotImplementedException();
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithAwaitForEach()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var (a, b) in new (int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumerableReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    async IAsyncEnumerable<int> [|MAsync|]()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        async IAsyncEnumerator<int> [|MAsync|]()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        IEnumerator<int> M()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable);
         }
     }
 }

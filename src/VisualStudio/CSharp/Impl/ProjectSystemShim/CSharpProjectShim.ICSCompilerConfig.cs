@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -12,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             // NOTE: We return the length minus 1 to ensure that we're never called
             // with LARGEST_OPTION_ID.
-            return _options.Length - 1;
+            return (int)CompilerOptions.LARGEST_OPTION_ID - 1;
         }
 
         public void GetOptionInfoAt(int index, out CompilerOptions optionID, out string switchName, out string switchDescription, out uint flags)
@@ -27,23 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void ResetAllOptions()
         {
-            _options[(int)CompilerOptions.OPTID_CCSYMBOLS] = string.Empty;
-            _options[(int)CompilerOptions.OPTID_KEYFILE] = string.Empty;
-            _options[(int)CompilerOptions.OPTID_NOWARNLIST] = string.Empty;
-            _options[(int)CompilerOptions.OPTID_WARNASERRORLIST] = string.Empty;
-            _options[(int)CompilerOptions.OPTID_WARNNOTASERRORLIST] = string.Empty;
-            _options[(int)CompilerOptions.OPTID_UNSAFE] = false;
-            _options[(int)CompilerOptions.OPTID_XML_DOCFILE] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_CCSYMBOLS] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_KEYFILE] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_NOWARNLIST] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_WARNASERRORLIST] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_WARNNOTASERRORLIST] = string.Empty;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_UNSAFE] = false;
+            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_XML_DOCFILE] = string.Empty;
         }
 
         public int SetOption(CompilerOptions optionID, HACK_VariantStructure value)
         {
-            return SetOptionWithMarshaledValue(optionID, value.ConvertToObject());
-        }
-
-        public int SetOptionWithMarshaledValue(CompilerOptions optionID, object value)
-        {
-            SetOption(ref _options[(int)optionID], value);
+            VisualStudioProjectOptionsProcessor[optionID] = value.ConvertToObject();
 
             if (optionID == CompilerOptions.OPTID_COMPATIBILITY)
             {
@@ -60,12 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void GetOption(CompilerOptions optionID, IntPtr variant)
         {
-            if (optionID < 0 || optionID >= CompilerOptions.LARGEST_OPTION_ID)
-            {
-                throw new ArgumentOutOfRangeException(nameof(optionID));
-            }
-
-            Marshal.GetNativeVariantForObject(_options[(int)optionID], variant);
+            Marshal.GetNativeVariantForObject(VisualStudioProjectOptionsProcessor[optionID], variant);
         }
 
         public int CommitChanges(ref ICSError error)

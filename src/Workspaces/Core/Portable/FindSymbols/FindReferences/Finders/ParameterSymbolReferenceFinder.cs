@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-            int ordinal = parameter.Ordinal;
+            var ordinal = parameter.Ordinal;
             if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
             {
                 return standardFunction;
@@ -112,8 +113,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameterAndProjectId, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(solution, parameterAndProjectId, result);
-            CascadeBetweenDelegateMethodParameters(solution, parameterAndProjectId, result);
+            CascadeBetweenPropertyAndAccessorParameters(parameterAndProjectId, result);
+            CascadeBetweenDelegateMethodParameters(parameterAndProjectId, result);
             CascadeBetweenPartialMethodParameters(parameterAndProjectId, result);
 
             return result.ToImmutableAndFree();
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 if (container != null)
                                 {
                                     CascadeBetweenAnonymousFunctionParameters(
-                                        document, semanticModel, container, parameterAndProjectId, 
+                                        document, semanticModel, container, parameterAndProjectId,
                                         convertedType, results, cancellationToken);
                                 }
                             }
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (int i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
                 {
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol && ((IMethodSymbol)declaredSymbol).MethodKind != MethodKind.AnonymousFunction)
+                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
                 {
                     return current;
                 }
@@ -221,7 +222,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenPropertyAndAccessorParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private void CascadeBetweenDelegateMethodParameters(
-            Solution solution,
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             ArrayBuilder<SymbolAndProjectId> results)
         {
@@ -287,8 +286,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static void AddParameterAtIndex(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
-            ArrayBuilder<SymbolAndProjectId> results, 
-            int ordinal, 
+            ArrayBuilder<SymbolAndProjectId> results,
+            int ordinal,
             ImmutableArray<IParameterSymbol>? parameters)
         {
             if (parameters != null && ordinal < parameters.Value.Length)

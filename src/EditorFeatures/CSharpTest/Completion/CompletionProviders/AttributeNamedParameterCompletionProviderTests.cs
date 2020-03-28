@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -17,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
+        internal override Type GetCompletionProviderType()
         {
-            return new AttributeNamedParameterCompletionProvider();
+            return typeof(AttributeNamedParameterCompletionProvider);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -84,7 +87,7 @@ public class TestAttribute : Attribute
     public ConsoleColor Color { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Color", displayTextSuffix: " =");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -106,7 +109,7 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
         [WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
@@ -129,8 +132,8 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
-            await VerifyItemIsAbsentAsync(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
+            await VerifyItemIsAbsentAsync(markup, "Color", displayTextSuffix: " =");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -149,7 +152,7 @@ class Goo
 { }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -168,7 +171,7 @@ class Goo
 { }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
@@ -191,7 +194,7 @@ class Goo
 {
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
         [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]

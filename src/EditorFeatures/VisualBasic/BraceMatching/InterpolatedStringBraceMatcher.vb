@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,6 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
     <ExportBraceMatcher(LanguageNames.VisualBasic)>
     Friend Class InterpolatedStringBraceMatcher
         Implements IBraceMatcher
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Async Function FindBraces(
             document As Document,

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -2116,10 +2118,13 @@ End Module
                     baseDirectory:="C:\A\B",
                     pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))))
 
-            CompileAndVerify(compilation, expectedOutput:="
+            ' On CoreClr the '*' is a legal path character
+            ' https://github.com/dotnet/docs/issues/4483
+            Dim expectedStarPath = If(ExecutionConditionUtil.IsCoreClr, "/X/A/B/*", "*")
+            CompileAndVerify(compilation, expectedOutput:=$"
 1: '/X/filename'
 2: '/X/A/B/a/c/d.vb'
-3: '*'
+3: '{expectedStarPath}'
 4: '/X/abc'
 5: '     '
 ")

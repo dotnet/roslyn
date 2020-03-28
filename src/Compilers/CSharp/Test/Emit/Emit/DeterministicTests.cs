@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
-            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream),
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             PEReader peReader1 = new PEReader(result1.pe);
             PEReader peReader2 = new PEReader(result2.pe);
             Assert.Equal(Machine.Amd64, peReader1.PEHeaders.CoffHeader.Machine);
-            Assert.Equal((Machine)0xAA64, peReader2.PEHeaders.CoffHeader.Machine);
+            Assert.Equal(Machine.Arm64, peReader2.PEHeaders.CoffHeader.Machine);
             Assert.NotEqual(peReader1.PEHeaders.CoffHeader.TimeDateStamp, peReader2.PEHeaders.CoffHeader.TimeDateStamp);
         }
 
@@ -201,6 +203,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Release(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -222,6 +230,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -321,7 +335,7 @@ using System.Runtime.CompilerServices;
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "Static execution is runtime defined and this tests Clr behavior only")]
         public void TestPartialPartsDeterministic()
         {
             var x1 =

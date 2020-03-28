@@ -1,24 +1,29 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.Text.Editor
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("XmlTagCompletionCommandHandler")>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(undoHistory As ITextUndoHistoryRegistry)
             MyBase.New(undoHistory)
         End Sub

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,25 +24,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class VariablePendingInference : BoundExpression
     {
-        internal BoundExpression SetInferredType(TypeSymbol type, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag? diagnosticsOpt)
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(type.HasType);
 
-            return SetInferredType(type, null, diagnosticsOpt);
+            return SetInferredTypeWithAnnotations(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, DiagnosticBag? diagnosticsOpt)
         {
-            Debug.Assert(binderOpt != null || (object)type != null);
+            Debug.Assert(binderOpt != null || type.HasType);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
                 (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
-            bool inferenceFailed = ((object)type == null);
+            bool inferenceFailed = !type.HasType;
 
             if (inferenceFailed)
             {
-                type = binderOpt.CreateErrorType("var");
+                type = TypeWithAnnotations.Create(binderOpt!.CreateErrorType("var"));
             }
 
             switch (this.VariableSymbol.Kind)
@@ -58,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 
-                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeOrDesignationSyntax);
+                            Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
                         }
                     }
 
-                    localSymbol.SetType(type);
-                    return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    localSymbol.SetTypeWithAnnotations(type);
+                    return new BoundLocal(this.Syntax, localSymbol, BoundLocalDeclarationKind.WithInferredType, constantValueOpt: null, isNullableUnknown: false, type: type.Type, hasErrors: this.HasErrors || inferenceFailed).WithWasConverted();
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportInferenceFailure(inferenceDiagnostics);
                     }
 
-                    type = fieldSymbol.SetType(type, inferenceDiagnostics);
+                    type = fieldSymbol.SetTypeWithAnnotations(type, inferenceDiagnostics);
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 null,
                                                 LookupResultKind.Viable,
                                                 isDeclaration: true,
-                                                type: type,
+                                                type: type.Type,
                                                 hasErrors: this.HasErrors || inferenceFailed);
 
                 default:
@@ -91,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression FailInference(Binder binder, DiagnosticBag? diagnosticsOpt)
         {
-            return this.SetInferredType(null, binder, diagnosticsOpt);
+            return this.SetInferredTypeWithAnnotations(default, binder, diagnosticsOpt);
         }
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)

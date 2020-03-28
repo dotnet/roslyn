@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -3114,6 +3116,64 @@ End Class
 
             <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(16576, "https://github.com/dotnet/roslyn/issues/16576")>
+            Public Sub RenameParameterizedPropertyResolvedConflict()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Public Class C
+    Public ReadOnly Property P(a As Object) As Int32
+        Get
+            Return 2
+        End Get
+    End Property
+    Public ReadOnly Property [|$$P2|](a As String) As Int32
+        Get
+            Return {|Conflict0:P|}("")
+        End Get
+    End Property
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="P")
+
+                    result.AssertLabeledSpansAre("Conflict0", replacement:="Return P(CObj(""""))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(16576, "https://github.com/dotnet/roslyn/issues/16576")>
+            Public Sub RenameParameterizedPropertyUnresolvedConflict()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Public Class C
+    Public ReadOnly Property {|Conflict:P|}(a As String) As Int32
+        Get
+            Return 2
+        End Get
+    End Property
+    Public ReadOnly Property [|$$P2|](a As String) As Int32
+        Get
+            Return 3
+        End Get
+    End Property
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="P")
+
+                    result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
             Public Sub RenameTypeToCurrent()
                 Using result = RenameEngineResult.Create(_outputHelper,
@@ -3127,6 +3187,26 @@ End Class
                         </Workspace>, renameTo:="Current")
 
                     result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(32086, "https://github.com/dotnet/roslyn/issues/32086")>
+            Public Sub InvalidControlVariableInForLoopDoNotCrash()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document><![CDATA[
+Module Program
+    Sub Main()
+        Dim [|$$val|] As Integer = 10
+        For (Int() i = 0; i < val; i++)
+    End Sub
+End Module
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, renameTo:="v")
                 End Using
             End Sub
         End Class

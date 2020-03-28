@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -61,6 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(node.Location, useSiteDiagnostics);
+        }
+
+        /// <summary>
+        /// Adds diagnostics from useSiteDiagnostics into diagnostics and returns True if there were any errors.
+        /// </summary>
+        internal static bool Add(
+            this DiagnosticBag diagnostics,
+            SyntaxToken token,
+            HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(token.GetLocation(), useSiteDiagnostics);
         }
 
         internal static bool Add(

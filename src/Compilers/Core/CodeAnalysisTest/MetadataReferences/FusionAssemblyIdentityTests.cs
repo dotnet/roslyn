@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-// Tests COM call into the CLR to compare identities
-#if NET46
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
 {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(name.ContentType, rtName.ContentType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionAssemblyNameRoundTrip()
         {
             RoundTrip(new AssemblyName("goo"));
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             RoundTrip(new AssemblyIdentity("goo", contentType: AssemblyContentType.WindowsRuntime).ToAssemblyName());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionGetBestMatch()
         {
             var goo = FusionAssemblyIdentity.ToAssemblyNameObject("goo");
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(goo3, m);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FusionToAssemblyName()
         {
             var nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib");
@@ -225,4 +225,3 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
     }
 }
 
-#endif

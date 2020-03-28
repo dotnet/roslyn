@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBNamespaceScopes
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithoutRootNamespace()
             Dim source =
 <compilation>
@@ -181,7 +183,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithRootNamespace()
             Dim source =
 <compilation>
@@ -356,7 +358,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmittingPdbVsNot()
             Dim source =
 <compilation name="EmittingPdbVsNot">
@@ -387,7 +389,7 @@ End Class
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub ImportedNoPiaTypes()
             Dim sourceLib =
 <compilation name="ImportedNoPiaTypesAssemblyName">
@@ -476,7 +478,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -497,7 +499,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportedTypeWithUnknownBase()
             Dim sourceLib1 =
 <compilation>
@@ -546,7 +548,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

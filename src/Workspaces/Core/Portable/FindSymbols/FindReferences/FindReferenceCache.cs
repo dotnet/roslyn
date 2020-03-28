@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
             }
 
-            return entry.IdentifierCache.GetOrAdd(normalized, 
+            return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
                     syntaxFacts, document, version, root, sourceText, key, cancellationToken));
         }
@@ -100,26 +102,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return text.Length > 0
                 ? GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken)
                 : ImmutableArray<SyntaxToken>.Empty;
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            SyntaxNode root, List<int> positions, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
-            foreach (var index in positions)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-
-                var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
-                {
-                    result.Add(token);
-                }
-            }
-
-            return result.ToImmutable();
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -640,7 +642,7 @@ B");
         var f = E = null;
     }
 }";
-            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var f = E = null;
@@ -665,7 +667,7 @@ B");
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
             var type = model.GetTypeInfo(syntax);
-            Assert.Equal(type.Type.SpecialType, SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
         }
     }
 }

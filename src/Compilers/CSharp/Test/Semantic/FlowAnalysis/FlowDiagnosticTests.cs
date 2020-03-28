@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1339,13 +1341,15 @@ struct Program
     // (16,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-    //     public Program()
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
-    );
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
         }
 
         [Fact]
@@ -1388,13 +1392,15 @@ struct Program
     // (16,9): error CS0170: Use of possibly unassigned field 'i'
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-    // (17,34): error CS8079: Use of automatically implemented property 'x2' whose backing field is possibly unassigned 
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-    // (14,12): error CS0843: Backing field for automatically implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider calling the default constructor from a constructor initializer.
-    //     public Program()
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12)
-    );
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12));
         }
 
         [Fact]
@@ -2530,6 +2536,77 @@ class Derived2 : Base
             CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 );
+        }
+
+        [Fact]
+        public void RangeDefiniteAssignmentOrder()
+        {
+            CreateCompilationWithIndexAndRange(@"
+class C
+{
+    void M()
+    {
+        int x;
+        var r = (x=0)..(x+1);
+        int y;
+        r = (y+1)..(y=0);
+    }
+}").VerifyDiagnostics(
+                // (9,14): error CS0165: Use of unassigned local variable 'y'
+                //         r = (y+1)..(y=0);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 14));
+        }
+
+        [Fact]
+        public void FieldAssignedInLambdaOnly()
+        {
+            var source =
+@"using System;
+struct S
+{
+    private object F;
+    private object G;
+    public S(object x, object y)
+    {
+        Action a = () => { F = x; };
+        G = y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                //     public S(object x, object y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 12),
+                // (8,28): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //         Action a = () => { F = x; };
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void FieldAssignedInLocalFunctionOnly()
+        {
+            var source =
+@"struct S
+{
+    private object F;
+    private object G;
+    public S(object x, object y)
+    {
+        void f() { F = x; }
+        G = y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                //     public S(object x, object y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(5, 12),
+                // (7,14): warning CS8321: The local function 'f' is declared but never used
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(7, 14),
+                // (7,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
         }
     }
 }

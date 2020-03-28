@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.IO;
 using Roslyn.Test.Utilities;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [ConditionalFact(typeof(DotNetSdkAvailable))]
         public void TestSourceLink()
         {
-            var sourcePackageDir = Temp.CreateDirectory(); 
+            var sourcePackageDir = Temp.CreateDirectory();
             // TODO: test escaping (https://github.com/dotnet/roslyn/issues/22835): .CreateDirectory("a=b, c");
 
             var libFile = sourcePackageDir.CreateFile("lib.cs").WriteAllText("class Lib { public void M() { } }");
@@ -68,14 +72,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     "CoreCompile"
                 },
-                expressions: new[] 
+                expressions: new[]
                 {
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)",
                     "$(SourceRootMappedPathsFeatureSupported)"
                 },
-                expectedResults: new[] 
+                expectedResults: new[]
                 {
                     $@"{root2}: /_1/",
                     $@"{root1}: /_/",
@@ -330,6 +334,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     "EmbedInteropTypes=``",
                     "EmbedInteropTypes=``"
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/34688")]
+        public void TestDiscoverEditorConfigFiles()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var editorConfigFile2 = subdir.CreateFile(".editorconfig").WriteAllText(@"[*.cs]
+some_prop = some_val");
+            VerifyValues(
+                customProps: null,
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    editorConfigFile2.Path
                 });
         }
     }

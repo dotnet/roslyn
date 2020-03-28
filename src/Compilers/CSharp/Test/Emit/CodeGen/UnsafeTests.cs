@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -4282,7 +4284,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text,options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -7583,13 +7585,13 @@ unsafe struct S
   // Code size       74 (0x4a)
   .maxstack  3
   .locals init (S V_0, //s
-  S* V_1,
-  int V_2)
+                S* V_1,
+                int V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  stloc.1
   IL_0011:  ldloc.1
   IL_0012:  sizeof     ""S""
@@ -7608,7 +7610,7 @@ unsafe struct S
   IL_0036:  ldloc.1
   IL_0037:  call       ""void S.this[int].set""
   IL_003c:  ldloca.s   V_0
-  IL_003e:  call       ""S* S.P.get""
+  IL_003e:  call       ""readonly S* S.P.get""
   IL_0043:  conv.i4
   IL_0044:  call       ""void System.Console.Write(int)""
   IL_0049:  ret
@@ -7764,7 +7766,7 @@ unsafe struct S
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  ldc.i4.3
   IL_0011:  conv.i
   IL_0012:  sizeof     ""S""
@@ -7787,7 +7789,7 @@ unsafe struct S
   IL_003a:  sub
   IL_003b:  call       ""void S.this[int].set""
   IL_0040:  ldloca.s   V_0
-  IL_0042:  call       ""S* S.P.get""
+  IL_0042:  call       ""readonly S* S.P.get""
   IL_0047:  conv.i4
   IL_0048:  call       ""void System.Console.Write(int)""
   IL_004d:  ret
@@ -10394,7 +10396,7 @@ unsafe public struct FixedStruct
             }
         }
     }";
-            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "ABC", verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {
@@ -11225,6 +11227,69 @@ public class A
 }
 ";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
+        }
+
+        [Fact, WorkItem(40768, "https://github.com/dotnet/roslyn/issues/40768")]
+        public void DoesNotEmitArrayDotEmptyForEmptyPointerArrayParams()
+        {
+            var source = @"
+
+using System;
+
+public static class Program
+{
+   public static unsafe void Main()
+   {
+      Console.WriteLine(Test());
+   }
+    
+   public static unsafe int Test(params int*[] types)
+   {
+       return types.Length;
+   }
+}";
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int*""
+  IL_0006:  call       ""int Program.Test(params int*[])""
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void DoesEmitArrayDotEmptyForEmptyPointerArrayArrayParams()
+        {
+            var source = @"
+
+using System;
+
+public static class Program
+{
+   public static unsafe void Main()
+   {
+      Console.WriteLine(Test());
+   }
+    
+   public static unsafe int Test(params int*[][] types)
+   {
+       return types.Length;
+   }
+}";
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  call       ""int*[][] System.Array.Empty<int*[]>()""
+  IL_0005:  call       ""int Program.Test(params int*[][])""
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}");
         }
 
         #endregion

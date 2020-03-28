@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -55,12 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             while ((object)symbol != null)
             {
-                // For property or event accessors, check the associated property or event instead.
-                if (symbol.IsAccessor())
-                {
-                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
-                }
-                else if (symbol.Kind == SymbolKind.Field)
+                if (symbol.Kind == SymbolKind.Field)
                 {
                     // If this is the backing field of an event, look at the event instead.
                     var associatedSymbol = ((FieldSymbol)symbol).AssociatedSymbol;
@@ -81,7 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return state;
                 }
 
-                symbol = symbol.ContainingSymbol;
+                // For property or event accessors, check the associated property or event next.
+                if (symbol.IsAccessor())
+                {
+                    symbol = ((MethodSymbol)symbol).AssociatedSymbol;
+                }
+                else
+                {
+                    symbol = symbol.ContainingSymbol;
+                }
             }
 
             return ThreeState.False;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -36,6 +39,292 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 @"class Class
 {
     int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable1()
+        {
+            // ⚠ The expected outcome of this test should not change.
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt? i|];
+
+    MutableInt? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly MutableInt? i|];
+
+    MutableInt? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }",
+@"class Class
+{
+    MutableInt? P { get; }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int? i|];
+
+    int? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly int? i|];
+
+    int? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestNullable5()
+        {
+            // Recursive type check
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Class
+{
+    [|Nullable<MutableInt?> i|];
+
+    Nullable<MutableInt?> P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value; }",
+@"class Class
+{
+    MutableInt P { get; }
+}
+struct MutableInt { public int Value; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestMutableValueType3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|MutableInt i|];
+
+    MutableInt P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}
+struct MutableInt { public int Value { get; set; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType i|];
+
+    ErrorType P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly ErrorType i|];
+
+    ErrorType P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType? i|];
+
+    ErrorType? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|readonly ErrorType? i|];
+
+    ErrorType? P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType? P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
+        public async Task TestErrorType5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|ErrorType[] i|];
+
+    ErrorType[] P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    ErrorType[] P { get; }
 }");
         }
 
@@ -873,6 +1162,257 @@ partial class Class
 }");
         }
 
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInSimpleExpressionLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action<int> x = _ => i = 1;
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action<int> x = _ => P = 1;
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInSimpleBlockLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action<int> x = _ =>
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action<int> x = _ =>
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInParenthesizedExpressionLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = () => i = 1;
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = () => P = 1;
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInParenthesizedBlockLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = () =>
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = () =>
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInAnonymousMethodInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = delegate ()
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = delegate ()
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        void F()
+        {
+            i = 1;
+        }
+    }
+}",
+@"class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        void F()
+        {
+            P = 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInExpressionBodiedLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        void F() => i = 1;
+    }
+}",
+@"class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        void F() => P = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestReadInExpressionBodiedLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        bool F() => i == 1;
+    }
+}",
+@"class C
+{
+    int P { get; }
+
+    C()
+    {
+        bool F() => P == 1;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestAlreadyAutoPropertyWithGetterWithNoBody()
         {
@@ -951,7 +1491,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int, string) i|];
+    [|readonly (int, string) i|];
 
     (int, string) P
     {
@@ -973,7 +1513,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string b) i|];
+    [|readonly (int a, string b) i|];
 
     (int a, string b) P
     {
@@ -995,7 +1535,7 @@ partial class Class
             await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string b) i|];
+    [|readonly (int a, string b) i|];
 
     (int c, string d) P
     {
@@ -1013,7 +1553,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int a, string) i|];
+    [|readonly (int a, string) i|];
 
     (int a, string) P
     {
@@ -1035,7 +1575,7 @@ partial class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|(int, string) i = (1, ""hello"")|];
+    [|readonly (int, string) i = (1, ""hello"")|];
 
     (int, string) P
     {
@@ -1054,7 +1594,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_GetterAndSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|(int, string) i|];
@@ -1071,10 +1611,6 @@ partial class Class
             i = value;
         }
     }
-}",
-@"class Class
-{
-    (int, string) P { get; set; }
 }");
         }
 
@@ -1670,6 +2206,224 @@ namespace RoslynSandbox
     int P { get; }
 
     int j;
+}");
+        }
+
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLineWithDirective()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    #region Test
+    [|int i|];
+    #endregion
+    
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    #region Test
+    #endregion
+
+    int P { get; }
+}");
+        }
+
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsWithDirective()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    #region Test
+    [|int i|];
+    int j;
+    #endregion
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+}",
+@"class Class
+{
+    #region Test
+    int j;
+    #endregion
+
+    int P { get; }
+
+}");
+        }
+
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLineWithDoubleDirectives()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    #region Field
+    [|int i|];
+    #endregion
+
+    #region Property
+    int P
+    {
+        get { return i; }
+    }
+    #endregion
+}",
+@"class TestClass
+{
+    #region Field
+    #endregion
+
+    #region Property
+    int P { get; }
+    #endregion
+}");
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseTabs()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}",
+@"public class Foo
+{
+	public object O { get; }
+}", options: Option(FormattingOptions2.UseTabs, true));
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseSpaces()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}",
+@"public class Foo
+{
+    public object O { get; }
+}", options: Option(FormattingOptions2.UseTabs, false));
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseTabs_Editorconfig()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	public object O { get; }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = tab
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestUseSpaces_Editorconfig()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+	private readonly object o;
+
+	[||]public object O => o;
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file.cs"">
+public class Foo
+{
+    public object O { get; }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath = ""z:\\.editorconfig"">
+[*]
+indent_style = space
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(34783, "https://github.com/dotnet/roslyn/issues/34783")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotOnSerializableType()
+        {
+            await TestMissingAsync(
+@"
+[System.Serializable]
+class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
 }");
         }
     }

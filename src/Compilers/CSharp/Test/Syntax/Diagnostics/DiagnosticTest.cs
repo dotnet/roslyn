@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -245,6 +248,12 @@ class X
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                        case ErrorCode.WRN_IsTypeNamedUnderscore:
+                        case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                        case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                        case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -257,16 +266,104 @@ class X
                         case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
+                        case ErrorCode.WRN_ConvertingNullableToNonNullable:
+                        case ErrorCode.WRN_NullReferenceAssignment:
+                        case ErrorCode.WRN_NullReferenceReceiver:
+                        case ErrorCode.WRN_NullReferenceReturn:
+                        case ErrorCode.WRN_NullReferenceArgument:
+                        case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                        case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                        case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                        case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_UninitializedNonNullableField:
+                        case ErrorCode.WRN_NullabilityMismatchInAssignment:
+                        case ErrorCode.WRN_NullabilityMismatchInArgument:
+                        case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                        case ErrorCode.WRN_NullAsNonNullable:
+                        case ErrorCode.WRN_NullableValueTypeMayBeNull:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
+                        case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                        case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                        case ErrorCode.ERR_FeatureInPreview:
+                        case ErrorCode.WRN_ThrowPossibleNull:
+                        case ErrorCode.WRN_UnboxPossibleNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                        case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                        case ErrorCode.WRN_ShouldNotReturn:
+                        case ErrorCode.WRN_DoesNotReturnMismatch:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_MemberNotNull:
+                        case ErrorCode.WRN_MemberNotNullWhen:
+                        case ErrorCode.WRN_MemberNotNullBadMember:
+                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
-                            Assert.True(false, "Please update this test case with a proper warning level for '" + errorCodeName + "'");
+                            Assert.True(false, $"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
                             break;
                     }
                 }
+            }
+        }
+
+        [Fact]
+        public void NullableWarnings()
+        {
+            foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if ((int)error < 8600 || (int)error >= 9000)
+                {
+                    continue;
+                }
+
+                if (!error.ToString().StartsWith("WRN"))
+                {
+                    // Only interested in warnings
+                    continue;
+                }
+
+                if (ErrorFacts.NullableWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)error)))
+                {
+                    continue;
+                }
+
+                // Nullable-unrelated warnings in the C# 8 range should be added to this array.
+                var nullableUnrelatedWarnings = new[]
+                {
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
+                    ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                };
+
+                Assert.Contains(error, nullableUnrelatedWarnings);
             }
         }
 
@@ -1308,7 +1405,7 @@ public class C
 
             CSharpCompilationOptions commonoption = TestOptions.ReleaseExe;
             CreateCompilation(text, options: commonoption).VerifyDiagnostics(
-                // (7,16): warning CS1634: Expected disable or restore
+                // (7,16): warning CS1634: Expected disable, restore, enable or safeonly
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
                 // (8,13): warning CS0168: The variable 'x' is declared but never used
@@ -1325,7 +1422,7 @@ public class C
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(168), ReportDiagnostic.Error);
             CSharpCompilationOptions option = commonoption.WithSpecificDiagnosticOptions(warnings);
             CreateCompilation(text, options: option).VerifyDiagnostics(
-                // (7,16): warning CS1634: Expected disable or restore
+                // (7,16): warning CS1634: Expected disable, restore, enable or safeonly
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""),
                 // (8,13): error CS0168: Warning as Error: The variable 'x' is declared but never used
@@ -1340,7 +1437,7 @@ public class C
 
             option = commonoption.WithWarningLevel(2);
             CreateCompilation(text, options: option).VerifyDiagnostics(
-                // (7,16): warning CS1634: Expected disable or restore
+                // (7,16): warning CS1634: Expected disable, restore, enable or safeonly
                 // #pragma warning
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, ""));
         }
@@ -1828,9 +1925,83 @@ public class C
                 // (13,25): warning CS1072: Expected identifier or numeric literal.
                 // #pragma warning restore "CS0168
                 Diagnostic(ErrorCode.WRN_IdentifierOrNumericLiteralExpected, @"""CS0168").WithLocation(13, 25),
-                // (14,17): warning CS1634: Expected disable or restore
+                // (14,17): warning CS1634: Expected disable, restore, enable or safeonly
                 // #pragma warning blah
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, "blah").WithLocation(14, 17));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        public void PragmaWarning_Enable()
+        {
+            var text1 = @"
+class Test
+{
+    void Main()
+    {
+        if (true)
+        {
+            int x;
+        }
+        else
+        {
+            return;
+        }
+    }
+}
+";
+
+            var expected1 = new DiagnosticDescription[]
+            {
+                // (8,17): warning CS0168: The variable 'x' is declared but never used
+                //             int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x"),
+                // (12,13): warning CS0162: Unreachable code detected
+                //             return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return")
+            };
+
+            CreateCompilation(text1, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected1);
+            CreateCompilation(text1).VerifyDiagnostics(expected1);
+
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress);
+
+            CreateCompilation(text1, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics();
+            CreateCompilation(text1, options: options).VerifyDiagnostics();
+
+            var text2 = @"
+#pragma warning enable
+" + text1;
+
+            CreateCompilation(text2, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected1);
+            CreateCompilation(text2, options: options).VerifyDiagnostics(expected1);
+
+            var text3 = @"
+#pragma warning enable CS0168, 162
+" + text1;
+
+            CreateCompilation(text3, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected1);
+            CreateCompilation(text3, options: options).VerifyDiagnostics(expected1);
+
+            var text4 = @"
+#pragma warning enable CS0168
+" + text1;
+
+            var expected2 = new DiagnosticDescription[]
+            {
+                // (8,17): warning CS0168: The variable 'x' is declared but never used
+                //             int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x")
+            };
+
+            CreateCompilation(text4, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected2);
+            CreateCompilation(text4, options: options).VerifyDiagnostics(expected2);
+
+            var text5 = @"
+#pragma warning enable 168
+" + text1;
+
+            CreateCompilation(text5, parseOptions: TestOptions.Regular7_3, options: options).VerifyDiagnostics(expected2);
+            CreateCompilation(text5, options: options).VerifyDiagnostics(expected2);
         }
 
         [Fact]
@@ -2003,15 +2174,15 @@ public class C
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int y").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int y").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int z").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int z").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int y").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int y").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int z").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int z").Start));
         }
 
         [Fact]
@@ -2032,9 +2203,9 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
         [WorkItem(545407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
@@ -2050,7 +2221,7 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
         }
 
         private TextSpan GetSpanIn(SyntaxTree syntaxTree, string textToFind)
@@ -2084,6 +2255,35 @@ public class Test
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
+        [Fact]
+        public void GetDiagnosticsCalledTwice_GetEmitDiagnostics()
+        {
+            var text = @"
+interface IMyEnumerator { }
+
+public class Test
+{
+    static IMyEnumerator Goo()
+    {
+        yield break;
+    }
+
+    public static int Main()
+    {
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text);
+            var expected = new DiagnosticDescription[] {
+                // (6,26): error CS1624: The body of 'Test.Goo()' cannot be an iterator block because 'IMyEnumerator' is not an iterator interface type
+                //     static IMyEnumerator Goo()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Goo").WithArguments("Test.Goo()", "IMyEnumerator").WithLocation(6, 26)
+            };
+            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -2478,23 +2678,6 @@ class Program
         #endregion
 
         #region CoreCLR Signing Tests
-        // These aren't actually syntax tests, but this is in one of only two assemblies tested on linux
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
-        public void Bug9288_keyfile()
-        {
-            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
-            var snkPath = snk.Path;
-
-            const string source = "";
-            var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
-
-            var ca = CreateCompilation(source, options: options);
-
-            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
-                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(snkPath, "Assembly signing not supported.").WithLocation(1, 1)
-            );
-        }
 
         [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keycontainer()

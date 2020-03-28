@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#if !NETSTANDARD1_3
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -13,20 +15,20 @@ namespace Roslyn.Test.Utilities
 {
     internal static class SigningTestHelpers
     {
-        public static readonly StrongNameProvider s_defaultDesktopProvider =
-            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
-
-        public static readonly StrongNameProvider s_defaultPortableProvider =
-            new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
+        public static readonly StrongNameProvider DefaultDesktopStrongNameProvider =
+            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
 
         // these are virtual paths that don't exist on disk
-        internal static string KeyPairFile = @"R:\__Test__\KeyPair_" + Guid.NewGuid() + ".snk";
-        internal static string PublicKeyFile = @"R:\__Test__\PublicKey_" + Guid.NewGuid() + ".snk";
+        internal static readonly string KeyFileDirectory = ExecutionConditionUtil.IsWindows
+            ? @"R:\__Test__\"
+            : "/r/__Test__/";
+        internal static readonly string KeyPairFile = KeyFileDirectory + @"KeyPair_" + Guid.NewGuid() + ".snk";
+        internal static readonly string PublicKeyFile = KeyFileDirectory + @"PublicKey_" + Guid.NewGuid() + ".snk";
 
-        internal static string KeyPairFile2 = @"R:\__Test__\KeyPair2_" + Guid.NewGuid() + ".snk";
-        internal static string PublicKeyFile2 = @"R:\__Test__\PublicKey2_" + Guid.NewGuid() + ".snk";
+        internal static readonly string KeyPairFile2 = KeyFileDirectory + @"KeyPair2_" + Guid.NewGuid() + ".snk";
+        internal static readonly string PublicKeyFile2 = KeyFileDirectory + @"PublicKey2_" + Guid.NewGuid() + ".snk";
 
-        internal static string MaxSizeKeyFile = @"R:\__Test__\MaxSizeKey_" + Guid.NewGuid() + ".snk";
+        internal static readonly string MaxSizeKeyFile = KeyFileDirectory + @"MaxSizeKey_" + Guid.NewGuid() + ".snk";
 
         private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
@@ -35,15 +37,20 @@ namespace Roslyn.Test.Utilities
 
         internal static object s_keyInstalledLock = new object();
 
-        // Modifies machine wide state.
+        /// <summary>
+        /// Installs the keys used for testing into the machine cache on Windows.
+        /// </summary>
         internal unsafe static void InstallKey()
         {
-            lock (s_keyInstalledLock)
+            if (ExecutionConditionUtil.IsWindows)
             {
-                if (!s_keyInstalled)
+                lock (s_keyInstalledLock)
                 {
-                    InstallKey(TestResources.General.snKey, TestContainerName);
-                    s_keyInstalled = true;
+                    if (!s_keyInstalled)
+                    {
+                        InstallKey(TestResources.General.snKey, TestContainerName);
+                        s_keyInstalled = true;
+                    }
                 }
             }
         }
@@ -69,6 +76,10 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class VirtualizedStrongNameFileSystem : StrongNameFileSystem
         {
+            internal VirtualizedStrongNameFileSystem(string tempPath = null) : base(tempPath)
+            {
+
+            }
             private static bool PathEquals(string left, string right)
             {
                 return string.Equals(
@@ -110,5 +121,3 @@ namespace Roslyn.Test.Utilities
         }
     }
 }
-
-#endif

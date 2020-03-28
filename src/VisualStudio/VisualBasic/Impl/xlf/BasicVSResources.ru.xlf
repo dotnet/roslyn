@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="new">In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">В реляционных операторах: =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Вставить фрагмент кода</target>
+        <target state="translated">Вставить фрагмент</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
@@ -22,19 +22,24 @@
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">Пере_местить локальное объявление в извлеченный метод, если оно больше нигде не используется</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Автоматическая в_ставка членов Interface и MustOverride</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Никогда </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <target state="translated">Предпочитать Is Nothing для проверок равенства ссылок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">Показать элементы из неимпортированных пространств имен (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -105,6 +110,11 @@
       <trans-unit id="Regular">
         <source>Regular</source>
         <target state="translated">обычный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="new">Show remarks in Quick Info</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -257,6 +267,16 @@
         <target state="translated">_Показывать список завершения после ввода знака</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Не использовать локальный аргумент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Рекомендации по написанию кода VB</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Проверка значений "nothing":</target>
@@ -279,12 +299,12 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <target state="translated">В арифметических операторах: ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="new">In other binary operators:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">В других бинарных операторах:  And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
     </body>

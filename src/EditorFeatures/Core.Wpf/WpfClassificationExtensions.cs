@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -66,22 +68,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             ClassificationTypeMap typeMap)
         {
             var inlines = parts.ToInlines(formatMap, typeMap);
-            return inlines.ToTextBlock(formatMap, typeMap);
+            return inlines.ToTextBlock(formatMap);
         }
 
+        [Obsolete("Use 'public static TextBlock ToTextBlock(this IEnumerable <Inline> inlines, IClassificationFormatMap formatMap, bool wrap = true)' instead")]
         public static TextBlock ToTextBlock(
             this IEnumerable<Inline> inlines,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
             string classificationFormatMap = null,
             bool wrap = true)
-        {
+            => inlines.ToTextBlock(formatMap, wrap);
 
+        public static TextBlock ToTextBlock(
+            this IEnumerable<Inline> inlines,
+            IClassificationFormatMap formatMap,
+            bool wrap = true)
+        {
             var textBlock = new TextBlock
             {
                 TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap,
                 TextTrimming = wrap ? TextTrimming.None : TextTrimming.CharacterEllipsis
             };
+
             textBlock.SetDefaultTextProperties(formatMap);
             textBlock.Inlines.AddRange(inlines);
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     {
         public readonly TSyntaxKind Kind;
         public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> LeadingTrivia;
-        public readonly ImmutableArray<VirtualChar> VirtualChars;
+        public readonly VirtualCharSequence VirtualChars;
         public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars,
+            VirtualCharSequence virtualChars,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public EmbeddedSyntaxToken<TSyntaxKind> With(
             Optional<TSyntaxKind> kind = default,
             Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> leadingTrivia = default,
-            Optional<ImmutableArray<VirtualChar>> virtualChars = default,
+            Optional<VirtualCharSequence> virtualChars = default,
             Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> trailingTrivia = default,
             Optional<ImmutableArray<EmbeddedDiagnostic>> diagnostics = default,
             Optional<object> value = default)

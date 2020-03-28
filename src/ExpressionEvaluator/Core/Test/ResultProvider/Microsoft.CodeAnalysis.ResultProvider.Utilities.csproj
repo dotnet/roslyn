@@ -1,14 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
 
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
@@ -23,14 +21,14 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
+      <Link>Compiler\InternalUtilities\Debug.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
       <Link>Compiler\InternalUtilities\FailFast.cs</Link>
@@ -43,6 +41,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
+      <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
@@ -74,26 +75,13 @@
     <Compile Include="..\..\Source\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
       <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.cs">
-      <Link>Resources.Designer.cs</Link>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
-      <Link>Resources.resx</Link>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</CustomToolNamespace>
-    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx" Link="Resources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
 </Project>

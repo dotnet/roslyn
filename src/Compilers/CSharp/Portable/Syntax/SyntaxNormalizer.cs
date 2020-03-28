@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -378,7 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.QuestionToken)
-                && (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax))
+                && (token.Parent.IsKind(SyntaxKind.ConditionalExpression) || token.Parent is TypeSyntax)
+                && !token.Parent.Parent.IsKind(SyntaxKind.TypeArgumentList))
             {
                 return true;
             }
@@ -398,6 +401,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.CloseBracketToken) && IsWord(next.Kind()))
+            {
+                return true;
+            }
+
+            // We don't want to add extra space after cast, we want space only after tuple
+            if (token.IsKind(SyntaxKind.CloseParenToken) && IsWord(next.Kind()) && token.Parent.IsKind(SyntaxKind.TupleType) == true)
             {
                 return true;
             }
@@ -431,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
-                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind())) &&
+                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind()) || next.Parent.IsKind(SyntaxKind.TupleType)) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&
                     !next.IsKind(SyntaxKind.CloseBraceToken) &&
                     !next.IsKind(SyntaxKind.ColonColonToken) &&

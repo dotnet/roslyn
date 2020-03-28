@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
@@ -18,19 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
-        private IDictionary<OptionKey, object> CSharpOptionOffVBOptionOn()
+        private IDictionary<OptionKey2, object> CSharpOptionOffVBOptionOn()
         {
-            var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp) , false);
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true);
+            var optionsSet = new Dictionary<OptionKey2, object>();
+            optionsSet.Add(new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false);
+            optionsSet.Add(new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true);
             return optionsSet;
         }
 
-        private IDictionary<OptionKey, object> CSharpOptionOnVBOptionOff()
+        private IDictionary<OptionKey2, object> CSharpOptionOnVBOptionOff()
         {
-            var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true);
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false);
+            var optionsSet = new Dictionary<OptionKey2, object>();
+            optionsSet.Add(new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true);
+            optionsSet.Add(new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false);
             return optionsSet;
         }
 
@@ -823,7 +826,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task Net45TestOutOfBounds()
         {
-             var input = @" 
+            var input = @" 
             < Workspace >
                 < Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true""> 
  <Document FilePath=""CurrentDocument.cs""><![CDATA[
@@ -963,6 +966,20 @@ class Program
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: FeaturesResources.Format_string_contains_invalid_placeholder);
+        }
+
+        [WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LocalFunctionNamedFormat()
+        {
+            await TestDiagnosticMissingAsync(@"public class C
+{
+    public void M()
+    {
+        Forma[||]t();
+        void Format() { }
+    }
+}");
         }
     }
 }

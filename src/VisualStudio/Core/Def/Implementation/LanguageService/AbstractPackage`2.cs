@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,18 +17,16 @@ using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private TLanguageService _languageService;
-        private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
@@ -73,34 +72,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             //          installs a service roslyn visual studio workspace requires
             shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
-            _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-            if (_miscellaneousFilesWorkspace != null)
-            {
-                // make sure solution crawler start once everything has been setup.
-                _miscellaneousFilesWorkspace.StartSolutionCrawler();
-            }
-
-            RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
+            var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
+            if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
             {
-                // make sure solution crawler start once everything has been setup.
-                // this also should be started before any of workspace events start firing
-                this.Workspace.StartSolutionCrawler();
-
                 // start remote host
                 EnableRemoteHostClientService();
 
-                Workspace.AdviseSolutionEvents(solution);
+                // not every derived package support object browser and for those languages
+                // this is a no op
+                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
 
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
@@ -119,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                ForegroundObject.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }
@@ -145,17 +136,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
-                if (_miscellaneousFilesWorkspace != null)
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
-                    _miscellaneousFilesWorkspace.StopSolutionCrawler();
-                }
+                    if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
+                    {
+                        DisableRemoteHostClientService();
 
-                if (ThreadHelper.JoinableTaskFactory.Run(() => IsInIdeModeAsync(this.Workspace, CancellationToken.None)))
-                {
-                    this.Workspace.StopSolutionCrawler();
-
-                    DisableRemoteHostClientService();
-                }
+                        await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true);
+                    }
+                });
 
                 // If we've created the language service then tell it it's time to clean itself up now.
                 if (_languageService != null)
@@ -170,12 +159,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected abstract string RoslynLanguageName { get; }
 
-        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
+        protected virtual Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
-            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
         }
 
-        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
+        protected virtual Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        {
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
+        }
+
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace)
+        {
+            return workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
+        }
+
+        private async Task<bool> IsInCommandLineModeAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

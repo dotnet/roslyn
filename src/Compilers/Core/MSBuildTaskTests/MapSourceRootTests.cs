@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +10,7 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
@@ -52,6 +56,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             bool result = task.Execute();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
 
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(4, task.MappedSourceRoots.Length);
 
             Assert.Equal(Utilities.FixFilePath(@"c:\packages\SourcePackage1\"), task.MappedSourceRoots[0].ItemSpec);
@@ -100,6 +105,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             bool result = task.Execute();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
 
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
             Assert.Equal(Utilities.FixFilePath(@"!@#:;$%^&*()_+|{}\"), task.MappedSourceRoots[0].ItemSpec);
@@ -176,6 +182,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             bool result = task.Execute();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
 
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(4, task.MappedSourceRoots.Length);
 
             Assert.Equal(Utilities.FixFilePath(@"c:\MyProjects\MyProject\"), task.MappedSourceRoots[0].ItemSpec);
@@ -213,6 +220,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             bool result = task.Execute();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
 
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
             Assert.Equal(Utilities.FixFilePath(@"c:\packages\SourcePackage1\"), task.MappedSourceRoots[0].ItemSpec);
@@ -331,10 +339,10 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
                     "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "MappedPath", "MP1", "MP2")) + Environment.NewLine +
                 "WARNING : " + string.Format(task.Log.FormatResourceString(
-                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine, 
+                    "MapSourceRoots.ContainsDuplicate", "SourceRoot", path1, "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine,
                 engine.Log);
 
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 $"'{path1}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{path3}' MappedPath='{(deterministic ? "/_/NR1A/" : path1)}' SourceLinkUrl='URL1'",
                 $"'{path2}' SourceControl='git' RevisionId='' NestedRoot='NR2' ContainingRoot='{path3}' MappedPath='{(deterministic ? "/_/NR2/" : path2)}' SourceLinkUrl=''",

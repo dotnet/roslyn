@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingNested()
             Dim source =
 <compilation>
@@ -42,7 +44,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -82,7 +84,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingExpression()
             Dim source =
 <compilation>
@@ -119,7 +121,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableDeclaration()
             Dim source =
 <compilation>
@@ -156,7 +158,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableDeclaration()
             Dim source =
 <compilation>
@@ -197,7 +199,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -236,7 +238,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UsingMultipleVariableAsNewDeclaration()
             Dim source =
 <compilation>
@@ -283,7 +285,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoPia()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
@@ -324,7 +326,7 @@ End Namespace
             v.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="N1.C" name="M">
@@ -359,7 +361,7 @@ End Namespace
             )
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports()
             Dim source = "
 Imports X = System.Linq.Enumerable
@@ -397,7 +399,7 @@ End Class
                 End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub UnusedImports_Nonexisting()
             Dim source = "
 Imports A.B
@@ -425,7 +427,7 @@ End Class
             CompileAndVerify(comp)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub BadGlobalImports()
             Dim source1 = "
 Namespace N

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -9,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol => null;
+        public virtual ISymbol ContainingSymbol => null;
 
         public IAssemblySymbol ContainingAssembly => null;
 
@@ -224,6 +224,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool Equals(ISymbol other)
         {
             return this.Equals((object)other);
+        }
+
+        public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        {
+            return this.Equals(other);
         }
     }
 }

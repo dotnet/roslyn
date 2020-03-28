@@ -7,10 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
+    xmlns:localOptions="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <GroupBox x:Uid="GroupBox_1" Header="General">
+            <localOptions:CodeStyleNoticeTextBlock Margin="5 0 5 0" />
+            <GroupBox x:Uid="GroupBox_1" Header="{x:Static local:FormattingGeneralOptionPageStrings.General}" Margin="0 5 0 0 ">
                 <StackPanel>
                     <CheckBox x:Name="FormatWhenTypingCheckBox" x:Uid="FormatWhenTypingCheckBox" />
                     <StackPanel Margin="15, 0, 0, 0" IsEnabled="{Binding ElementName=FormatWhenTypingCheckBox, Path=IsChecked}">
@@ -19,28 +22,6 @@
                     </StackPanel>
                     <CheckBox x:Name="FormatOnReturnCheckBox" x:Uid="FormatOnReturnCheckBox" />
                     <CheckBox x:Name="FormatOnPasteCheckBox" x:Uid="FormatOnPasteCheckBox" />
-                </StackPanel>
-            </GroupBox>
-            <GroupBox x:Name="FormatDocumentSettingsGroupBox" x:Uid="FormatDocumentSettingsGroupBox" >
-                <StackPanel>
-                    <CheckBox x:Name="AllCSharpFormattingRulesCheckBox" x:Uid="AllCSharpFormattingRulesCheckBox" IsEnabled="False" IsChecked="True"/>
-                    <CheckBox x:Name="PerformAdditionalCodeCleanupDuringFormattingCheckBox" x:Uid="PerformAdditionalCodeCleanupDuringFormattingCheckBox" />
-                    <StackPanel Margin="15, 0, 0, 0" IsEnabled="{Binding ElementName=PerformAdditionalCodeCleanupDuringFormattingCheckBox, Path=IsChecked}">
-                        <CheckBox x:Name="RemoveUnusedUsingsCheckBox" x:Uid="RemoveUnusedUsingsCheckBox" />
-                        <CheckBox x:Name="SortUsingsCheckBox" x:Uid="SortUsingsCheckBox" />
-                        <CheckBox x:Name="AddRemoveBracesForSingleLineControlStatementsCheckBox" x:Uid="AddRemoveBracesForSingleLineControlStatementsCheckBox" />
-                        <CheckBox x:Name="AddAccessibilityModifiersCheckBox" x:Uid="AddAccessibilityModifiersCheckBox" />
-                        <CheckBox x:Name="SortAccessibilityModifiersCheckBox" x:Uid="SortAccessibilityModifiersCheckBox" />
-                        <CheckBox x:Name="ApplyExpressionBlockBodyPreferencesCheckBox" x:Uid="ApplyExpressionBlockBodyPreferencesCheckBox" />
-                        <CheckBox x:Name="ApplyImplicitExplicitTypePreferencesCheckBox" x:Uid="ApplyImplicitExplicitTypePreferencesCheckBox" />
-                        <CheckBox x:Name="ApplyInlineOutVariablePreferencesCheckBox" x:Uid="ApplyInlineOutVariablePreferencesCheckBox" />
-                        <CheckBox x:Name="ApplyLanguageFrameworkTypePreferencesCheckBox" x:Uid="ApplyLanguageFrameworkTypePreferencesCheckBox" />
-                        <CheckBox x:Name="ApplyObjectCollectionInitializationPreferencesCheckBox" x:Uid="ApplyObjectCollectionInitializationPreferencesCheckBox" />
-                        <CheckBox x:Name="ApplyThisQualificationPreferencesCheckBox" x:Uid="ApplyThisQualificationPreferencesCheckBox" />
-                        <CheckBox x:Name="MakePrivateFieldReadonlyWhenPossibleCheckBox" x:Uid="MakePrivateFieldReadonlyWhenPossibleCheckBox" />
-                        <CheckBox x:Name="RemoveUnnecessaryCastsCheckBox" x:Uid="RemoveUnnecessaryCastsCheckBox" />
-                        <CheckBox x:Name="RemoveUnusedVariablesCheckBox" x:Uid="RemoveUnusedVariablesCheckBox" />
-                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

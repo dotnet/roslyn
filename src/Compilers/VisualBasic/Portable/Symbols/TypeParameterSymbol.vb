@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Runtime.InteropServices
 
@@ -16,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class TypeParameterSymbol
         Inherits TypeSymbol
-        Implements ITypeParameterSymbol
+        Implements ITypeParameterSymbol, ITypeParameterSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -320,6 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property HasNotNullConstraint As Boolean Implements ITypeParameterSymbol.HasNotNullConstraint
+            Get
+                Return False
+            End Get
+        End Property
+
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
 
         ''' <summary>
@@ -355,6 +364,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "ITypeParameterSymbol"
 
+        Private ReadOnly Property ITypeParameterSymbol_ReferenceTypeConstraintNullableAnnotation As NullableAnnotation Implements ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeParameterSymbol_DeclaringMethod As IMethodSymbol Implements ITypeParameterSymbol.DeclaringMethod
             Get
                 Return Me.DeclaringMethod
@@ -376,6 +391,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeParameterSymbol_ConstraintTypes As ImmutableArray(Of ITypeSymbol) Implements ITypeParameterSymbol.ConstraintTypes
             Get
                 Return StaticCast(Of ITypeSymbol).From(Me.ConstraintTypesNoUseSiteDiagnostics)
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeParameterSymbol_ConstraintNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements ITypeParameterSymbol.ConstraintNullableAnnotations
+            Get
+                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.None)
             End Get
         End Property
 

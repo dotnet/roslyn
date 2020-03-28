@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 #pragma warning disable xUnit1013 // currently there are public virtual methods that are overridden by derived types
@@ -13,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
+        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
         }
@@ -38,6 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(testProj);
             VisualStudio.Editor.SetText(@"Imports System
 Class Program
     Private e As Exception
@@ -65,6 +69,7 @@ End Class");
             VisualStudio.SolutionExplorer.AddProject(csProj2, projectTemplate: DefaultProjectTemplate, languageName: LanguageName);
             var projectName = new ProjectUtils.ProjectReference(ProjectName);
             VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: csProj2, toProjectName: projectName);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(csProj2);
             VisualStudio.SolutionExplorer.AddFile(project, "Program.cs", open: true, contents: "public class Class1 { }");
             VisualStudio.SolutionExplorer.AddFile(csProj2, "Program.cs", open: true, contents: "public class Class2 { Class1 c; }");
             VisualStudio.SolutionExplorer.OpenFile(csProj2, "Program.cs");
@@ -91,10 +96,10 @@ End Module");
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.Workspace.SetOptionInfer(project.Name, true);
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Integer‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
+            Assert.Equal("Sub Program.M(p As Integer) (+ 1 overload)", VisualStudio.Editor.GetQuickInfo());
             VisualStudio.Workspace.SetOptionInfer(project.Name, false);
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
+            Assert.Equal("Sub Program.M(p As Object) (+ 1 overload)", VisualStudio.Editor.GetQuickInfo());
         }
 
         [WpfFact]
@@ -102,11 +107,26 @@ End Module");
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
-            
+
             // Verify we are connected to the project before...
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
 
             VisualStudio.SolutionExplorer.RenameFile(project, "BeforeRename.cs", "AfterRename.cs");
+
+            // ...and after.
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+        }
+
+        [WpfFact]
+        public virtual void RenamingOpenFilesViaDTE()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
+
+            // Verify we are connected to the project before...
+            Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
+
+            VisualStudio.SolutionExplorer.RenameFileViaDTE(project, "BeforeRename.cs", "AfterRename.cs");
 
             // ...and after.
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());

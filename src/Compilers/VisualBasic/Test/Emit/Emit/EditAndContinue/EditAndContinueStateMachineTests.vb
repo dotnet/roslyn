@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueStateMachineTests
         Inherits EditAndContinueTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddIteratorMethod()
             Dim source0 =
 <compilation>
@@ -368,7 +370,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddAsyncMethod()
             Dim source0 =
 <compilation>

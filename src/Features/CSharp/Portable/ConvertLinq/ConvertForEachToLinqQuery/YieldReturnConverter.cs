@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
@@ -14,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         private readonly YieldStatementSyntax _yieldBreakStatement;
 
         public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo, 
-            YieldStatementSyntax yieldReturnStatement, 
-            YieldStatementSyntax yieldBreakStatement) 
+            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+            YieldStatementSyntax yieldReturnStatement,
+            YieldStatementSyntax yieldBreakStatement)
             : base(forEachInfo)
         {
             _yieldReturnStatement = yieldReturnStatement;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                convertToQuery: convertToQuery);
 
             editor.ReplaceNode(
-                ForEachInfo.ForEachStatement, 
+                ForEachInfo.ForEachStatement,
                 SyntaxFactory.ReturnStatement(queryOrLinqInvocationExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             // Delete the yield break just after the loop.

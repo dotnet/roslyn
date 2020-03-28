@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioMetadataReference
+    // TODO: This class is now an empty container just to hold onto the nested type. Renaming that is an invasive change that will be it's own commit.
+    internal static class VisualStudioMetadataReference
     {
         /// <summary>
         /// Represents a metadata reference corresponding to a specific version of a file.
@@ -34,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioMetadataReferenceManager _provider;
             private readonly Lazy<DateTime> _timestamp;
             private Exception _error;
-            private FileChangeTracker _fileChangeTrackerOpt;
+            private readonly FileChangeTracker _fileChangeTrackerOpt;
 
             internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
                 : base(properties, fullPath)
@@ -43,7 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _provider = provider;
                 _fileChangeTrackerOpt = fileChangeTrackerOpt;
 
-                _timestamp = new Lazy<DateTime>(() => {
+                _timestamp = new Lazy<DateTime>(() =>
+                {
                     try
                     {
                         _fileChangeTrackerOpt?.EnsureSubscription();

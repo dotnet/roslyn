@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -21,19 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
     internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     {
         private readonly EventHookupCommandHandler _commandHandler;
-        private Mutex _testSessionHookupMutex;
+        private readonly Mutex _testSessionHookupMutex;
 
-        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
+        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey2, object> options)
+            : base(workspaceElement, GetExtraParts())
         {
             _commandHandler = new EventHookupCommandHandler(
                 Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 Workspace.GetService<IInlineRenameService>(),
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                Workspace.GetService<IQuickInfoBroker>(),
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                prematureDismissalPreventer: null,
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                Workspace.ExportProvider.GetExportedValue<EventHookupSessionManager>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
@@ -42,35 +40,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         private static ComposableCatalog GetExtraParts()
         {
-            return ExportProviderCache.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
+            return ExportProviderCache.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupSessionManager) });
         }
 
-        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
-        {
-            var workspaceXml = string.Format(@"
+        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey2, object> options = null)
+            => new EventHookupTestState(GetWorkspaceXml(markup), options);
+
+        public static XElement GetWorkspaceXml(string markup)
+            => XElement.Parse(string.Format(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document>{0}</Document>
     </Project>
-</Workspace>", markup);
-
-            return new EventHookupTestState(XElement.Parse(workspaceXml), options);
-        }
+</Workspace>", markup));
 
         internal void AssertShowing(string expectedText)
         {
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.QuickInfoSession);
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
+            Assert.Single(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
 
-            var inlines = (_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent as System.Windows.Controls.TextBlock).Inlines;
-            Assert.Equal(2, inlines.Count);
-            Assert.Equal(expectedText, (inlines.First() as System.Windows.Documents.Run).Text);
+            var textElement = _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.First();
+            Assert.Equal(3, textElement.Runs.Count());
+            Assert.Equal(expectedText, textElement.Runs.First().Text);
         }
 
         internal void AssertNotShowing()
         {
-            Assert.True(_commandHandler.EventHookupSessionManager.QuickInfoSession == null || _commandHandler.EventHookupSessionManager.QuickInfoSession.IsDismissed);
-            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
         }
 
         internal void SetEventHookupCheckMutex()

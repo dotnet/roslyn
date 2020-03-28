@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -7,6 +9,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -326,27 +329,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return 0
         End Function
 
-        Friend Overridable Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+        Friend Overridable Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             name = Nothing
             index = -1
             Return False
         End Function
 
-        Friend NotOverridable Overrides Function GetAnonymousTypes(context As EmitContext) As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+        Public NotOverridable Overrides Function GetAnonymousTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             If context.MetadataOnly Then
-                Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
+                Return SpecializedCollections.EmptyEnumerable(Of Cci.INamespaceTypeDefinition)
             End If
 
-            Return StaticCast(Of Cci.INamespaceTypeDefinition).
-                From(SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates)
+            Return SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates
         End Function
 
-        Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            For Each topLevel In GetAdditionalTopLevelTypes()
-                Yield topLevel
-            Next
-
+        Public Overrides Iterator Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             Dim embeddedSymbolManager As EmbeddedSymbolManager = SourceModule.ContainingSourceAssembly.DeclaringCompilation.EmbeddedSymbolManager
             Dim stack As New Stack(Of NamespaceOrTypeSymbol)()
 
@@ -361,25 +359,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     ' Skip unreferenced embedded types.
                     If Not sym.IsEmbedded OrElse embeddedSymbolManager.IsSymbolReferenced(sym) Then
-                        Dim type = DirectCast(sym, NamedTypeSymbol)
-                        Yield type
+                        Yield DirectCast(sym, Cci.INamespaceTypeDefinition)
                     End If
                 Else
                     Debug.Assert(sym.Kind = SymbolKind.Namespace)
                     Dim members As ImmutableArray(Of Symbol) = sym.GetMembers()
                     For i As Integer = members.Length - 1 To 0 Step -1
-                        Dim nortsym As NamespaceOrTypeSymbol = TryCast(members(i), NamespaceOrTypeSymbol)
-                        If nortsym IsNot Nothing Then
-                            stack.Push(nortsym)
+                        Dim namespaceOrType As NamespaceOrTypeSymbol = TryCast(members(i), NamespaceOrTypeSymbol)
+                        If namespaceOrType IsNot Nothing Then
+                            stack.Push(namespaceOrType)
                         End If
                     Next
                 End If
             Loop While stack.Count > 0
-
-        End Function
-
-        Friend Overridable Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public NotOverridable Overrides Function GetExportedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.ExportedType)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 IForLoopOperation forLoop = (IForLoopOperation)loop;
                 IOperation forCondition = forLoop.Condition;
 
-                if (forCondition.Kind == OperationKind.BinaryOperator)
+                if (forCondition.Kind == OperationKind.Binary)
                 {
                     IBinaryOperation condition = (IBinaryOperation)forCondition;
                     IOperation conditionLeft = condition.LeftOperand;
@@ -233,7 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable &&
-                    advanceAssignment.Value.Kind == OperationKind.BinaryOperator &&
+                    advanceAssignment.Value.Kind == OperationKind.Binary &&
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
                     // Advance is known to be an assignment of a binary operation to the local used in the test.
@@ -1524,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(DoubleMultiplyDescriptor, binary.Syntax.GetLocation()));
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
 
             context.RegisterOperationAction(
                 (operationContext) =>
@@ -1545,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
                     }
                 },
-                OperationKind.UnaryOperator);
+                OperationKind.Unary);
         }
     }
 
@@ -1576,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                 binary.OperatorKind.ToString()));
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
         }
     }
 
@@ -1633,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
 
             context.RegisterOperationAction(
                 (operationContext) =>
@@ -1655,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
                 },
-                OperationKind.UnaryOperator);
+                OperationKind.Unary);
         }
     }
 
@@ -1784,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var operation = operationContext.Operation;
-                     if (operation.Kind == OperationKind.BinaryOperator)
+                     if (operation.Kind == OperationKind.Binary)
                      {
                          var binary = (IBinaryOperation)operation;
                          if (binary.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
@@ -1792,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
                          }
                      }
-                     else if (operation.Kind == OperationKind.UnaryOperator)
+                     else if (operation.Kind == OperationKind.Unary)
                      {
                          var unary = (IUnaryOperation)operation;
                          if (unary.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
@@ -1809,8 +1811,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          }
                      }
                  },
-                 OperationKind.BinaryOperator,
-                 OperationKind.UnaryOperator,
+                 OperationKind.Binary,
+                 OperationKind.Unary,
                  OperationKind.Increment);
         }
     }
@@ -1979,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(UnaryFalseDescriptor, unary.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.UnaryOperator);
+                 OperationKind.Unary);
         }
     }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return initConstantValueOpt;
             }
 
-            TypeSymbol type = init.Type.EnumUnderlyingType();
+            TypeSymbol type = init.Type.EnumUnderlyingTypeOrSelf();
             return ConstantValue.Default(type.SpecialType);
         }
 
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     return ArrayInitializerStyle.Element;
                 }
-                elementType = elementType.EnumUnderlyingType();
+                elementType = elementType.EnumUnderlyingTypeOrSelf();
             }
 
             if (elementType.SpecialType.IsBlittable())
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // NOTE: default values do not need to be initialized. 
-                    //       .Net arrays are always zero-inited.
+                    //       .NET arrays are always zero-inited.
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingType();
+                elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format
@@ -384,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             if (elementCount < 0)
-            { 
+            {
                 return false;
             }
 
@@ -393,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // emitting a value that no one will see
                 return true;
             }
-            
+
             if (elementCount == 0)
             {
                 if (inPlace)
@@ -408,12 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (EnablePEVerifyCompat())
+                if (IsPeVerifyCompatEnabled())
                 {
                     return false;
                 }
 
-                _builder.EmitArrayBlockFieldRef(data, elementType, wrappedExpression.Syntax, _diagnostics);
+                _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
                 _builder.EmitIntConstant(elementCount);
 
                 if (inPlace)

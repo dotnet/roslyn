@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -752,7 +754,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                              MethodAttributes.Final Or
                              MethodAttributes.Abstract Or
                              MethodAttributes.NewSlot)) =
-                        (MethodAttributes.Virtual Or MethodAttributes.Final)
+                        If(_containingType.IsInterface,
+                           MethodAttributes.Virtual Or MethodAttributes.Final Or MethodAttributes.Abstract,
+                           MethodAttributes.Virtual Or MethodAttributes.Final)
             End Get
         End Property
 
@@ -782,7 +786,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      MethodAttributes.NewSlot))
 
                 Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
-                       (flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
+                       (Not _containingType.IsInterface AndAlso
+                        flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
             End Get
         End Property
 
@@ -795,7 +800,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 '
                 ' This means that a virtual method without NewSlot flag in a type that doesn't have a base
                 ' is a new virtual method and doesn't override anything.
-                Return (_flags And MethodAttributes.Virtual) <> 0 AndAlso
+                Return Not _containingType.IsInterface AndAlso
+                       (_flags And MethodAttributes.Virtual) <> 0 AndAlso
                        (_flags And MethodAttributes.NewSlot) = 0 AndAlso
                        _containingType.BaseTypeNoUseSiteDiagnostics IsNot Nothing
             End Get
@@ -914,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol, methodKind As MethodKind) As Boolean
             If Me._associatedPropertyOrEventOpt Is Nothing Then
-                Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything))
                 Me._associatedPropertyOrEventOpt = propertyOrEventSymbol
                 _packedFlags.MethodKind = methodKind
                 Return True
@@ -927,8 +933,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = _containingType.ContainingPEModule
 
-                Dim signatureHeader As SignatureHeader
-                Dim mrEx As BadImageFormatException = Nothing
+            Dim signatureHeader As SignatureHeader
+            Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
                     (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 

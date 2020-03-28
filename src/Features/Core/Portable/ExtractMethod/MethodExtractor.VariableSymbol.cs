@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,8 +21,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             protected VariableSymbol(Compilation compilation, ITypeSymbol type)
             {
-                this.OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
-                this.OriginalType = this.OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
+                OriginalTypeHadAnonymousTypeOrDelegate = type.ContainsAnonymousType();
+                OriginalType = OriginalTypeHadAnonymousTypeOrDelegate ? type.RemoveAnonymousTypes(compilation) : type;
             }
 
             public abstract int DisplayOrder { get; }
@@ -74,8 +76,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected abstract class NotMovableVariableSymbol : VariableSymbol
         {
-            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) :
-                base(compilation, type)
+            public NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type)
+                : base(compilation, type)
             {
             }
 
@@ -103,8 +105,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IParameterSymbol _parameterSymbol;
 
-            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type) :
-                base(compilation, type)
+            public ParameterVariableSymbol(Compilation compilation, IParameterSymbol parameterSymbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(parameterSymbol);
                 _parameterSymbol = parameterSymbol;
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((ParameterVariableSymbol)right);
+                return CompareTo((ParameterVariableSymbol)right);
             }
 
             public int CompareTo(ParameterVariableSymbol other)
@@ -182,8 +184,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
-            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet) :
-                base(compilation, type)
+            public LocalVariableSymbol(Compilation compilation, ILocalSymbol localSymbol, ITypeSymbol type, HashSet<int> nonNoisySet)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((LocalVariableSymbol<T>)right);
+                return CompareTo((LocalVariableSymbol<T>)right);
             }
 
             public int CompareTo(LocalVariableSymbol<T> other)
@@ -249,12 +251,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(this.GetOriginalIdentifierToken(cancellationToken), _annotation));
+                annotations.Add(Tuple.Create(GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)
             {
-                var identifier = this.GetOriginalIdentifierToken(cancellationToken);
+                var identifier = GetOriginalIdentifierToken(cancellationToken);
 
                 // check whether there is a noisy trivia around the token.
                 if (ContainsNoisyTrivia(identifier.LeadingTrivia))
@@ -299,8 +301,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IRangeVariableSymbol _symbol;
 
-            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type) :
-                base(compilation, type)
+            public QueryVariableSymbol(Compilation compilation, IRangeVariableSymbol symbol, ITypeSymbol type)
+                : base(compilation, type)
             {
                 Contract.ThrowIfNull(symbol);
                 _symbol = symbol;
@@ -310,7 +312,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected override int CompareTo(VariableSymbol right)
             {
-                return this.CompareTo((QueryVariableSymbol)right);
+                return CompareTo((QueryVariableSymbol)right);
             }
 
             public int CompareTo(QueryVariableSymbol other)

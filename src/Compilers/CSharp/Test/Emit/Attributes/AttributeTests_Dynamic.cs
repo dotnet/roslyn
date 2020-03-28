@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -531,7 +533,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                     }
                     else
                     {
-                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                         TypedConstant argument = dynamicAttribute.CommonConstructorArguments.Single();
                         Assert.Equal(TypedConstantKind.Array, argument.Kind);
@@ -805,7 +807,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(33, 19)
                 );
         }
-        
+
         [Fact]
         public void TestDynamicAttributeForScript_Field()
         {
@@ -905,7 +907,7 @@ Gen<dynamic> x = null;";
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
         }
-        
+
         [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
@@ -1249,7 +1251,7 @@ class C
         {
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"Gen<dynamic>"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1259,7 +1261,7 @@ class C
         {
             var comp = CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"dynamic"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2));
 
             comp.VerifyDiagnostics(
                 // (2,7): error CS1962: The typeof operator cannot be used on the dynamic type
@@ -1295,12 +1297,12 @@ class C
         public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
         {
             string source =
-                "using X = Gen<dynamic>;     // No CS1980" 
+                "using X = Gen<dynamic>;     // No CS1980"
                 + GetNoCS1980String(typeName: "X");
 
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: source,
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1329,7 +1331,7 @@ public class Gen2<T> : X    // CS1980
   }
 }";
 
-            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)).VerifyDiagnostics(
                 // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),

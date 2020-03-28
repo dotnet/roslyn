@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -358,7 +360,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b + c')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'b + c')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'b + c')
               Left: 
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'b')
                   Children(0)
@@ -1539,7 +1541,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer(1) {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -1581,7 +1583,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer(1)() {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -2129,7 +2131,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Char()) (Syntax: 'New Char(1) {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -2636,7 +2638,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'num < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num < 5')
                       Left: 
                         IParameterReferenceOperation: num (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'num')
                       Right: 
@@ -3027,7 +3029,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3071,7 +3073,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3115,7 +3117,7 @@ IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type:
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3160,7 +3162,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
                   Locals: Local_1: <anonymous local> As System.Boolean
                   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                     ReturnedValue: 
-                      IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                      IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                         Left: 
                           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                         Right: 

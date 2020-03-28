@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -81,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Use WithTextChange instead", error: true)]
         public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
         {
-            return new CompletionChange(textChanges, this.NewPosition, this.IncludesCommitCharacter);
+            return new CompletionChange(textChanges, NewPosition, IncludesCommitCharacter);
         }
 
         public CompletionChange WithTextChange(TextChange textChange)
         {
-            return new CompletionChange(textChange, this.NewPosition, this.IncludesCommitCharacter);
+            return new CompletionChange(textChange, NewPosition, IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithNewPosition(int? newPostion)
         {
-            return new CompletionChange(this.TextChange, newPostion, this.IncludesCommitCharacter);
+            return new CompletionChange(TextChange, newPostion, IncludesCommitCharacter);
         }
 
         /// <summary>
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionChange WithIncludesCommitCharacter(bool includesCommitCharacter)
         {
-            return new CompletionChange(this.TextChange, this.NewPosition, includesCommitCharacter);
+            return new CompletionChange(TextChange, NewPosition, includesCommitCharacter);
         }
     }
 }

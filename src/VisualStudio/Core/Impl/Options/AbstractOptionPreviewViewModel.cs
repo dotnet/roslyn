@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -29,26 +32,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyChanged, IDisposable
     {
-        private IComponentModel _componentModel;
+        private readonly IComponentModel _componentModel;
         private IWpfTextViewHost _textViewHost;
 
-        private IContentType _contentType;
-        private IEditorOptionsFactoryService _editorOptions;
-        private ITextEditorFactoryService _textEditorFactoryService;
-        private ITextBufferFactoryService _textBufferFactoryService;
-        private IProjectionBufferFactoryService _projectionBufferFactory;
-        private IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly IContentType _contentType;
+        private readonly IEditorOptionsFactoryService _editorOptions;
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactory;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
         public List<object> Items { get; set; }
         public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
 
-        public OptionSet Options { get; set; }
-        private readonly OptionSet _originalOptions;
+        public OptionStore OptionStore { get; set; }
 
-        protected AbstractOptionPreviewViewModel(OptionSet options, IServiceProvider serviceProvider, string language)
+        protected AbstractOptionPreviewViewModel(OptionStore optionStore, IServiceProvider serviceProvider, string language)
         {
-            this.Options = options;
-            _originalOptions = options;
+            this.OptionStore = optionStore;
             this.Items = new List<object>();
             this.CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
 
@@ -64,37 +65,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _contentType = _contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
         }
 
-        internal OptionSet ApplyChangedOptions(OptionSet optionSet)
-        {
-            foreach (var optionKey in this.Options.GetChangedOptions(_originalOptions))
-            {
-                optionSet = optionSet.WithChangedOption(optionKey, this.Options.GetOption(optionKey));
-            }
-
-            return optionSet;
-        }
-
         public void SetOptionAndUpdatePreview<T>(T value, IOption option, string preview)
         {
             if (option is Option<CodeStyleOption<T>>)
             {
-                var opt = Options.GetOption((Option<CodeStyleOption<T>>)option);
+                var opt = OptionStore.GetOption((Option<CodeStyleOption<T>>)option);
                 opt.Value = value;
-                Options = Options.WithChangedOption((Option<CodeStyleOption<T>>)option, opt);
+                OptionStore.SetOption((Option<CodeStyleOption<T>>)option, opt);
             }
             else if (option is PerLanguageOption<CodeStyleOption<T>>)
             {
-                var opt = Options.GetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language);
+                var opt = OptionStore.GetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language);
                 opt.Value = value;
-                Options = Options.WithChangedOption((PerLanguageOption<CodeStyleOption<T>>)option, Language, opt);
+                OptionStore.SetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language, opt);
             }
             else if (option is Option<T>)
             {
-                Options = Options.WithChangedOption((Option<T>)option, value);
+                OptionStore.SetOption((Option<T>)option, value);
             }
             else if (option is PerLanguageOption<T>)
             {
-                Options = Options.WithChangedOption((PerLanguageOption<T>)option, Language, value);
+                OptionStore.SetOption((PerLanguageOption<T>)option, Language, value);
             }
             else
             {
@@ -127,9 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void UpdatePreview(string text)
         {
-            var service = MefV1HostServices.Create(_componentModel.DefaultExportProvider);
+            var service = VisualStudioMefHostServices.Create(_componentModel.GetService<ExportProvider>());
             var workspace = new PreviewWorkspace(service);
-            var fileName = string.Format("project.{0}", Language == "C#" ? "csproj" : "vbproj");
+            var fileName = "project." + (Language == "C#" ? "csproj" : "vbproj");
             var project = workspace.CurrentSolution.AddProject(fileName, "assembly.dll", Language);
 
             // use the mscorlib, system, and system.core that are loaded in the current process.
@@ -149,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             project = project.WithMetadataReferences(referenceAssemblies);
 
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
-            var formatted = Formatter.FormatAsync(document, this.Options).WaitAndGetResult(CancellationToken.None);
+            var formatted = Formatter.FormatAsync(document, OptionStore.GetOptions()).WaitAndGetResult(CancellationToken.None);
 
             var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextAsync().Result.ToString(), _contentType);
 
@@ -222,8 +213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         protected void AddParenthesesOption(
-            string language, OptionSet optionSet,
-            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            string language, OptionStore optionStore,
+            PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> languageOption,
             string title, string[] examples, bool defaultAddForClarity)
         {
             var preferences = new List<ParenthesesPreference>();
@@ -239,8 +230,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
                 languageOption, language, title, preferences.ToArray(),
-                examples, this, optionSet, ServicesVSResources.Parentheses_preferences_colon,
+                examples, this, optionStore, ServicesVSResources.Parentheses_preferences_colon,
                 codeStylePreferences));
+        }
+
+        protected void AddUnusedParameterOption(string language, OptionStore optionStore, string title, string[] examples)
+        {
+            var unusedParameterPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Non_public_methods, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.All_methods, isChecked: true),
+            };
+
+            var enumValues = new[]
+            {
+                UnusedParametersPreference.NonPublicMethods,
+                UnusedParametersPreference.AllMethods
+            };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedParametersPreference>(
+                CodeStyleOptions2.UnusedParameters, language,
+                ServicesVSResources.Avoid_unused_parameters, enumValues,
+                examples, this, optionStore, title,
+                unusedParameterPreferences));
         }
     }
 }

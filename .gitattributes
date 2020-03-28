@@ -63,3 +63,9 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Generated files
+src/Compilers/CSharp/Portable/Generated/*                  linguist-generated=true
+src/Compilers/CSharp/Portable/CSharpResources.Designer.cs  linguist-generated=true
+src/Compilers/VisualBasic/Portable/Generated/*             linguist-generated=true
+src/Compilers/VisualBasic/Portable/VBResources.Designer.vb linguist-generated=true

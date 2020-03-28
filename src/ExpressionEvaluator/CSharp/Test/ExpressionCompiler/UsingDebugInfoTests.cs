@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -207,6 +209,7 @@ namespace A
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -298,6 +301,7 @@ namespace B
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -392,7 +396,7 @@ namespace D
                 }
             });
 
-            ImmutableArray < string> externAliasStrings;
+            ImmutableArray<string> externAliasStrings;
             var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
@@ -633,7 +637,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -668,7 +672,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -713,7 +717,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -751,7 +755,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -1139,7 +1143,7 @@ namespace N
                 resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: false);
-            Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
+            Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
 
             // With symbols, type reference inside namespace.
             testData = Evaluate(

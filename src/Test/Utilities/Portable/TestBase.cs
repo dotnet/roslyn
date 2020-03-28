@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -76,7 +78,7 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
 
-        public static readonly AssemblyName RuntimeCorLibName = CoreClrShim.IsRunningOnCoreClr
+        public static readonly AssemblyName RuntimeCorLibName = RuntimeUtilities.IsCoreClrRuntime
             ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
             : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
@@ -246,6 +248,18 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
 
+        private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
+
+        private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netstandard).GetReference(display: "net461.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
+
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
@@ -330,17 +344,13 @@ namespace Roslyn.Test.Utilities
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false)
         {
-            Debug.Assert(code is ErrorCode || code is ERRID || code is int || code is string);
-
-            return new DiagnosticDescription(
-                code as string ?? (object)(int)code,
-                false,
+            return TestHelpers.Diagnostic(
+                code,
                 squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter,
-                code.GetType());
+                argumentOrderDoesNotMatter);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -351,23 +361,13 @@ namespace Roslyn.Test.Utilities
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
            bool argumentOrderDoesNotMatter = false)
         {
-            return Diagnostic(
+            return TestHelpers.Diagnostic(
                 code,
-                NormalizeNewLines(squiggledText),
+                squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
-        }
-
-        public static string NormalizeNewLines(XCData data)
-        {
-            if (ExecutionConditionUtil.IsWindows)
-            {
-                return data.Value.Replace("\n", "\r\n");
-            }
-
-            return data.Value;
         }
 
         #endregion

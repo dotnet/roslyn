@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -23,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification,
         IDkmModuleInstanceUnloadNotification,
-        IDkmLanguageFrameDecoder, 
+        IDkmLanguageFrameDecoder,
         IDkmLanguageInstructionDecoder
     {
         // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
@@ -56,21 +60,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var aliases = argumentsOnly
                     ? ImmutableArray<Alias>.Empty
                     : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
-                string error;
-                var r = this.CompileWithRetry(
+                string? error;
+                var r = CompileWithRetry(
                     moduleInstance.AppDomain,
                     runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
                         var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
-                        string typeName;
                         var assembly = context.CompileGetLocals(
                             builder,
                             argumentsOnly,
                             aliases,
                             diagnostics,
-                            out typeName,
+                            out var typeName,
                             testData: null);
                         Debug.Assert((builder.Count == 0) == (assembly.Count == 0));
                         var locals = new ReadOnlyCollection<DkmClrLocalVariableInfo>(builder.SelectAsArray(ToLocalVariableInfo));
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return new GetLocalsResult(typeName, locals, assembly);
                     },
                     out error);
-                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
+                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, CompilerId, r.Assembly, r.TypeName, r.Locals);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -112,32 +115,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
             DkmInspectionContext inspectionContext,
-            out string error,
-            out DkmCompiledClrInspectionQuery result)
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
         {
             try
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
-                var r = this.CompileWithRetry(
+                var r = CompileWithRetry(
                     moduleInstance.AppDomain,
                     runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
-                        ResultProperties resultProperties;
                         var compileResult = context.CompileExpression(
                             expression.Text,
                             expression.CompilationFlags,
                             aliases,
                             diagnostics,
-                            out resultProperties,
+                            out var resultProperties,
                             testData: null);
                         return new CompileExpressionResult(compileResult, resultProperties);
                     },
                     out error);
-                result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
+                result = r.CompileResult.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -149,27 +151,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
             DkmEvaluationResult lValue,
-            out string error,
-            out DkmCompiledClrInspectionQuery result)
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
         {
             try
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
-                var r = this.CompileWithRetry(
+                var r = CompileWithRetry(
                     moduleInstance.AppDomain,
                     runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
-                        ResultProperties resultProperties;
                         var compileResult = context.CompileAssignment(
                             lValue.FullName,
                             expression.Text,
                             aliases,
                             diagnostics,
-                            out resultProperties,
+                            out var resultProperties,
                             testData: null);
                         return new CompileExpressionResult(compileResult, resultProperties);
                     },
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     r.CompileResult == null && r.ResultProperties.Flags == default ||
                     (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
 
-                result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
+                result = r.CompileResult.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -191,30 +192,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmLanguageExpression expression,
             DkmClrModuleInstance moduleInstance,
             int token,
-            out string error,
-            out DkmCompiledClrInspectionQuery result)
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
         {
             try
             {
                 var runtimeInstance = moduleInstance.RuntimeInstance;
                 var appDomain = moduleInstance.AppDomain;
-                var compileResult = this.CompileWithRetry(
+                var compileResult = CompileWithRetry(
                     appDomain,
                     runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.Mvid, token, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
-                        ResultProperties unusedResultProperties;
                         return context.CompileExpression(
                             expression.Text,
                             DkmEvaluationFlags.TreatAsExpression,
                             ImmutableArray<Alias>.Empty,
                             diagnostics,
-                            out unusedResultProperties,
+                            out var unusedResultProperties,
                             testData: null);
                     },
                     out error);
-                result = compileResult.ToQueryResult(this.CompilerId, default(ResultProperties), runtimeInstance);
+                result = compileResult.ToQueryResult(CompilerId, resultProperties: default, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Lazy<ImmutableArray<AssemblyReaders>> lazyAssemblyReaders,
-            object symReader,
+            object? symReader,
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // No local signature. May occur when debugging heapless dumps.
                 localSignatureToken = 0;
             }
-            return this.CreateMethodContext(
+            return CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
                 new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),
@@ -365,12 +365,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrRuntimeInstance runtimeInstance,
             CreateContextDelegate createContext,
             CompileDelegate<TResult> compile,
-            out string errorMessage)
+            out string? errorMessage)
         {
             var metadataBlocks = GetMetadataBlocks(appDomain, runtimeInstance);
             return CompileWithRetry(
                 metadataBlocks,
-                this.DiagnosticFormatter,
+                DiagnosticFormatter,
                 createContext,
                 compile,
                 (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
@@ -383,11 +383,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CreateContextDelegate createContext,
             CompileDelegate<TResult> compile,
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
-            out string errorMessage)
+            out string? errorMessage)
         {
             TResult compileResult;
 
-            PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
+            PooledHashSet<AssemblyIdentity>? assembliesLoadedInRetryLoop = null;
             bool tryAgain;
             var linqLibrary = EvaluationContextBase.SystemLinqIdentity;
             do
@@ -400,15 +400,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 tryAgain = false;
                 if (diagnostics.HasAnyErrors())
                 {
-                    bool useReferencedModulesOnly;
-                    ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                     errorMessage = context.GetErrorMessageAndMissingAssemblyIdentities(
                         diagnostics,
                         formatter,
                         preferredUICulture: null,
                         linqLibrary: linqLibrary,
-                        useReferencedModulesOnly: out useReferencedModulesOnly,
-                        missingAssemblyIdentities: out missingAssemblyIdentities);
+                        useReferencedModulesOnly: out var useReferencedModulesOnly,
+                        missingAssemblyIdentities: out var missingAssemblyIdentities);
+
                     // If there were LINQ-related errors, we'll initially add System.Linq (set above).
                     // If that doesn't work, we'll fall back to System.Core for subsequent retries.
                     linqLibrary = EvaluationContextBase.SystemCoreIdentity;
@@ -453,7 +452,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            ReadOnlyCollection<byte> customTypeInfo;
+            ReadOnlyCollection<byte>? customTypeInfo;
             Guid customTypeInfoId = local.GetCustomTypeInfo(out customTypeInfo);
             return DkmClrLocalVariableInfo.Create(
                 local.LocalDisplayName,
@@ -464,7 +463,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
         }
 
-        private struct GetLocalsResult
+        private readonly struct GetLocalsResult
         {
             internal readonly string TypeName;
             internal readonly ReadOnlyCollection<DkmClrLocalVariableInfo> Locals;
@@ -472,21 +471,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             internal GetLocalsResult(string typeName, ReadOnlyCollection<DkmClrLocalVariableInfo> locals, ReadOnlyCollection<byte> assembly)
             {
-                this.TypeName = typeName;
-                this.Locals = locals;
-                this.Assembly = assembly;
+                TypeName = typeName;
+                Locals = locals;
+                Assembly = assembly;
             }
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
-            internal readonly CompileResult CompileResult;
+            internal readonly CompileResult? CompileResult;
             internal readonly ResultProperties ResultProperties;
 
-            internal CompileExpressionResult(CompileResult compileResult, ResultProperties resultProperties)
+            internal CompileExpressionResult(CompileResult? compileResult, ResultProperties resultProperties)
             {
-                this.CompileResult = compileResult;
-                this.ResultProperties = resultProperties;
+                CompileResult = compileResult;
+                ResultProperties = resultProperties;
             }
         }
     }

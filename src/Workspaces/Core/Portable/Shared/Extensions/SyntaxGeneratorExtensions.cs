@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -16,34 +19,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
-        public static SyntaxNode CreateThrowNotImplementedStatement(
-            this SyntaxGenerator codeDefinitionFactory,
-            Compilation compilation)
-        {
-            return codeDefinitionFactory.ThrowStatement(
-               codeDefinitionFactory.ObjectCreationExpression(
-                   codeDefinitionFactory.TypeExpression(compilation.NotImplementedExceptionType(), addImport: false),
-                   SpecializedCollections.EmptyList<SyntaxNode>()));
-        }
-
-        public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(
-            this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
-            => ImmutableArray.Create(CreateThrowNotImplementedStatement(codeDefinitionFactory, compilation));
-
-        public static ImmutableArray<SyntaxNode> CreateArguments(
-            this SyntaxGenerator factory,
-            ImmutableArray<IParameterSymbol> parameters)
-        {
-            return parameters.SelectAsArray(p => CreateArgument(factory, p));
-        }
-
-        private static SyntaxNode CreateArgument(
-            this SyntaxGenerator factory,
-            IParameterSymbol parameter)
-        {
-            return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
-        }
-
         public static IMethodSymbol CreateBaseDelegatingConstructor(
             this SyntaxGenerator factory,
             IMethodSymbol constructor,
@@ -65,19 +40,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
             bool addNullChecks,
-            bool preferThrowExpression,
-            CancellationToken cancellationToken)
+            bool preferThrowExpression)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -88,35 +62,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingFieldMap)
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : default);
 
             return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
-        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
+        private static bool ShouldGenerateThisConstructorCall(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
             if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
-                // to initialize all fields in the struct, not just the ones we're creating.  To
-                // do that, we call the default constructor.
-                var realFields = containingTypeOpt.GetMembers()
-                                     .OfType<IFieldSymbol>()
-                                     .Where(f => !f.IsStatic);
-                var initializedFields = parameterToExistingFieldMap.Values
-                                            .OfType<IFieldSymbol>()
-                                            .Where(f => !f.IsImplicitlyDeclared && !f.IsStatic);
-                if (initializedFields.Count() < realFields.Count())
-                {
-                    // We have less field assignments than actual fields.  Generate a call to the
-                    // default constructor as well.
-                    return ImmutableArray<SyntaxNode>.Empty;
-                }
+                // to initialize all fields in the struct, not just the ones we're creating.
+                // If there is any field or auto-property not being set by a parameter, we
+                // call the default constructor.
+
+                return containingTypeOpt.GetMembers()
+                    .OfType<IFieldSymbol>()
+                    .Where(field => !field.IsStatic)
+                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Except(parameterToExistingFieldMap.Values)
+                    .Any();
             }
 
-            return default;
+            return false;
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
@@ -133,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (refKind != RefKind.Out)
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -170,35 +142,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static SyntaxNode CreateThrowArgumentNullExpression(
-            this SyntaxGenerator factory,
-            Compilation compilation,
-            IParameterSymbol parameter)
-        {
-            return factory.ThrowExpression(
-                factory.ObjectCreationExpression(
-                    compilation.GetTypeByMetadataName("System.ArgumentNullException"),
-                    factory.NameOfExpression(
-                        factory.IdentifierName(parameter.Name))));
-        }
+        public static SyntaxNode CreateThrowArgumentNullExpression(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
 
-        public static SyntaxNode CreateIfNullThrowStatement(
+        private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ObjectCreationExpression(
+                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                factory.NameOfExpression(
+                    factory.IdentifierName(parameter.Name)));
+
+        public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             IParameterSymbol parameter)
         {
+            var identifier = factory.IdentifierName(parameter.Name);
+            var nullExpr = factory.NullLiteralExpression();
+            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
+                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+
+            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
             return factory.IfStatement(
-                factory.ReferenceEqualsExpression(
-                    factory.IdentifierName(parameter.Name),
-                    factory.NullLiteralExpression()),
+               condition,
                 SpecializedCollections.SingletonEnumerable(
-                    factory.ExpressionStatement(
-                        factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+                    factory.ThrowStatement(CreateNewArgumentNullException(
+                        factory, semanticModel.Compilation, parameter))));
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
@@ -226,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
@@ -235,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
-                            compilation, parameter, fieldAccess,
+                            semanticModel, parameter, fieldAccess,
                             addNullChecks, preferThrowExpression,
                             nullCheckStatements, assignStatements);
                     }
@@ -247,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static void AddAssignmentStatements(
              this SyntaxGenerator factory,
-             Compilation compilation,
+             SemanticModel semanticModel,
              IParameterSymbol parameter,
              SyntaxNode fieldAccess,
              bool addNullChecks,
@@ -255,12 +229,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
              ArrayBuilder<SyntaxNode> nullCheckStatements,
              ArrayBuilder<SyntaxNode> assignStatements)
         {
-            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck();
-            if (shouldAddNullCheck && preferThrowExpression)
+            // Don't want to add a null check for something of the form `int?`.  The type was
+            // already declared as nullable to indicate that null is ok.  Adding a null check
+            // just disallows something that should be allowed.
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
+
+            if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
-                    factory, compilation, parameter, fieldAccess));
+                    factory, semanticModel.Compilation, parameter, fieldAccess));
             }
             else
             {
@@ -268,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // generate: if (x == null) throw ...
                     nullCheckStatements.Add(
-                        factory.CreateIfNullThrowStatement(compilation, parameter));
+                        factory.CreateNullCheckAndThrowStatement(semanticModel, parameter));
                 }
 
                 // generate: this.x = x;
@@ -423,6 +401,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
+                parameters: overriddenProperty.RemoveInaccessibleAttributesAndAttributesOfTypes(containingType).Parameters,
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -521,13 +500,163 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    method: overriddenMethod,
+                    method: overriddenMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(newContainingType),
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));
             }
+        }
+
+        /// <summary>
+        /// Generates a call to a method *through* an existing field or property symbol.
+        /// </summary>
+        /// <returns></returns>
+        public static SyntaxNode GenerateDelegateThroughMemberStatement(
+            this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
+        {
+            var through = CreateDelegateThroughExpression(generator, method, throughMember);
+
+            var memberName = method.IsGenericMethod
+                ? generator.GenericName(method.Name, method.TypeArguments)
+                : generator.IdentifierName(method.Name);
+
+            through = generator.MemberAccessExpression(through, memberName);
+
+            var arguments = generator.CreateArguments(method.Parameters.As<IParameterSymbol>());
+            var invocationExpression = generator.InvocationExpression(through, arguments);
+
+            return method.ReturnsVoid
+                ? generator.ExpressionStatement(invocationExpression)
+                : generator.ReturnStatement(invocationExpression);
+        }
+
+        public static SyntaxNode CreateDelegateThroughExpression(
+            this SyntaxGenerator generator, ISymbol member, ISymbol throughMember)
+        {
+            var through = throughMember.IsStatic
+                ? GenerateContainerName(generator, throughMember)
+                : generator.ThisExpression();
+
+            through = generator.MemberAccessExpression(
+                through, generator.IdentifierName(throughMember.Name));
+
+            var throughMemberType = throughMember.GetMemberType();
+            if (member.ContainingType.IsInterfaceType() && throughMemberType != null)
+            {
+                // In the case of 'implement interface through field / property', we need to know what
+                // interface we are implementing so that we can insert casts to this interface on every
+                // usage of the field in the generated code. Without these casts we would end up generating
+                // code that fails compilation in certain situations.
+                // 
+                // For example consider the following code.
+                //      class C : IReadOnlyList<int> { int[] field; }
+                // When applying the 'implement interface through field' code fix in the above example,
+                // we need to generate the following code to implement the Count property on IReadOnlyList<int>
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { ((IReadOnlyList<int>)field).Count; } ...}
+                // as opposed to the following code which will fail to compile (because the array field
+                // doesn't have a property named .Count) -
+                //      class C : IReadOnlyList<int> { int[] field; int Count { get { field.Count; } ...}
+                //
+                // The 'InterfaceTypes' property on the state object always contains only one item
+                // in the case of C# i.e. it will contain exactly the interface we are trying to implement.
+                // This is also the case most of the time in the case of VB, except in certain error conditions
+                // (recursive / circular cases) where the span of the squiggle for the corresponding 
+                // diagnostic (BC30149) changes and 'InterfaceTypes' ends up including all interfaces
+                // in the Implements clause. For the purposes of inserting the above cast, we ignore the
+                // uncommon case and optimize for the common one - in other words, we only apply the cast
+                // in cases where we can unambiguously figure out which interface we are trying to implement.
+                var interfaceBeingImplemented = member.ContainingType;
+                if (!throughMemberType.Equals(interfaceBeingImplemented))
+                {
+                    through = generator.CastExpression(interfaceBeingImplemented,
+                        through.WithAdditionalAnnotations(Simplifier.Annotation));
+                }
+                else if (!throughMember.IsStatic &&
+                    throughMember is IPropertySymbol throughMemberProperty &&
+                    throughMemberProperty.ExplicitInterfaceImplementations.Any())
+                {
+                    // If we are implementing through an explicitly implemented property, we need to cast 'this' to
+                    // the explicitly implemented interface type before calling the member, as in:
+                    //       ((IA)this).Prop.Member();
+                    //
+                    var explicitlyImplementedProperty = throughMemberProperty.ExplicitInterfaceImplementations[0];
+
+                    var explicitImplementationCast = generator.CastExpression(
+                        explicitlyImplementedProperty.ContainingType,
+                        generator.ThisExpression());
+
+                    through = generator.MemberAccessExpression(explicitImplementationCast,
+                        generator.IdentifierName(explicitlyImplementedProperty.Name));
+
+                    through = through.WithAdditionalAnnotations(Simplifier.Annotation);
+                }
+            }
+
+            return through.WithAdditionalAnnotations(Simplifier.Annotation);
+
+            // local functions
+
+            static SyntaxNode GenerateContainerName(SyntaxGenerator factory, ISymbol throughMember)
+            {
+                var classOrStructType = throughMember.ContainingType;
+                return classOrStructType.IsGenericType
+                    ? factory.GenericName(classOrStructType.Name, classOrStructType.TypeArguments)
+                    : factory.IdentifierName(classOrStructType.Name);
+            }
+        }
+
+        public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                return ImmutableArray.Create(generator.ReturnStatement(expression));
+            }
+
+            return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        }
+
+        public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
+            this SyntaxGenerator generator, Compilation compilation,
+            IPropertySymbol property, ISymbol throughMember, bool preferAutoProperties)
+        {
+            if (throughMember != null)
+            {
+                var throughExpression = CreateDelegateThroughExpression(generator, property, throughMember);
+                var expression = property.IsIndexer
+                    ? throughExpression
+                    : generator.MemberAccessExpression(
+                        throughExpression, generator.IdentifierName(property.Name));
+
+                if (property.Parameters.Length > 0)
+                {
+                    var arguments = generator.CreateArguments(property.Parameters.As<IParameterSymbol>());
+                    expression = generator.ElementAccessExpression(expression, arguments);
+                }
+
+                expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
+
+                return ImmutableArray.Create(generator.ExpressionStatement(expression));
+            }
+
+            return preferAutoProperties
+                ? default
+                : generator.CreateThrowNotImplementedStatementBlock(compilation);
         }
     }
 }

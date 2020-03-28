@@ -1,21 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     <ExportCodeCleanupProvider(PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators, LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeCleanupProviderNames.AddMissingTokens, Before:=PredefinedCodeCleanupProviderNames.Format)>
     Friend Class NormalizeModifiersOrOperatorsCodeCleanupProvider
         Implements ICodeCleanupProvider
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="https://github.com/dotnet/roslyn/issues/42820")>
+        Public Sub New()
+        End Sub
 
         Public ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
             Get
@@ -56,13 +62,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
                 }
 
-            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
+            Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Private ReadOnly _cancellationToken As CancellationToken
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
-                _spans = New SimpleIntervalTree(Of TextSpan)(TextSpanIntervalIntrospector.Instance, spans)
+                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
                 _cancellationToken = cancellationToken
             End Sub
 
@@ -503,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       Return Contract.FailWithReturn(Of SyntaxToken)("shouldn't reach here")
+                                       throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 

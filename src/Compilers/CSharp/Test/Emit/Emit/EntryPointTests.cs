@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -251,7 +253,7 @@ namespace N { namespace M { } }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("N.M"));
             compilation.VerifyDiagnostics(
-                // (2,25): error CS1556: 'N.M' specified for Main method must be a valid non-generic class or struct
+                // (2,25): error CS1556: 'N.M' specified for Main method must be a non-generic class, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "M").WithArguments("N.M"));
         }
 
@@ -269,7 +271,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
             compilation.VerifyDiagnostics(
-                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a valid non-generic class or struct
+                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a non-generic class, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("C<T>.D"));
         }
 
@@ -343,7 +345,7 @@ public static class E
             // Dev10 reports: CS1555: Could not find 'D.DD' specified for Main method
             compilation = CreateCompilation(cs, options: TestOptions.ReleaseExe.WithMainTypeName("D.DD"));
             compilation.VerifyDiagnostics(
-                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a valid non-generic class or struct
+                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a non-generic class, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "DD").WithArguments("D<T>.DD"));
         }
 
@@ -420,7 +422,7 @@ public class A
 }";
             // Dev10 reports CS1555: Could not find 'A.B.C' specified for Main method
             CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C")).VerifyDiagnostics(
-                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a valid non-generic class or struct
+                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a non-generic class, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("A.B<T>.C"));
         }
 
@@ -465,7 +467,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
-                // (7,7): error CS1556: 'C<T>' specified for Main method must be a valid non-generic class or struct
+                // (7,7): error CS1556: 'C<T>' specified for Main method must be a non-generic class, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C<T>"));
         }
 
@@ -709,8 +711,10 @@ interface I { }
                 options: TestOptions.ReleaseExe.WithMainTypeName("I"));
 
             compilation.VerifyDiagnostics(
-                // (4,11): error CS1556: 'I' specified for Main method must be a valid class or struct
-                Diagnostic(ErrorCode.ERR_MainClassNotClass, "I").WithArguments("I"));
+                // (4,11): error CS1558: 'I' does not have a suitable static Main method
+                // interface I { }
+                Diagnostic(ErrorCode.ERR_NoMainInClass, "I").WithArguments("I").WithLocation(4, 11)
+                );
         }
 
         [Fact]
@@ -809,7 +813,7 @@ class B
 } 
 ";
             CompileConsoleApp(source).VerifyDiagnostics(// (4,24): warning CS0028: 'B.Main(string[][])' has the wrong signature to be an entry point
-                //     public static void Main(string[][] args)
+                                                        //     public static void Main(string[][] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("B.Main(string[][])"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
@@ -1000,7 +1004,7 @@ static class Extension
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,24): warning CS0028: 'Extension.Main(B, string[])' has the wrong signature to be an entry point
-                                                                                                                  //     public static void Main(this B x, string[] args)
+                                                                                                                    //     public static void Main(this B x, string[] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(B, string[])"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
@@ -1020,7 +1024,7 @@ static class Extension
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,23): warning CS0028: 'Extension.Main(B)' has the wrong signature to be an entry point
-                                                                                                                  //     public static int Main(this B x)
+                                                                                                                    //     public static int Main(this B x)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(B)"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
@@ -1037,7 +1041,7 @@ static class Extension
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (5,23): warning CS0028: 'Extension.Main(string)' has the wrong signature to be an entry point
-                                                                                                                  //     public static int Main(this string str)
+                                                                                                                    //     public static int Main(this string str)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(string)"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));

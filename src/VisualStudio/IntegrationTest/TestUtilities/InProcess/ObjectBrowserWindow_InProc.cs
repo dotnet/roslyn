@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -11,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public bool CloseWindow()
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 var uiShell = GetGlobalService<SVsUIShell, IVsUIShell>();
                 if (ErrorHandler.Failed(uiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, new Guid(ToolWindowGuids.ObjectBrowser), out var frame)))

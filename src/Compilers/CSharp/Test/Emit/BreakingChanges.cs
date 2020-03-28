@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -777,46 +779,6 @@ class Boom : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
         }
 
-        [Fact, WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232"), WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
-        public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_133087()
-        {
-            var text = @"
-class A {    public class B { }    }
-
-class C<T> : A
-{
-    public static C<T*[]>.B b1;
-    public static C<int*[]>.B b2;
-}
-
-public class Test
-{
-    public static void Main()
-    {
-        C<int>.b1 = new A.B();
-        C<string>.b2 = new A.B();
-    }
-}
-";
-            // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-            // Dev10/11: no error
-            CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
-        }
-
-        [Fact, WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232"), WorkItem(544232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544232")]
-        public void CS0208ERR_ManagedAddr_TypeParamPtr_Dev10_176771()
-        {
-            var text = @"
-class A {    public interface I { }    }
-class F<T> : A where T : F<object*>.I { }
-";
-            // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-            // Dev10/11: no error
-            CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
-        }
-
         /// <summary>
         /// When determining whether the LHS of a null-coalescing operator (??) is non-null, the native compiler strips off casts.  
         /// 
@@ -1006,7 +968,7 @@ public class c
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
@@ -1035,7 +997,7 @@ x => Convert(Convert(Convert(x)))
         }
 
         [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         private void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
@@ -1320,7 +1282,7 @@ namespace VS7_336319
         }
 
         [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
             string source = @"

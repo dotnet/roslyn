@@ -183,6 +183,30 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
+        }
+
+        void Patterns(object o, object p)
+        {
+            var b = o is string s;
+            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            switch (o, p)
+            {
+                case (2, 1): break;
+                case (2, 2) q: break;
+                case X(2, 3): break;
+                case X(2, 4) q: break;
+                case X { A: 2, B: 5 }: break;
+                case X { A: 2, B: 6 } q: break;
+                case X(2, 1) { A: 2, B: 7 }: break;
+                case X(2, 4) { A: 2, B: 8 } q: break;
+                case { A: 3, B: 9 }: break;
+                case { A: 3, B: 10 } q: break;
+                case X q: break;
+                case var (x, y) when x == y: break;
+                case var (x, (y, z)) when x == y: break;
+                case _: break;
+            }
         }
 
         [method: Obsolete]
@@ -212,6 +236,8 @@ namespace My
             var local3 = 0, local4 = 1;
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
+            local5 ??= null;
+            local5 = (local5 ??= null);
             var local6 = local5 is Action;
 
             var u = 1u;
@@ -326,11 +352,16 @@ namespace My
                     break;
                 case int i:
                     break;
+                // case Type (int x, 3) { A: _, B: 7 } identifier:
+                //     break;
+                // case var (x, y, (z, w)):
+                //     break;
                 default:
                     {
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;
@@ -809,6 +840,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            var index = ^1;
+            var range = 1..2;
             Point point;
             unsafe
             {
@@ -1157,7 +1190,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get
@@ -1720,7 +1753,7 @@ Class Customer
 
     Public AGe As Integer
 
-    Public Postion As String
+    Public Position As String
 
     Public Level As Integer = 0
 
@@ -1804,8 +1837,8 @@ Class GooGen(Of t)
         End Sub
 
         Sub Method1()
-            Dim x As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Postion = "SDET"}
-            Dim x2 As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Postion = "SDET", .age2 =.AGe}
+            Dim x As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Position = "SDET"}
+            Dim x2 As New Customer With {.name = "Test", .AGe = 30, .Level = 1, .Position = "SDET", .age2 =.AGe}
         End Sub
     End Structure
 End Class
@@ -2201,7 +2234,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get
@@ -2816,7 +2849,7 @@ End Module
 Class Customer
     Public Property name As String = "Default"
     Public AGe As Integer
-    Public Postion As String
+    Public Position As String
     Public Level As Integer = 0
     Public Property age2 As Integer
 End Class
@@ -2908,12 +2941,12 @@ Class GooGen(Of t)
 
             Dim x As New Customer With {.name = "Test",
                                         .AGe = 30,
-                                        .Level = 1, .Postion = "SDET"}
+                                        .Level = 1, .Position = "SDET"}
 
 
             Dim x2 As New Customer With {.name = "Test",
                                         .AGe = 30,
-                                        .Level = 1, .Postion = "SDET",
+                                        .Level = 1, .Position = "SDET",
                                          .age2 = .AGe}
 
         End Sub

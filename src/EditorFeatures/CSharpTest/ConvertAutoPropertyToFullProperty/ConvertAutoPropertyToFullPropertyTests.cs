@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -22,25 +24,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         public async Task SimpleAutoPropertyTest()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -52,26 +54,26 @@ class goo
         public async Task ExtraLineAfterProperty()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 
@@ -84,25 +86,25 @@ class goo
         public async Task WithInitialValue()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; } = 2
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo = 2;
+    private int goo = 2;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -114,27 +116,27 @@ class goo
         public async Task WithCalculatedInitialValue()
         {
             var text = @"
-class goo
+class TestClass
 {
     const int num = 345;
     public int G[||]oo { get; set; } = 2*num
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
     const int num = 345;
-    private int _goo = 2 * num;
+    private int goo = 2 * num;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -146,25 +148,25 @@ class goo
         public async Task WithPrivateSetter()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; private set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         private set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -176,28 +178,28 @@ class goo
         public async Task WithFieldNameAlreadyUsed()
         {
             var text = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int G[||]oo { get; private set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
-    private int _goo1;
+    private int goo;
+    private int goo1;
 
     public int Goo
     {
         get
         {
-            return _goo1;
+            return goo1;
         }
         private set
         {
-            _goo1 = value;
+            goo1 = value;
         }
     }
 }
@@ -209,7 +211,7 @@ class goo
         public async Task WithComments()
         {
             var text = @"
-class goo
+class TestClass
 {
     // Comments before
     public int G[||]oo { get; private set; } //Comments during
@@ -217,20 +219,20 @@ class goo
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     // Comments before
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         private set
         {
-            _goo = value;
+            goo = value;
         }
     } //Comments during
     //Comments after
@@ -243,17 +245,17 @@ class goo
         public async Task WithExpressionBody()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get => _goo; set => _goo = value; }
+    public int Goo { get => goo; set => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
@@ -263,17 +265,17 @@ class goo
         public async Task WithExpressionBodyWhenOnSingleLine()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get => _goo; set => _goo = value; }
+    public int Goo { get => goo; set => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
@@ -283,7 +285,7 @@ class goo
         public async Task WithExpressionBodyWhenOnSingleLine2()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo
     {
@@ -293,14 +295,14 @@ class goo
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
-        get => _goo;
-        set => _goo = value;
+        get => goo;
+        set => goo = value;
     }
 }
 ";
@@ -311,17 +313,17 @@ class goo
         public async Task WithExpressionBodyWithTrivia()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get /* test */ ; set /* test2 */ ; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
-    public int Goo { get /* test */ => _goo; set /* test2 */ => _goo = value; }
+    public int Goo { get /* test */ => goo; set /* test2 */ => goo = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
@@ -331,24 +333,24 @@ class goo
         public async Task WithPropertyOpenBraceOnSameLine()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -360,23 +362,23 @@ class goo
         public async Task WithAccessorOpenBraceOnSameLine()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get {
-            return _goo;
+            return goo;
         }
         set {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -388,25 +390,25 @@ class goo
         public async Task StaticProperty()
         {
             var text = @"
-class goo
+class TestClass
 {
     public static int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private static int s_goo;
+    private static int goo;
 
     public static int Goo
     {
         get
         {
-            return s_goo;
+            return goo;
         }
         set
         {
-            s_goo = value;
+            goo = value;
         }
     }
 }
@@ -418,25 +420,25 @@ class goo
         public async Task ProtectedProperty()
         {
             var text = @"
-class goo
+class TestClass
 {
     protected int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     protected int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -448,25 +450,25 @@ class goo
         public async Task InternalProperty()
         {
             var text = @"
-class goo
+class TestClass
 {
     internal int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     internal int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -478,27 +480,27 @@ class goo
         public async Task WithAttributes()
         {
             var text = @"
-class goo
+class TestClass
 {
     [A]
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     [A]
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -510,31 +512,31 @@ class goo
         public async Task CommentsInAccessors()
         {
             var text = @"
-class goo
+class TestClass
 {
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
+    public int Testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _testgoo;
+    private int testgoo;
 
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testgoo
+    public int Testgoo
     { /* test1 */
         get /* test2 */
         {
-            return _testgoo;
+            return testgoo;
         } /* test3 */
         set /* test4 */
         {
-            _testgoo = value;
+            testgoo = value;
         } /* test5 */
     } /* test6 */
 }
@@ -564,17 +566,17 @@ class MyBaseClass
 
 class MyDerivedClass : MyBaseClass
 {
-    private string _name;
+    private string name;
 
     public override string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -594,17 +596,17 @@ class MyClass
             var expected = @"
 class MyClass
 {
-    private string _name;
+    private string name;
 
     public sealed string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -629,17 +631,17 @@ class MyDerivedClass : MyBaseClass
             var expected = @"
 class MyBaseClass
 {
-    private string _name;
+    private string name;
 
     public virtual string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -664,17 +666,17 @@ class MyClass
             var expected = @"
 class MyClass
 {
-    private string _name;
+    private string name;
 
     private string Name
     {
         get
         {
-            return _name;
+            return name;
         }
         set
         {
-            _name = value;
+            name = value;
         }
     }
 }
@@ -715,21 +717,21 @@ class MyBaseClass
         public async Task GetterOnly()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get;}
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private readonly int _goo;
+    private readonly int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
     }
 }
@@ -741,17 +743,17 @@ class goo
         public async Task GetterOnlyExpressionBodies()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get;}
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private readonly int _goo;
+    private readonly int goo;
 
-    public int Goo => _goo;
+    public int Goo => goo;
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods);
@@ -761,7 +763,7 @@ class goo
         public async Task SetterOnly()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo
     {
@@ -776,11 +778,11 @@ class goo
         public async Task ExpressionBodiedAccessors()
         {
             var text = @"
-class goo
+class TestClass
 {
-   private int _testgoo;
+   private int testgoo;
 
-   public int testg[||]oo {get => _testgoo; set => _testgoo = value; }
+   public int testg[||]oo {get => testgoo; set => testgoo = value; }
 }
 ";
             await TestMissingAsync(text);
@@ -790,25 +792,25 @@ class goo
         public async Task CursorAtBeginning()
         {
             var text = @"
-class goo
+class TestClass
 {
     [||]public int Goo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -820,25 +822,25 @@ class goo
         public async Task CursorAtEnd()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int Goo[||] { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -850,7 +852,7 @@ class goo
         public async Task CursorOnAccessors()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int Goo { g[||]et; set; }
 }
@@ -858,11 +860,103 @@ class goo
             await TestMissingAsync(text);
         }
 
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task CursorInType()
+        {
+            var text = @"
+class TestClass
+{
+    public in[||]t Goo { get; set; }
+}
+";
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task SelectionWhole()
+        {
+            var text = @"
+class TestClass
+{
+    [|public int Goo { get; set; }|]
+}
+";
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task SelectionName()
+        {
+            var text = @"
+class TestClass
+{
+    public int [|Goo|] { get; set; }
+}
+";
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task MoreThanOneGetter()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int Goo { g[||]et; get; }
 }
@@ -874,7 +968,7 @@ class goo
         public async Task MoreThanOneSetter()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int Goo { get; s[||]et; set; }
 }
@@ -886,13 +980,13 @@ class goo
         public async Task CustomFieldName()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
     private int testingGoo;
 
@@ -912,17 +1006,18 @@ class goo
             await TestInRegularAndScriptAsync(text, expected, options: UseCustomFieldName);
         }
 
+        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        public async Task NonStaticPropertyWithCustomStaticFieldName()
+        public async Task UnderscorePrefixedFieldName()
         {
             var text = @"
-class goo
+class TestClass
 {
     public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
     private int _goo;
 
@@ -939,6 +1034,57 @@ class goo
     }
 }
 ";
+            await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
+        }
+
+        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
+        {
+            var text = @"
+class stranger
+{
+    public int S[||]tranger { get; set; }
+}
+";
+            var expected = @"
+class stranger
+{
+    private int stranger;
+
+    public int Stranger { get => stranger; set => stranger = value; }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task NonStaticPropertyWithCustomStaticFieldName()
+        {
+            var text = @"
+class TestClass
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class TestClass
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
             await TestInRegularAndScriptAsync(text, expected, options: UseCustomStaticFieldName);
         }
 
@@ -946,13 +1092,13 @@ class goo
         public async Task StaticPropertyWithCustomStaticFieldName()
         {
             var text = @"
-class goo
+class TestClass
 {
     public static int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class goo
+class TestClass
 {
     private static int staticfieldtestGoo;
 
@@ -996,17 +1142,17 @@ struct goo
             var expected = @"
 struct goo
 {
-    private int _goo;
+    private int goo;
 
     public int Goo
     {
         get
         {
-            return _goo;
+            return goo;
         }
         set
         {
-            _goo = value;
+            goo = value;
         }
     }
 }
@@ -1037,9 +1183,9 @@ partial class Program
 
 partial class Program
 {
-    private int _q;
+    private int q;
 
-    int Q { get => _q; set => _q = value; }
+    int Q { get => q; set => q = value; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected);
@@ -1062,9 +1208,9 @@ partial class Program
             var file1AfterRefactor = @"
 partial class Program
 {
-    private int _p;
+    private int p;
 
-    int P { get => _p; set => _p = value; }
+    int P { get => p; set => p = value; }
 }";
 
             var xmlString = string.Format(@"
@@ -1075,20 +1221,18 @@ partial class Program
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
-            {
-                // refactor file1 and check
-                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-                await TestActionAsync(
-                    testWorkspace,
-                    file1AfterRefactor,
-                    action,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
-            }
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+            // refactor file1 and check
+            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            await TestActionAsync(
+                testWorkspace,
+                file1AfterRefactor,
+                action,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                parameters: default);
         }
 
         [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
@@ -1108,9 +1252,9 @@ partial class Program
             var file2AfterRefactor = @"
 partial class Program
 {
-    private int _q;
+    private int q;
 
-    int Q { get => _q; set => _q = value; }
+    int Q { get => q; set => q = value; }
 }";
 
             var xmlString = string.Format(@"
@@ -1121,20 +1265,18 @@ partial class Program
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using (var testWorkspace = TestWorkspace.Create(xmlString))
-            {
-                // refactor file2 and check
-                var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-                await TestActionAsync(
-                    testWorkspace,
-                    file2AfterRefactor,
-                    action,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
-            }
+            using var testWorkspace = TestWorkspace.Create(xmlString);
+            // refactor file2 and check
+            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
+            await TestActionAsync(
+                testWorkspace,
+                file2AfterRefactor,
+                action,
+                conflictSpans: ImmutableArray<TextSpan>.Empty,
+                renameSpans: ImmutableArray<TextSpan>.Empty,
+                warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                parameters: default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -1146,6 +1288,28 @@ partial class Program
 }");
 
             await TestMissingAsync("public int G[||]oo { get; set; }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task NullBackingField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class Program
+{
+    string? Name[||] { get; set; }
+}",
+@"
+#nullable enable
+
+class Program
+{
+    private string? name;
+
+    string? Name { get => name; set => name = value; }
+}");
         }
     }
 }

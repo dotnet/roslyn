@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1168,7 +1170,7 @@ Imports System
         <Fact, WorkItem(3380, "DevDiv_Projects/Roslyn")>
         Public Sub BC30046ERR_ParamArrayWithOptArgs()
             CreateCompilationWithMscorlib40(<compilation name="ERR_ParamArrayWithOptArgs">
-                                              <file name="a.vb"><![CDATA[
+                                                <file name="a.vb"><![CDATA[
                 Class C1
                     Shared Sub Main()
                     End Sub
@@ -1176,7 +1178,7 @@ Imports System
                     End Sub
                 End Class
             ]]></file>
-                                          </compilation>).VerifyDiagnostics(
+                                            </compilation>).VerifyDiagnostics(
                                           Diagnostic(ERRID.ERR_ParamArrayWithOptArgs, "s"))
 
         End Sub
@@ -10083,7 +10085,7 @@ BC30657: 'IOCompletionCallback' has a return type that is not supported or param
                     End Set
                 End Property
             End Class
-            &lt;MyAttr(Prop:=1)&gt;
+            &lt;MyAttr(Prop:=1)&gt;'BIND:"Prop"
             Class C1
             End Class
         End Module
@@ -10092,9 +10094,14 @@ BC30657: 'IOCompletionCallback' has a return type that is not supported or param
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC30658: Property 'Prop' with no parameters cannot be found.
-            &lt;MyAttr(Prop:=1)&gt;
+            &lt;MyAttr(Prop:=1)&gt;'BIND:"Prop"
                     ~~~~
 </expected>)
+
+            VerifyOperationTreeForTest(Of IdentifierNameSyntax)(compilation, "a.vb", <![CDATA[
+IPropertyReferenceOperation: Property M1.MyAttr.Prop(i As System.Int32) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
+  Instance Receiver: 
+    null]]>.Value)
         End Sub
 
         <Fact()>
@@ -16059,10 +16066,10 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
     </compilation>)
 
             Dim expectedErrors1 = <errors>
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(choice1 &lt; choice2, 1))
                                      ~~~~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
                 Console.WriteLine(If(booleanVar, "Test returns True."))
                                      ~~~~~~~~~~
                  </errors>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -55,6 +57,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasReferenceTypeConstraint; }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
+        }
+
+        public override bool HasNotNullConstraint
+        {
+            get { return _sourceTypeParameter.HasNotNullConstraint; }
+        }
+
+        internal override bool? IsNotNullable
+        {
+            get
+            {
+                if (_sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _sourceTypeParameter.IsNotNullable;
+                }
+
+                return CalculateIsNotNullable();
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
@@ -95,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _sourceTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress);
 
@@ -106,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Remap constraints from sourceTypeParameter since constraints
             // may be defined in terms of other type parameters.
-            return this.TypeMap.SubstituteTypesWithoutModifiers(constraintTypes);
+            return this.TypeMap.SubstituteTypes(constraintTypes);
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)

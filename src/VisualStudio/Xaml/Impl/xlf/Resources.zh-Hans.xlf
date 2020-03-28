@@ -12,6 +12,11 @@
         <target state="translated">删除不必要的命名空间</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">对命名空间排序(&amp;S)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

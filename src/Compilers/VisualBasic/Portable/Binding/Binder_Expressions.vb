@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -91,7 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' parent expression.
 
                     ' Dev10 allows parenthesized type expressions, let's bind as a general expression first.
-                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression, False, False, eventContext, diagnostics)
+                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression,
+                                                                    isInvocationOrAddressOf:=False,
+                                                                    isOperandOfConditionalBranch:=isOperandOfConditionalBranch,
+                                                                    eventContext, diagnostics)
 
                     If operand.Kind = BoundKind.TypeExpression Then
                         Dim asType = DirectCast(operand, BoundTypeExpression)
@@ -1367,7 +1372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim getMethod = propertyAccess.PropertySymbol.GetMostDerivedGetMethod()
                 Debug.Assert(getMethod IsNot Nothing)
 
-                ReportDiagnosticsIfObsolete(diagnostics, getMethod, expr.Syntax)
+                ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, getMethod, expr.Syntax)
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Get
@@ -2096,11 +2101,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundSecondArgWithConversions = MakeRValueAndIgnoreDiagnostics(boundSecondArg)
             End If
 
-            '  if there are still no errors check the original type of the first argument to be 
-            '       of a reference or nullable type, generate IllegalCondTypeInIIF otherwise
+            ' If there are still no errors check the original type of the first argument. First, we check
+            ' the pre-VB 16.0 condition, which is the first operand must be Nothing, a reference type, or
+            ' a nullable value type
             If Not hasErrors AndAlso Not (boundFirstArg.IsNothingLiteral OrElse boundFirstArg.Type.IsNullableType OrElse boundFirstArg.Type.IsReferenceType) Then
-                ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
-                hasErrors = True
+                ' VB 16 changed the requirements on the first operand to permit unconstrained type parameters. If we're in that scenario,
+                ' ensure that the feature is enabled and report an error if it is not
+                If Not boundFirstArg.Type.IsValueType Then
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   node.Location,
+                                                                   DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.UnconstrainedTypeParameterInConditional)
+                Else
+                    ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
+                    hasErrors = True
+                End If
             End If
 
             Return AnalyzeConversionAndCreateBinaryConditionalExpression(
@@ -2713,7 +2728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
                             Dim typeDiagnostics = New DiagnosticBag()
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
-                            If boundType.Type = leftType Then
+                            If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
                                 If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not BindSimpleNameIsMemberOfType(leftSymbol, ContainingType)) Then
                                     diagnostics.AddRange(typeDiagnostics)
@@ -3149,7 +3164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasError = CheckSharedSymbolAccess(node, eventSymbol.IsShared, receiver, qualKind, diagnostics)
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, eventSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, eventSymbol, node)
 
                     If receiver IsNot Nothing AndAlso receiver.IsPropertyOrXmlPropertyAccess() Then
                         receiver = MakeRValue(receiver, diagnostics)
@@ -3185,7 +3200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, fieldSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, fieldSymbol, node)
 
                     ' const fields may need to determine the type because it's inferred
                     ' This is why using .Type was replaced by .GetInferredType to detect cycles.
@@ -3284,7 +3299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         lookupResult.ReplaceSymbol(constructedType)
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, typeSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, typeSymbol, node)
 
                     If Not hasError Then
                         receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=True, diagnostics:=diagnostics, qualKind:=qualKind)

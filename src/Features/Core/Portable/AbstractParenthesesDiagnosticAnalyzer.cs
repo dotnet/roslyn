@@ -1,35 +1,46 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
-    internal abstract class AbstractParenthesesDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractParenthesesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractParenthesesDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message)
-            : base(descriptorId, title, message)
+            : base(descriptorId,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses),
+                   title, message)
         {
         }
 
-        protected PerLanguageOption<CodeStyleOption<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
+        protected AbstractParenthesesDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> diagnosticDescriptors)
+            : base(diagnosticDescriptors)
+        {
+        }
+
+        protected PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
         {
             switch (precedenceKind)
             {
                 case PrecedenceKind.Arithmetic:
                 case PrecedenceKind.Shift:
                 case PrecedenceKind.Bitwise:
-                    return CodeStyleOptions.ArithmeticBinaryParentheses;
+                    return CodeStyleOptions2.ArithmeticBinaryParentheses;
                 case PrecedenceKind.Relational:
                 case PrecedenceKind.Equality:
-                    return CodeStyleOptions.RelationalBinaryParentheses;
+                    return CodeStyleOptions2.RelationalBinaryParentheses;
                 case PrecedenceKind.Logical:
                 case PrecedenceKind.Coalesce:
-                    return CodeStyleOptions.OtherBinaryParentheses;
+                    return CodeStyleOptions2.OtherBinaryParentheses;
                 case PrecedenceKind.Other:
-                    return CodeStyleOptions.OtherParentheses;
+                    return CodeStyleOptions2.OtherParentheses;
             }
 
             throw ExceptionUtilities.UnexpectedValue(precedenceKind);

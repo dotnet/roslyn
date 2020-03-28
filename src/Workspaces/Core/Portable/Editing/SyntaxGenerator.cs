@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,9 +36,12 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFactsService SyntaxFacts { get; }
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
+        internal abstract SyntaxTrivia Whitespace(string text);
+        internal abstract SyntaxTrivia SingleLineComment(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -177,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (method.ExplicitInterfaceImplementations.Length > 0)
             {
-                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+                decl = this.WithExplicitInterfaceImplementations(decl,
+                    ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations));
             }
 
             return decl;
@@ -219,39 +225,36 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         private OperatorKind GetOperatorKind(IMethodSymbol method)
-        {
-            switch (method.Name)
+            => method.Name switch
             {
-                case WellKnownMemberNames.ImplicitConversionName: return OperatorKind.ImplicitConversion;
-                case WellKnownMemberNames.ExplicitConversionName: return OperatorKind.ExplicitConversion;
-                case WellKnownMemberNames.AdditionOperatorName: return OperatorKind.Addition;
-                case WellKnownMemberNames.BitwiseAndOperatorName: return OperatorKind.BitwiseAnd;
-                case WellKnownMemberNames.BitwiseOrOperatorName: return OperatorKind.BitwiseOr;
-                case WellKnownMemberNames.DecrementOperatorName: return OperatorKind.Decrement;
-                case WellKnownMemberNames.DivisionOperatorName: return OperatorKind.Division;
-                case WellKnownMemberNames.EqualityOperatorName: return OperatorKind.Equality;
-                case WellKnownMemberNames.ExclusiveOrOperatorName: return OperatorKind.ExclusiveOr;
-                case WellKnownMemberNames.FalseOperatorName: return OperatorKind.False;
-                case WellKnownMemberNames.GreaterThanOperatorName: return OperatorKind.GreaterThan;
-                case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return OperatorKind.GreaterThanOrEqual;
-                case WellKnownMemberNames.IncrementOperatorName: return OperatorKind.Increment;
-                case WellKnownMemberNames.InequalityOperatorName: return OperatorKind.Inequality;
-                case WellKnownMemberNames.LeftShiftOperatorName: return OperatorKind.LeftShift;
-                case WellKnownMemberNames.LessThanOperatorName: return OperatorKind.LessThan;
-                case WellKnownMemberNames.LessThanOrEqualOperatorName: return OperatorKind.LessThanOrEqual;
-                case WellKnownMemberNames.LogicalNotOperatorName: return OperatorKind.LogicalNot;
-                case WellKnownMemberNames.ModulusOperatorName: return OperatorKind.Modulus;
-                case WellKnownMemberNames.MultiplyOperatorName: return OperatorKind.Multiply;
-                case WellKnownMemberNames.OnesComplementOperatorName: return OperatorKind.OnesComplement;
-                case WellKnownMemberNames.RightShiftOperatorName: return OperatorKind.RightShift;
-                case WellKnownMemberNames.SubtractionOperatorName: return OperatorKind.Subtraction;
-                case WellKnownMemberNames.TrueOperatorName: return OperatorKind.True;
-                case WellKnownMemberNames.UnaryNegationOperatorName: return OperatorKind.UnaryNegation;
-                case WellKnownMemberNames.UnaryPlusOperatorName: return OperatorKind.UnaryPlus;
-                default:
-                    throw new ArgumentException("Unknown operator kind.");
-            }
-        }
+                WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
+                WellKnownMemberNames.ExplicitConversionName => OperatorKind.ExplicitConversion,
+                WellKnownMemberNames.AdditionOperatorName => OperatorKind.Addition,
+                WellKnownMemberNames.BitwiseAndOperatorName => OperatorKind.BitwiseAnd,
+                WellKnownMemberNames.BitwiseOrOperatorName => OperatorKind.BitwiseOr,
+                WellKnownMemberNames.DecrementOperatorName => OperatorKind.Decrement,
+                WellKnownMemberNames.DivisionOperatorName => OperatorKind.Division,
+                WellKnownMemberNames.EqualityOperatorName => OperatorKind.Equality,
+                WellKnownMemberNames.ExclusiveOrOperatorName => OperatorKind.ExclusiveOr,
+                WellKnownMemberNames.FalseOperatorName => OperatorKind.False,
+                WellKnownMemberNames.GreaterThanOperatorName => OperatorKind.GreaterThan,
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => OperatorKind.GreaterThanOrEqual,
+                WellKnownMemberNames.IncrementOperatorName => OperatorKind.Increment,
+                WellKnownMemberNames.InequalityOperatorName => OperatorKind.Inequality,
+                WellKnownMemberNames.LeftShiftOperatorName => OperatorKind.LeftShift,
+                WellKnownMemberNames.LessThanOperatorName => OperatorKind.LessThan,
+                WellKnownMemberNames.LessThanOrEqualOperatorName => OperatorKind.LessThanOrEqual,
+                WellKnownMemberNames.LogicalNotOperatorName => OperatorKind.LogicalNot,
+                WellKnownMemberNames.ModulusOperatorName => OperatorKind.Modulus,
+                WellKnownMemberNames.MultiplyOperatorName => OperatorKind.Multiply,
+                WellKnownMemberNames.OnesComplementOperatorName => OperatorKind.OnesComplement,
+                WellKnownMemberNames.RightShiftOperatorName => OperatorKind.RightShift,
+                WellKnownMemberNames.SubtractionOperatorName => OperatorKind.Subtraction,
+                WellKnownMemberNames.TrueOperatorName => OperatorKind.True,
+                WellKnownMemberNames.UnaryNegationOperatorName => OperatorKind.UnaryNegation,
+                WellKnownMemberNames.UnaryPlusOperatorName => OperatorKind.UnaryPlus,
+                _ => throw new ArgumentException("Unknown operator kind."),
+            };
 
         /// <summary>
         /// Creates a parameter declaration.
@@ -275,8 +278,18 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Creates a property declaration.
+        /// Creates a property declaration. The property will have a <c>get</c> accessor if
+        /// <see cref="DeclarationModifiers.IsWriteOnly"/> is <see langword="false"/> and will have
+        /// a <c>set</c> accessor if <see cref="DeclarationModifiers.IsReadOnly"/> is <see
+        /// langword="false"/>.
         /// </summary>
+        /// <remarks>
+        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
+        /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
+        /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
+        /// (i.e. <c>get { }</c>).
+        /// </remarks>
         public abstract SyntaxNode PropertyDeclaration(
             string name,
             SyntaxNode type,
@@ -686,7 +699,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
-        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -832,16 +845,11 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
                     .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
-                    .ToImmutableReadOnlyListOrEmpty();
+                    .ToBoxedImmutableArray();
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),
                 attributeArguments: args.Count > 0 ? args : null);
-        }
-
-        private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
-        {
-            return symbol.GetAttributes().Select(a => Attribute(a));
         }
 
         /// <summary>
@@ -863,11 +871,25 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
             => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
-        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        /// <summary>
+        /// Removes comments from leading and trailing trivia, as well
+        /// as potentially removing comments from opening and closing tokens.
+        /// </summary>
+        internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
+
+        internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
         {
-            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
-                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+            return node.WithLeadingTrivia(RemoveCommentLines(node.GetLeadingTrivia()))
+                .WithTrailingTrivia(RemoveCommentLines(node.GetTrailingTrivia()));
         }
+
+        internal SyntaxToken RemoveLeadingAndTrailingComments(SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(RemoveCommentLines(token.LeadingTrivia))
+                .WithTrailingTrivia(RemoveCommentLines(token.TrailingTrivia));
+        }
+
+        internal abstract SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList);
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
 
@@ -1040,8 +1062,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility);
 
-        internal abstract bool CanHaveAccessibility(SyntaxNode declaration);
-
         /// <summary>
         /// Gets the <see cref="DeclarationModifiers"/> for the declaration.
         /// </summary>
@@ -1081,6 +1101,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the list of parameters for the declaration.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
+
+        internal abstract SyntaxNode GetParameterListNode(SyntaxNode declaration);
 
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
@@ -1213,6 +1235,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 return this.RemoveNode(root, node);
             }
         }
+
+        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+            => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
         /// Inserts the new node before the specified declaration.
@@ -1418,16 +1443,32 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
 
         /// <summary>
+        /// True if <see cref="ThrowExpression"/> can be used
+        /// </summary>
+        internal abstract bool SupportsThrowExpression();
+
+        /// <summary>
+        /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
+        /// (including <see langword="var"/>) to be stated when making a 
+        /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
+        /// <see langword="false"/> if the language allows the type node to be entirely elided.
+        /// </summary>
+        internal abstract bool RequiresLocalDeclarationType();
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(
             SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
 
-        internal abstract SyntaxNode LocalDeclarationStatement(
-            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
+        internal SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false)
+            => SyntaxGeneratorInternal.LocalDeclarationStatement(type, identifier, initializer, isConst);
 
-        internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
-        internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
+        internal SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer)
+            => SyntaxGeneratorInternal.WithInitializer(variableDeclarator, initializer);
+        internal SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
+            => SyntaxGeneratorInternal.EqualsValueClause(operatorToken, value);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1568,6 +1609,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
 
+        /// <summary>
+        /// Creates a block of statements. Not supported in VB.
+        /// </summary>
+        internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
+
         #endregion
 
         #region Expressions
@@ -1578,6 +1624,8 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
+        internal abstract SyntaxNode InterpolationFormatClause(string format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
@@ -1638,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode IdentifierName(string identifier);
 
         internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
-        internal abstract SyntaxToken Identifier(string identifier);
+        internal SyntaxToken Identifier(string identifier) => SyntaxGeneratorInternal.Identifier(identifier);
         internal abstract SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression);
 
         /// <summary>
@@ -1940,9 +1988,29 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
-        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
-        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
-        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
+        /// <summary>
+        /// Creates an expression that denotes a conditional access operation. Use <see
+        /// cref="MemberBindingExpression"/> and <see
+        /// cref="ElementBindingExpression(IEnumerable{SyntaxNode})"/> to generate the <paramref
+        /// name="whenNotNull"/> argument.
+        /// </summary>
+        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        /// <summary>
+        /// Creates an expression that denotes a member binding operation.
+        /// </summary>
+        public abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public abstract SyntaxNode ElementBindingExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Creates an expression that denotes an element binding operation.
+        /// </summary>
+        public SyntaxNode ElementBindingExpression(params SyntaxNode[] arguments)
+            => ElementBindingExpression((IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 
@@ -2216,6 +2284,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
         /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+
+        /// <summary>
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
@@ -2224,6 +2297,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        #endregion
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
 
         #endregion
     }

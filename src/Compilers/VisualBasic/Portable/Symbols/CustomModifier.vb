@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -22,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' A type used as a tag that indicates which type of modification applies.
         ''' </summary>
         Public Overrides ReadOnly Property Modifier As INamedTypeSymbol
+            Get
+                Return m_Modifier
+            End Get
+        End Property
+
+        Public ReadOnly Property ModifierSymbol As NamedTypeSymbol
             Get
                 Return m_Modifier
             End Get

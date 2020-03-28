@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.IO;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(" ");
                         result.Append(member);
 
-                        if (namedType.BaseType() != null)
+                        if ((object)namedType.BaseType() != null)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         MetadataSignatureHelper.AppendFieldAttributes(result, field.Flags);
                         result.Append(" ");
 
-                        result.Append(field.Type);
+                        result.Append(field.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(member.Name);
                         result.AppendLine();
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(property.Type);
+                        result.Append(property.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(property.Name);
                         result.AppendLine();
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                             result.Append(" ");
                         }
 
-                        result.Append(evnt.Type);
+                        result.Append(evnt.TypeWithAnnotations);
                         result.Append(" ");
                         result.Append(evnt.Name);
                         result.AppendLine();

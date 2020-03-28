@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -685,6 +687,90 @@ class C
 
     IEnumerable<(string name, int age)> GetPeople() => default;
 }");
+        }
+
+        [WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestEscapedContextualKeywordAsTupleName()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var collection = new List<(int position, int @delegate)>();
+        foreach (var it[||]em in collection)
+        {
+            // Do something
+        }
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
+}",
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var collection = new List<(int position, int @delegate)>();
+        foreach (var (position, @delegate) in collection)
+        {
+            // Do something
+        }
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
+}");
+        }
+
+        [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestPreserveAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        [Goo]
+        await foreach (var [|t|] in Sequence())
+        {
+            Console.WriteLine(t.x + t.y);
+        }
+    }
+
+    static async IAsyncEnumerable<(int x, int y)> Sequence()
+    {
+        yield return (0, 0);
+        await Task.Yield();
+    }
+}" + IAsyncEnumerable,
+@"using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        [Goo]
+        await foreach (var (x, y) in Sequence())
+        {
+            Console.WriteLine(x + y);
+        }
+    }
+
+    static async IAsyncEnumerable<(int x, int y)> Sequence()
+    {
+        yield return (0, 0);
+        await Task.Yield();
+    }
+}" + IAsyncEnumerable);
         }
     }
 }

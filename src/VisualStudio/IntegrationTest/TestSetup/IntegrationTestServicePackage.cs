@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -16,10 +18,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class IntegrationTestServicePackage : AsyncPackage
     {
+        private static readonly Guid s_compilerPackage = new Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97");
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell));
+            ErrorHandler.ThrowOnFailure(shell.IsPackageInstalled(s_compilerPackage, out var installed));
+            if (installed != 0)
+            {
+                await ((IVsShell7)shell).LoadPackageAsync(s_compilerPackage);
+            }
 
             IntegrationTestServiceCommands.Initialize(this);
         }

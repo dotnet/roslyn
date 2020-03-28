@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -13,7 +14,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionOnTypeCharacter() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -38,7 +38,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionOnTypeCharacterInImmediateWindow() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -63,7 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function LocalsInBlockAfterInstructionPointer() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -93,7 +91,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -117,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("bar")
                 state.SendTab()
-                Assert.Equal("    bar", state.GetCurrentViewLineText())
+                Assert.Equal("bar", state.GetCurrentViewLineText())
             End Using
         End Function
 
@@ -125,7 +122,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -149,6 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 For i As Integer = 0 To 7
                     state.SendBackspace()
                 Next
+                Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("green")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -164,7 +161,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals1()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -190,7 +186,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals2()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -216,7 +211,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals3()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -234,7 +228,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
         End Sub
@@ -243,7 +237,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals4()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -261,7 +254,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
         End Sub
@@ -270,7 +263,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals5()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -288,7 +280,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
         End Sub
@@ -297,7 +289,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub Locals6()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -315,8 +306,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainNone("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable2")
             End Using
         End Sub
 
@@ -324,7 +315,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInParameterizedConstructor()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -348,7 +338,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInMethodCall()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something(string z, int b)
@@ -376,7 +365,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub SignatureHelpInGenericMethodCall()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something&lt;T&gt;(&lt;T&gt; z, int b)
@@ -405,7 +393,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Function InstructionPointerInForeach() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -421,8 +408,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                Await VerifyCompletionAndDotAfter("q", state)
-                Await VerifyCompletionAndDotAfter("OOO", state)
+                Await state.VerifyCompletionAndDotAfter("q")
+                Await state.VerifyCompletionAndDotAfter("OOO")
             End Using
         End Function
 
@@ -431,7 +418,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub ClassDesigner1()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static int STATICINT;
@@ -451,7 +437,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("STATICI")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("STATICINT")
+                Await state.AssertCompletionItemsDoNotContainAny("STATICINT")
             End Using
         End Sub
 
@@ -460,7 +446,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Public Async Sub ClassDesigner2()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -642,8 +627,6 @@ $$</Document>
         Public Async Sub CompletionOnTypeCharacterInLinkedFileContext()
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>
-123123123123123123123123123 + $$</Document>
                                <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                            </Project>
                            <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
@@ -659,6 +642,7 @@ $$</Document>
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, True)
+                state.TextView.TextBuffer.Insert(0, "123123123123123123123123123 + ")
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())
@@ -669,32 +653,30 @@ $$</Document>
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
-			Dim text = <Workspace>
-							   <Project Language="C#" CommonReferences="true">
-								   <Document>$$</Document>
-								   <Document>class Program
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
 	{
 		static void Main(string[] args)
 		[|{|]
 
 		}
 	}</Document>
-							   </Project>
-						   </Workspace>
-		
-		    Using state = TestState.CreateCSharpTestState(text, True)
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("4")
                 Await state.AssertNoCompletionSession()
-			End Using
-		End Function
-        
-		<ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-		Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
+            End Using
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -710,13 +692,13 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.True(state.HasSuggestedItem())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
             End Using
         End Function
 
@@ -724,7 +706,6 @@ $$</Document>
         Public Async Function BuilderSettingRetainedBetweenComputations_Watch_Immediate() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -740,28 +721,14 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.True(state.HasSuggestedItem())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                Assert.False(state.HasSuggestedItem())
             End Using
         End Function
-
-        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
-            state.SendTypeChars(item)
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertSelectedCompletionItem(item)
-            state.SendTab()
-            state.SendTypeChars(".")
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertCompletionSession()
-            For i As Integer = 0 To item.Length
-                state.SendBackspace()
-            Next
-        End Function
-
     End Class
 End Namespace

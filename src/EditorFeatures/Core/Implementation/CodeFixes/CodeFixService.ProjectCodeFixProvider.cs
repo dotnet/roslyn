@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -39,19 +41,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 // otherwise, see whether we can pick it up from reference itself
-                var analyzerFileReference = _reference as AnalyzerFileReference;
-                if (analyzerFileReference == null)
+                if (!(_reference is AnalyzerFileReference analyzerFileReference))
                 {
                     return ImmutableArray<CodeFixProvider>.Empty;
                 }
 
-                IEnumerable<TypeInfo> typeInfos = null;
-                var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
+                using var builderDisposer = ArrayBuilder<CodeFixProvider>.GetInstance(out var builder);
 
                 try
                 {
-                    Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
-                    typeInfos = analyzerAssembly.DefinedTypes;
+                    var analyzerAssembly = analyzerFileReference.GetAssembly();
+                    var typeInfos = analyzerAssembly.DefinedTypes;
 
                     foreach (var typeInfo in typeInfos)
                     {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
     }

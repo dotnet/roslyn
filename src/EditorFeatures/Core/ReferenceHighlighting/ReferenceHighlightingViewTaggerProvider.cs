@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -32,23 +37,20 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
-
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.OnIdle, _semanticChangeNotificationService),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
@@ -171,11 +173,20 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 return;
             }
 
-            foreach (var span in documentHighlights.HighlightSpans)
+            try
             {
-                var tag = GetTag(span);
-                context.AddTag(new TagSpan<NavigableHighlightTag>(
-                    textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                foreach (var span in documentHighlights.HighlightSpans)
+                {
+                    var tag = GetTag(span);
+                    context.AddTag(new TagSpan<NavigableHighlightTag>(
+                        textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // report NFW and continue.
+                // also, rather than return partial results, return nothing
+                context.ClearTags();
             }
         }
 

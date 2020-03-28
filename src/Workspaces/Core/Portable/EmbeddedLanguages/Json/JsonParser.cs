@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -71,8 +73,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private bool _inArray;
         private bool _inConstructor;
 
-        private JsonParser(
-            ImmutableArray<VirtualChar> text) : this()
+        private JsonParser(VirtualCharSequence text) : this()
         {
             _lexer = new JsonLexer(text);
 
@@ -96,13 +97,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static JsonTree TryParse(ImmutableArray<VirtualChar> text, bool strict)
+        public static JsonTree TryParse(VirtualCharSequence text, bool strict)
         {
             try
             {
                 return new JsonParser(text).ParseTree(strict);
             }
-            catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
+            catch (InsufficientExecutionStackException)
             {
                 return null;
             }
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// Checks for errors in json for both json.net and strict mode.
         /// </summary>
         private static EmbeddedDiagnostic? CheckTopLevel(
-            ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
+            VirtualCharSequence text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
             if (arraySequence.ChildCount == 0)
@@ -211,13 +212,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         }
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
-            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetFirstDiagnostic(token.TrailingTrivia);
+            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNull() ?? GetFirstDiagnostic(token.TrailingTrivia);
 
         private static EmbeddedDiagnostic? GetFirstDiagnostic(ImmutableArray<JsonTrivia> list)
         {
             foreach (var trivia in list)
             {
-                var diagnostic = trivia.Diagnostics.FirstOrNullable();
+                var diagnostic = trivia.Diagnostics.FirstOrNull();
                 if (diagnostic != null)
                 {
                     return diagnostic;
@@ -297,12 +298,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             minusToken = CreateToken(
                 JsonKind.MinusToken, literalToken.LeadingTrivia,
-                ImmutableArray.Create(literalToken.VirtualChars[0]),
+                literalToken.VirtualChars.GetSubSequence(new TextSpan(0, 1)),
                 ImmutableArray<JsonTrivia>.Empty);
             newLiteralToken = CreateToken(
                 literalToken.Kind,
                 ImmutableArray<JsonTrivia>.Empty,
-                literalToken.VirtualChars.Skip(1).ToImmutableArray(),
+                literalToken.VirtualChars.GetSubSequence(TextSpan.FromBounds(1, literalToken.VirtualChars.Length)),
                 literalToken.TrailingTrivia,
                 literalToken.Diagnostics);
         }

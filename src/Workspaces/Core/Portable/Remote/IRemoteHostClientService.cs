@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -12,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal interface IRemoteHostClientService : IWorkspaceService
     {
+        bool IsEnabled();
+
         /// <summary>
         /// Request new remote host. 
         /// 
-        /// this is designed to be not distruptive to existing callers and to support scenarioes where
+        /// this is designed to be not disruptive to existing callers and to support scenarios where
         /// features required to reload user extension dlls without re-launching VS.
         /// 
         /// if someone requests new remote host, all new callers for <see cref="TryGetRemoteHostClientAsync(CancellationToken)"/> will

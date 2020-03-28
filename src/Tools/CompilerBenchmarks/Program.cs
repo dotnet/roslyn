@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -22,10 +24,7 @@ namespace CompilerBenchmarks
                 Add(DefaultConfig.Instance.GetExporters().ToArray());
                 Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
                 Add(MemoryDiagnoser.Default);
-                Add(new Job
-                {
-                    Infrastructure = { Toolchain = FixedCsProjGenerator.Default }
-                });
+                Add(Job.Core.WithGcServer(true));
             }
         }
 
@@ -42,7 +41,7 @@ namespace CompilerBenchmarks
             // to communicate information is pass by environment variable
             Environment.SetEnvironmentVariable(Helpers.TestProjectEnvVarName, projectPath);
 
-            _ = BenchmarkRunner.Run<EmitBenchmark>(config);
+            _ = BenchmarkRunner.Run<StageBenchmarks>(config);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBExternalSourceDirectiveTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TwoMethodsOnlyOneWithMapping()
             Dim source =
 <compilation>
@@ -46,6 +48,7 @@ End Class
 <symbols>
     <files>
         <file id="1" name="C:\abc\def.vb" language="VB"/>
+        <file id="2" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="70-82-DD-9A-57-B3-BE-57-7E-E8-B4-AE-B8-1E-1B-75-38-9D-13-C9"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -67,7 +70,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TwoMethodsOnlyOneWithMultipleMappingsAndRewriting()
             Dim source =
 <compilation>
@@ -120,6 +123,7 @@ End Class
     <files>
         <file id="1" name="C:\abc\def.vb" language="VB"/>
         <file id="2" name="C:\abc\def2.vb" language="VB"/>
+        <file id="3" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-A9-94-EF-BC-DF-10-C9-60-0F-C0-C4-9F-E4-77-F9-37-CF-E1-CE"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -168,7 +172,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
@@ -240,7 +244,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
@@ -318,7 +322,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSource()
             Dim source =
 <compilation>
@@ -359,6 +363,9 @@ End Class
             ' Care about the fact that there are no sequence points or referenced files
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="B6-80-9E-65-43-38-00-C1-35-7F-AE-D0-60-F2-24-44-A8-11-C2-63"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main" format="windows">
@@ -373,7 +380,7 @@ End Class
             options:=PdbValidationOptions.SkipConversionValidation)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSourceFollowedByEmptyExternalSource()
             Dim source =
 <compilation>
@@ -418,6 +425,9 @@ End Class
             ' Care about the fact that no files are referenced
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="73-05-84-40-AC-E0-15-63-CC-FE-BD-9A-99-23-AA-BD-24-40-24-44"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main" format="windows">
@@ -433,7 +443,7 @@ End Class
             ' and thus there Is no entry point record either.
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestPartialClassFieldInitializersWithExternalSource()
             Dim source =
 <compilation>
@@ -503,6 +513,9 @@ End Class
     <files>
         <file id="1" name="C:\abc\def1.vb" language="VB"/>
         <file id="2" name="C:\abc\def2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
+        <file id="3" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="7F-D8-35-3F-B4-08-17-37-3E-37-30-26-2A-3F-0C-20-6F-48-2A-7A"/>
+        <file id="4" name="BOGUS.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
+        <file id="5" name="C:\Abc\ACTUAL.vb" language="VB" checksumAlgorithm="SHA1" checksum="27-52-E9-85-5A-AC-31-05-A5-6F-70-40-55-3A-9C-43-D2-07-0D-4B"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
     <methods>
@@ -549,7 +562,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_1()
             Dim source =
 <compilation>
@@ -576,7 +589,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_2()
             Dim source =
 <compilation>
@@ -602,7 +615,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_3()
             Dim source =
 <compilation>
@@ -631,7 +644,7 @@ End Class
         End Sub
 
         <WorkItem(545302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545302")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_4()
             Dim source =
 <compilation>
@@ -653,7 +666,7 @@ End Module
         End Sub
 
         <WorkItem(545307, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545307")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub OverflowLineNumbers()
             Dim source =
     <compilation>
@@ -704,6 +717,7 @@ End Module
 <symbols>
     <files>
         <file id="1" name="C:\abc\def.vb" language="VB"/>
+        <file id="2" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="D2-FF-05-F8-B7-A2-25-B0-96-D9-97-2F-05-F8-F0-B5-81-8D-98-1D"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main"/>
     <methods>
@@ -730,7 +744,8 @@ End Module
 </symbols>, format:=DebugInformationFormat.Pdb)
         End Sub
 
-        <Fact, WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RelativePathForExternalSource()
             Dim source =
 <compilation>
@@ -756,6 +771,7 @@ End Class
 <symbols>
     <files>
         <file id="1" name="C:\Folder1\Test2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="DB-78-88-82-72-1B-2B-27-C9-05-79-D5-FE-2A-04-18"/>
+        <file id="2" name="C:\Folder1\Folder2\Test1.vb" language="VB" checksumAlgorithm="SHA1" checksum="B9-49-3D-62-89-9B-B2-2F-B6-72-90-A1-2D-01-11-89-B4-C2-83-B4"/>
     </files>
     <methods>
         <method containingType="Test1" name="Main">

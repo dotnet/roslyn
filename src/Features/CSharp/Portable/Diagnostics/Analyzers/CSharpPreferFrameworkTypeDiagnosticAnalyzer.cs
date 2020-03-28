@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         ///<remarks>
         /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
         ///</remarks>
-        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node) 
+        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node)
             => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
 
-        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node) 
-            => node.IsInMemberAccessContext() || node.InsideCrefReference();
+        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
+            => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();
 
         protected override string GetLanguageName()
             => LanguageNames.CSharp;

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -25,7 +27,7 @@ ITupleOperation (OperationKind.Tuple, Type: (x As System.Int32, System.Int32)) (
   NaturalType: (x As System.Int32, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
         Left: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -66,7 +68,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>, IsImplicit) (Syntax: 'New With {' ... }')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Hello" + y')
+          IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Hello" + y')
             Left: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello") (Syntax: '"Hello"')
             Right: 
@@ -535,7 +537,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 INameOfOperation (OperationKind.NameOf, Type: System.String, Constant: null, IsInvalid) (Syntax: 'NameOf(x + y)')
-  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
+  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
     Left: 
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
     Right: 
@@ -770,22 +772,23 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'ReDim intArray(x, x, x)')
-  Children(1):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'intArray(x, x, x)')
-        Children(4):
-            ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(x, x, x)')
+  Clauses(1):
+      IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray(x, x, x)')
+        Operand: 
+          ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
+        DimensionSizes(3):
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x')
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
               Right: 

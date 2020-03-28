@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// </summary>
     internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -35,19 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get;
         }
 
-        public sealed override TypeSymbol Type
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-            }
-        }
-
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return CustomModifiersTuple.TypeCustomModifiers;
+                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
             }
         }
 
@@ -55,17 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return CustomModifiersTuple.RefCustomModifiers;
-            }
-        }
-
-        private CustomModifiersTuple CustomModifiersTuple
-        {
-            get
-            {
-                return RetargetingModule.RetargetingTranslator.RetargetModifiers(
-                    _underlyingParameter.CustomModifiers, _underlyingParameter.RefCustomModifiers,
-                    ref _lazyCustomModifiers);
+                return RetargetingModule.RetargetingTranslator.RetargetModifiers(_underlyingParameter.RefCustomModifiers, ref _lazyRefCustomModifiers);
             }
         }
 

@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Documents;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -16,76 +17,72 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         /// <summary>
         /// Base type of all <see cref="Entry"/>s that represent some source location in 
-        /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
+        /// a <see cref="CodeAnalysis.Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
         /// </summary>
-        private abstract class AbstractDocumentSpanEntry : Entry
+        private abstract class AbstractDocumentSpanEntry : AbstractItemEntry
         {
-            private readonly AbstractTableDataSourceFindUsagesContext _context;
-
-            private readonly DocumentSpan _documentSpan;
             private readonly string _projectName;
             private readonly object _boxedProjectGuid;
-            protected readonly SourceText _sourceText;
+
+            private readonly SourceText _lineText;
+            private readonly MappedSpanResult _mappedSpanResult;
 
             protected AbstractDocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
                 string projectName,
                 Guid projectGuid,
-                SourceText sourceText)
-                : base(definitionBucket)
+                SourceText lineText,
+                MappedSpanResult mappedSpanResult)
+                : base(definitionBucket, context.Presenter)
             {
-                _context = context;
-                _documentSpan = documentSpan;
                 _projectName = projectName;
                 _boxedProjectGuid = projectGuid;
-                _sourceText = sourceText;
+
+                _lineText = lineText;
+                _mappedSpanResult = mappedSpanResult;
             }
-
-            protected StreamingFindUsagesPresenter Presenter => _context.Presenter;
-
-            protected Document Document => _documentSpan.Document;
-            protected TextSpan SourceSpan => _documentSpan.SourceSpan;
 
             protected override object GetValueWorker(string keyName)
-            {
-                switch (keyName)
+                => keyName switch
                 {
-                    case StandardTableKeyNames.DocumentName:
-                        return Document.FilePath;
-                    case StandardTableKeyNames.Line:
-                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
-                    case StandardTableKeyNames.Column:
-                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
-                    case StandardTableKeyNames.ProjectName:
-                        return _projectName;
-                    case StandardTableKeyNames.ProjectGuid:
-                        return _boxedProjectGuid;
-                    case StandardTableKeyNames.Text:
-                        return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
+                    StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => _mappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => _mappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.ProjectName => _projectName,
+                    StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
+                    StandardTableKeyNames.Text => _lineText.ToString().Trim(),
+                    _ => null,
+                };
+
+            public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
+            {
+                var service = documentSpan.Document.Services.GetService<ISpanMappingService>();
+                if (service == null)
+                {
+                    return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
                 }
 
-                return null;
-            }
+                var results = await service.MapSpansAsync(
+                    documentSpan.Document, SpecializedCollections.SingletonEnumerable(documentSpan.SourceSpan), cancellationToken).ConfigureAwait(false);
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
-            {
-                if (columnName == StandardTableColumnDefinitions2.LineText)
+                if (results.IsDefaultOrEmpty)
                 {
-                    var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, Presenter.TypeMap, wrap: false);
-
-                    content = textBlock;
-                    return true;
+                    return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
                 }
 
-                content = null;
-                return false;
+                // if span mapping service filtered out the span, make sure
+                // to return null so that we remove the span from the result
+                return results.FirstOrNull(r => !r.IsDefault);
             }
 
-            protected abstract IList<Inline> CreateLineTextInlines();
+            public static SourceText GetLineContainingPosition(SourceText text, int position)
+            {
+                var line = text.Lines.GetLineFromPosition(position);
+
+                return text.GetSubText(line.Span);
+            }
         }
     }
 }

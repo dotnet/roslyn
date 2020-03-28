@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,6 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_syntax.Declaration != null)
             {
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+
+                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    foreach (var size in rankSpecifier.Sizes)
+                    {
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
+                    }
+                }, (binder: this, locals: locals));
+
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
                     locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));

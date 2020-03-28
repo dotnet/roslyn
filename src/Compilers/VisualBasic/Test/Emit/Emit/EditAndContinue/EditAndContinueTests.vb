@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -625,7 +627,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""Integer""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -1636,7 +1638,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1794,7 +1796,7 @@ End Class
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000004">
@@ -1846,7 +1848,7 @@ End Class
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000004">
@@ -1904,7 +1906,7 @@ End Class
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000005">
@@ -1929,7 +1931,7 @@ End Class
         ''' <summary>
         ''' Preserve locals for method added after initial compilation.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots_NewMethod()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1993,7 +1995,7 @@ End Class
             diff2.VerifyPdb({&H06000002UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000002">
@@ -4764,7 +4766,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,23 +12,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly ImmutableDictionary<string, string> s_properties =
             ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpFeaturesResources.Use_is_null_check,
-                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
@@ -43,13 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.Options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;
@@ -88,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         }
 
                         return true;
-                   }
+                    }
                 }
             }
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2720,12 +2722,9 @@ class C
                                     N(SyntaxKind.IdentifierToken, "e");
                                 }
                                 N(SyntaxKind.IsKeyword);
-                                N(SyntaxKind.DeclarationPattern);
+                                N(SyntaxKind.VarPattern);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "var");
-                                    }
+                                    N(SyntaxKind.VarKeyword, "var");
                                     N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
@@ -2848,12 +2847,9 @@ class C
                                 N(SyntaxKind.CasePatternSwitchLabel);
                                 {
                                     N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.VarPattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "var");
-                                        }
+                                        N(SyntaxKind.VarKeyword, "var");
                                         N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -11,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBIteratorTests
         Inherits BasicTestBase
 
-        <Fact, WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleIterator()
             Dim source =
 <compilation>
@@ -75,7 +78,8 @@ End Class
 ", sequencePoints:="C+VB$StateMachine_1_F.MoveNext")
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>
@@ -106,7 +110,7 @@ End Module
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
@@ -133,7 +137,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -238,7 +243,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -300,7 +306,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -329,7 +336,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
@@ -352,7 +359,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -411,7 +419,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
@@ -435,7 +444,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
@@ -464,7 +473,8 @@ End Class
         ''' Sequence points of MoveNext method shall not be affected by DebuggerHidden attribute. 
         ''' The method contains user code that can be edited during debugging and might need remapping.
         ''' </summary>
-        <Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DebuggerHiddenIterator()
             Dim source =
 <compilation>
@@ -494,7 +504,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
@@ -520,7 +530,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic

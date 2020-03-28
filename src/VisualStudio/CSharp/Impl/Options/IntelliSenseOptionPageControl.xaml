@@ -28,6 +28,14 @@
                                   Unchecked="Show_completion_list_after_a_character_is_deleted_Unchecked"/>
                     </StackPanel>
 
+                    <CheckBox x:Uid="Automatically_show_completion_list_in_argument_lists"
+                                  x:Name="Automatically_show_completion_list_in_argument_lists"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_show_completion_list_in_argument_lists}" 
+                              Checked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"       
+                              Unchecked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
+                              Indeterminate="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
+                              IsThreeState="True"/>
+
                     <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
                                   x:Name="Highlight_matching_portions_of_completion_list_items"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Highlight_matching_portions_of_completion_list_items}" />
@@ -64,6 +72,14 @@
                     <CheckBox x:Uid="Show_name_suggestions"
                                   x:Name="Show_name_suggestions"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_suggestions}" />
+
+                    <CheckBox x:Uid="Show_items_from_unimported_namespaces"
+                                  x:Name="Show_items_from_unimported_namespaces"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_items_from_unimported_namespaces}" 
+                              Checked="Show_items_from_unimported_namespaces_CheckedChanged"       
+                              Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
+                              Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

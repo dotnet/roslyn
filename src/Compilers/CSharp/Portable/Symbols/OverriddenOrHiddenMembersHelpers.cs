@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> overriddenMembers;
             ImmutableArray<Symbol> runtimeOverriddenMembers;
             FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, out runtimeOverriddenMembers, ref hiddenBuilder);
-            
+
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
         }
@@ -348,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See SymbolPreparer::checkIfaceHiding.
         /// </remarks>
-        private static OverriddenOrHiddenMembersResult MakeInterfaceOverriddenOrHiddenMembers(Symbol member, bool memberIsFromSomeCompilation)
+        internal static OverriddenOrHiddenMembersResult MakeInterfaceOverriddenOrHiddenMembers(Symbol member, bool memberIsFromSomeCompilation)
         {
             Debug.Assert(!member.IsAccessor());
 
@@ -492,6 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IEqualityComparer<Symbol> exactMatchComparer = memberIsFromSomeCompilation
                 ? MemberSignatureComparer.CSharpCustomModifierOverrideComparer
                 : MemberSignatureComparer.RuntimePlusRefOutSignatureComparer;
+
             IEqualityComparer<Symbol> fallbackComparer = memberIsFromSomeCompilation
                 ? MemberSignatureComparer.CSharpOverrideComparer
                 : MemberSignatureComparer.RuntimeSignatureComparer;
@@ -517,84 +520,111 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     int otherMemberArity = otherMember.GetMemberArity();
                     if (otherMemberArity == memberArity || (memberKind == SymbolKind.Method && otherMemberArity == 0))
                     {
-                        AddHiddenMemberIfApplicable(ref hiddenBuilder, member.Kind, otherMember);
+                        AddHiddenMemberIfApplicable(ref hiddenBuilder, memberKind, otherMember);
                     }
                 }
                 else if (!currTypeHasExactMatch)
                 {
-                    if (exactMatchComparer.Equals(member, otherMember))
+                    switch (memberKind)
                     {
-                        currTypeHasExactMatch = true;
-                        currTypeBestMatch = otherMember;
-                    }
-                    else if (fallbackComparer.Equals(member, otherMember))
-                    {
-                        // If this method is from source, we'll also consider methods that match
-                        // without regard to custom modifiers.  If there's more than one, we'll
-                        // choose the one with the fewest custom modifiers.
-                        int methodCustomModifierCount = CustomModifierCount(otherMember);
-                        if (methodCustomModifierCount < minCustomModifierCount)
-                        {
-                            Debug.Assert(memberIsFromSomeCompilation || minCustomModifierCount == int.MaxValue, "Metadata members require exact custom modifier matches.");
-                            minCustomModifierCount = methodCustomModifierCount;
+                        case SymbolKind.Field:
+                            currTypeHasExactMatch = true;
                             currTypeBestMatch = otherMember;
-                        }
-                    }
-                    else
-                    {
-                        currTypeHasSameKindNonMatch = true;
+                            break;
+                        case SymbolKind.NamedType:
+                            if (otherMember.GetMemberArity() == memberArity)
+                            {
+                                currTypeHasExactMatch = true;
+                                currTypeBestMatch = otherMember;
+                            }
+                            break;
+
+                        default:
+                            if (exactMatchComparer.Equals(member, otherMember))
+                            {
+                                currTypeHasExactMatch = true;
+                                currTypeBestMatch = otherMember;
+                            }
+                            else if (fallbackComparer.Equals(member, otherMember))
+                            {
+                                // If this method is from source, we'll also consider methods that match
+                                // without regard to custom modifiers.  If there's more than one, we'll
+                                // choose the one with the fewest custom modifiers.
+                                int methodCustomModifierCount = CustomModifierCount(otherMember);
+                                if (methodCustomModifierCount < minCustomModifierCount)
+                                {
+                                    Debug.Assert(memberIsFromSomeCompilation || minCustomModifierCount == int.MaxValue, "Metadata members require exact custom modifier matches.");
+                                    minCustomModifierCount = methodCustomModifierCount;
+                                    currTypeBestMatch = otherMember;
+                                }
+                            }
+                            else
+                            {
+                                currTypeHasSameKindNonMatch = true;
+                            }
+
+                            break;
                     }
                 }
             }
 
-            // If the member is from metadata, then even a fallback match is an exact match.
-            // We just declined to set the flag at the time in case there was a "better" exact match.
-            // Having said that, there's no reason to update the flag, since no-one will consume it.
-            // if (!memberIsFromSomeCompilation && ((object)currTypeBestMatch != null)) currTypeHasExactMatch = true;
-
-            // There's a special case where we have to go back and fix up our best match.
-            // If member is from source, then it has no custom modifiers (at least,
-            // until it copies them from the member it overrides, which we're trying to
-            // compute now).  Therefore, an exact match will be one that has no custom
-            // modifiers in/on its parameters.  The best match may, however, have custom
-            // modifiers in/on its (return) type, since that wasn't considered during the
-            // signature comparison.  If that is the case, then we need to make sure that
-            // there isn't another inexact match (i.e. same signature ignoring custom 
-            // modifiers) with fewer custom modifiers.
-            // NOTE: If member is constructed, then it has already inherited custom modifiers
-            // from the underlying member and this cleanup is unnecessary.  That's why we're
-            // checking member.IsDefinition in addition to memberIsFromSomeCompilation.
-            if (currTypeHasExactMatch && memberIsFromSomeCompilation && member.IsDefinition && TypeOrReturnTypeHasCustomModifiers(currTypeBestMatch))
+            switch (memberKind)
             {
+                case SymbolKind.Field:
+                case SymbolKind.NamedType:
+                    break;
+
+                default:
+                    // If the member is from metadata, then even a fallback match is an exact match.
+                    // We just declined to set the flag at the time in case there was a "better" exact match.
+                    // Having said that, there's no reason to update the flag, since no-one will consume it.
+                    // if (!memberIsFromSomeCompilation && ((object)currTypeBestMatch != null)) currTypeHasExactMatch = true;
+
+                    // There's a special case where we have to go back and fix up our best match.
+                    // If member is from source, then it has no custom modifiers (at least,
+                    // until it copies them from the member it overrides, which we're trying to
+                    // compute now).  Therefore, an exact match will be one that has no custom
+                    // modifiers in/on its parameters.  The best match may, however, have custom
+                    // modifiers in/on its (return) type, since that wasn't considered during the
+                    // signature comparison.  If that is the case, then we need to make sure that
+                    // there isn't another inexact match (i.e. same signature ignoring custom 
+                    // modifiers) with fewer custom modifiers.
+                    // NOTE: If member is constructed, then it has already inherited custom modifiers
+                    // from the underlying member and this cleanup is unnecessary.  That's why we're
+                    // checking member.IsDefinition in addition to memberIsFromSomeCompilation.
+                    if (currTypeHasExactMatch && memberIsFromSomeCompilation && member.IsDefinition && TypeOrReturnTypeHasCustomModifiers(currTypeBestMatch))
+                    {
 #if DEBUG
-                // If there were custom modifiers on the parameters, then the match wouldn't have been
-                // exact and so we would already have applied the custom modifier count as a tie-breaker.
-                foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
-                {
-                    Debug.Assert(!(param.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
-                    Debug.Assert(!param.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
-                }
+                        // If there were custom modifiers on the parameters, then the match wouldn't have been
+                        // exact and so we would already have applied the custom modifier count as a tie-breaker.
+                        foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
+                        {
+                            Debug.Assert(!(param.TypeWithAnnotations.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
+                            Debug.Assert(!param.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
+                        }
 #endif
 
-                Symbol minCustomModifierMatch = currTypeBestMatch;
+                        Symbol minCustomModifierMatch = currTypeBestMatch;
 
-                foreach (Symbol otherMember in currType.GetMembers(member.Name))
-                {
-                    if (otherMember.Kind == currTypeBestMatch.Kind && !ReferenceEquals(otherMember, currTypeBestMatch))
-                    {
-                        if (MemberSignatureComparer.CSharpOverrideComparer.Equals(otherMember, currTypeBestMatch))
+                        foreach (Symbol otherMember in currType.GetMembers(member.Name))
                         {
-                            int customModifierCount = CustomModifierCount(otherMember);
-                            if (customModifierCount < minCustomModifierCount)
+                            if (otherMember.Kind == currTypeBestMatch.Kind && !ReferenceEquals(otherMember, currTypeBestMatch))
                             {
-                                minCustomModifierCount = customModifierCount;
-                                minCustomModifierMatch = otherMember;
+                                if (MemberSignatureComparer.CSharpOverrideComparer.Equals(otherMember, currTypeBestMatch))
+                                {
+                                    int customModifierCount = CustomModifierCount(otherMember);
+                                    if (customModifierCount < minCustomModifierCount)
+                                    {
+                                        minCustomModifierCount = customModifierCount;
+                                        minCustomModifierMatch = otherMember;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                currTypeBestMatch = minCustomModifierMatch;
+                        currTypeBestMatch = minCustomModifierMatch;
+                    }
+                    break;
             }
         }
 
@@ -618,7 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)representativeMember != null)
             {
-                bool needToSearchForRelated = !representativeMember.ContainingType.IsDefinition || representativeMember.IsIndexer();
+                bool needToSearchForRelated = representativeMember.Kind != SymbolKind.Field && representativeMember.Kind != SymbolKind.NamedType &&
+                                              (!representativeMember.ContainingType.IsDefinition || representativeMember.IsIndexer());
 
                 if (isOverride)
                 {
@@ -787,6 +818,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void FindOtherHiddenMembersInContainingType(SymbolKind hidingMemberKind, Symbol representativeMember, ref ArrayBuilder<Symbol> hiddenBuilder)
         {
             Debug.Assert((object)representativeMember != null);
+            Debug.Assert(representativeMember.Kind != SymbolKind.Field);
+            Debug.Assert(representativeMember.Kind != SymbolKind.NamedType);
             Debug.Assert(representativeMember.Kind == SymbolKind.Property || !representativeMember.ContainingType.IsDefinition);
 
             IEqualityComparer<Symbol> comparer = MemberSignatureComparer.CSharpCustomModifierOverrideComparer;
@@ -824,12 +857,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
-                    return method.ReturnTypeCustomModifiers.Any() || method.RefCustomModifiers.Any() || 
-                           method.ReturnType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                    var methodReturnType = method.ReturnTypeWithAnnotations;
+                    return methodReturnType.CustomModifiers.Any() || method.RefCustomModifiers.Any() ||
+                           methodReturnType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
-                    return property.TypeCustomModifiers.Any() || property.RefCustomModifiers.Any() || 
-                           property.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                    var propertyType = property.TypeWithAnnotations;
+                    return propertyType.CustomModifiers.Any() || property.RefCustomModifiers.Any() ||
+                           propertyType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type

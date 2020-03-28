@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
@@ -49,13 +51,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
-        Protected Overloads Async Function TestElementUpdate(
+        Private Protected Overloads Async Function TestElementUpdate(
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
-                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing) As Task
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim workspace = state.Workspace
                 If options IsNot Nothing Then
                     For Each kvp In options
-                        state.Workspace.Options = state.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value)
+                        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                            .WithChangedOption(kvp.Key, kvp.Value)))
                     Next
                 End If
 
@@ -769,9 +773,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddProperty(
+        Private Protected Overrides Async Function TestAddProperty(
                 code As XElement, expectedCode As XElement, data As PropertyData,
-                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim prop = AddProperty(codeElement, data)
