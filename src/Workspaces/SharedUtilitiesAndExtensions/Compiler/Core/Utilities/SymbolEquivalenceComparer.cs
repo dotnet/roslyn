@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
 
         private static ISymbol UnwrapAlias(ISymbol symbol)
-            => symbol is IAliasSymbol alias ? alias.Target : symbol;
+            => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol alias) ? alias.Target : symbol;
 
         private static SymbolKind GetKindAndUnwrapAlias(ref ISymbol symbol)
         {
