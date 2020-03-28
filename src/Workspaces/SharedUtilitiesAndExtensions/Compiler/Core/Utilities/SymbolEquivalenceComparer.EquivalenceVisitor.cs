@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                             return true;
                         }
                     }
+
+                    return false;
                 }
 
                 return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
