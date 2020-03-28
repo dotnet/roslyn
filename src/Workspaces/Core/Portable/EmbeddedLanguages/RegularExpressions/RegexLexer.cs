@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Text = text;
         }
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
+        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
         public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
-        private static RegexKind GetKind(Rune ch)
+        private static RegexKind GetKind(VirtualChar ch)
             => ch.Value switch
             {
                 '|' => RegexKind.BarToken,
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                     // Note: \n is the only newline the native regex parser looks for.
                     while (Position < Text.Length &&
-                            Text[Position] != '\n')
+                            Text[Position].Value != '\n')
                     {
                         Position++;
                     }
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 var start = Position;
                 while (Position < Text.Length &&
-                        Text[Position] != ')')
+                       Text[Position].Value != ')')
                 {
                     Position++;
                 }
@@ -187,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             for (var i = 0; i < val.Length; i++)
             {
                 if (position + i >= Text.Length ||
-                    Text[position + i] != val[i])
+                    Text[position + i].Value != val[i])
                 {
                     return false;
                 }
@@ -215,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(Rune ch)
+        private bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
             switch (ch.Value)
@@ -282,7 +281,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                 unchecked
                 {
-                    var charVal = ch - '0';
+                    var charVal = ch.Value - '0';
                     if (value > MaxValueDiv10 || (value == MaxValueDiv10 && charVal > MaxValueMod10))
                     {
                         error = true;
@@ -350,7 +349,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(Rune ch)
+        private bool IsOptionChar(VirtualChar ch)
         {
             switch (ch.Value)
             {
@@ -403,16 +402,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return result;
         }
 
-        public static bool IsHexChar(Rune ch)
+        public static bool IsHexChar(VirtualChar ch)
             => IsDecimalDigit(ch) ||
-               (ch.Value >= 'a' && ch.Value <= 'f') ||
-               (ch.Value >= 'A' && ch.Value <= 'F');
+               (ch >= 'a' && ch <= 'f') ||
+               (ch >= 'A' && ch <= 'F');
 
-        private static bool IsDecimalDigit(Rune ch)
-            => ch.Value >= '0' && ch.Value <= '9';
+        private static bool IsDecimalDigit(VirtualChar ch)
+            => ch >= '0' && ch <= '9';
 
-        private static bool IsOctalDigit(Rune ch)
-            => ch.Value >= '0' && ch.Value <= '7';
+        private static bool IsOctalDigit(VirtualChar ch)
+            => ch >= '0' && ch <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
         {
@@ -431,7 +430,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
-                    var octalVal = this.CurrentChar - '0';
+                    var octalVal = this.CurrentChar.Value - '0';
                     Debug.Assert(octalVal >= 0 && octalVal <= 7);
                     currentVal *= 8;
                     currentVal += octalVal;

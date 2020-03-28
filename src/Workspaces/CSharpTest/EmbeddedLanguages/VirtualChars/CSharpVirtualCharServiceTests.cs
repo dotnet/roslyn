@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(@"""\ud83d""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            TestFailure(@"""\ud83d""");
+            Test(@"""\ud83d""", @"['\uD83D',[1,7]]");
         }
 
         [Fact]
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(@"""\ude0a""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            TestFailure(@"""\ude0a""");
+            Test(@"""\ude0a""", @"['\uDE0A',[1,7]]");
         }
 
         [Fact]
@@ -346,12 +346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         private string ConvertRuneToString(VirtualChar c)
             => PrintAsUnicodeEscape(c)
-                ? c <= char.MaxValue ? $"'\\u{(int)c:X4}'" : $"'\\U{(int)c:X8}'"
-                : $"'{(char)c}'";
+                ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
+                : $"'{(char)c.Value}'";
 
         private static bool PrintAsUnicodeEscape(VirtualChar c)
         {
-            if (c < 127 && char.IsLetterOrDigit((char)c))
+            if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
             {
                 return false;
             }

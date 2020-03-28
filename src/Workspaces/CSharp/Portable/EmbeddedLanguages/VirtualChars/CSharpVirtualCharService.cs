@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 // First, see if this was a valid single char that can become a Rune.
                 if (Rune.TryCreate(ch, out var rune))
                 {
-                    runeResults.Add(new VirtualChar(rune, span));
+                    runeResults.Add(VirtualChar.Create(rune, span));
                     i++;
                     continue;
                 }
@@ -168,14 +168,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     var (nextCh, nextSpan) = charResults[i + 1];
                     if (Rune.TryCreate(ch, nextCh, out rune))
                     {
-                        runeResults.Add(new VirtualChar(rune, TextSpan.FromBounds(span.Start, nextSpan.End)));
+                        runeResults.Add(VirtualChar.Create(rune, TextSpan.FromBounds(span.Start, nextSpan.End)));
                         i += 2;
                         continue;
                     }
                 }
 
-                // Didn't have a string that could succesfully be converted into Runes.  Bail out.
-                return default;
+                // Had an unpaired surrogate.
+                Debug.Assert(char.IsSurrogate(ch));
+                runeResults.Add(VirtualChar.Create(ch, span));
+                i++;
             }
 
             return CreateVirtualCharSequence(
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                    TryAddMultiCharacterEscape(result, tokenText, offset, index);
         }
 
-        public override bool TryGetEscapeCharacter(Rune ch, out char escapedChar)
+        public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
         {
             // Keep in sync with TryAddSingleCharacterEscape
             switch (ch.Value)

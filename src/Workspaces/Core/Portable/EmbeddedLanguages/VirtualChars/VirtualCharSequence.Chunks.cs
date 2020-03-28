@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -67,9 +68,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             public override int Length => _underlyingData.Length;
 
             public override VirtualChar this[int index]
-                => new VirtualChar(
-                    _underlyingData[index],
-                    new TextSpan(_firstVirtualCharPosition + index, length: 1));
+            {
+                get
+                {
+                    var span = new TextSpan(_firstVirtualCharPosition + index, length: 1);
+                    var ch = _underlyingData[index];
+                    return char.IsSurrogate(ch)
+                        ? VirtualChar.Create(ch, span)
+                        : VirtualChar.Create(new Rune(ch), span);
+                }
+            }
         }
     }
 }

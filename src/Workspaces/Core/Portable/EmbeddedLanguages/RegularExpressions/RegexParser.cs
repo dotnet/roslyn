@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseGroupingEmbeddedExpression(GetNewOptionsFromToken(_options, optionsToken)), ParseGroupingCloseParen());
 
         private static bool IsTextChar(RegexToken currentToken, char ch)
-            => currentToken.Kind == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0] == ch;
+            => currentToken.Kind == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0].Value == ch;
 
         private static RegexOptions GetNewOptionsFromToken(RegexOptions currentOptions, RegexToken optionsToken)
         {
@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var on = true;
             foreach (var ch in optionsToken.VirtualChars)
             {
-                switch (ch.Rune.Value)
+                switch (ch.Value)
                 {
                     case '-': on = false; break;
                     case '+': on = true; break;
@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return copy;
         }
 
-        private static RegexOptions OptionFromCode(Rune ch)
+        private static RegexOptions OptionFromCode(VirtualChar ch)
         {
             switch (ch.Value)
             {
@@ -1348,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
-                    var controlCh = controlEscape.ControlToken.VirtualChars[0].Rune.Value;
+                    var controlCh = controlEscape.ControlToken.VirtualChars[0].Value;
 
                     // \ca interpreted as \cA
                     if (controlCh >= 'a' && controlCh <= 'z')
@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     return true;
 
                 case RegexKind.Text:
-                    ch = ((RegexTextNode)component).TextToken.VirtualChars[0];
+                    ch = ((RegexTextNode)component).TextToken.VirtualChars[0].Value;
                     return true;
 
                 case RegexKind.Sequence:
@@ -1415,14 +1415,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 foreach (var vc in hexText.VirtualChars)
                 {
                     total *= withBase;
-                    total += HexValue(vc.Rune);
+                    total += HexValue(vc);
                 }
 
                 return total;
             }
         }
 
-        private int HexValue(Rune ch)
+        private int HexValue(VirtualChar ch)
         {
             Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
                 var nextChar = _currentToken.VirtualChars[0];
-                switch (nextChar.Rune.Value)
+                switch (nextChar.Value)
                 {
                     case 'D':
                     case 'd':
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
-            switch (_currentToken.VirtualChars[0].Rune.Value)
+            switch (_currentToken.VirtualChars[0].Value)
             {
                 case 'b':
                 case 'B':
@@ -1712,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 unchecked
                 {
                     capVal *= 10;
-                    capVal += (ch - '0');
+                    capVal += (ch.Value - '0');
                 }
 
                 _lexer.Position++;
@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return new RegexOctalEscapeNode(backslashToken, octalDigits);
             }
 
-            switch (ch.Rune.Value)
+            switch (ch.Value)
             {
                 case 'a':
                 case 'b':
@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
-            var ch = _currentToken.VirtualChars[0].Rune.Value;
+            var ch = _currentToken.VirtualChars[0].Value;
 
             unchecked
             {

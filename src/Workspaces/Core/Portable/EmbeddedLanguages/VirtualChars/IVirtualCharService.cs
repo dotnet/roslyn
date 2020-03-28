@@ -63,6 +63,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// character, then this would produce <c>t</c> as <c>\t</c> is what would go into a string
         /// literal.
         /// </summary>
-        bool TryGetEscapeCharacter(Rune ch, out char escapeChar);
+        bool TryGetEscapeCharacter(VirtualChar ch, out char escapeChar);
     }
 }

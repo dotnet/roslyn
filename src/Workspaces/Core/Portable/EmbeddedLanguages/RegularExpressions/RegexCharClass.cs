@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return EscapeCategories.ContainsKey(value);
         }
 
-        public static bool IsWordChar(Rune r)
+        public static bool IsWordChar(VirtualChar r)
         {
             // unicode characters that do not fit in 16bits are not supported by 
             // .net regex system.

@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
@@ -25,28 +26,90 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal readonly struct VirtualChar : IEquatable<VirtualChar>
     {
+        /// <summary>
+        /// The value of this <see cref="VirtualChar"/> as a <see cref="Rune"/> if its possible to be represented as a
+        /// <see cref="Rune"/>.  <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see
+        /// cref="string"/> except for unpaired surrogates.  If an unpaired high or low surrogate character is present,
+        /// this value will be <see cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
+        /// <see cref="SurrogateChar"/>.
+        /// </summary>
         public readonly Rune Rune;
+
+        /// <summary>
+        /// The unpaired high or low surrogate character that was encountered that could not be represented in <see
+        /// cref="Rune"/>.
+        /// </summary>
+        public readonly char SurrogateChar;
+
+        /// <summary>
+        /// The span of characters in the original <see cref="SourceText"/> that represent this <see
+        /// cref="VirtualChar"/>.
+        /// </summary>
         public readonly TextSpan Span;
 
-        public VirtualChar(char ch, TextSpan span)
-            : this(new Rune(ch), span)
+        public static VirtualChar Create(Rune rune, TextSpan span)
+            => new VirtualChar(rune, surrogateChar: default, span);
+
+        /// <summary>
+        /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.
+        /// </summary>
+        public static VirtualChar Create(char surrogateChar, TextSpan span)
         {
+            if (!char.IsSurrogate(surrogateChar))
+                throw new ArgumentException(nameof(surrogateChar));
+
+            return new VirtualChar(rune: Rune.ReplacementChar, surrogateChar, span);
         }
 
-        public VirtualChar(Rune rune, TextSpan span)
+        private VirtualChar(Rune rune, char surrogateChar, TextSpan span)
         {
+            Contract.ThrowIfFalse(surrogateChar == 0 || rune == Rune.ReplacementChar,
+                "If surrogateChar is provided then rune must be Rune.ReplacementChar");
+
             if (span.IsEmpty)
                 throw new ArgumentException("Span should not be empty.", nameof(span));
 
             Rune = rune;
+            SurrogateChar = surrogateChar;
             Span = span;
         }
 
+        /// <summary>
+        /// Retrieves the scaler value of this character as an <see cref="int"/>.  If this is an unpaired surrogate
+        /// character, this will be the value of that surrogate.  Otherwise, this will be the value of our <see
+        /// cref="Rune"/>.
+        /// </summary>
+        public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
+
+        public static bool operator ==(VirtualChar ch1, char ch2)
+            => ch1.Value == ch2;
+
+        public static bool operator !=(VirtualChar ch1, char ch2)
+            => ch1.Value != ch2;
+
+        public static bool operator <(VirtualChar ch1, char ch2)
+            => ch1.Value < ch2;
+
+        public static bool operator <=(VirtualChar ch1, char ch2)
+            => ch1.Value <= ch2;
+
+        public static bool operator >(VirtualChar ch1, char ch2)
+            => ch1.Value > ch2;
+
+        public static bool operator >=(VirtualChar ch1, char ch2)
+            => ch1.Value >= ch2;
+
         public override string ToString()
-            => this.Rune.ToString();
+            => Rune.ToString();
 
         public void AppendTo(StringBuilder builder)
         {
+            if (SurrogateChar != 0)
+            {
+                builder.Append(SurrogateChar);
+                return;
+            }
+
             Span<char> chars = stackalloc char[2];
 
             var length = Rune.EncodeToUtf16(chars);
@@ -60,17 +123,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public bool Equals(VirtualChar other)
             => Rune == other.Rune &&
+               SurrogateChar == other.SurrogateChar &&
                Span == other.Span;
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = 244102310;
-                hashCode = hashCode * -1521134295 + Rune.GetHashCode();
-                hashCode = hashCode * -1521134295 + Span.GetHashCode();
-                return hashCode;
-            }
+            var hashCode = 1985253839;
+            hashCode = hashCode * -1521134295 + Rune.GetHashCode();
+            hashCode = hashCode * -1521134295 + SurrogateChar.GetHashCode();
+            hashCode = hashCode * -1521134295 + Span.GetHashCode();
+            return hashCode;
         }
 
         public static bool operator ==(VirtualChar char1, VirtualChar char2)
@@ -78,9 +140,5 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public static bool operator !=(VirtualChar char1, VirtualChar char2)
             => !(char1 == char2);
-
-        public static implicit operator Rune(VirtualChar vc) => vc.Rune;
-        public static implicit operator int(VirtualChar vc) => vc.Rune.Value;
-        public static implicit operator string(VirtualChar vc) => vc.ToString();
     }
 }
