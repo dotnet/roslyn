@@ -4,22 +4,26 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports System.Threading
+Imports System.Threading.Tasks
+Imports Verify = Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest.CodeFixVerifier(
+    Of $saferootprojectname$.$saferootidentifiername$Analyzer,
+    $saferootprojectname$.$saferootidentifiername$CodeFixProvider)
 
 Namespace $safeprojectname$
     <TestClass>
     Public Class UnitTest
-        Inherits CodeFixVerifier
 
         'No diagnostics expected to show up
         <TestMethod>
-        Public Sub TestMethod1()
+        Public Async Function TestMethod1() As Task
             Dim test = ""
-            VerifyBasicDiagnostic(test)
-        End Sub
+            Await Verify.VerifyBasicDiagnosticAsync(test)
+        End Function
 
         'Diagnostic And CodeFix both triggered And checked for
         <TestMethod>
-        Public Sub TestMethod2()
+        Public Async Function TestMethod2() As Task
 
             Dim test = "
 Module Module1
@@ -29,16 +33,6 @@ Module Module1
     End Sub
 
 End Module"
-            Dim expected = New DiagnosticResult With {.Id = "$saferootidentifiername$",
-                .Message = String.Format("Type name '{0}' contains lowercase letters", "Module1"),
-                .Severity = DiagnosticSeverity.Warning,
-                .Locations = New DiagnosticResultLocation() {
-                        New DiagnosticResultLocation("Test0.vb", 2, 8)
-                    }
-            }
-
-
-            VerifyBasicDiagnostic(test, expected)
 
             Dim fixtest = "
 Module MODULE1
@@ -48,15 +42,9 @@ Module MODULE1
     End Sub
 
 End Module"
-            VerifyBasicFix(test, fixtest)
-        End Sub
 
-        Protected Overrides Function GetBasicCodeFixProvider() As CodeFixProvider
-            Return New $saferootidentifiername$CodeFixProvider()
-        End Function
-
-        Protected Overrides Function GetBasicDiagnosticAnalyzer() As DiagnosticAnalyzer
-            Return New $saferootidentifiername$Analyzer()
+            Dim expected = Verify.Diagnostic("$saferootidentifiername$").WithLocation(2, 8).WithArguments("Module1")
+            Await Verify.VerifyBasicFixAsync(test, expected, fixtest)
         End Function
 
     End Class

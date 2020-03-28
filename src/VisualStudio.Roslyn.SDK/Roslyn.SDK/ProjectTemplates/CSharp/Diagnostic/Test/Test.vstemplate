@@ -19,11 +19,6 @@
   <TemplateContent>
     <Project TargetFileName="$safeprojectname$.csproj" File="Test.csproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$UnitTests.cs">UnitTests.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\CodeFixVerifier.Helper.cs">CodeFixVerifier.Helper.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\DiagnosticResult.cs">DiagnosticResult.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\DiagnosticVerifier.Helper.cs">DiagnosticVerifier.Helper.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Verifiers\CodeFixVerifier.cs">CodeFixVerifier.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Verifiers\DiagnosticVerifier.cs">DiagnosticVerifier.cs</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>

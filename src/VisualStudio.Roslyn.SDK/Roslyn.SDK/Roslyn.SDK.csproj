@@ -16,7 +16,6 @@
   <ItemGroup>
     <None Include="ItemTemplates\**\*" />
     <None Include="ProjectTemplates\**\*" />
-    <None Include="*.vstemplate" />
   </ItemGroup>
   <!-- C# Item Templates -->
   <ItemGroup>

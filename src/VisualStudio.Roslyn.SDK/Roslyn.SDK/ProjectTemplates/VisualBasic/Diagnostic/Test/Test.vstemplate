@@ -18,12 +18,7 @@
   </TemplateData>
   <TemplateContent>
     <Project TargetFileName="$safeprojectname$.vbproj" File="UnitTestProject.vbproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\CodeFixVerifier.Helper.vb">CodeFixVerifier.Helper.vb</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\DiagnosticResult.vb">DiagnosticResult.vb</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Helpers\DiagnosticVerifier.Helper.vb">DiagnosticVerifier.Helper.vb</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="$saferootprojectname$UnitTests.vb">UnitTests.vb</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Verifiers\CodeFixVerifier.vb">CodeFixVerifier.vb</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="Verifiers\DiagnosticVerifier.vb">DiagnosticVerifier.vb</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>
