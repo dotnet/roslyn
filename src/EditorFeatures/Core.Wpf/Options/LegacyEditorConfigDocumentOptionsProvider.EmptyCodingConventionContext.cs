@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 public bool TryGetConventionValue<T>(string conventionName, out T conventionValue)
                 {
-                    conventionValue = default(T);
+                    conventionValue = default;
                     return false;
                 }
 
@@ -61,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                     public bool TryGetIndentSize(out int indentSize)
                     {
-                        indentSize = default(int);
+                        indentSize = default;
                         return false;
                     }
 
                     public bool TryGetIndentStyle(out IndentStyle indentStyle)
                     {
-                        indentStyle = default(IndentStyle);
+                        indentStyle = default;
                         return false;
                     }
 
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                     public bool TryGetTabWidth(out int tabWidth)
                     {
-                        tabWidth = default(int);
+                        tabWidth = default;
                         return false;
                     }
                 }

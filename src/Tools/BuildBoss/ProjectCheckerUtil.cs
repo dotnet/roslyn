@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -319,30 +323,13 @@ namespace BuildBoss
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
-                // TODO: Code Style projects need to be moved over to 4.7.2 and netstandard2.0
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/712825 
-                if (ProjectFilePath.Contains("CodeStyle"))
+                switch (targetFramework)
                 {
-
-                    switch (targetFramework)
-                    {
-                        case "net46":
-                        case "netstandard1.3":
-                            continue;
-                    }
-                }
-                else
-                {
-                    switch (targetFramework)
-                    {
-                        case "net20":
-                        case "net472":
-                        case "netcoreapp1.1":
-                        case "netcoreapp2.1":
-                        case "netcoreapp3.0":
-                        case "$(RoslynPortableTargetFrameworks)":
-                            continue;
-                    }
+                    case "net20":
+                    case "net472":
+                    case "netcoreapp3.1":
+                    case "$(RoslynPortableTargetFrameworks)":
+                        continue;
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

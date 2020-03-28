@@ -1,4 +1,10 @@
-﻿using Microsoft.CodeAnalysis.PooledObjects;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected abstract int? GetRightmostNameArity(SyntaxNode node);
         protected abstract bool IsParentAnAttribute(SyntaxNode node);
 
-        protected ISymbol TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo, SemanticModel semanticModel)
+        protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo, SemanticModel semanticModel)
         {
             var symbol = symbolInfo.Symbol;
 
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         }
 
         protected void TryClassifyStaticSymbol(
-            ISymbol symbol,
+            ISymbol? symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {

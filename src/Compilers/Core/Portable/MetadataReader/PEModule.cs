@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -93,6 +95,32 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
+        private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
+
+        internal struct BoolAndStringArrayData
+        {
+            public BoolAndStringArrayData(bool sense, ImmutableArray<string> strings)
+            {
+                Sense = sense;
+                Strings = strings;
+            }
+
+            public readonly bool Sense;
+            public readonly ImmutableArray<string> Strings;
+        }
+
+        internal struct BoolAndStringData
+        {
+            public BoolAndStringData(bool sense, string @string)
+            {
+                Sense = sense;
+                String = @string;
+            }
+
+            public readonly bool Sense;
+            public readonly string String;
+        }
 
         // 'ignoreAssemblyRefs' is used by the EE only, when debugging
         // .NET Native, where the corlib may have assembly references
@@ -947,6 +975,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
         }
 
+        internal bool HasDoesNotReturnAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.DoesNotReturnAttribute).HasValue;
+        }
+
         internal bool HasIsUnmanagedAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsUnmanagedAttribute).HasValue;
@@ -1080,14 +1113,14 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal bool HasMaybeNullWhenOrNotNullWhenAttribute(EntityHandle token, AttributeDescription description, out bool when)
+        internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
-            Debug.Assert(description.Namespace == "System.Runtime.CompilerServices");
-            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute");
+            Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
+            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute" || description.Name == "DoesNotReturnIfAttribute");
 
             AttributeInfo info = FindTargetAttribute(token, description);
             if (info.HasValue &&
-                // MaybeNullWhen(bool), NotNullWhen(bool)
+                // MaybeNullWhen(bool), NotNullWhen(bool), DoesNotReturnIf(bool)
                 info.SignatureIndex == 0)
             {
                 return TryExtractValueFromAttribute(info.Handle, out when, s_attributeBooleanValueExtractor);
@@ -1164,6 +1197,22 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal bool HasNullablePublicOnlyAttribute(EntityHandle token, out bool includesInternals)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullablePublicOnlyAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out bool value, s_attributeBooleanValueExtractor))
+                {
+                    includesInternals = value;
+                    return true;
+                }
+            }
+            includesInternals = false;
+            return false;
+        }
+
         internal ImmutableArray<string> GetInternalsVisibleToAttributeValues(EntityHandle token)
         {
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.InternalsVisibleToAttribute);
@@ -1176,6 +1225,89 @@ namespace Microsoft.CodeAnalysis
             List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.ConditionalAttribute);
             ArrayBuilder<string> result = ExtractStringValuesFromAttributes(attrInfos);
             return result?.ToImmutableAndFree() ?? ImmutableArray<string>.Empty;
+        }
+
+        /// <summary>
+        /// Find the MemberNotNull attribute(s) and extract the list of referenced member names
+        /// </summary>
+        internal ImmutableArray<string> GetMemberNotNullAttributeValues(EntityHandle token)
+        {
+            List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.MemberNotNullAttribute);
+            if (attrInfos is null || attrInfos.Count == 0)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            var result = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+
+            foreach (var ai in attrInfos)
+            {
+                if (ai.SignatureIndex == 0)
+                {
+                    if (TryExtractStringValueFromAttribute(ai.Handle, out string extracted))
+                    {
+                        if (extracted is object)
+                        {
+                            result.Add(extracted);
+                        }
+                    }
+                }
+                else if (TryExtractStringArrayValueFromAttribute(ai.Handle, out ImmutableArray<string> extracted2))
+                {
+                    foreach (var value in extracted2)
+                    {
+                        if (value is object)
+                        {
+                            result.Add(value);
+                        }
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Find the MemberNotNullWhen attribute(s) and extract the list of referenced member names
+        /// </summary>
+        internal (ImmutableArray<string> whenTrue, ImmutableArray<string> whenFalse) GetMemberNotNullWhenAttributeValues(EntityHandle token)
+        {
+            List<AttributeInfo> attrInfos = FindTargetAttributes(token, AttributeDescription.MemberNotNullWhenAttribute);
+            if (attrInfos is null || attrInfos.Count == 0)
+            {
+                return (ImmutableArray<string>.Empty, ImmutableArray<string>.Empty);
+            }
+
+            var whenTrue = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+            var whenFalse = ArrayBuilder<string>.GetInstance(attrInfos.Count);
+
+            foreach (var ai in attrInfos)
+            {
+                if (ai.SignatureIndex == 0)
+                {
+                    if (TryExtractValueFromAttribute(ai.Handle, out BoolAndStringData extracted, s_attributeBoolAndStringValueExtractor))
+                    {
+                        if (extracted.String is object)
+                        {
+                            var whenResult = extracted.Sense ? whenTrue : whenFalse;
+                            whenResult.Add(extracted.String);
+                        }
+                    }
+                }
+                else if (TryExtractValueFromAttribute(ai.Handle, out BoolAndStringArrayData extracted2, s_attributeBoolAndStringArrayValueExtractor))
+                {
+                    var whenResult = extracted2.Sense ? whenTrue : whenFalse;
+                    foreach (var value in extracted2.Strings)
+                    {
+                        if (value is object)
+                        {
+                            whenResult.Add(value);
+                        }
+                    }
+                }
+            }
+
+            return (whenTrue.ToImmutableAndFree(), whenFalse.ToImmutableAndFree());
         }
 
         // This method extracts all the non-null string values from the given attributes.
@@ -1594,6 +1726,32 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = default(ImmutableArray<string>);
+            return false;
+        }
+
+        internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
+        {
+            if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
+                CrackStringArrayInAttributeValue(out ImmutableArray<string> strings, ref sig))
+            {
+                value = new BoolAndStringArrayData(sense, strings);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        internal static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
+        {
+            if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
+                CrackStringInAttributeValue(out string @string, ref sig))
+            {
+                value = new BoolAndStringData(sense, @string);
+                return true;
+            }
+
+            value = default;
             return false;
         }
 
@@ -2433,6 +2591,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+        }
+
+        internal bool HasNullableContextAttribute(EntityHandle token, out byte value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableContextAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (!info.HasValue)
+            {
+                value = 0;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out value, s_attributeByteValueExtractor);
         }
 
         internal bool HasNullableAttribute(EntityHandle token, out byte defaultTransform, out ImmutableArray<byte> nullableTransforms)

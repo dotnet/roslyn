@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -10,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -18,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
@@ -28,42 +32,43 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        /// <remarks>
+        /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
+        /// backreference to <see cref="VisualStudioWorkspace"/>.
+        /// </remarks>
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
-            _streamingPresenters = streamingPresenters;
-
-            foreach (var providerFactory in documentOptionsProviderFactories)
-            {
-                var optionsProvider = providerFactory.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
+            _streamingPresenter = streamingPresenter;
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
         {
-            var globalUndoService = this.Services.GetService<IGlobalUndoService>();
+            var globalUndoService = this.Services.GetRequiredService<IGlobalUndoService>();
             var needsUndoDisabled = false;
+
+            var textDocument = this.CurrentSolution.GetTextDocument(documentId);
+
+            if (textDocument == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId));
+            }
 
             // Do not save the file if is open and there is not a global undo transaction.
             var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
             if (needsSave)
             {
-                if (this.CurrentSolution.ContainsDocument(documentId))
+                if (textDocument is Document document)
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.CurrentSolution.GetDocument(documentId).IsGeneratedCode(CancellationToken.None);
+                    needsUndoDisabled = document.IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -72,12 +77,16 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            var document = this.CurrentSolution.GetTextDocument(documentId);
 
-            return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
+            return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
+        private static bool TryResolveSymbol(
+            ISymbol symbol,
+            Project project,
+            CancellationToken cancellationToken,
+            [NotNullWhen(returnValue: true)] out ISymbol? resolvedSymbol,
+            [NotNullWhen(returnValue: true)] out Project? resolvedProject)
         {
             resolvedSymbol = null;
             resolvedProject = null;
@@ -88,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
@@ -107,11 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_streamingPresenters.Any())
-            {
-                return false;
-            }
-
             if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenters, cancellationToken);
+                _streamingPresenter.Value, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -136,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
-        internal override object GetBrowseObject(SymbolListItem symbolListItem)
+        internal override object? GetBrowseObject(SymbolListItem symbolListItem)
         {
             var compilation = symbolListItem.GetCompilation(this);
             if (compilation == null)
@@ -171,14 +174,17 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var tree = sourceLocation.SourceTree;
+            Contract.ThrowIfNull(tree, "We have a location that was in source, but doesn't have a SourceTree.");
+
             var document = project.GetDocument(tree);
+            Contract.ThrowIfNull(document, "We have a symbol coming from a tree, and that tree isn't in the Project it supposedly came from.");
 
             var vsFileCodeModel = this.GetFileCodeModel(document.Id);
 
             var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
             if (fileCodeModel != null)
             {
-                var syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
+                SyntaxNode? syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
                 while (syntaxNode != null)
                 {
                     if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)

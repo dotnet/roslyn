@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -421,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 case ContainedLanguageRenameType.CLRT_NAMESPACE:
                     var ns = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GlobalNamespace;
                     var parts = fullyQualifiedName.Split('.');
-                    for (int i = 0; i < parts.Length && ns != null; i++)
+                    for (var i = 0; i < parts.Length && ns != null; i++)
                     {
                         ns = ns.GetNamespaceMembers().SingleOrDefault(n => n.Name == parts[i]);
                     }

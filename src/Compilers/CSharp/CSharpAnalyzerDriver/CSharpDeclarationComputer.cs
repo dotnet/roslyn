@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -155,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrowExpressionClause:
                     {
                         // Arrow expression clause declares getter symbol for properties and indexers.
-                        var parentProperty = node.Parent as BasePropertyDeclarationSyntax;
-                        if (parentProperty != null)
+                        if (node.Parent is BasePropertyDeclarationSyntax parentProperty)
                         {
                             builder.Add(GetExpressionBodyDeclarationInfo(parentProperty, (ArrowExpressionClauseSyntax)node, model, getSymbol, cancellationToken));
                         }
@@ -233,8 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var codeBlocks = GetParameterListInitializersAndAttributes(t.ParameterList);
                         codeBlocks = codeBlocks.Concat(t.Body);
 
-                        var ctorDecl = t as ConstructorDeclarationSyntax;
-                        if (ctorDecl != null && ctorDecl.Initializer != null)
+                        if (t is ConstructorDeclarationSyntax ctorDecl && ctorDecl.Initializer != null)
                         {
                             codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
                         }

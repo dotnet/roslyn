@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -158,7 +160,7 @@ End Module
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
             Imports N
@@ -201,7 +203,6 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IMetadataAsSourceFileService),
                                                              workspace.GetService(Of IWaitIndicator))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)

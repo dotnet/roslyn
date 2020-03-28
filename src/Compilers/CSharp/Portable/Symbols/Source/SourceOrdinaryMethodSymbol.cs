@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -182,31 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var location = this.Locations[0];
-            if (IsAsync)
-            {
-                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
-                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
-                    (Bodies.blockBody != null || Bodies.arrowBody != null))
-                {
-                    if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
-                    {
-                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
-                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
-                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
-                    }
-
-                    if (enumeratorCancellationCount > 1)
-                    {
-                        // The [EnumeratorCancellation] attribute can only be used on one parameter
-                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, location);
-                    }
-                }
-            }
-
             var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
@@ -218,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
+            var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
@@ -405,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                     this.FindExplicitlyImplementedMemberVerification(overriddenOrExplicitlyImplementedMethod, diagnostics);
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrExplicitlyImplementedMethod, true, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, overriddenOrExplicitlyImplementedMethod, isExplicit: true, diagnostics);
                 }
                 else
                 {
@@ -468,28 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     return false;
-                }, typePredicateOpt: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
-            }
-        }
-
-        // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
-        {
-            foreach (var parameter in parameters)
-            {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                if (parameter.RefKind != RefKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsUnsafe())
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsRestrictedType())
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                }
+                }, typePredicate: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
             }
         }
 
@@ -506,36 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            Location errorLocation = this.Locations[0];
-
-            if (this.RefKind != RefKind.None)
-            {
-                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
-            }
-            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-            }
-
-            for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-            {
-                var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                {
-                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                    break;
-                }
-            }
-
-            if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
-            }
-
-            if (!diagnostics.HasAnyResolvedErrors())
-            {
-                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
-            }
+            AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);
             diagnostics.Free();
@@ -751,7 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this.SourcePartialImplementation ?? this, expandIncludes, ref lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(SourcePartialImplementation ?? this, expandIncludes, ref lazyDocComment);
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -1131,6 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             var location = GetSyntax().ReturnType.Location;
+            var compilation = DeclaringCompilation;
 
             Debug.Assert(location != null);
 
@@ -1142,14 +1072,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
-            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(compilation, conversions, this.Locations[0], diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
             }
 
             var implementingPart = this.SourcePartialImplementation;
@@ -1160,17 +1090,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-            if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
-                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
         }
 
         /// <summary>
@@ -1209,16 +1139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
-            for (int i = 0; i < implementationParameters.Length; i++)
-            {
-                if (!implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions) &&
-                    implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                implementation.DeclaringCompilation,
+                definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations),
+                implementation,
+                diagnostics,
+                reportMismatchInReturnType: null,
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
-                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
-                }
-            }
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                },
+                extraArgument: (object)null);
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)

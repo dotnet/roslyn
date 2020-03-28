@@ -119,7 +119,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
     }
   }
   finally {
-    # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+    # If we didn't finish then an error occurred or the user hit ctrl-c.  Either
     # way kill the process
     if (-not $finished) {
       $process.Kill()
@@ -159,7 +159,18 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
-  return Join-Path (InitializeDotNetCli -install:$true) "dotnet.exe"
+  $dotnetInstallDir = (InitializeDotNetCli -install:$true)
+  $dotnetTestPath = Join-Path $dotnetInstallDir "dotnet.exe"
+  if (Test-Path -Path $dotnetTestPath) {
+    return $dotnetTestPath
+  }
+
+  $dotnetTestPath = Join-Path $dotnetInstallDir "dotnet"
+  if (Test-Path -Path $dotnetTestPath) {
+    return $dotnetTestPath
+  }
+
+  throw "Could not find dotnet executable in $dotnetInstallDir"
 }
 
 function Get-VersionCore([string]$name, [string]$versionFile) {
@@ -279,7 +290,7 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
   Unzip "$dir\$packageFile" $dir
 
@@ -287,31 +298,4 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
   return $dir
-}
-
-Add-Type -AssemblyName 'System.Drawing'
-Add-Type -AssemblyName 'System.Windows.Forms'
-function Capture-Screenshot($path) {
-  $width = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
-  $height = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
-
-  $bitmap = New-Object System.Drawing.Bitmap $width, $height
-  try {
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    try {
-      $graphics.CopyFromScreen( `
-        [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.X, `
-        [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Y, `
-        0, `
-        0, `
-        $bitmap.Size, `
-        [System.Drawing.CopyPixelOperation]::SourceCopy)
-    } finally {
-      $graphics.Dispose()
-    }
-
-    $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-  } finally {
-    $bitmap.Dispose()
-  }
 }

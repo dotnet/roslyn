@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        protected static Dictionary<OptionKey, object> GetIndentionColumn(int column)
-            => new Dictionary<OptionKey, object>
+        private protected static Dictionary<OptionKey2, object> GetIndentionColumn(int column)
+            => new Dictionary<OptionKey2, object>
                {
-                   { FormattingOptions.PreferredWrappingColumn, column }
+                   { FormattingOptions2.PreferredWrappingColumn, column }
                };
 
         protected Task TestAllWrappingCasesAsync(
@@ -28,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             return TestAllWrappingCasesAsync(input, options: null, outputs);
         }
 
-        protected Task TestAllWrappingCasesAsync(
+        private protected Task TestAllWrappingCasesAsync(
             string input,
-            IDictionary<OptionKey, object> options,
+            IDictionary<OptionKey2, object> options,
             params string[] outputs)
         {
             var parameters = new TestParameters(options: options);

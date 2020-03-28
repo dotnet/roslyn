@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
         {
         }
 
@@ -49,14 +52,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
 
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
-            var optionSet = context.Options.GetDocumentOptionSetAsync(
-                semanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, semanticModel.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, semanticModel.Language);
             if (!option.Value)
             {
                 return;
@@ -80,8 +76,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
-            var property = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol;
-            if (property == null)
+            if (!(semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol property))
             {
                 return;
             }
@@ -121,6 +116,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var containingType = property.ContainingType;
             if (containingType == null)
+            {
+                return;
+            }
+
+            // Serializable types can depend on fields (and their order).  Don't report these
+            // properties in that case.
+            if (containingType.IsSerializable)
             {
                 return;
             }
@@ -200,8 +202,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            var variableDeclarator = fieldReference.GetSyntax(cancellationToken) as TVariableDeclarator;
-            if (variableDeclarator == null)
+            if (!(fieldReference.GetSyntax(cancellationToken) is TVariableDeclarator variableDeclarator))
             {
                 return;
             }
@@ -212,8 +213,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            var fieldDeclaration = variableDeclarator?.Parent?.Parent as TFieldDeclaration;
-            if (fieldDeclaration == null)
+            if (!(variableDeclarator?.Parent?.Parent is TFieldDeclaration fieldDeclaration))
             {
                 return;
             }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Looks like a viable property/field to convert into an auto property.
             analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration,
-                fieldDeclaration, variableDeclarator, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+                fieldDeclaration, variableDeclarator, semanticModel, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
 
         protected virtual bool CanConvert(IPropertySymbol property)
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
             var compilation = semanticModel.Compilation;
 
-            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, compilation, cancellationToken))
+            if (!IsEligibleHeuristic(result.Field, result.PropertyDeclaration, result.SemanticModel, compilation, cancellationToken))
             {
                 return;
             }
@@ -306,20 +306,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(
-                result.FieldDeclaration.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             // Now add diagnostics to both the field and the property saying we can convert it to 
             // an auto property.  For each diagnostic store both location so we can easily retrieve
             // them when performing the code fix.
             var additionalLocations = ImmutableArray.Create(
                 propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, propertyDeclaration.Language);
             if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
@@ -347,7 +340,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected virtual bool IsEligibleHeuristic(
             IFieldSymbol field, TPropertyDeclaration propertyDeclaration,
-            Compilation compilation, CancellationToken cancellationToken)
+            SemanticModel semanticModel, Compilation compilation, CancellationToken cancellationToken)
         {
             return true;
         }
@@ -359,6 +352,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             public readonly TPropertyDeclaration PropertyDeclaration;
             public readonly TFieldDeclaration FieldDeclaration;
             public readonly TVariableDeclarator VariableDeclarator;
+            public readonly SemanticModel SemanticModel;
             public readonly string SymbolEquivalenceKey;
 
             public AnalysisResult(
@@ -367,6 +361,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 TPropertyDeclaration propertyDeclaration,
                 TFieldDeclaration fieldDeclaration,
                 TVariableDeclarator variableDeclarator,
+                SemanticModel semanticModel,
                 string symbolEquivalenceKey)
             {
                 Property = property;
@@ -374,6 +369,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 PropertyDeclaration = propertyDeclaration;
                 FieldDeclaration = fieldDeclaration;
                 VariableDeclarator = variableDeclarator;
+                SemanticModel = semanticModel;
                 SymbolEquivalenceKey = symbolEquivalenceKey;
             }
         }

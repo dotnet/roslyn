@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +11,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -43,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             isEnabledByDefault: true);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerFileWatcherService(
             VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
@@ -60,7 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
             var messageArguments = new string[] { analyzerPath };
-            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out var diagnostic))
+
+            var project = _workspace.CurrentSolution.GetProject(projectId);
+            if (project != null && DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, project, out var diagnostic))
             {
                 _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
             }
@@ -70,8 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             try
             {
-                DateTime creationTimeUtc = File.GetCreationTimeUtc(fullPath);
-                DateTime writeTimeUtc = File.GetLastWriteTimeUtc(fullPath);
+                var creationTimeUtc = File.GetCreationTimeUtc(fullPath);
+                var writeTimeUtc = File.GetLastWriteTimeUtc(fullPath);
 
                 return writeTimeUtc > creationTimeUtc ? writeTimeUtc : creationTimeUtc;
             }
@@ -93,16 +101,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;
-                    tracker.StartFileChangeListeningAsync();
+                    _ = tracker.StartFileChangeListeningAsync();
 
                     _fileChangeTrackers.Add(filePath, tracker);
                 }
 
-                DateTime assemblyUpdatedTime;
-
-                if (_assemblyUpdatedTimesUtc.TryGetValue(filePath, out assemblyUpdatedTime))
+                if (_assemblyUpdatedTimesUtc.TryGetValue(filePath, out var assemblyUpdatedTime))
                 {
-                    DateTime? currentFileUpdateTime = GetLastUpdateTimeUtc(filePath);
+                    var currentFileUpdateTime = GetLastUpdateTimeUtc(filePath);
 
                     if (currentFileUpdateTime != null)
                     {
@@ -124,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // If the file watcher is in place, then nothing further to do. Otherwise we'll add the update time to the map for future checking
                     if (!tracker.PreviousCallToStartFileChangeHasAsynchronouslyCompleted)
                     {
-                        DateTime? currentFileUpdateTime = GetLastUpdateTimeUtc(filePath);
+                        var currentFileUpdateTime = GetLastUpdateTimeUtc(filePath);
 
                         if (currentFileUpdateTime != null)
                         {
@@ -137,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void Tracker_UpdatedOnDisk(object sender, EventArgs e)
         {
-            FileChangeTracker tracker = (FileChangeTracker)sender;
+            var tracker = (FileChangeTracker)sender;
             var filePath = tracker.FilePath;
 
             lock (_guard)

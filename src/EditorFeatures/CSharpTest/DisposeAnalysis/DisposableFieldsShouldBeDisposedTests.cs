@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DisposeAnalysis;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
     public sealed class DisposableFieldsShouldBeDisposedTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(), null);
+            => (new DisposableFieldsShouldBeDisposedDiagnosticAnalyzer(isEnabledByDefault: true), null);
 
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, parseOptions: null, expectedDiagnostics);
@@ -1426,6 +1428,49 @@ class B : IDisposable
     public void Dispose()
     {
         a.Dispose();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DisposableAllocation_FieldDisposedInOverriddenHelper_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+
+class A : IDisposable
+{
+    public void Dispose()
+    {
+    }
+}
+
+class B : IDisposable
+{
+    private readonly object _gate = new object();
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            DisposeUnderLock();
+        }
+    }
+
+    protected virtual void DisposeUnderLock()
+    {
+    }
+}
+
+class C : B
+{
+    // Ensure this field is not flagged
+    [|private readonly A _a = new A();|]
+
+    protected override void DisposeUnderLock()
+    {
+        _a.Dispose();
+        base.DisposeUnderLock();
     }
 }");
         }

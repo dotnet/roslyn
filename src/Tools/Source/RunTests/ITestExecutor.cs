@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using RunTests.Cache;
 using System;
@@ -39,7 +41,7 @@ namespace RunTests
     /// <remarks>
     /// The difference between <see cref="TestResultInfo"/>  and <see cref="TestResult"/> is the former 
     /// is specifically for the actual test execution results while the latter can contain extra metadata
-    /// about the results.  For example whether it was cached, or had diagonstic, output, etc ...
+    /// about the results.  For example whether it was cached, or had diagnostic, output, etc ...
     /// </remarks>
     internal readonly struct TestResultInfo
     {

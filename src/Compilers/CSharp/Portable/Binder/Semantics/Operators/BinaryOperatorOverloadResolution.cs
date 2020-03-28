@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -666,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             kind = kind.OperatorWithLogical();
             var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
-            if (isEquality && UseOnlyReferenceEquality(left, right, ref useSiteDiagnostics))
+            if (isEquality && useOnlyReferenceEquality(Conversions, left, right, ref useSiteDiagnostics))
             {
                 // As a special case, if the reference equality operator is applicable (and it
                 // is not a string or delegate) we do not check any other operators.  This patches
@@ -689,15 +691,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CandidateOperators(operators, left, right, results, ref useSiteDiagnostics);
             operators.Free();
-        }
 
-        private bool UseOnlyReferenceEquality(BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            // We consider the `null` literal, but not the `default` literal, since the latter does not require a reference equality
-            return
-                BuiltInOperators.IsValidObjectEquality(Conversions, left.Type, left.IsLiteralNull(), right.Type, right.IsLiteralNull(), ref useSiteDiagnostics) &&
-                ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
-                ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
+            static bool useOnlyReferenceEquality(Conversions conversions, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            {
+                // We consider the `null` literal, but not the `default` literal, since the latter does not require a reference equality
+                return
+                    BuiltInOperators.IsValidObjectEquality(conversions, left.Type, left.IsLiteralNull(), leftIsDefault: false, right.Type, right.IsLiteralNull(), rightIsDefault: false, ref useSiteDiagnostics) &&
+                    ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
+                    ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
+            }
         }
 
         private void GetReferenceEquality(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)

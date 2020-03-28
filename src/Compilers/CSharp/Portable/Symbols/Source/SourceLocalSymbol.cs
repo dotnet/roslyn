@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -169,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
@@ -381,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
-            Debug.Assert(!(newType.Type is null));
+            Debug.Assert(newType.Type is object);
             TypeSymbol originalType = _type?.Value.DefaultType;
 
             // In the event that we race to set the type of a local, we should
@@ -476,17 +479,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
                 return true;
             }
 
-            var symbol = obj as SourceLocalSymbol;
-            return (object)symbol != null
+            // If we're comparing against a symbol that was wrapped and updated for nullable,
+            // delegate to its handling of equality, rather than our own.
+            if (obj is UpdatedContainingSymbolAndNullableAnnotationLocal updated)
+            {
+                return updated.Equals(this, compareKind);
+            }
+
+            return obj is SourceLocalSymbol symbol
                 && symbol._identifierToken.Equals(_identifierToken)
-                && Equals(symbol._containingSymbol, _containingSymbol);
+                && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
         public sealed override int GetHashCode()
@@ -734,6 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                    nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
                     nodeToBind is ExpressionSyntax);
                 Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
@@ -774,6 +784,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arm = (SwitchExpressionArmSyntax)_nodeToBind;
                         var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
                         armBinder.BindSwitchExpressionArm(arm, diagnostics);
+                        break;
+                    case SyntaxKind.GotoCaseStatement:
+                        _nodeBinder.BindStatement((GotoStatementSyntax)_nodeToBind, diagnostics);
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

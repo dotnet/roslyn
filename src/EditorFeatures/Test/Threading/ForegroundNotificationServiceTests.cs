@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -52,24 +54,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public async Task Test_Cancellation()
         {
-            using (var waitEvent = new AutoResetEvent(initialState: false))
-            {
-                var asyncToken = EmptyAsyncToken.Instance;
-                var ran = false;
+            using var waitEvent = new AutoResetEvent(initialState: false);
+            var asyncToken = EmptyAsyncToken.Instance;
+            var ran = false;
 
-                var source = new CancellationTokenSource();
-                source.Cancel();
+            var source = new CancellationTokenSource();
+            source.Cancel();
 
-                Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
-                Service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
-                Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
+            Service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
+            Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
-                waitEvent.Set();
-                await PumpWait();
+            waitEvent.Set();
+            await PumpWait();
 
-                Assert.False(ran);
-                Assert.True(Service.IsEmpty_TestOnly);
-            }
+            Assert.False(ran);
+            Assert.True(Service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             var asyncToken = EmptyAsyncToken.Instance;
 
-            int startMilliseconds = Environment.TickCount;
+            var startMilliseconds = Environment.TickCount;
             int? elapsedMilliseconds = null;
 
             Service.RegisterNotification(() =>
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     Service.RegisterNotification(() =>
                     {
-                        for (int j = 0; j < 100; j++)
+                        for (var j = 0; j < 100; j++)
                         {
                             count++;
                         }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             await PumpWait().ConfigureAwait(false);
             Assert.True(_done);
-            Assert.Equal(count, 9000000);
+            Assert.Equal(9000000, count);
             Assert.True(Service.IsEmpty_TestOnly);
         }
 

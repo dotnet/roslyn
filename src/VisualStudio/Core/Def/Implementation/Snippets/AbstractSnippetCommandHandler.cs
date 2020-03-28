@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -238,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
-            Document document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
@@ -259,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Find the snippet shortcut
             while (startPosition > 0)
             {
-                char c = currentText[startPosition - 1];
+                var c = currentText[startPosition - 1];
                 if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
                 {
                     break;

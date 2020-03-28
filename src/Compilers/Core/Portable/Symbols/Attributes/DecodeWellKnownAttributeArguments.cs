@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// Object to store the decoded data from bound well-known attributes.
         /// Created lazily only when some decoded data needs to be stored, null otherwise.
         /// </summary>
-        private WellKnownAttributeData _lazyDecodeData;
+        private WellKnownAttributeData? _lazyDecodeData;
 
         /// <summary>
         /// Gets or creates the decoded data object.
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(this.HasDecodedData);
-                return _lazyDecodeData;
+                return _lazyDecodeData!;
             }
         }
 
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// Syntax of the attribute to decode. Might be null when the attribute information is not coming 
         /// from syntax. For example, an assembly attribute propagated from added module to the resulting assembly.
         /// </summary>
-        public TAttributeSyntax AttributeSyntaxOpt { get; set; }
+        public TAttributeSyntax? AttributeSyntaxOpt { get; set; }
 
         /// <summary>
         /// Bound attribute to decode.

@@ -29,24 +29,26 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
 - https://github.com/dotnet/roslyn/issues/21582 In C# 7.1, when the default literal was introduced, it was accepted on the left-hand-side of a null-coalescing operator. For instance, in `default ?? 1`. In C# 7.2, this compiler bug was fixed to match the specification, and an error is produced instead ("Operator '??' cannot be applied to operand 'default'").
 
 - https://github.com/dotnet/roslyn/issues/21979 In C# 7.1 and previous, the compiler permitted converting a method group, in which the receiver is of type `System.TypedReference`, to a delegate type. Such code would throw `System.InvalidProgramException` at runtime. In C# 7.2 this is a compile-time error. For example, the line with the comment, below, would cause the compiler to report an error:
-``` c#
-static Func<int> M(__arglist)
-{
-    ArgIterator ai = new ArgIterator(__arglist);
-    while (ai.GetRemainingCount() > 0)
-    {
-        TypedReference tr = ai.GetNextArg();
-        return tr.GetHashCode; // delegate conversion causes a subsequent System.InvalidProgramException
-    }
 
-    return null;
-}
-```
+    ``` c#
+    static Func<int> M(__arglist)
+    {
+        ArgIterator ai = new ArgIterator(__arglist);
+        while (ai.GetRemainingCount() > 0)
+        {
+            TypedReference tr = ai.GetNextArg();
+            return tr.GetHashCode; // delegate conversion causes a subsequent System.InvalidProgramException
+        }
+
+        return null;
+    }
+    ```
 
 - https://github.com/dotnet/roslyn/issues/21485 In Roslyn 2.0, the `unsafe` modifier could be used on a local function without using the `/unsafe` flag on the compilation. In Roslyn 2.6 (Visual Studio 2017 verion 15.5) the compiler requires the `/unsafe` compilation flag, and produces a diagnostic if the flag is not used.
 
 - https://github.com/dotnet/roslyn/issues/20210 In C# 7.2, there are some uses of the new pattern switch construct, in which the switch expression is a constant, for which the compiler will produce warnings or errors not previously produced.
-``` c#
+
+    ``` c#
     switch (default(object))
     {
       case bool _:
@@ -62,13 +64,14 @@ static Func<int> M(__arglist)
       default:
         break; // new warning: unreachable code
     }
-```
+    ```
 
 - https://github.com/dotnet/roslyn/issues/20103 In C# 7.2, when testing a constant null expression against a declaration pattern in which the type is not inferred, the compiler will now warn that the expression is never of the provided type.
-``` c#
-const object o = null;
-if (o is object res) { // warning CS0184: The given expression is never of the provided ('object') type
-```
+
+    ``` c#
+    const object o = null;
+    if (o is object res) { // warning CS0184: The given expression is never of the provided ('object') type
+    ```
 
 - https://github.com/dotnet/roslyn/issues/22578 In C# 7.1, the compiler would compute the wrong default value for an optional parameter of nullable type declared with the default literal. For instance, `void M(int? x = default)` would use `0` for the default parameter value, instead of `null`. In C# 7.2 (Visual Studio 2017 version 15.5), the proper default parameter value (`null`) is computed in such cases.
 
@@ -81,6 +84,7 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
 - https://github.com/dotnet/roslyn/pull/24023 In Visual Studio 2017 version 15.6, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax constructor and Update(), the parameter refOrOutKeyword was renamed to refKindKeyword (source breaking change if you're using named arguments).
 
 - Visual Studio 2017 15.0-15.5 shipped with a bug around definite assignment of local functions that did not produce definite assignment errors when an uncalled local function contains a nested lambda which captures a variable. For example:
+
     ```csharp
     void Method()
     {
@@ -94,6 +98,7 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
         }
     }
     ```
+
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
@@ -104,21 +109,22 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
 For example `(x + 0)` becomes `x`. If such change happens in a context that allows both RValues and passing via direct reference (receiver of a struct call or an `in` parameter), then it could change the meaning of the code.
 C# 7.3 will preserve the behavior of the rvalue where the value must always be passed via a copy.
 Example:
-   ```C#
-   static int x = 123;
-   static string Test1()
-   {
-       // cannot replace value of "x + 0" with a reference to "x"
-       // since that would make the method see the mutations in M1();
-       return (x + 0).ToString(M1());
-   }
 
-   static string M1()
-   {
-       x = 42;
-       return "";
-   }
-   	```
+    ```C#
+    static int x = 123;
+    static string Test1()
+    {
+        // cannot replace value of "x + 0" with a reference to "x"
+        // since that would make the method see the mutations in M1();
+        return (x + 0).ToString(M1());
+    }
+
+    static string M1()
+    {
+        x = 42;
+        return "";
+    }
+    ```
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25450 We added new restrictions on the use of the `default` expression in preparation for the planned addition of further pattern-matching features in C# 8.0:
   - If you write `e is default`, you will get the new error

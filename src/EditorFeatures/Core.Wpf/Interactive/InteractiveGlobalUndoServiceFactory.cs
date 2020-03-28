@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly GlobalUndoService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveGlobalUndoServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _singleton = new GlobalUndoService(undoHistoryRegistry);
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                     throw new ArgumentException(EditorFeaturesResources.Given_Workspace_doesn_t_support_Undo);
                 }
 
-                ITextUndoHistory textUndoHistory = GetHistory(workspace);
+                var textUndoHistory = GetHistory(workspace);
 
                 var transaction = textUndoHistory.CreateTransaction(description);
 
@@ -64,9 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 var interactiveWorkspace = (InteractiveWorkspace)workspace;
                 var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
-                ITextUndoHistory textUndoHistory;
 
-                Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out textUndoHistory));
+                Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));
 
                 return textUndoHistory;
             }

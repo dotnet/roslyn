@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         protected readonly Compilation _compilation;
         protected readonly IOperation _root;
         protected readonly StringBuilder _builder;
-        private readonly Dictionary<SyntaxNode, IOperation> _explictNodeMap;
+        private readonly Dictionary<SyntaxNode, IOperation> _explicitNodeMap;
         private readonly Dictionary<ILabelSymbol, uint> _labelIdMap;
 
         private const string indent = "  ";
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _currentIndent = new string(' ', initialIndent);
             _pendingIndent = true;
 
-            _explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            _explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 try
                 {
-                    _explictNodeMap.Add(operation.Syntax, operation);
+                    _explicitNodeMap.Add(operation.Syntax, operation);
                 }
                 catch (ArgumentException)
                 {
@@ -457,6 +459,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitVariableDeclarationGroup(operation);
         }
 
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            LogString($"{nameof(IUsingDeclarationOperation)}");
+            LogString($"(IsAsynchronous: {operation.IsAsynchronous})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.DeclarationGroup, "DeclarationGroup");
+        }
+
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
         {
             LogString($"{nameof(IVariableDeclaratorOperation)} (");
@@ -600,6 +611,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var propertyStringBuilder = new StringBuilder();
             propertyStringBuilder.Append(" (");
             propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
+            if (operation is IForEachLoopOperation { IsAsynchronous: true })
+            {
+                propertyStringBuilder.Append($", IsAsynchronous");
+            }
             propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
             propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
             if (isChecked.GetValueOrDefault())
@@ -709,6 +724,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUsing(IUsingOperation operation)
         {
             LogString(nameof(IUsingOperation));
+            if (operation.IsAsynchronous)
+            {
+                LogString($" (IsAsynchronous)");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             LogLocals(operation.Locals);
@@ -1137,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogNewLine();
                 Indent();
-                LogString($"({((BaseConversionOperation)operation).ConvertibleConversion})");
+                LogString($"({((BaseConversionOperation)operation).ConversionConvertible})");
                 Unindent();
             }
 
@@ -1173,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogConversion(operation.ValueConversion, "ValueConversion");
             LogNewLine();
             Indent();
-            LogString($"({((BaseCoalesceOperation)operation).ConvertibleValueConversion})");
+            LogString($"({((BaseCoalesceOperation)operation).ValueConversionConvertible})");
             Unindent();
             LogNewLine();
             Unindent();
@@ -1766,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
-        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
             LogPatternProperties(operation);
@@ -1780,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true);
         }
 
-        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        public override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
             LogString(nameof(IPropertySubpatternOperation));
             LogCommonProperties(operation);

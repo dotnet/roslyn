@@ -1,2 +1,1 @@
-Microsoft.CodeAnalysis.CSharp.Scripting.ScriptOptionsExtensions
-static Microsoft.CodeAnalysis.CSharp.Scripting.ScriptOptionsExtensions.WithLanguageVersion(this Microsoft.CodeAnalysis.Scripting.ScriptOptions options, Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+

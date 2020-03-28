@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -21,8 +24,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
@@ -32,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -113,8 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
-                if (liveArgsId == null)
+                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
                 {
                     return GetItemKey(data);
                 }
@@ -291,13 +291,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLinkToolTip(data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(item.Workspace, data);
+                            content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -334,8 +334,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var guids = item.ProjectGuids;
                             content = guids;
                             return guids.Length > 0;
-                        case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
+                        case StandardTableKeyNames.SuppressionState:
+                            content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
                             return true;
                         default:
                             content = null;
@@ -430,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Data;
                     if (item == null)
                     {
-                        expandedContent = default;
+                        expandedContent = null;
                         return false;
                     }
 
@@ -443,13 +443,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Data;
                     if (item == null)
                     {
-                        content = default;
+                        content = null;
                         return false;
                     }
 
                     if (string.IsNullOrWhiteSpace(item.Description))
                     {
-                        content = default;
+                        content = null;
                         return false;
                     }
 
@@ -487,7 +487,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 
@@ -499,20 +499,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 
                 public bool TryCreateToolTip(int index, string columnName, out object toolTip)
                 {
-                    toolTip = default;
+                    toolTip = null;
                     return false;
                 }
 
                 // remove this once we moved to new drop
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 

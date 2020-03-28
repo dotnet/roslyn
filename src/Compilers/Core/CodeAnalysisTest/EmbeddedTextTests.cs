@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +80,7 @@ class Program
         {
             var text = EmbeddedText.FromBytes("pathToEmpty", new ArraySegment<byte>(new byte[0], 0, 0), SourceHashAlgorithm.Sha1);
             Assert.Equal("pathToEmpty", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1), text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob);
         }
@@ -90,7 +92,7 @@ class Program
             var checksum = SourceText.CalculateChecksum(new byte[0], 0, 0, SourceHashAlgorithm.Sha1);
 
             Assert.Equal("pathToEmpty", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(checksum, text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob);
         }
@@ -116,7 +118,7 @@ class Program
             var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(bytes, 0, bytes.Length));
 
             Assert.Equal("pathToSmall", text.FilePath);
-            Assert.Equal(text.ChecksumAlgorithm, SourceHashAlgorithm.Sha1);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
             AssertEx.Equal(checksum, text.Checksum);
             AssertEx.Equal(new byte[] { 0, 0, 0, 0 }, text.Blob.Take(4));
             AssertEx.Equal(bytes, text.Blob.Skip(4));

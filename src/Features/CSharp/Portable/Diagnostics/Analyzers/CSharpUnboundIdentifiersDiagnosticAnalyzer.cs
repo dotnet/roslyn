@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             .WhereAsArray(constructor => constructor.Parameters.Length == args.Count)
             .WhereAsArray(constructor =>
             {
-                for (int i = 0; i < constructor.Parameters.Length; i++)
+                for (var i = 0; i < constructor.Parameters.Length; i++)
                 {
                     var typeInfo = model.GetTypeInfo(args[i].Expression);
                     if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))

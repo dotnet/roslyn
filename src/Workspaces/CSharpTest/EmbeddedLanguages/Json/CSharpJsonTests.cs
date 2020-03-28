@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private (SyntaxToken, JsonTree, ImmutableArray<VirtualChar>) JustParseTree(
+        private (SyntaxToken, JsonTree, VirtualCharSequence) JustParseTree(
             string stringText, bool strict, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         private string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
-        { 
+        {
             if (diagnostics.IsEmpty)
             {
                 return "";
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString().Replace("\f", "\\f"));
 
-        private void CheckInvariants(JsonTree tree, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(JsonTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(JsonNode node, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(JsonNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
@@ -271,14 +273,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private void CheckInvariants(JsonToken token, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(JsonToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
             CheckInvariants(token.TrailingTrivia, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -286,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
         }
 
-        private void CheckInvariants(JsonTrivia trivia, ref int position, ImmutableArray<VirtualChar> allChars)
+        private void CheckInvariants(JsonTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             CheckCharacters(trivia.VirtualChars, ref position, allChars);
         }
 
-        private static void CheckCharacters(ImmutableArray<VirtualChar> virtualChars, ref int position, ImmutableArray<VirtualChar> allChars)
+        private static void CheckCharacters(VirtualCharSequence virtualChars, ref int position, VirtualCharSequence allChars)
         {
             for (var i = 0; i < virtualChars.Length; i++)
             {

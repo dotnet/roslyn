@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -32,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
         {
-            var interactiveWorkspace = workspace as InteractiveWorkspace;
-            if (interactiveWorkspace == null)
+            if (!(workspace is InteractiveWorkspace interactiveWorkspace))
             {
                 Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
                 return false;
@@ -51,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
             var virtualSnapshotSpan = new VirtualSnapshotSpan(snapshotSpan);
 
-            VirtualSnapshotSpan surfaceBufferSpan;
-            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out surfaceBufferSpan))
+            if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out var surfaceBufferSpan))
             {
                 return false;
             }

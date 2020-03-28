@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType = VisitType(node.Type);
 
             return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
+        }
+
+        public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+        {
+            var result = base.VisitTypeExpression(node);
+            Debug.Assert(result is { });
+            return result;
         }
 
         private BoundExpression MakeAsOperator(

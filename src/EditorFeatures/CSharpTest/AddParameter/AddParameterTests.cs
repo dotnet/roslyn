@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -2547,6 +2549,43 @@ class Rsrp
 }
 ";
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(39270, "https://github.com/dotnet/roslyn/issues/39270")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestWithArgThatHasImplicitConversionToParamType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        [|MyFunc|](param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1) { }
+}",
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        MyFunc(param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1, int newparam) { }
+}");
         }
     }
 }

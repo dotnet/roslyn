@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -555,20 +557,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Doesn't even exist.
                 case ConversionKind.NoConversion:
 
-                // Specifically disallowed because there would be subtle
-                // consequences for the overload betterness rules.
+                // These are conversions from expression and do not apply.
+                // Specifically disallowed because there would be subtle consequences for the overload betterness rules.
+                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.InterpolatedString:
-
-                // DELIBERATE SPEC VIOLATION: 
-                // We do not support an encompassing implicit conversion from a zero constant
-                // to an enum type, because the native compiler did not.  It would be a breaking
-                // change.
+                case ConversionKind.SwitchExpression:
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
 
-                // Not built in.
+                // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
 
@@ -583,13 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.IntPtr:
-
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
-
-                // Because of target-typing, stackalloc conversions are handled separately
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
                     return false;
 
                 // Spec'd in C# 4.
@@ -602,13 +597,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
-                case ConversionKind.DefaultOrNullLiteral: // updated to include "default" in C# 7.1
+                case ConversionKind.NullLiteral:
                 case ConversionKind.NullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitThrow:
+
+                // Added for C# 7.1
+                case ConversionKind.DefaultLiteral:
                     return true;
 
                 default:

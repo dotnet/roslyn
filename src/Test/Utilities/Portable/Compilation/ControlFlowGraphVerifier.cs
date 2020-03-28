@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1091,6 +1093,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+
+                                case CSharp.SyntaxKind.CoalesceAssignmentExpression:
+                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 
@@ -1805,6 +1814,7 @@ endRegion:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:
+                case OperationKind.PropertySubpattern:
                     return true;
             }
 

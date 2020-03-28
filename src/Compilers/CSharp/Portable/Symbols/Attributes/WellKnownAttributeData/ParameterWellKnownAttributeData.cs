@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -103,34 +108,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool _hasAssertsTrueAttribute;
-        public bool HasAssertsTrueAttribute
+        private bool? _doesNotReturnIfAttribute;
+        public bool? DoesNotReturnIfAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasAssertsTrueAttribute;
+                return _doesNotReturnIfAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasAssertsTrueAttribute = value;
-                SetDataStored();
-            }
-        }
-
-        private bool _hasAssertsFalseAttribute;
-        public bool HasAssertsFalseAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasAssertsFalseAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasAssertsFalseAttribute = value;
+                _doesNotReturnIfAttribute = value;
                 SetDataStored();
             }
         }
@@ -149,6 +138,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _hasEnumeratorCancellationAttribute = value;
                 SetDataStored();
             }
+        }
+
+        private ImmutableHashSet<string> _notNullIfParameterNotNull = ImmutableHashSet<string>.Empty;
+        public ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _notNullIfParameterNotNull;
+            }
+        }
+        public void AddNotNullIfParameterNotNull(string parameterName)
+        {
+            VerifySealed(expected: false);
+            // The common case is zero or one attribute
+            _notNullIfParameterNotNull = _notNullIfParameterNotNull.Add(parameterName);
+            SetDataStored();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -43,6 +45,34 @@ class C
         return base.ToString();
     }
 }", new[] { "Equals", "GetHashCode", "ToString" });
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestAtEndOfFile()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class C[||]",
+@"
+class C
+{
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
+}
+", new[] { "Equals", "GetHashCode", "ToString" });
         }
 
         [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]

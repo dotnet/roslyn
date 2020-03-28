@@ -2,7 +2,7 @@
   "profiles": {
     "IDE Analyzers": {
       "commandName": "Project",
-      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats"
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats /compilerStats"
     },
     "CSharpEditorFeatures Analyzers": {
       "commandName": "Project",
@@ -27,6 +27,18 @@
     "Profile CSharpSimplifyTypeNamesDiagnosticAnalyzer": {
       "commandName": "Project",
       "commandLineArgs": "$(OutDir)Microsoft.CodeAnalysis.CSharp.Features.dll $(SolutionDir)..\\Orchard\\src\\Orchard.sln /stats /a CSharpSimplifyTypeNamesDiagnosticAnalyzer /editperf:ContentQueryExtensions /edititer:300"
+    },
+    "Profile RemoveUnnecessaryCastDiagnosticAnalyzerBase": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats /a CSharpRemoveUnnecessaryCastDiagnosticAnalyzer /a VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer"
+    },
+    "Profile FormattingDiagnosticAnalyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /a FormattingDiagnosticAnalyzer"
+    },
+    "IIncrementalAnalyzer SyntaxTreeInfoIncrementalAnalyzerProvider": {
+      "commandName": "Project",
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /stats /ia SyntaxTreeInfoIncrementalAnalyzerProvider /persist /profileroot $(SolutionDir)artifacts\\profileRoot"
     },
     "IIncrementalAnalyzer SymbolTreeInfoIncrementalAnalyzerProvider": {
       "commandName": "Project",

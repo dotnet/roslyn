@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,14 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
@@ -97,12 +95,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private TArgumentSyntax TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
-            if (this.TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
+            if (TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }
 
-            if (this.CannotConvertDiagnosticIds.Contains(diagnostic.Id))
+            if (CannotConvertDiagnosticIds.Contains(diagnostic.Id))
             {
                 return null;
             }
@@ -234,7 +232,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                var builder = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -263,12 +261,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(codeAction);
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                var builder = ArrayBuilder<CodeAction>.GetInstance(2);
+                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
                 var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
                 {
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 
@@ -307,7 +305,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            var builder = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length);
+            using var builderDisposer = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -329,7 +327,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 builder.Add(codeFixData);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
@@ -423,6 +421,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             TArgumentSyntax argumentOpt)
         {
+            var compilation = semanticModel.Compilation;
             var methodParameterNames = new HashSet<string>(comparer);
             methodParameterNames.AddRange(method.Parameters.Select(p => p.Name));
 
@@ -479,9 +478,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
+                    if (!TypeInfoMatchesType(
+                            compilation, argumentTypeInfo, parameter.Type,
+                            isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
+                        if (TypeInfoMatchesWithParamsExpansion(
+                                compilation, argumentTypeInfo, parameter,
+                                isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -498,12 +501,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesWithParamsExpansion(
-            TypeInfo argumentTypeInfo, IParameterSymbol parameter,
+            Compilation compilation, TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
+                if (TypeInfoMatchesType(
+                        compilation, argumentTypeInfo, arrayType.ElementType,
+                        isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -513,30 +518,33 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesType(
-            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            Compilation compilation, TypeInfo argumentTypeInfo, ITypeSymbol parameterType,
             bool isNullLiteral, bool isDefaultLiteral)
         {
-            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
-            {
+            if (parameterType.Equals(argumentTypeInfo.Type) || parameterType.Equals(argumentTypeInfo.ConvertedType))
                 return true;
-            }
 
             if (isDefaultLiteral)
-            {
                 return true;
-            }
 
             if (isNullLiteral)
-            {
-                return type.IsReferenceType || type.IsNullable();
-            }
+                return parameterType.IsReferenceType || parameterType.IsNullable();
 
             // Overload resolution couldn't resolve the actual type of the type parameter. We assume
             // that the type parameter can be the argument's type (ignoring any type parameter constraints).
-            if (type.Kind == SymbolKind.TypeParameter)
-            {
+            if (parameterType.Kind == SymbolKind.TypeParameter)
                 return true;
-            }
+
+            // If there's an implicit conversion from the arg type to the param type then 
+            // count this as a match.  This happens commonly with cases like:
+            //
+            //  `Goo(derivedType)`
+            //  `void Goo(BaseType baseType)`.  
+            //
+            // We want this simple case to match.
+            var conversion = compilation.ClassifyCommonConversion(argumentTypeInfo.Type, parameterType);
+            if (conversion.IsImplicit)
+                return true;
 
             return false;
         }

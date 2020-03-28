@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -408,8 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static SourceText WithReplaceFirst(SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
-            int length = oldText.Length;
+            var offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
+            var length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
             return SourceText.From(newFullText);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -67,34 +69,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private static RegexKind GetKind(char ch)
-        {
-            switch (ch)
+            => ch switch
             {
-                case '|': return RegexKind.BarToken;
-                case '*': return RegexKind.AsteriskToken;
-                case '+': return RegexKind.PlusToken;
-                case '?': return RegexKind.QuestionToken;
-                case '{': return RegexKind.OpenBraceToken;
-                case '}': return RegexKind.CloseBraceToken;
-                case '\\': return RegexKind.BackslashToken;
-                case '[': return RegexKind.OpenBracketToken;
-                case ']': return RegexKind.CloseBracketToken;
-                case '.': return RegexKind.DotToken;
-                case '^': return RegexKind.CaretToken;
-                case '$': return RegexKind.DollarToken;
-                case '(': return RegexKind.OpenParenToken;
-                case ')': return RegexKind.CloseParenToken;
-                case ',': return RegexKind.CommaToken;
-                case ':': return RegexKind.ColonToken;
-                case '=': return RegexKind.EqualsToken;
-                case '!': return RegexKind.ExclamationToken;
-                case '<': return RegexKind.LessThanToken;
-                case '>': return RegexKind.GreaterThanToken;
-                case '-': return RegexKind.MinusToken;
-                case '\'': return RegexKind.SingleQuoteToken;
-                default: return RegexKind.TextToken;
-            }
-        }
+                '|' => RegexKind.BarToken,
+                '*' => RegexKind.AsteriskToken,
+                '+' => RegexKind.PlusToken,
+                '?' => RegexKind.QuestionToken,
+                '{' => RegexKind.OpenBraceToken,
+                '}' => RegexKind.CloseBraceToken,
+                '\\' => RegexKind.BackslashToken,
+                '[' => RegexKind.OpenBracketToken,
+                ']' => RegexKind.CloseBracketToken,
+                '.' => RegexKind.DotToken,
+                '^' => RegexKind.CaretToken,
+                '$' => RegexKind.DollarToken,
+                '(' => RegexKind.OpenParenToken,
+                ')' => RegexKind.CloseParenToken,
+                ',' => RegexKind.CommaToken,
+                ':' => RegexKind.ColonToken,
+                '=' => RegexKind.EqualsToken,
+                '!' => RegexKind.ExclamationToken,
+                '<' => RegexKind.LessThanToken,
+                '>' => RegexKind.GreaterThanToken,
+                '-' => RegexKind.MinusToken,
+                '\'' => RegexKind.SingleQuoteToken,
+                _ => RegexKind.TextToken,
+            };
 
         private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
         {
@@ -104,8 +104,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var result = ArrayBuilder<RegexTrivia>.GetInstance();
-
-            var start = Position;
 
             while (Position < Text.Length)
             {
@@ -347,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return start == Position
-                ? default(RegexToken?)
+                ? (RegexToken?)null
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(Text[beforeSlash].Char == '\\');
             Debug.Assert(Text[beforeSlash + 1].Char == 'x' || Text[beforeSlash + 1].Char == 'u');
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (Position < Text.Length && IsHexChar(this.CurrentChar))
                 {
@@ -426,9 +424,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(IsOctalDigit(Text[start].Char));
 
             const int maxChars = 3;
-            int currentVal = 0;
+            var currentVal = 0;
 
-            for (int i = 0; i < maxChars; i++)
+            for (var i = 0; i < maxChars; i++)
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {

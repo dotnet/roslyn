@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -153,6 +155,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
+        protected FileSet GetNetCoreMultiTFMFiles_ExtensionWithConditionOnTFM()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ExtensionWithConditionOnTFM_Project),
+                (@"obj\Project.csproj.test.props", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ExtensionWithConditionOnTFM_ProjectTestProps));
+        }
+
         protected FileSet GetNetCoreMultiTFMFiles_ProjectReference()
         {
             return new FileSet(
@@ -235,8 +247,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.CSharpProject),
                 (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
-                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateProjectReference),
-                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole));
+                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateReferences),
+                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole),
+                (@"CSharpProject\EmptyLibrary.dll", Resources.Dlls.EmptyLibrary));
         }
 
         protected FileSet GetAnalyzerReferenceSolutionFiles()

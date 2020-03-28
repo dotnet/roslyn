@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -8,9 +10,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 {
     public class RegexPatternDetectorTests
     {
-        private void Match(string value, RegexOptions? expectedOptions = null)
+        private void Match(string value, RegexOptions? expectedOptions = null, string prefix = "//")
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
+            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.True(matched);
 
             if (expectedOptions != null)
@@ -19,9 +21,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
             }
         }
 
-        private void NoMatch(string value)
+        private void NoMatch(string value, string prefix = "//")
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
+            var (matched, _) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.False(matched);
         }
 
@@ -29,6 +31,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
         public void TestSimpleForm()
         {
             Match("lang=regex");
+        }
+
+        [Fact]
+        public void TestSimpleFormVB()
+        {
+            Match("' lang=regex", prefix: "");
+        }
+
+        [Fact]
+        public void TestSimpleFormCSharpMultiLine()
+        {
+            Match("/* lang=regex", prefix: "");
         }
 
         [Fact]
@@ -94,13 +108,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
         [Fact]
         public void TestWithNoNWordBeforeStart1()
         {
-            Match(":lang=regex");
+            NoMatch(":lang=regex");
         }
 
         [Fact]
         public void TestWithNoNWordBeforeStart2()
         {
-            Match(": lang=regex");
+            NoMatch(": lang=regex");
         }
 
         [Fact]
@@ -149,6 +163,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
         public void TestInvalidOption2()
         {
             NoMatch("lang=regex,ecmascript,ignore");
+        }
+
+        [Fact]
+        public void TestNotOnDocComment()
+        {
+            NoMatch("/// lang=regex,ignore", prefix: "");
         }
     }
 }

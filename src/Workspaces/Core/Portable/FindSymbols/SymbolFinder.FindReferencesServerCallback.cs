@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -9,12 +11,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-
         /// <summary>
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        private class FindReferencesServerCallback
+        internal sealed class FindReferencesServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
@@ -34,9 +35,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken = cancellationToken;
             }
 
+            public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
+            public Task ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
+
             public Task OnStartedAsync() => _progress.OnStartedAsync();
             public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
 
             public Task OnFindInDocumentStartedAsync(DocumentId documentId)
             {

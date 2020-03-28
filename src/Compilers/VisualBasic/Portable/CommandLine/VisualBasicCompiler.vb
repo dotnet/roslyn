@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -239,9 +241,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
                 ElseIf v = latestVersion Then
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
-                ElseIf v = LanguageVersion.VisualBasic16 Then
-                    ' https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move VB 16 out of beta
-                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*")
                 Else
                     consoleOutput.WriteLine(v.ToDisplayString())
                 End If

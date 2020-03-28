@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -7,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 {
@@ -21,36 +22,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
     /// Or:
     ///     var x = await GetAsync().ConfigureAwait(false);
     /// </summary>
-    internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax> : CodeRefactoringProvider
-        where TExpressionSyntax : SyntaxNode
-        where TInvocationExpressionSyntax : TExpressionSyntax
+    internal abstract class AbstractAddAwaitCodeRefactoringProvider<TInvocationExpressionSyntax> : CodeRefactoringProvider
+        where TInvocationExpressionSyntax : SyntaxNode
     {
         protected abstract string GetTitle();
         protected abstract string GetTitleWithConfigureAwait();
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            if (!textSpan.IsEmpty)
-            {
-                return;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
+            var (document, _, cancellationToken) = context;
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
-            if (awaitable == null)
-            {
-                return;
-            }
 
-            if (awaitable.OverlapsHiddenPosition(cancellationToken))
+            var awaitable = await context.TryGetRelevantNodeAsync<TInvocationExpressionSyntax>().ConfigureAwait(false);
+            if (awaitable == null || !IsValidAwaitableExpression(awaitable, model, syntaxFacts))
             {
                 return;
             }
@@ -58,50 +44,46 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)));
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
+                awaitable.Span);
 
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)),
+                awaitable.Span);
         }
 
-        private TExpressionSyntax GetAwaitableExpression(TextSpan textSpan, SyntaxToken token, SemanticModel model, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        private bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
-            var invocation = token.GetAncestor<TInvocationExpressionSyntax>();
-            if (invocation is null)
-            {
-                return null;
-            }
-
             if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
             {
                 // Do not offer fix on `MethodAsync()$$.ConfigureAwait()`
                 // Do offer fix on `MethodAsync()$$.Invalid()`
                 if (!model.GetTypeInfo(invocation.Parent.Parent).Type.IsErrorType())
                 {
-                    return null;
+                    return false;
                 }
             }
 
             if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))
             {
-                return null;
+                return false;
             }
 
             var type = model.GetTypeInfo(invocation).Type;
-            if (type?.IsAwaitableNonDynamic(model, token.SpanStart) == true)
+            if (type?.IsAwaitableNonDynamic(model, invocation.SpanStart) == true)
             {
-                return invocation;
+                return true;
             }
 
-            return null;
+            return false;
         }
 
         private async Task<Document> AddAwaitAsync(
             Document document,
-            TExpressionSyntax invocation,
+            TInvocationExpressionSyntax invocation,
             bool withConfigureAwait,
             CancellationToken cancellationToken)
         {
@@ -110,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             if (withConfigureAwait)
             {
                 withoutTrivia = syntaxGenerator.InvocationExpression(
-                    syntaxGenerator.MemberAccessExpression(withoutTrivia, "ConfigureAwait"),
+                    syntaxGenerator.MemberAccessExpression(withoutTrivia, nameof(Task.ConfigureAwait)),
                     syntaxGenerator.FalseLiteralExpression());
             }
 
@@ -123,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

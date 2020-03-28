@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -65,6 +67,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             case 3:
                 M(i);
                 break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnSubsequentBlock()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3) return 0;
+        { if (i == 6) return 1; }
+        return 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_01()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3) return 0;
+        else { if (i == 6) return 1; }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestElseBlock_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 3)
+        {
+            return 0;
+        }
+        else
+        {
+            if (i == 6) return 1;
+            if (i == 7) return 1;
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                return 0;
+            case 6:
+                return 1;
+            case 7:
+                return 1;
+            default:
+                return 0;
         }
     }
 }");
@@ -380,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestPreserveTrivia()
+        public async Task TestComplexExpression_01()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -405,8 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (o)
         {
-            case string s when s.Length > 5 &&
-                                 s.Length < 10:
+            case string s when s.Length > 5 && s.Length < 10:
                 M(o: 0);
                 break;
             case int i:
@@ -562,10 +644,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return 5;
             case 0:
                 return 6;
+            default:
+                return 7;
         }
-        return 7;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSwitchExpression_01()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) return 5;
+        if (i == 0) return 6;
+        return 7;
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        return i switch
+        {
+            null => 5,
+            0 => 6,
+            _ => 7
+        };
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSwitchExpression_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) { return 5; }
+        if (i == 0) { return 6; }
+        else { return 7; }
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        return i switch
+        {
+            null => 5,
+            0 => 6,
+            _ => 7
+        };
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -679,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [||]if (i == 10) return 5;
         if (i == 20) return 6;
         if (i == i) return 0;
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -694,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return 6;
         }
         if (i == i) return 0;
-        reuturn 7;
+        return 7;
     }
 }");
         }
@@ -719,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -737,7 +874,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }");
         }
@@ -771,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }",
 @"class C
@@ -798,7 +935,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             return 0;
         }
-        reuturn 7;
+        return 7;
     }
 }");
         }
@@ -810,7 +947,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int M(int i)
+    int M(int x, int z)
     {
 #if TRUE
         Console.WriteLine();
@@ -828,7 +965,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }",
 @"class C
 {
-    int M(int i)
+    int M(int x, int z)
     {
 #if TRUE
         Console.WriteLine();
@@ -854,7 +991,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int M(int i)
+    int M(int i, string[] args)
     {
         [||]if (/* t0 */args.Length /* t1*/ == /* t2 */ 2)
             return /* t3 */ 0 /* t4 */; /* t5 */
@@ -864,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 }",
 @"class C
 {
-    int M(int i)
+    int M(int i, string[] args)
     {
         switch (/* t0 */args.Length /* t1*/ )
         {
@@ -958,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -988,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3:
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1018,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1078,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1108,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3:
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1138,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1258,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3:
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1288,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1318,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3:
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
@@ -1348,10 +1485,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3):
+            case 1 when i == 2 && i == 3:
                 return;
             case 10:
                 return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(37035, "https://github.com/dotnet/roslyn/issues/37035")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComplexExpression_02()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string text &&
+            int.TryParse(text, out var n) &&
+            n < 5 && n > -5)
+        {
+        }
+        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string text when int.TryParse(text, out var n) && n < 5 && n > -5:
+                break;
+            default:
+                break;
         }
     }
 }");

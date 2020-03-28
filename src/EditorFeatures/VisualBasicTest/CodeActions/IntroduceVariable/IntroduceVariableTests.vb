@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -1169,7 +1171,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Const {|Rename:Value|} As Integer = 1
                 Console.WriteLine(Value)
@@ -1207,7 +1208,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Console.WriteLine(1)
             Else
@@ -3124,7 +3124,7 @@ end class")
     end sub
 end class",
 "class C
-    Private Const {|Rename:V|} As Integer = 2
+    Private Const {|Rename:V|} As Integer = (2)
 
     sub Goo()
         Bar(1, V)

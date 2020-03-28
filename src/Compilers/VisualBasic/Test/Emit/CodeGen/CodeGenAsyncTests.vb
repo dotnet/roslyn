@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Text.RegularExpressions
@@ -9183,6 +9185,71 @@ End Module
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact>
+        Public Sub GetAwaiterBoxingConversion_01()
+            Dim source =
+"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Interface IAwaitable
+End Interface
+
+Structure StructAwaitable
+    Implements IAwaitable
+End Structure
+
+Module Program
+    <Extension>
+    Function GetAwaiter(x As IAwaitable) As TaskAwaiter
+        If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
+        Return Task.CompletedTask.GetAwaiter()        
+    End Function
+
+    Async Function M() As Task
+        Await New StructAwaitable()
+    End Function
+
+    Sub Main()
+        M().Wait()
+    End Sub
+End Module"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
+        End Sub
+
+        <Fact>
+        Public Sub GetAwaiterBoxingConversion_02()
+            Dim source =
+"Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Structure StructAwaitable
+End Structure
+
+Module Program
+    <Extension>
+    Function GetAwaiter(x As Object) As TaskAwaiter
+        If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
+        Return Task.CompletedTask.GetAwaiter()        
+    End Function
+
+    Async Function M() As Task
+        Dim s As StructAwaitable? = New StructAwaitable()
+        Await s
+    End Function
+
+    Sub Main()
+        M().Wait()
+    End Sub
+End Module"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
         End Sub
     End Class
 End Namespace

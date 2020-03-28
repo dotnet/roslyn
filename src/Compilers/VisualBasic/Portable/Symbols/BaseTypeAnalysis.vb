@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
@@ -42,9 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Given base being resolved chain and current type produce the diagnostics 
         ''' or Nothing if there is no cycle detected
         ''' </summary>
-        Friend Function GetDependenceDiagnosticForBase(this As SourceNamedTypeSymbol, basesBeingResolved As ConsList(Of Symbol)) As DiagnosticInfo
+        Friend Function GetDependenceDiagnosticForBase(this As SourceNamedTypeSymbol, basesBeingResolved As BasesBeingResolved) As DiagnosticInfo
             Dim hasContainment As Boolean = False
-            Dim current As ConsList(Of Symbol) = basesBeingResolved
+            Dim current As ConsList(Of TypeSymbol) = basesBeingResolved.InheritsBeingResolvedOpt
             Dim previous As NamedTypeSymbol = this
             Dim dependency As ConsList(Of DependencyDesc) = ConsList(Of DependencyDesc).Empty.Prepend(New DependencyDesc(DependencyKind.Inheritance, this))
             Dim count As Integer = 1
@@ -202,11 +204,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ConsList(Of DependencyDesc).Empty
             End If
 
-            If visited.Contains(current) Then
+            If Not visited.Add(current) Then
                 ' we have seen this already
                 Return Nothing
-            Else
-                visited.Add(current)
             End If
 
             Dim currentNamedType = TryCast(currentDef, NamedTypeSymbol)

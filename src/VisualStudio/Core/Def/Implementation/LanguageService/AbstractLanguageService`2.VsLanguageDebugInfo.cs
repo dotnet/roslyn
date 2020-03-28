@@ -1,24 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using IVsDebugName = Microsoft.VisualStudio.TextManager.Interop.IVsDebugName;
 using IVsEnumBSTR = Microsoft.VisualStudio.TextManager.Interop.IVsEnumBSTR;
 using IVsTextBuffer = Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer;
-using IVsTextLines = Microsoft.VisualStudio.TextManager.Interop.IVsTextLines;
 using RESOLVENAMEFLAGS = Microsoft.VisualStudio.TextManager.Interop.RESOLVENAMEFLAGS;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetNameOfLocation, CancellationToken.None))
                 {
                     string name = null;
-                    int lineOffset = 0;
+                    var lineOffset = 0;
                     var succeeded = false;
 
                     if (_languageDebugInfo != null)
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
                             if (nullablePoint.HasValue)
                             {
-                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                                 if (document != null)
                                 {
                                     var point = nullablePoint.Value;
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ValidateBreakpointLocation, CancellationToken.None))
                 {
-                    int result = VSConstants.E_NOTIMPL;
+                    var result = VSConstants.E_NOTIMPL;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Validating_breakpoint_location,
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.E_FAIL;
                     }
 
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                    var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
                         var point = nullablePoint.Value;
@@ -371,63 +371,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 return VSConstants.E_NOTIMPL;
-            }
-
-            public int GetDataTipText(IVsTextBuffer pBuffer, VsTextSpan[] pSpan, out string pbstrText)
-            {
-                using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetDataTipText, CancellationToken.None))
-                {
-                    pbstrText = null;
-                    if (pSpan == null || pSpan.Length != 1)
-                    {
-                        return VSConstants.E_INVALIDARG;
-                    }
-
-                    int result = VSConstants.E_FAIL;
-                    string pbstrTextInternal = null;
-
-                    _waitIndicator.Wait(
-                        title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Getting_DataTip_text,
-                        allowCancel: true,
-                        action: waitContext =>
-                    {
-                        var debugger = _languageService.Debugger;
-                        DBGMODE[] debugMode = new DBGMODE[1];
-
-                        var cancellationToken = waitContext.CancellationToken;
-                        if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
-                        {
-                            var editorAdapters = _languageService.EditorAdaptersFactoryService;
-
-                            var textSpan = pSpan[0];
-                            var subjectBuffer = editorAdapters.GetDataBuffer(pBuffer);
-
-                            var textSnapshot = subjectBuffer.CurrentSnapshot;
-                            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                            if (document != null)
-                            {
-                                var spanOpt = textSnapshot.TryGetSpan(textSpan);
-                                if (spanOpt.HasValue)
-                                {
-                                    var dataTipInfo = _languageDebugInfo.GetDataTipInfoAsync(document, spanOpt.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
-                                    if (!dataTipInfo.IsDefault)
-                                    {
-                                        var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
-                                        string textOpt = dataTipInfo.Text;
-
-                                        pSpan[0] = resultSpan.ToVsTextSpan();
-                                        result = debugger.GetDataTipValue((IVsTextLines)pBuffer, pSpan, textOpt, out pbstrTextInternal);
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    pbstrText = pbstrTextInternal;
-                    return result;
-                }
             }
         }
     }

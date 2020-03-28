@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
@@ -12,18 +14,18 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQMethodPropertyOrEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName)
             : base(containingType)
         {
-            this.RqMemberName = memberName;
+            RqMemberName = memberName;
         }
 
         public override string MemberName
         {
-            get { return this.RqMemberName.OrdinaryNameValue; }
+            get { return RqMemberName.OrdinaryNameValue; }
         }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             base.AppendChildren(childList);
-            childList.Add(this.RqMemberName.ToSimpleTree());
+            childList.Add(RqMemberName.ToSimpleTree());
         }
     }
 }

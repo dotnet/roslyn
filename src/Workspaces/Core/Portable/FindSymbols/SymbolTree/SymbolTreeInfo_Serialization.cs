@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private const string SerializationFormat = "17";
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("19");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -65,14 +67,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
+                var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
                 T result;
                 using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
                 {
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;
-                    using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
+                    using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
                     using (var reader = ObjectReader.TryGetReader(stream))
                     {
                         if (reader != null)
@@ -81,8 +83,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // If we're able to, and the version of the persisted data matches
                             // our version, then we can reuse this instance.
                             result = tryReadObject(reader);
-                            if (result?.Checksum == checksum)
+                            if (result != null)
                             {
+                                // If we were able to read something in, it's checksum better
+                                // have matched the checksum we expected.
+                                Debug.Assert(result.Checksum == checksum);
                                 return result;
                             }
                         }
@@ -103,12 +108,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Contract.ThrowIfNull(result);
 
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        result.WriteTo(writer);
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                        {
+                            result.WriteTo(writer);
+                        }
+
                         stream.Position = 0;
 
-                        await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
+                        await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -128,9 +136,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteString(SerializationFormat);
-            Checksum.WriteTo(writer);
-
             writer.WriteString(_concatenatedNames);
 
             writer.WriteInt32(_nodes.Length);
@@ -152,58 +157,129 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     writer.WriteInt32(v);
                 }
             }
+
+            if (_simpleTypeNameToExtensionMethodMap == null)
+            {
+                writer.WriteInt32(0);
+            }
+            else
+            {
+                writer.WriteInt32(_simpleTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _simpleTypeNameToExtensionMethodMap.Keys)
+                {
+                    writer.WriteString(key);
+
+                    var values = _simpleTypeNameToExtensionMethodMap[key];
+                    writer.WriteInt32(values.Count);
+
+                    foreach (var value in values)
+                    {
+                        writer.WriteString(value.FullyQualifiedContainerName);
+                        writer.WriteString(value.Name);
+                    }
+                }
+            }
+
+            writer.WriteInt32(_extensionMethodOfComplexType.Length);
+            foreach (var methodInfo in _extensionMethodOfComplexType)
+            {
+                writer.WriteString(methodInfo.FullyQualifiedContainerName);
+                writer.WriteString(methodInfo.Name);
+            }
         }
 
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
             ObjectReader reader, Checksum checksum)
         {
-            return TryReadSymbolTreeInfo(reader,
+            return TryReadSymbolTreeInfo(reader, checksum,
                 (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
+            Checksum checksum,
             Func<string, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
-                var formatVersion = reader.ReadString();
-                if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
+                var concatenatedNames = reader.ReadString();
+
+                var nodeCount = reader.ReadInt32();
+                var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
+                for (var i = 0; i < nodeCount; i++)
                 {
-                    var checksum = Checksum.ReadFrom(reader);
+                    var start = reader.ReadInt32();
+                    var length = reader.ReadInt32();
+                    var parentIndex = reader.ReadInt32();
 
-                    var concatenatedNames = reader.ReadString();
+                    nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                }
 
-                    var nodeCount = reader.ReadInt32();
-                    var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                    for (var i = 0; i < nodeCount; i++)
+                var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
+                var inheritanceMapKeyCount = reader.ReadInt32();
+                for (var i = 0; i < inheritanceMapKeyCount; i++)
+                {
+                    var key = reader.ReadInt32();
+                    var valueCount = reader.ReadInt32();
+
+                    for (var j = 0; j < valueCount; j++)
                     {
-                        var start = reader.ReadInt32();
-                        var length = reader.ReadInt32();
-                        var parentIndex = reader.ReadInt32();
-
-                        nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                        var value = reader.ReadInt32();
+                        inheritanceMap.Add(key, value);
                     }
+                }
 
-                    var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
-                    var inheritanceMapKeyCount = reader.ReadInt32();
-                    for (var i = 0; i < inheritanceMapKeyCount; i++)
+                MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap;
+                ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType;
+
+                var keyCount = reader.ReadInt32();
+                if (keyCount == 0)
+                {
+                    simpleTypeNameToExtensionMethodMap = null;
+                }
+                else
+                {
+                    simpleTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+
+                    for (var i = 0; i < keyCount; i++)
                     {
-                        var key = reader.ReadInt32();
+                        var typeName = reader.ReadString();
                         var valueCount = reader.ReadInt32();
 
                         for (var j = 0; j < valueCount; j++)
                         {
-                            var value = reader.ReadInt32();
-                            inheritanceMap.Add(key, value);
+                            var containerName = reader.ReadString();
+                            var name = reader.ReadString();
+
+                            simpleTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                         }
                     }
-
-                    var nodeArray = nodes.ToImmutableAndFree();
-                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
-                    return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
                 }
+
+                var arrayLength = reader.ReadInt32();
+                if (arrayLength == 0)
+                {
+                    extensionMethodOfComplexType = ImmutableArray<ExtensionMethodInfo>.Empty;
+                }
+                else
+                {
+                    var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance(arrayLength);
+                    for (var i = 0; i < arrayLength; ++i)
+                    {
+                        var containerName = reader.ReadString();
+                        var name = reader.ReadString();
+                        builder.Add(new ExtensionMethodInfo(containerName, name));
+                    }
+
+                    extensionMethodOfComplexType = builder.ToImmutableAndFree();
+                }
+
+                var nodeArray = nodes.ToImmutableAndFree();
+                var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                return new SymbolTreeInfo(
+                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
+                    extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap);
             }
             catch
             {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -3779,7 +3781,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationAdressOfArgument_MultipleArgumentsToConstructor()
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_MultipleArgumentsToConstructor()
             Dim source = <![CDATA[
 Option Strict On
 Imports System

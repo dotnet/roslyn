@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
     internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
         where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<TSyntaxContext> CreateContext(
+        protected abstract Task<TSyntaxContext> CreateContextAsync(
             Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var context = await CreateContext(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var context = await CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
             var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
             var symbols = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetSymbols();
 

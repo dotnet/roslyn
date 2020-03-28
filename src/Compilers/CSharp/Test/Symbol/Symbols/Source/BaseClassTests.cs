@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -254,7 +256,7 @@ class C : A {
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -262,7 +264,7 @@ class C : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -270,7 +272,7 @@ class C : A {
 
             var members = model.LookupSymbols(positionInA, a, "Z");
             Assert.Equal(1, members.Length);
-            Assert.False(((TypeSymbol)members[0]).IsErrorType());
+            Assert.False(((ITypeSymbol)members[0]).IsErrorType());
             Assert.Equal("C.Z", members[0].ToTestDisplayString());
 
             var members2 = model.LookupSymbols(positionInA, a, "Q");
@@ -291,7 +293,7 @@ class B<T> : A {
   public class Y {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -299,7 +301,7 @@ class B<T> : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -1036,7 +1038,7 @@ public class ClassC : ClassB {}
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
             Assert.Same(C.BaseType(), B2);
-            Assert.False(((INamedTypeSymbol)B2).IsSerializable);
+            Assert.False(B2.IsSerializable);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
@@ -1428,9 +1430,33 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
-        [Fact]
-        public void NamespaceClassInterfaceEscapedIdentifier()
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier1()
+        {
+            var text = @"
+namespace @if
+{
+    public interface @break { }
+    public class @int<@string> { }
+    public class @float : @int<@break>, @if.@break { }
+}";
+            var comp = CreateCompilation(Parse(text));
+            NamespaceSymbol nif = (NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembers("if").Single();
+            Assert.Equal("if", nif.Name);
+            Assert.Equal("@if", nif.ToString());
+            NamedTypeSymbol cfloat = (NamedTypeSymbol)nif.GetMembers("float").Single();
+            Assert.Equal("float", cfloat.Name);
+            Assert.Equal("@if.@float", cfloat.ToString());
+            NamedTypeSymbol cint = cfloat.BaseType();
+            Assert.Equal("int", cint.Name);
+            Assert.Equal("@if.@int<@if.@break>", cint.ToString());
+            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
+            Assert.Equal("break", ibreak.Name);
+            Assert.Equal("@if.@break", ibreak.ToString());
+        }
+
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier2()
         {
             var text = @"
 namespace @if
@@ -1449,9 +1475,9 @@ namespace @if
             NamedTypeSymbol cint = cfloat.BaseType();
             Assert.Equal("int", cint.Name);
             Assert.Equal("@if.@int<@if.@break>", cint.ToString());
-            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
-            Assert.Equal("break", ibreak.Name);
-            Assert.Equal("@if.@break", ibreak.ToString());
+
+            // No interfaces as the above doesn't parse due to the errant : in the base list.
+            Assert.Empty(cfloat.Interfaces());
         }
 
         [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]
@@ -2262,18 +2288,18 @@ class Derived : Base
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
-                // (13,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
-                //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("Base.D").WithLocation(13, 17),
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (12,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
-                //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("Base.C").WithLocation(12, 17),
+                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
     }
 }

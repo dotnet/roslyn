@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,6 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateTypeService()
         {
         }
@@ -61,9 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList))
+            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList, out TypeArgumentListSyntax typeArgumentList))
             {
-                var typeArgumentList = (TypeArgumentListSyntax)expression.Parent;
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
                 if (symbol.IsConstructor())
@@ -93,12 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         protected override bool IsInInterfaceList(ExpressionSyntax expression)
         {
             if (expression is TypeSyntax &&
-                expression.Parent is BaseTypeSyntax &&
-                expression.Parent.IsParentKind(SyntaxKind.BaseList) &&
-                ((BaseTypeSyntax)expression.Parent).Type == expression)
+                expression.Parent is BaseTypeSyntax baseType &&
+                baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType.Type == expression)
             {
-                var baseList = (BaseListSyntax)expression.Parent.Parent;
-
                 // If it's after the first item, then it's definitely an interface.
                 if (baseList.Types[0] != expression.Parent)
                 {
@@ -113,11 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
 
             if (expression is TypeSyntax &&
-                expression.IsParentKind(SyntaxKind.TypeConstraint) &&
-                expression.Parent.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+                expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
+                typeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
-                var typeConstraint = (TypeConstraintSyntax)expression.Parent;
-                var constraintClause = (TypeParameterConstraintClauseSyntax)typeConstraint.Parent;
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
                 // If it's after the first item, then it's definitely an interface.
@@ -328,10 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                             {
                                 return true;
                             }
-                            else
-                            {
-                                Contract.Fail("Cannot reach this point");
-                            }
+
+                            throw ExceptionUtilities.Unreachable;
                         }
                         else
                         {
@@ -415,14 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
                     {
-                        var simpleAssignmentExpression = expression as AssignmentExpressionSyntax;
-                        if (simpleAssignmentExpression == null)
+                        if (!(expression is AssignmentExpressionSyntax simpleAssignmentExpression))
                         {
                             continue;
                         }
 
-                        var name = simpleAssignmentExpression.Left as SimpleNameSyntax;
-                        if (name == null)
+                        if (!(simpleAssignmentExpression.Left is SimpleNameSyntax name))
                         {
                             continue;
                         }
@@ -435,27 +428,21 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
                 // MyD1 z1 = goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration))
+                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+                    variableDeclaration.Variables.Count != 0)
                 {
-                    var variableDeclaration = (VariableDeclarationSyntax)nameOrMemberAccessExpression.Parent;
-                    if (variableDeclaration.Variables.Count != 0)
+                    var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
+                    if (firstVarDeclWithInitializer != null && firstVarDeclWithInitializer.Initializer != null && firstVarDeclWithInitializer.Initializer.Value != null)
                     {
-                        var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
-                        if (firstVarDeclWithInitializer != null && firstVarDeclWithInitializer.Initializer != null && firstVarDeclWithInitializer.Initializer.Value != null)
-                        {
-                            generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, firstVarDeclWithInitializer.Initializer.Value, cancellationToken);
-                        }
+                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, firstVarDeclWithInitializer.Initializer.Value, cancellationToken);
                     }
                 }
 
                 // var w1 = (MyD1)goo;
-                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression))
+                if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+                    castExpression.Expression != null)
                 {
-                    var castExpression = (CastExpressionSyntax)nameOrMemberAccessExpression.Parent;
-                    if (castExpression.Expression != null)
-                    {
-                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
-                    }
+                    generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);
                 }
             }
 
@@ -519,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var typeArguments = state.SimpleName.Arity == genericName.TypeArgumentList.Arguments.Count
                     ? genericName.TypeArgumentList.Arguments.OfType<SyntaxNode>().ToList()
                     : Enumerable.Repeat<SyntaxNode>(null, state.SimpleName.Arity);
-                return this.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
+                return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
             }
 
             return ImmutableArray<ITypeParameterSymbol>.Empty;
@@ -590,10 +577,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         {
-            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
+            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
+        public override async Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(
             INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
             var compilationUnit = (CompilationUnitSyntax)selectedDocumentRoot;
@@ -602,15 +589,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 // Search the NS declaration in the root
                 var containerList = new List<string>(containers);
-                var enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit);
+                var enclosingNamespace = FindNamespaceInMemberDeclarations(compilationUnit.Members, indexDone: 0, containerList);
                 if (enclosingNamespace != null)
                 {
                     var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken);
                     if (enclosingNamespaceSymbol.Symbol != null)
                     {
-                        return Tuple.Create((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
-                                            (INamespaceOrTypeSymbol)namedTypeSymbol,
-                                            enclosingNamespace.CloseBraceToken.GetLocation());
+                        return ((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
+                                namedTypeSymbol,
+                                enclosingNamespace.CloseBraceToken.GetLocation());
                     }
                 }
             }
@@ -618,44 +605,34 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
             var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
             var lastMember = compilationUnit.Members.LastOrDefault();
-            Location afterThisLocation = null;
-            if (lastMember != null)
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0));
-            }
-            else
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan());
-            }
+            var afterThisLocation = lastMember != null
+                ? semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0))
+                : semanticModel.SyntaxTree.GetLocation(new TextSpan());
 
-            return Tuple.Create(globalNamespace,
-                                rootNamespaceOrType,
-                                afterThisLocation);
+            return (globalNamespace, rootNamespaceOrType, afterThisLocation);
         }
 
-        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, CompilationUnitSyntax compilationUnit)
+        private NamespaceDeclarationSyntax FindNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members, int indexDone, List<string> containers)
         {
-            foreach (var member in compilationUnit.Members)
+            foreach (var member in members)
             {
-                var namespaceDeclaration = GetDeclaringNamespace(containers, 0, member);
-                if (namespaceDeclaration != null)
+                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
                 {
-                    return namespaceDeclaration;
+                    var found = FindNamespaceInNamespace(namespaceDeclaration, indexDone, containers);
+                    if (found != null)
+                        return found;
                 }
             }
 
             return null;
         }
 
-        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, SyntaxNode localRoot)
+        private NamespaceDeclarationSyntax FindNamespaceInNamespace(NamespaceDeclarationSyntax namespaceDecl, int indexDone, List<string> containers)
         {
-            var namespaceDecl = localRoot as NamespaceDeclarationSyntax;
-            if (namespaceDecl == null || namespaceDecl.Name is AliasQualifiedNameSyntax)
-            {
+            if (namespaceDecl.Name is AliasQualifiedNameSyntax)
                 return null;
-            }
 
-            List<string> namespaceContainers = new List<string>();
+            var namespaceContainers = new List<string>();
             GetNamespaceContainers(namespaceDecl.Name, namespaceContainers);
 
             if (namespaceContainers.Count + indexDone > containers.Count ||
@@ -664,27 +641,16 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            indexDone = indexDone + namespaceContainers.Count;
+            indexDone += namespaceContainers.Count;
             if (indexDone == containers.Count)
-            {
                 return namespaceDecl;
-            }
 
-            foreach (var member in namespaceDecl.Members)
-            {
-                var resultant = GetDeclaringNamespace(containers, indexDone, member);
-                if (resultant != null)
-                {
-                    return resultant;
-                }
-            }
-
-            return null;
+            return FindNamespaceInMemberDeclarations(namespaceDecl.Members, indexDone, containers);
         }
 
         private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
         {
-            for (int i = 0; i < namespaceContainers.Count; ++i)
+            for (var i = 0; i < namespaceContainers.Count; ++i)
             {
                 if (namespaceContainers[i] != containers[indexDone + i])
                 {
@@ -775,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    Contract.Fail("Cannot reach this point");
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&
@@ -819,20 +785,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         internal override bool IsGenericName(SimpleNameSyntax simpleName)
-        {
-            if (simpleName == null)
-            {
-                return false;
-            }
-
-            var genericName = simpleName as GenericNameSyntax;
-            return genericName != null;
-        }
+            => simpleName is GenericNameSyntax;
 
         internal override bool IsSimpleName(ExpressionSyntax expression)
-        {
-            return expression is SimpleNameSyntax;
-        }
+            => expression is SimpleNameSyntax;
 
         internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
         {

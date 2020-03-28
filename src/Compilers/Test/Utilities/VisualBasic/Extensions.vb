@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Xunit
 
 Friend Module Extensions
@@ -322,5 +325,25 @@ Friend Module Extensions
     <Extension>
     Public Function ConstraintTypes(symbol As TypeParameterSymbol) As ImmutableArray(Of TypeSymbol)
         Return symbol.ConstraintTypesNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+        Return DirectCast(this, MethodSymbol).Parameters
+    End Function
+
+    <Extension>
+    Friend Function ReturnType(this As IMethodSymbolInternal) As TypeSymbol
+        Return DirectCast(this, MethodSymbol).ReturnType
+    End Function
+
+    <Extension>
+    Friend Function ReturnsVoid(this As IMethodSymbolInternal) As Boolean
+        Return DirectCast(this, IMethodSymbol).ReturnsVoid
+    End Function
+
+    <Extension>
+    Friend Function RefKind(this As ParameterSymbol) As RefKind
+        Return DirectCast(this, IParameterSymbol).RefKind
     End Function
 End Module

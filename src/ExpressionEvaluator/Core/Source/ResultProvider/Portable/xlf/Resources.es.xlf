@@ -27,6 +27,11 @@
         <target state="translated">'{0}' inició una excepción de tipo '{1}'</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="translated">No se puede proporcionar el valor: no se encontró el valor de host.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
         <target state="translated">No se puede desreferenciar '{0}'. El puntero no es válido.</target>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,15 +21,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
             IList<RQParameter> parameters)
             : base(containingType, memberName)
         {
-            this.TypeParameterCount = typeParameterCount;
-            this.Parameters = new ReadOnlyCollection<RQParameter>(parameters);
+            TypeParameterCount = typeParameterCount;
+            Parameters = new ReadOnlyCollection<RQParameter>(parameters);
         }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             base.AppendChildren(childList);
-            childList.Add(new SimpleGroupNode(RQNameStrings.TypeVarCnt, this.TypeParameterCount.ToString()));
-            var paramNodes = this.Parameters.Select(param => param.ToSimpleTree()).ToList();
+            childList.Add(new SimpleGroupNode(RQNameStrings.TypeVarCnt, TypeParameterCount.ToString()));
+            var paramNodes = Parameters.Select(param => param.ToSimpleTree()).ToList();
             childList.Add(new SimpleGroupNode(RQNameStrings.Params, paramNodes));
         }
     }
