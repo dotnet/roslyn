@@ -3,11 +3,11 @@
              x:ClassModifier="internal"
              x:Name="dialog"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
@@ -43,7 +43,8 @@
         <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
         <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
     </Window.InputBindings>
-    <Grid Margin="11,6,11,11">
+    <Grid Margin="11,6,11,11"
+          vs2:ImageThemingUtilities.ThemeScrollBars="True">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
