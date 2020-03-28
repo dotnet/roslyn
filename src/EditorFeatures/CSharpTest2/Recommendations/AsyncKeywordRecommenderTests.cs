@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -141,6 +143,17 @@ class Goo
 }");
         }
 
+        [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttribute()
+        {
+            await VerifyKeywordAsync(@"
+class Goo
+{
+    [Attr] $$
+}");
+        }
+
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
@@ -245,7 +258,7 @@ class Goo
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class Goo
 {
     public void M()

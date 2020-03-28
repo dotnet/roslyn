@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -322,7 +324,83 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestSimpleInvocationUnassignedNullableReferenceType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Class
+{
+    void Method()
+    {
+        string? s;
+        [|Goo|](s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class Class
+{
+    void Method()
+    {
+        string? s;
+        Goo(s);
+    }
+
+    private void Goo(string? s)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestSimpleInvocationCrossingNullableAnnotationsEnabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class NullableEnable
+{
+    void Method(string? s)
+    {
+        [|NullableDisable.Goo|](s);
+    }
+}
+
+#nullable disable
+
+class NullableDisable
+{
+}",
+@"#nullable enable
+
+using System;
+
+class NullableEnable
+{
+    void Method(string? s)
+    {
+        [|NullableDisable.Goo|](s);
+    }
+}
+
+#nullable disable
+
+class NullableDisable
+{
+    internal static void Goo(string s)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -356,7 +434,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
 
@@ -1138,7 +1216,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -1174,10 +1252,10 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36044"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericAssignmentWithNestedNullableReferenceTypeBeingAssignedTo()
         {
             // Here, we are asserting that the return type of the generated method is T, effectively discarding
@@ -1212,7 +1290,7 @@ class Class
     {
         throw new NotImplementedException();
     }
-}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -1646,6 +1724,7 @@ interface ISibling
 }");
         }
 
+        [WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateAbstractIntoSameType()
         {
@@ -1664,7 +1743,7 @@ interface ISibling
         Goo();
     }
 
-    internal abstract void Goo();
+    protected abstract void Goo();
 }",
 index: 1);
         }
@@ -5649,7 +5728,7 @@ class C
     }
 }",
 @"using System;
-using System.Collections.Generic;
+using System.Collections.Generic; 
 class C
 {
     void TestMethod(IEnumerable<C> c)
@@ -6774,6 +6853,35 @@ class C
         {
             throw new NotImplementedException();
         }
+    }
+}");
+        }
+
+        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInConditionalAccess9()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.[|Bar|]();
+    }
+}",
+@"using System;
+
+struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.Bar();
+    }
+
+    private int Bar()
+    {
+        throw new NotImplementedException();
     }
 }");
         }

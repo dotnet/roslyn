@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -17,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         : AbstractSendToInteractiveSubmissionProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpSendToInteractiveSubmissionProvider()
         {
         }
@@ -44,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// <param name="root">Root of the syntax tree.</param>
         private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxToken startToken, endToken;
-            GetSelectedTokens(selectionSpan, root, out startToken, out endToken);
+            GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
             // Ensure that the first token comes before the last token.
             // Otherwise selection did not contain any tokens.

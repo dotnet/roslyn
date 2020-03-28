@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="AsyncVoidMethodBuilder"/>, <see cref="AsyncTaskMethodBuilder"/>, or <see cref="AsyncTaskMethodBuilder{TResult}"/> depending on the
         /// return type of the async method.
         /// </summary>
-        private readonly FieldSymbol _asyncMethodBuilderField;
+        protected readonly FieldSymbol _asyncMethodBuilderField;
 
         /// <summary>
         /// A collection of well-known members for the current async method builder.
         /// </summary>
-        private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+        protected readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
 
         /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
@@ -58,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<TypeSymbol, FieldSymbol> _awaiterFields;
         private int _nextAwaiterId;
 
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
+
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
             int methodOrdinal,
@@ -79,13 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _exprReturnLabel = F.GenerateLabel("exprReturn");
             _exitLabel = F.GenerateLabel("exitLabel");
 
-            _exprRetValue = method.IsGenericTaskReturningAsync(F.Compilation)
+            _exprRetValue = method.IsAsyncReturningGenericTask(F.Compilation)
                 ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
+
+            _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
         private FieldSymbol GetAwaiterField(TypeSymbol awaiterType)
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
+                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -159,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
+
+            bodyBuilder.Add(GenerateHoistedLocalsCleanup(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -198,16 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Call(
                     F.Field(F.This(), _asyncMethodBuilderField),
                     _asyncMethodBuilderMemberCollection.SetResult,
-                    _method.IsGenericTaskReturningAsync(F.Compilation)
+                    _method.IsAsyncReturningGenericTask(F.Compilation)
                         ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
+        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             // catch (Exception ex)
             // {
             //     _state = finishedState;
+            //
+            //     for each hoisted local:
+            //     <>x__y = default
+            //
             //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
             //     return;
             // }
@@ -227,9 +239,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;
+                    GenerateHoistedLocalsCleanup(hoistedLocals),
                     callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                     GenerateReturn(false)), // return;
                 isSynthesizedAsyncCatchAll: true);
+        }
+
+        protected BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // Cleanup all hoisted local variables
+            // so that they can be collected by GC if needed
+            foreach (var hoistedLocal in hoistedLocals)
+            {
+                if (!hoistedLocal.Type.IsManagedType)
+                {
+                    continue;
+                }
+
+                builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
+            }
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
@@ -288,22 +320,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
             var expression = (BoundExpression)Visit(node.Expression);
+            var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
+
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Add(awaitablePlaceholder, expression);
+            }
+
+            var getAwaiter = node.AwaitableInfo.IsDynamic ?
+                MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
+                (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
+
             resultPlace = (BoundExpression)Visit(resultPlace);
-            MethodSymbol getAwaiter = VisitMethodSymbol(node.AwaitableInfo.GetAwaiter);
             MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
             MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Remove(awaitablePlaceholder);
+            }
+
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
             Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression) || node.WasCompilerGenerated);
-            TypeSymbol awaiterType = node.AwaitableInfo.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
-            var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
+
+            var awaiterTemp = F.SynthesizedLocal(getAwaiter.Type, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
             var awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
                         F.Local(awaiterTemp),
-                        MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
+                        getAwaiter),
 
                     // hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter:
                     F.HiddenSequencePoint(),
@@ -327,6 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(awaiterTemp),
                 awaitIfIncomplete,
                 getResultStatement);
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return _placeholderMap[node];
         }
 
         private BoundExpression MakeCallMaybeDynamic(
@@ -565,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ExpressionOpt != null)
             {
-                Debug.Assert(_method.IsGenericTaskReturningAsync(F.Compilation));
+                Debug.Assert(_method.IsAsyncReturningGenericTask(F.Compilation));
                 return F.Block(
                     F.Assignment(F.Local(_exprRetValue), (BoundExpression)Visit(node.ExpressionOpt)),
                     F.Goto(_exprReturnLabel));

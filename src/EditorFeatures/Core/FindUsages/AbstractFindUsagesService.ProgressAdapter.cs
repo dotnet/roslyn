@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
 
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
+
             public FindLiteralsProgressAdapter(
                 IFindUsagesContext context, DefinitionItem definition)
             {
@@ -38,9 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
                     _definition, documentSpan, SymbolUsageInfo.None)).ConfigureAwait(false);
             }
-
-            public Task ReportProgressAsync(int current, int maximum)
-                => _context.ReportProgressAsync(current, maximum);
         }
 
         /// <summary>
@@ -67,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
+            public IStreamingProgressTracker ProgressTracker
+                => _context.ProgressTracker;
+
             public FindReferencesProgressAdapter(
                 IThreadingContext threadingContext, Solution solution,
                 IFindUsagesContext context, FindReferencesSearchOptions options)
@@ -83,10 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public Task OnCompletedAsync() => Task.CompletedTask;
             public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
             public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
-
-            // Simple context forwarding functions.
-            public Task ReportProgressAsync(int current, int maximum) =>
-                _context.ReportProgressAsync(current, maximum);
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
@@ -117,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
-                // Ignore duplicate locations.  We don't want to clutter the UI with them.
-                if (location.IsDuplicateReferenceLocation)
-                {
-                    return;
-                }
-
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,

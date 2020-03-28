@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -57,7 +59,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End If
 
             Using workspace = TestWorkspace.Create(element)
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
@@ -186,7 +189,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        outOfProcess As Boolean) As Task
             options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)

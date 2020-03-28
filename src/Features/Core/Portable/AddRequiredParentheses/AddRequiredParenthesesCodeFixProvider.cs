@@ -1,15 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AddRequiredParenthesesCodeFixProvider()
         {
         }
@@ -25,9 +28,11 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
             => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
-               diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == state.CodeActionEquivalenceKey;
+               diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == equivalenceKey;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
                 // work we just did.
                 editor.ReplaceNode(node,
-                    (current, _) => syntaxFacts.Parenthesize(
+                    (current, _) => generator.AddParentheses(
                         current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 

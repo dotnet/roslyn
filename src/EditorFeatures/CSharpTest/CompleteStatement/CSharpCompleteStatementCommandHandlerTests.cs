@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 {
@@ -3757,9 +3759,9 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
-            return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
+            return workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
         }
 
         [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
@@ -3880,6 +3882,52 @@ class D
    void M($$)
     {
     }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("/$$* comments */")]
+        [InlineData("/*$$ comments */")]
+        [InlineData("/* comments $$*/")]
+        [InlineData("/* comments *$$/")]
+        [InlineData("3, /* comments$$ */")]
+        [InlineData("/$$/ comments ")]
+        [InlineData("//$$ comments ")]
+        [InlineData("// comments $$")]
+        public void InsideComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("$$/* comments */")]
+        [InlineData("/* comments */$$")]
+        [InlineData("3$$, /* comments */")]
+        [InlineData("3, $$/* comments */")]
+        [InlineData("// comments \r\n$$")]
+        public void NearComments(string argument)
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(" + argument + ")");
+
+            var expected = CreateTestWithMethodCall(
+                @"var test = ClassC.MethodM(" + argument.Remove(argument.IndexOf("$$"), 2) + ");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(923157, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BrokenCode_ReturnIfCaretDoesNotMove()
+        {
+            var code = @"
+class D
+{
+  public Delegate Task<int> Handles(int num)$$
 }";
             VerifyNoSpecialSemicolonHandling(code);
         }

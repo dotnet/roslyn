@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -80,10 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
-                Case LanguageVersion.Latest
-                    Return LanguageVersion.VisualBasic15_5
-                Case LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic15
+                Case LanguageVersion.Latest,
+                     LanguageVersion.Default
+                    Return LanguageVersion.VisualBasic16
                 Case Else
                     Return version
             End Select

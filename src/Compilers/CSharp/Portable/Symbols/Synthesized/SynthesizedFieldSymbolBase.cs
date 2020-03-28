@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -44,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            var typeWithAnnotations = this.TypeWithAnnotations;
+            var type = typeWithAnnotations.Type;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
             if (!_containingType.IsImplicitlyDeclared)
@@ -52,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.ContainsDynamic() &&
+                type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeWithAnnotations.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (TypeWithAnnotations.Type.ContainsTupleNames() &&
+            if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
@@ -67,13 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (TypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.TypeWithAnnotations));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), typeWithAnnotations));
             }
         }
 
         internal abstract override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            => FlowAnalysisAnnotations.None;
 
         public override string Name
         {

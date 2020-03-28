@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -9,7 +12,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
 {
@@ -17,12 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     /// Replaces <c>@$"</c> with <c>$@"</c>, which is the preferred and until C# 8.0 the only supported form
     /// of an interpolated verbatim string start token. In C# 8.0 we still auto-correct to this form for consistency.
     /// </summary>
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(FixInterpolatedVerbatimStringCommandHandler))]
     internal sealed class FixInterpolatedVerbatimStringCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public FixInterpolatedVerbatimStringCommandHandler()
         {
         }
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
             }
         }
 
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler)
+        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
     }
 }

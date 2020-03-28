@@ -25,8 +25,9 @@ __UbuntuPackages="build-essential"
 __AlpinePackages="alpine-base"
 __AlpinePackages+=" build-base"
 __AlpinePackages+=" linux-headers"
-__AlpinePackages+=" lldb-dev"
-__AlpinePackages+=" llvm-dev"
+__AlpinePackagesEdgeTesting=" lldb-dev"
+__AlpinePackagesEdgeMain=" llvm9-libs"
+__AlpinePackagesEdgeMain+=" python3"
 
 # symlinks fixer
 __UbuntuPackages+=" symlinks"
@@ -181,7 +182,7 @@ if [ -z "$__RootfsDir" ] && [ ! -z "$ROOTFS_DIR" ]; then
 fi
 
 if [ -z "$__RootfsDir" ]; then
-    __RootfsDir="$__CrossDir/rootfs/$__BuildArch"
+    __RootfsDir="$__CrossDir/../../../.tools/rootfs/$__BuildArch"
 fi
 
 if [ -d "$__RootfsDir" ]; then
@@ -193,18 +194,29 @@ fi
 
 if [[ "$__LinuxCodeName" == "alpine" ]]; then
     __ApkToolsVersion=2.9.1
-    __AlpineVersion=3.7
+    __AlpineVersion=3.9
     __ApkToolsDir=$(mktemp -d)
     wget https://github.com/alpinelinux/apk-tools/releases/download/v$__ApkToolsVersion/apk-tools-$__ApkToolsVersion-x86_64-linux.tar.gz -P $__ApkToolsDir
     tar -xf $__ApkToolsDir/apk-tools-$__ApkToolsVersion-x86_64-linux.tar.gz -C $__ApkToolsDir
     mkdir -p $__RootfsDir/usr/bin
     cp -v /usr/bin/qemu-$__QEMUArch-static $__RootfsDir/usr/bin
+
     $__ApkToolsDir/apk-tools-$__ApkToolsVersion/apk \
       -X http://dl-cdn.alpinelinux.org/alpine/v$__AlpineVersion/main \
       -X http://dl-cdn.alpinelinux.org/alpine/v$__AlpineVersion/community \
-      -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
       -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
       add $__AlpinePackages
+
+    $__ApkToolsDir/apk-tools-$__ApkToolsVersion/apk \
+      -X http://dl-cdn.alpinelinux.org/alpine/edge/main \
+      -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
+      add $__AlpinePackagesEdgeMain
+
+    $__ApkToolsDir/apk-tools-$__ApkToolsVersion/apk \
+      -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+      -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
+      add $__AlpinePackagesEdgeTesting
+
     rm -r $__ApkToolsDir
 elif [[ -n $__LinuxCodeName ]]; then
     qemu-debootstrap --arch $__UbuntuArch $__LinuxCodeName $__RootfsDir $__UbuntuRepo

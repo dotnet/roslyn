@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -59,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return ComputeValueDistance(oldNode, newNode);
         }
 
-        internal static double ComputeValueDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        internal static double ComputeValueDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
         {
             if (SyntaxFactory.AreEquivalent(oldNode, newNode))
             {
                 return ExactMatchDist;
             }
 
-            double distance = ComputeDistance(oldNode, newNode);
+            var distance = ComputeDistance(oldNode, newNode);
 
             // We don't want to return an exact match, because there
             // must be something different, since we got here 
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the nodes are. 
         /// </remarks>
-        public static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        public static double ComputeDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
         {
             if (oldNode == null || newNode == null)
             {
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
             return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
             return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
             return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -203,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
             return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }

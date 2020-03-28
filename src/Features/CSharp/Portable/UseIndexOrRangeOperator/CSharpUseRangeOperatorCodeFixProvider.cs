@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,12 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseRangeOperatorCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseRangeOperatorDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -64,8 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             InvocationExpressionSyntax currentInvocation,
             CancellationToken cancellationToken)
         {
-            var invocation = semanticModel.GetOperation(currentInvocation, cancellationToken) as IInvocationOperation;
-            if (invocation != null)
+            if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation)
             {
                 var infoCache = new InfoCache(semanticModel.Compilation);
                 var resultOpt = AnalyzeInvocation(
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 if (resultOpt != null)
                 {
                     var result = resultOpt.Value;
-                    var updatedNode = FixOne(semanticModel, result, cancellationToken);
+                    var updatedNode = FixOne(result);
                     if (updatedNode != null)
                     {
                         return currentRoot.ReplaceNode(result.Invocation, updatedNode);
@@ -88,15 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
             => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        private ExpressionSyntax FixOne(
-            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
+        private ExpressionSyntax FixOne(Result result)
         {
             var invocation = result.Invocation;
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
                 ? memberAccess.Expression
                 : invocation.Expression;
 
-            var rangeExpression = CreateRangeExpression(semanticModel, result, cancellationToken);
+            var rangeExpression = CreateRangeExpression(result);
             var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
             var arguments = SingletonSeparatedList(argument);
 
@@ -118,22 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
         }
 
-        private RangeExpressionSyntax CreateRangeExpression(
-            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
-        {
-            switch (result.Kind)
+        private RangeExpressionSyntax CreateRangeExpression(Result result)
+            => result.Kind switch
             {
-                case ResultKind.Computed:
-                    return CreateComputedRange(semanticModel, result, cancellationToken);
-                case ResultKind.Constant:
-                    return CreateConstantRange(semanticModel, result, cancellationToken);
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
+                ResultKind.Computed => CreateComputedRange(result),
+                ResultKind.Constant => CreateConstantRange(result),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
-        private RangeExpressionSyntax CreateComputedRange(
-            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
+        private RangeExpressionSyntax CreateComputedRange(Result result)
         {
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as
@@ -143,24 +140,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var startOperation = result.Op1;
             var endOperation = result.Op2;
 
-            var startExpr = (ExpressionSyntax)startOperation.Syntax;
-            var endExpr = (ExpressionSyntax)endOperation.Syntax;
-
-            var startFromEnd = false;
-            var endFromEnd = false;
-
             var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
             var instance = result.InvocationOperation.Instance;
 
             // If our start-op is actually equivalent to `expr.Length - val`, then just change our
             // start-op to be `val` and record that we should emit it as `^val`.
-            startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
-            startExpr = (ExpressionSyntax)startOperation.Syntax;
+            var startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
+            var startExpr = (ExpressionSyntax)startOperation.Syntax;
 
             // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
             // change our end-op to be `val` and record that we should emit it as `^val`.
-            endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
-            endExpr = (ExpressionSyntax)endOperation.Syntax;
+            var endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
+            var endExpr = (ExpressionSyntax)endOperation.Syntax;
 
             // If the range operation goes to 'expr.Length' then we can just leave off the end part
             // of the range.  i.e. `start..`
@@ -182,16 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr);
         }
 
-        private static ExpressionSyntax GetExpression(ImmutableDictionary<string, string> props, ExpressionSyntax expr, string omitKey, string fromEndKey)
-            => props.ContainsKey(omitKey)
-                ? null
-                : props.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
-
-        private static RangeExpressionSyntax CreateConstantRange(
-            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
+        private static RangeExpressionSyntax CreateConstantRange(Result result)
         {
             var constant1Syntax = (ExpressionSyntax)result.Op1.Syntax;
-            var constant2Syntax = (ExpressionSyntax)result.Op2.Syntax;
 
             // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
             // s[constant1..(constant2-constant1)]

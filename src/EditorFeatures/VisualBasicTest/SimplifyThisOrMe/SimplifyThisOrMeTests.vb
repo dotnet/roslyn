@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -64,7 +66,7 @@ End Class")
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticInfoAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                options:=OptionsSet(SingleOption(CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Error)),
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
@@ -343,8 +345,8 @@ End Class]]>
 </Workspace>.ToString()
 
             Dim options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
+                SingleOption(CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Suggestion),
+                SingleOption(CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Suggestion))
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,

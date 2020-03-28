@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -31,17 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() => OptionsSet(
+        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
+        internal IDictionary<OptionKey2, object> OptionSet(OptionKey2 option, object value)
         {
-            var options = new Dictionary<OptionKey, object>();
+            var options = new Dictionary<OptionKey2, object>();
             options.Add(option, value);
             return options;
         }
@@ -201,6 +202,62 @@ index: PropertyIndex);
     private int goo;
 
     void Method(int i)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Class
+{
+    void Method(string? s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+class Class
+{
+    private string? goo;
+
+    void Method(string? s)
+    {
+        Method(goo);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleReadWithNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    void Method(IEnumerable<string?> s)
+    {
+        Method([|goo|]);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class Class
+{
+    private IEnumerable<string?> goo;
+
+    void Method(IEnumerable<string?> s)
     {
         Method(goo);
     }
@@ -3873,6 +3930,74 @@ index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        string? bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(string? s)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestLocalNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        Goo([|bar|]);
+    }
+
+    static void Goo(IEnumerable<string?> s)
+    {
+    }
+}",
+@"#nullable enable
+
+class Program
+{
+    void Main()
+    {
+        IEnumerable<string?> bar = null;
+        Goo(bar);
+    }
+
+    static void Goo(IEnumerable<string?> s)
+    {
+    }
+}",
+index: LocalIndex);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalMissingForVar()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4564,7 +4689,7 @@ class MyAttrAttribute : Attribute
 {
 }
 
-[MyAttr(123, [|Version|] = 1)]
+[MyAttr(123, [|Value|] = 1)]
 class D
 {
 }",
@@ -4573,10 +4698,10 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    public int Version { get; set; }
+    public int Value { get; set; }
 }
 
-[MyAttr(123, Version = 1)]
+[MyAttr(123, Value = 1)]
 class D
 {
 }");
@@ -8674,7 +8799,8 @@ class C
     class Blah
     {
     }
-}",
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"
 class C
 {
@@ -8690,7 +8816,8 @@ class C
     {
         public (int y, int z) X { get; internal set; }
     }
-}");
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
@@ -8803,6 +8930,48 @@ class C
     class Blah
     {
         public object X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPatternWithNullablePattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { [|X|]: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    void M2()
+    {
+        object? o = null;
+        object? zToMatch = null;
+        if (o is Blah { X: (y: 1, z: zToMatch) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, object? z) X { get; internal set; }
     }
 }");
         }
@@ -9099,6 +9268,52 @@ class Class : Interface
 
     void M1(int a);
 }", index: ParameterAndOverrides);
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLambdaInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        Action a = () =>
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
+        }
+
+        [WorkItem(26502, "https://github.com/dotnet/roslyn/issues/26502")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoReadOnlyMembersWhenInLocalFunctionInConstructor()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        void Goo()
+        {
+            this.[|Field|] = 1;
+        };
+    }
+}", new[]
+{
+    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+});
         }
     }
 }

@@ -73,7 +73,8 @@
             SelectionUnit="FullRow"
             HorizontalAlignment="Stretch"
             SelectionChanged="CodeStyleMembers_SelectionChanged"
-            Style="{StaticResource ResourceKey=DataGridStyle}">
+            Style="{StaticResource ResourceKey=DataGridStyle}"
+            AutomationProperties.Name="{Binding CodeStyleMembersAutomationText}">
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="MinHeight" Value="26"/>

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
@@ -22,12 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseDeconstructionCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -116,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
             // tuple expression.
             return SyntaxFactory.ForEachVariableStatement(
+                forEachStatement.AttributeLists,
+                forEachStatement.AwaitKeyword,
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
                 CreateTupleOrDeclarationExpression(tupleType, forEachStatement.Type),
@@ -146,8 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
             // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
-            return typeNode.IsKind(SyntaxKind.TupleType)
-                ? (ExpressionSyntax)CreateTupleExpression((TupleTypeSyntax)typeNode)
+            return typeNode.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleTypeSyntax)
+                ? (ExpressionSyntax)CreateTupleExpression(tupleTypeSyntax)
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 

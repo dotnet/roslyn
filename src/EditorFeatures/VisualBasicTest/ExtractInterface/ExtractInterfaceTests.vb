@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
@@ -1296,6 +1298,88 @@ End Namespace
                 Assert.True(state.IsUnspecified)
             End Using
         End Sub
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright1() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Public Sub Goo()$$
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+Class TestClass
+    Implements ITestClass
+
+    Public Sub Goo() Implements ITestClass.Goo
+    End Sub
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface ITestClass
+    Sub Goo()
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
+
+        <WorkItem(23855, "https://github.com/dotnet/roslyn/issues/23855")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        Public Async Function TestExtractInterface_WithCopyright2() As Task
+            Dim markup = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A$$
+        Sub Main(args As String())
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedUpdatedDocument = <text>'' Copyright
+
+Imports System
+
+Class Program
+    Class A
+        Implements IA
+
+        Sub Main(args As String()) Implements IA.Main
+        End Sub
+    End Class
+End Class
+</text>.NormalizedValue()
+
+            Dim expectedInterfaceCode = <text>'' Copyright
+
+Interface IA
+    Sub Main(args() As String)
+End Interface
+</text>.NormalizedValue()
+
+            Await TestExtractInterfaceCommandVisualBasicAsync(
+                markup,
+                expectedSuccess:=True,
+                expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
+                expectedInterfaceCode:=expectedInterfaceCode,
+                rootNamespace:="RootNamespace")
+        End Function
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
             Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -939,7 +941,7 @@ End Class
                 fileCodeModel.BeginBatch()
 
                 ' Make an outside edit not through the CodeModel APIs
-                Dim buffer = state.Workspace.Documents.Single().TextBuffer
+                Dim buffer = state.Workspace.Documents.Single().GetTextBuffer()
                 buffer.Replace(New Text.Span(0, 1), "c")
 
                 WpfTestRunner.RequireWpfFact($"Test requires {NameOf(EnvDTE80.FileCodeModel2)}.{NameOf(EnvDTE80.FileCodeModel2.EndBatch)}")

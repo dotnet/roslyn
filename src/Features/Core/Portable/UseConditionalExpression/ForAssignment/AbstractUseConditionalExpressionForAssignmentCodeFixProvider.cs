@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -82,13 +84,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // If not, just replace the if-statement with a single assignment of the new
                 // conditional.
                 ConvertOnlyIfToConditionalExpression(
-                    editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
+                    editor, ifOperation, trueAssignment, conditionalExpression);
             }
         }
 
         private void ConvertOnlyIfToConditionalExpression(
-            SyntaxEditor editor, IConditionalOperation ifOperation,
-            ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
+            SyntaxEditor editor,
+            IConditionalOperation ifOperation,
+            ISimpleAssignmentOperation trueAssignment,
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifOperation.Syntax,
-                this.WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
+                WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
@@ -150,8 +153,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             // If so, see if that local was declared immediately above the if-statement.
-            var parentBlock = ifOperation.Parent as IBlockOperation;
-            if (parentBlock == null)
+            if (!(ifOperation.Parent is IBlockOperation parentBlock))
             {
                 return false;
             }
@@ -192,8 +194,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // wasn't a declaration of the local we're assigning to.
                 return false;
             }
-
-            var variableName = variable.Name;
 
             var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)

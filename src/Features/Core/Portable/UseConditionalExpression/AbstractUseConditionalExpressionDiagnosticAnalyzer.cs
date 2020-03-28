@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
-        private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
+        private readonly PerLanguageOption2<CodeStyleOption2<bool>> _option;
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -22,15 +26,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected AbstractUseConditionalExpressionDiagnosticAnalyzer(
             string descriptorId,
             LocalizableResourceString message,
-            PerLanguageOption<CodeStyleOption<bool>> option)
+            PerLanguageOption2<CodeStyleOption2<bool>> option)
             : base(descriptorId,
+                   option,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    message)
         {
             _option = option;
         }
 
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool TryMatchPattern(IConditionalOperation ifOperation);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
@@ -45,16 +50,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var language = ifStatement.Language;
-            var syntaxTree = ifStatement.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(_option, language);
+            var option = context.GetOption(_option, language);
             if (!option.Value)
             {
                 return;

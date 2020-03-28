@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
 {
     public class DocCommentFormattingTests
     {
-        private CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-        private VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+        private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
+        private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
 
         private void TestFormat(string xmlFragment, string expectedCSharp, string expectedVB)
         {
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             results in <c>p</c>'s having the value (2,8).
             </example>";
 
-            var expected = "This method changes the point's location by the given x- and y-offsets. For example: Point p = new Point(3,5); p.Translate(-1,3); results in p's having the value (2,8).";
+            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\nPoint p = new Point(3,5); p.Translate(-1,3);\r\n\r\nresults in p's having the value (2,8).";
 
             TestFormat(comment, expected);
         }
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
         </item>
         </list>";
 
-            var expected = @"Here is an example of a bulleted list: Item 1. Item 2.";
+            var expected = "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.";
 
             TestFormat(comment, expected);
         }

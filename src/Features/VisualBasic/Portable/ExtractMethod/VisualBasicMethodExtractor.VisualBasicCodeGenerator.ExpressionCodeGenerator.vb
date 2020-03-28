@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -47,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         End If
 
                         Dim name = identifierNode.Identifier.ValueText
-                        Return If(name IsNot Nothing AndAlso name.Length > 0, MakeMethodName("Get", name), methodName)
+                        Return If(name IsNot Nothing AndAlso name.Length > 0, MakeMethodName("Get", name, camelCase:=False), methodName)
                     End If
 
                     If TypeOf expression Is MemberAccessExpressionSyntax Then
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     If TypeOf expression Is NameSyntax Then
                         Dim lastDottedName = CType(expression, NameSyntax).GetLastDottedName()
                         Dim plainName = CType(lastDottedName, SimpleNameSyntax).Identifier.ValueText
-                        Return If(plainName IsNot Nothing AndAlso plainName.Length > 0, MakeMethodName("Get", plainName), methodName)
+                        Return If(plainName IsNot Nothing AndAlso plainName.Length > 0, MakeMethodName("Get", plainName, camelCase:=False), methodName)
                     End If
 
                     Return methodName

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -9,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
@@ -17,12 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     internal class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public YieldStatementHighlighter()
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            YieldStatementSyntax yieldStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            YieldStatementSyntax yieldStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
             var parent = yieldStatement
                              .GetAncestorsOrThis<SyntaxNode>()
@@ -30,14 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
             if (parent == null)
             {
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+                return;
             }
 
-            var spans = new List<TextSpan>();
-
             HighlightRelatedKeywords(parent, spans);
-
-            return spans;
         }
 
         /// <summary>
@@ -56,12 +55,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
                     break;
                 default:
-                    foreach (var child in node.ChildNodes())
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
+                        if (child.IsToken)
+                            continue;
+
                         // Only recurse if we have anything to do
-                        if (!child.IsReturnableConstruct())
+                        if (!child.AsNode().IsReturnableConstruct())
                         {
-                            HighlightRelatedKeywords(child, spans);
+                            HighlightRelatedKeywords(child.AsNode(), spans);
                         }
                     }
                     break;

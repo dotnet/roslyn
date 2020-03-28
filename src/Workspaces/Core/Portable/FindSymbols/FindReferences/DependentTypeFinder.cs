@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -28,10 +30,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentTypeFinder
     {
-        private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
-        private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+        private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
+        private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
-        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass =
+        private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass =
             t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var builder = ArrayBuilder<SymbolAndProjectId<INamedTypeSymbol>>.GetInstance();
 
             // Group by projectId so that we only process one project/compilation at a time.
-            // Also, process in dependency order so taht previous compilations are ready if
+            // Also, process in dependency order so that previous compilations are ready if
             // they're referenced by later compilations.
             var dependencyOrder = solution.GetProjectDependencyGraph()
                                           .GetTopologicallySortedProjects()
@@ -107,6 +109,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var orderedGroups = symbolKeys.GroupBy(t => t.Item2).OrderBy(g => dependencyOrder[g.Key]);
             foreach (var group in orderedGroups)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var project = solution.GetProject(group.Key);
                 if (project.SupportsCompilation)
                 {
@@ -281,8 +285,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             type = type.WithSymbol(type.Symbol.OriginalDefinition);
-            projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
+            projects ??= ImmutableHashSet.Create(solution.Projects.ToArray());
             var searchInMetadata = type.Symbol.Locations.Any(s_isInMetadata);
 
             // Note: it is not sufficient to just walk the list of projects passed in,
@@ -331,6 +337,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // cache churn we could cause creating all those compilations.
             foreach (var project in orderedProjectsToExamine)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Debug.Assert(project.SupportsCompilation);
                 await FindTypesInProjectAsync(
                     searchInMetadata, result,
                     currentMetadataTypes, currentSourceAndMetadataTypes,
@@ -364,6 +373,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Debug.Assert(project.SupportsCompilation);
+
             // First see what derived metadata types we might find in this project.
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
@@ -378,6 +391,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var foundTypeAndProjectId in foundMetadataTypes)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var foundType = foundTypeAndProjectId.Symbol;
                         Debug.Assert(foundType.Locations.Any(s_isInMetadata));
 
@@ -410,6 +425,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var foundTypeAndProjectId in foundSourceTypes)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var foundType = foundTypeAndProjectId.Symbol;
                     Debug.Assert(foundType.Locations.All(s_isInSource));
 
@@ -496,7 +513,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
 
-            int index = 0;
+            var index = 0;
 
             var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
@@ -522,7 +539,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //          /
             //         └
             //        E
-            // and we're passed in 'B, C, E' as hte project to search, then this set 
+            // and we're passed in 'B, C, E' as the project to search, then this set 
             // will be A, B, C, E.
             var allProjectsThatTheseProjectsDependOn = projects
                 .SelectMany(p => dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(p.Id))
@@ -537,8 +554,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any information that would affect the result in the projects we are asked to search
             // within.
 
+            // Finally, because we're searching metadata and source symbols, this needs to be a project
+            // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
                                                  .Select(solution.GetProject)
+                                                 .Where(p => p.SupportsCompilation)
                                                  .ToList();
         }
 
@@ -549,12 +569,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectIdSet result,
             CancellationToken cancellationToken)
         {
-            if (metadataTypes.Count == 0)
-            {
-                return;
-            }
+            Debug.Assert(project.SupportsCompilation);
 
-            if (!project.SupportsCompilation)
+            if (metadataTypes.Count == 0)
             {
                 return;
             }
@@ -570,6 +587,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
                         currentTypes, project, metadataTypeMatches,
                         compilation, reference, immediateDerivedTypes,
@@ -593,6 +612,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectIdSet result,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // We store an index in SymbolTreeInfo of the *simple* metadata type name
             // to the names of the all the types that either immediately derive or 
             // implement that type.  Because the mapping is from the simple name
@@ -605,6 +626,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // in this index.
             foreach (var metadataType in metadataTypes)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var baseTypeName = metadataType.Symbol.Name;
 
                 // For each derived type we find, see if we can map that back 
@@ -671,6 +694,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectIdSet finalResult,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // We're going to be sweeping over this project over and over until we reach a 
             // fixed point.  In order to limit GC and excess work, we cache all the semantic
             // models and DeclaredSymbolInfo for hte documents we look at.
@@ -691,6 +716,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var type in typesToSearchFor)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     switch (type.Symbol.SpecialType)
                     {
                         case SpecialType.System_Object:
@@ -771,6 +798,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             foreach (var (document, info) in index.NamedTypes[name])
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
@@ -792,12 +821,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             foreach (var (document, infos) in documentToInfos)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 Debug.Assert(infos.Count > 0);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
                 foreach (var info in infos)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var resolvedSymbol = info.TryResolve(semanticModel, cancellationToken);
                     if (resolvedSymbol is INamedTypeSymbol namedType)
                     {

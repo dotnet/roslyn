@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +28,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static IEnumerable<string> InspectClosures(this EditAndContinueMethodDebugInformation debugInfo)
             => debugInfo.Closures.IsDefault ? null :
                debugInfo.Closures.Select(c => $"Offset={c.SyntaxOffset} Id={c.ClosureId.Generation}#{c.ClosureId.Ordinal}");
+
+        public static EmitBaseline GetInitialEmitBaseline(this EmitBaseline baseline)
+            => baseline.InitialBaseline;
 
         #endregion
     }

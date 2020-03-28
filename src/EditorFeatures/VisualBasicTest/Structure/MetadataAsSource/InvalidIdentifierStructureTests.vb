@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     ''' <summary>
@@ -35,11 +38,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function PrependDollarSign() As Task
             Const code = "
-$$Class C
+{|hint:{|textspan:$$Class C
     Public Sub $Invoke()
-End Class
+End Class|}|}
 "
-            Await VerifyNoBlockSpansAsync(code)
+            Await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
         <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
@@ -57,11 +61,13 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "
-$$Class C
-    Public Sub : End Sub : End Class "" now the document is a string until the next quote ()
+{|hint1:{|textspan1:$$Class C
+    {|hint2:{|textspan2:Public Sub : End Sub|}|} : End Class|}|} "" now the document is a string until the next quote ()
 End Class
 "
-            Await VerifyNoBlockSpansAsync(code)
+            Await VerifyBlockSpansAsync(code,
+                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False),
+                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True))
         End Function
 
     End Class

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
-            Debug.Assert(defaultType?.IsNullableType() != true || (nullableAnnotation != NullableAnnotation.Oblivious && nullableAnnotation != NullableAnnotation.NotAnnotated));
+            Debug.Assert(defaultType?.IsNullableType() != true || nullableAnnotation == NullableAnnotation.Annotated);
             Debug.Assert(extensions != null);
 
             DefaultType = defaultType;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string ToString() => Type.ToString();
 
-        internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
@@ -61,18 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
 
-        internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false, ImmutableArray<CustomModifier> customModifiers = default)
+        internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false)
         {
             if (typeSymbol is null)
             {
                 return default;
             }
 
-            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Oblivious,
-                          customModifiers.NullToEmpty());
+            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Oblivious);
         }
 
         internal static TypeWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation = NullableAnnotation.Oblivious, ImmutableArray<CustomModifier> customModifiers = default)
@@ -236,13 +236,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
         /// <summary>
-        /// Merges top-level and nested nullability from an otherwise identical type.
+        /// Merges top-level and nested nullability, dynamic/object, and tuple names from an otherwise equivalent type.
         /// </summary>
-        internal TypeWithAnnotations MergeNullability(TypeWithAnnotations other, VarianceKind variance)
+        internal TypeWithAnnotations MergeEquivalentTypes(TypeWithAnnotations other, VarianceKind variance)
         {
             TypeSymbol typeSymbol = other.Type;
             NullableAnnotation nullableAnnotation = this.NullableAnnotation.MergeNullableAnnotation(other.NullableAnnotation, variance);
-            TypeSymbol type = Type.MergeNullability(typeSymbol, variance);
+            TypeSymbol type = Type.MergeEquivalentTypes(typeSymbol, variance);
             Debug.Assert((object)type != null);
             return Create(type, nullableAnnotation, CustomModifiers);
         }
@@ -256,6 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
+        /// 
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
         /// </summary>
         public bool IsNullableType() => Type.IsNullableType();
 
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                     (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
@@ -432,17 +435,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
-        public TypeWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+            _extensions.SubstituteType(this, typeMap);
 
-        internal TypeWithAnnotations TransformToTupleIfCompatible() => _extensions.TransformToTupleIfCompatible(this);
-
-        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
+        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
-            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol, withTupleUnification);
+            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
 
             if (!typeSymbol.IsTypeParameter())
             {
@@ -479,8 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
-                newAnnotation = NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated() ?
-                    NullableAnnotation.Annotated : NullableAnnotation.Annotated;
+                newAnnotation = NullableAnnotation.Annotated;
             }
             else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
             {
@@ -545,6 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        /// <summary>
+        /// Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
+        /// </summary>
+        /// <remarks>
+        /// This method ignores any [NullableContext]. For example, if there is a [NullableContext(1)]
+        /// at the containing type, and this type reference is oblivious, NeedsNullableAttribute()
+        /// will return false even though a [Nullable(0)] will be emitted for this type reference.
+        /// In practice, this shouldn't be an issue though since EnsuresNullableAttributeExists()
+        /// will have returned true for at least some of other type references that required
+        /// [Nullable(1)] and were subsequently aggregated to the [NullableContext(1)].
+        /// </remarks>
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
@@ -557,40 +566,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = TypeSymbolExtensions.VisitType(
                 typeWithAnnotationsOpt,
                 typeOpt,
-                typeWithAnnotationsPredicateOpt: (t, a, b) => t.NullableAnnotation != NullableAnnotation.Oblivious && !t.Type.IsErrorType() && !t.Type.IsValueType,
-                typePredicateOpt: null,
+                typeWithAnnotationsPredicate: (t, a, b) => t.NullableAnnotation != NullableAnnotation.Oblivious && !t.Type.IsErrorType() && !t.Type.IsValueType,
+                typePredicate: null,
                 arg: (object)null);
             return (object)type != null;
         }
 
+        /// <summary>
+        /// If the type is a non-generic value type or Nullable&lt;&gt;, and
+        /// is not a type parameter, the nullability is not included in the byte[].
+        /// </summary>
+        private static bool IsNonGenericValueType(TypeSymbol type)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null)
+            {
+                return false;
+            }
+            if (namedType.IsGenericType)
+            {
+                return type.IsNullableType();
+            }
+            return type.IsValueType;
+        }
+
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var typeSymbol = Type;
-            byte flag;
+            AddNullableTransforms(this, transforms);
+        }
 
-            if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
+        private static void AddNullableTransforms(TypeWithAnnotations typeWithAnnotations, ArrayBuilder<byte> transforms)
+        {
+            while (true)
             {
-                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-            }
-            else if (NullableAnnotation.IsAnnotated())
-            {
-                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            else
-            {
-                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-            }
+                var type = typeWithAnnotations.Type;
 
-            transforms.Add(flag);
-            typeSymbol.AddNullableTransforms(transforms);
+                if (!IsNonGenericValueType(type))
+                {
+                    var annotation = typeWithAnnotations.NullableAnnotation;
+                    byte flag;
+                    if (annotation.IsOblivious() || type.IsValueType)
+                    {
+                        flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    }
+                    else if (annotation.IsAnnotated())
+                    {
+                        flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    }
+                    else
+                    {
+                        flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    }
+                    transforms.Add(flag);
+                }
+
+                if (type.TypeKind != TypeKind.Array)
+                {
+                    type.AddNullableTransforms(transforms);
+                    return;
+                }
+
+                // Avoid recursion to allow for deeply-nested arrays.
+                typeWithAnnotations = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+            }
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
         {
             result = this;
 
+            TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
-            if (transforms.IsDefault)
+
+            // Check IsNonGenericValueType first to avoid
+            // applying transforms to simple value types.
+            if (IsNonGenericValueType(oldTypeSymbol))
+            {
+                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
+            }
+            else if (transforms.IsDefault)
             {
                 transformFlag = defaultTransformFlag;
             }
@@ -603,9 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            TypeSymbol oldTypeSymbol = Type;
             TypeSymbol newTypeSymbol;
-
             if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
             {
                 return false;
@@ -656,18 +708,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations SetUnknownNullabilityForReferenceTypes()
         {
             var typeSymbol = Type;
+            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
                 if (!typeSymbol.IsValueType)
                 {
-                    typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-
-                    return CreateNonLazyType(typeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
+                    return CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
                 }
             }
-
-            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
             {
@@ -778,8 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
             internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt);
-            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification);
-            internal abstract TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type);
+            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
             internal abstract void TryForceResolveAsNullableValueType();
@@ -837,20 +885,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
-                return type.SubstituteTypeCore(typeMap, withTupleUnification);
-            }
-
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                var defaultType = type.DefaultType;
-                var transformedType = TupleTypeSymbol.TransformToTupleIfCompatible(defaultType);
-                if ((object)defaultType != transformedType)
-                {
-                    return TypeWithAnnotations.Create(transformedType, type.NullableAnnotation, _customModifiers);
-                }
-                return type;
+                return type.SubstituteTypeCore(typeMap);
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -970,14 +1007,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type;
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
                 if ((object)_resolved != null)
                 {
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
 
-                var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
+                var newUnderlying = _underlying.SubstituteTypeCore(typeMap);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
                     if (newUnderlying.Type.Equals(this._underlying.Type, TypeCompareKind.ConsiderEverything) &&
@@ -986,17 +1023,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CreateLazyNullableType(_compilation, newUnderlying);
                     }
 
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
                 else
                 {
                     return type; // substitution had no effect on the type or modifiers
                 }
-            }
-
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                return type;
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)

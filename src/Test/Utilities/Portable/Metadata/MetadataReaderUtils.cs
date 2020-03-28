@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -81,7 +83,7 @@ namespace Roslyn.Test.Utilities
                 || headers.CoffHeader.Machine == Machine.IA64;
         }
 
-        public static string GetString(this MetadataReader[] readers, StringHandle handle)
+        public static string GetString(this IEnumerable<MetadataReader> readers, StringHandle handle)
         {
             int index = MetadataTokens.GetHeapOffset(handle);
             foreach (var reader in readers)
@@ -96,7 +98,7 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string[] GetStrings(this MetadataReader[] readers, StringHandle[] handles)
+        public static string[] GetStrings(this IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles)
         {
             return handles.Select(handle => readers.GetString(handle)).ToArray();
         }
@@ -114,6 +116,11 @@ namespace Roslyn.Test.Utilities
         public static StringHandle[] GetTypeDefNames(this MetadataReader reader)
         {
             return reader.TypeDefinitions.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
+        }
+
+        public static (StringHandle Namespace, StringHandle Name)[] GetTypeDefFullNames(this MetadataReader reader)
+        {
+            return reader.TypeDefinitions.Select(handle => { var td = reader.GetTypeDefinition(handle); return (td.Namespace, td.Name); }).ToArray();
         }
 
         public static StringHandle[] GetTypeRefNames(this MetadataReader reader)
@@ -360,6 +367,15 @@ namespace Roslyn.Test.Utilities
                         var type = decoder.DecodeFieldSignature(ref blob);
 
                         return $"{type} {name}";
+                    }
+                case HandleKind.TypeSpecification:
+                    {
+                        var typeSpec = reader.GetTypeSpecification((TypeSpecificationHandle)handle);
+                        var blob = reader.GetBlobReader(typeSpec.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeType(ref blob);
+
+                        return $"{type}";
                     }
                 default:
                     return null;

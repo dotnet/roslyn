@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,8 +41,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
                 // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
                 // registered consecutively and that the last registered span wins.
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, default);
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), default);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextBuffer(), pastedTextSpan);
             }
 
             return workspace;
@@ -184,13 +186,9 @@ namespace B
             await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
-        [WpfFact]
+        [WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")]
         public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
         {
-            // The current fixes for AddImport diagnostics do not consider whether imports should be grouped.
-            // This test documents this behavior and is a reminder that when the behavior changes 
-            // AddMissingImports is also affected and should be considered.
-
             var code = @"
 using System;
 
@@ -214,6 +212,7 @@ namespace B
             var expected = @"
 using A;
 using B;
+
 using System;
 
 class C

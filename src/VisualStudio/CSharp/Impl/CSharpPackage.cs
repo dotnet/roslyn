@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -85,8 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
                     return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
                 });
-
-                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -98,17 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                JoinableTaskFactory.Run(() => UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None));
-            }
-
-            base.Dispose(disposing);
-        }
-
-        private async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -123,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

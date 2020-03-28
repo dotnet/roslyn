@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private BaseDiagnosticItem _diagnosticItem;
+            private readonly BaseDiagnosticItem _diagnosticItem;
 
             public BrowseObject(BaseDiagnosticItem diagnosticItem)
             {
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.GetHelpLink()?.ToString();
+                    return _diagnosticItem.GetHelpLink()?.AbsoluteUri;
                 }
             }
 
@@ -127,42 +129,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             private string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
-            {
-                switch (severity)
+                => severity switch
                 {
-                    case DiagnosticSeverity.Hidden:
-                        return SolutionExplorerShim.Hidden;
-                    case DiagnosticSeverity.Info:
-                        return SolutionExplorerShim.Info;
-                    case DiagnosticSeverity.Warning:
-                        return SolutionExplorerShim.Warning;
-                    case DiagnosticSeverity.Error:
-                        return SolutionExplorerShim.Error_;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(severity);
-                }
-            }
+                    DiagnosticSeverity.Hidden => SolutionExplorerShim.Hidden,
+                    DiagnosticSeverity.Info => SolutionExplorerShim.Info,
+                    DiagnosticSeverity.Warning => SolutionExplorerShim.Warning,
+                    DiagnosticSeverity.Error => SolutionExplorerShim.Error_,
+                    _ => throw ExceptionUtilities.UnexpectedValue(severity),
+                };
 
             private string MapReportDiagnosticToText(ReportDiagnostic report)
-            {
-                switch (report)
+                => report switch
                 {
-                    case ReportDiagnostic.Default:
-                        return SolutionExplorerShim.Default_;
-                    case ReportDiagnostic.Error:
-                        return SolutionExplorerShim.Error_;
-                    case ReportDiagnostic.Warn:
-                        return SolutionExplorerShim.Warning;
-                    case ReportDiagnostic.Info:
-                        return SolutionExplorerShim.Info;
-                    case ReportDiagnostic.Hidden:
-                        return SolutionExplorerShim.Hidden;
-                    case ReportDiagnostic.Suppress:
-                        return SolutionExplorerShim.Suppressed;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(report);
-                }
-            }
+                    ReportDiagnostic.Default => SolutionExplorerShim.Default_,
+                    ReportDiagnostic.Error => SolutionExplorerShim.Error_,
+                    ReportDiagnostic.Warn => SolutionExplorerShim.Warning,
+                    ReportDiagnostic.Info => SolutionExplorerShim.Info,
+                    ReportDiagnostic.Hidden => SolutionExplorerShim.Hidden,
+                    ReportDiagnostic.Suppress => SolutionExplorerShim.Suppressed,
+                    _ => throw ExceptionUtilities.UnexpectedValue(report),
+                };
         }
     }
 }

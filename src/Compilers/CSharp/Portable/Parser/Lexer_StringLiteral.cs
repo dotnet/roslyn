@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -541,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (lexer.TextWindow.PeekChar(1) == '"' || lexer.TextWindow.PeekChar(1) == '@' && lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 bool isVerbatimSubstring = lexer.TextWindow.PeekChar(1) == '@';
-                                var interpolations = default(ArrayBuilder<Interpolation>);
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
                                 var info = default(TokenInfo);
                                 bool wasVerbatim = this.isVerbatim;
                                 bool wasAllowNewlines = this.allowNewlines;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -64,24 +66,17 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
         private static ImmutableHashSet<INamedTypeSymbol> GetDisposeOwnershipTransferLikelyTypes(Compilation compilation)
         {
-            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
-            try
+            using var _ = PooledHashSet<INamedTypeSymbol>.GetInstance(out var builder);
+            foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
             {
-                foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
+                var typeSymbol = compilation.GetTypeByMetadataName(typeName);
+                if (typeSymbol != null)
                 {
-                    INamedTypeSymbol typeSymbol = compilation.GetTypeByMetadataName(typeName);
-                    if (typeSymbol != null)
-                    {
-                        builder.Add(typeSymbol);
-                    }
+                    builder.Add(typeSymbol);
                 }
+            }
 
-                return builder.ToImmutableHashSet();
-            }
-            finally
-            {
-                builder.Free();
-            }
+            return builder.ToImmutableHashSet();
         }
 
         private void EnsureDisposableFieldsMap()
@@ -97,6 +92,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             OperationBlockAnalysisContext context,
             IMethodSymbol containingMethod,
             DiagnosticDescriptor rule,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool trackInstanceFields,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
@@ -108,12 +104,14 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
+                        interproceduralAnalysisKind,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
-                        defaultDisposeOwnershipTransferAtConstructor: true);
+                        defaultDisposeOwnershipTransferAtConstructor: true,
+                        defaultDisposeOwnershipTransferAtMethodCall: true);
                     if (disposeAnalysisResult != null)
                     {
                         return true;
@@ -131,6 +129,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             OperationBlockStartAnalysisContext context,
             IMethodSymbol containingMethod,
             DiagnosticDescriptor rule,
+            InterproceduralAnalysisKind interproceduralAnalysisKind,
             bool trackInstanceFields,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
@@ -142,12 +141,14 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
                 {
-                    var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+                    var wellKnownTypeProvider = Analyzer.Utilities.WellKnownTypeProvider.GetOrCreate(context.Compilation);
                     disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
+                        interproceduralAnalysisKind,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
-                        defaultDisposeOwnershipTransferAtConstructor: true);
+                        defaultDisposeOwnershipTransferAtConstructor: true,
+                        defaultDisposeOwnershipTransferAtMethodCall: true);
                     if (disposeAnalysisResult != null)
                     {
                         return true;
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
-            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out ImmutableHashSet<IFieldSymbol> disposableFields))
+            if (_lazyDisposableFieldsMap.TryGetValue(namedType, out var disposableFields))
             {
                 return disposableFields;
             }
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             if (method.Name == nameof(IDisposable.Dispose) && method.MethodKind == MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.Length == 1)
             {
-                IParameterSymbol parameter = method.Parameters[0];
+                var parameter = method.Parameters[0];
                 return parameter.Type != null &&
                     parameter.Type.SpecialType == SpecialType.System_Boolean &&
                     parameter.RefKind == RefKind.None;
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         /// </summary>
         private static bool IsImplementationOfInterfaceMethod(IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
         {
-            INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
+            var constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
 
             return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         }

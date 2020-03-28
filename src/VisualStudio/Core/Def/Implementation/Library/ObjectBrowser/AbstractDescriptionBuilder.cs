@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -297,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation, _VSOBJDESCOPTIONS options)
         {
-            var documentationComment = symbol.GetDocumentationComment(expandIncludes: true, cancellationToken: CancellationToken.None);
+            var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
             if (documentationComment == null)
             {
                 return;
@@ -388,6 +390,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 emittedDocs = true;
             }
 
+            if (ShowValueDocumentation(symbol) && documentationComment.ValueText != null)
+            {
+                if (emittedDocs)
+                {
+                    AddLineBreak();
+                }
+
+                AddLineBreak();
+                AddName(ServicesVSResources.Value_colon);
+                AddLineBreak();
+
+                AddText(formattingService.Format(documentationComment.ValueText, compilation));
+                emittedDocs = true;
+            }
+
             if (documentationComment.RemarksText != null)
             {
                 if (emittedDocs)
@@ -445,6 +462,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).TypeKind == TypeKind.Delegate)
                 || symbol.Kind == SymbolKind.Method
                 || symbol.Kind == SymbolKind.Property;
+        }
+
+        private bool ShowValueDocumentation(ISymbol symbol)
+        {
+            // <returns> is often used in places where <value> was originally intended. Allow either to be used in
+            // documentation comments since they are not likely to be used together and it's not clear which one a
+            // particular code base will be using more often.
+            return ShowReturnsDocumentation(symbol);
         }
 
         internal bool TryBuild(_VSOBJDESCOPTIONS options)

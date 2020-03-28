@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -597,15 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             ExprContext.Sideeffects :
                             ExprContext.Value;
 
-            return node.Update(
-                this.VisitExpression(node.Operand, context),
-                node.Conversion,
-                node.IsBaseConversion,
-                node.Checked,
-                node.ExplicitCastInCode,
-                node.ConstantValue,
-                node.ConversionGroupOpt,
-                node.Type);
+            return node.UpdateOperand(this.VisitExpression(node.Operand, context));
         }
 
         public override BoundNode VisitPassByCopy(BoundPassByCopy node)
@@ -1107,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // matches or a bit stronger than EmitReceiverRef
             // if there are any doubts that receiver is a ref type, 
             // assume we will need an address (that will prevent scheduling of receiver).
-            if (!node.Method.IsStatic)
+            if (node.Method.RequiresInstanceReceiver)
             {
                 receiver = VisitCallReceiver(receiver);
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.CompilerServices;
@@ -96,7 +98,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
-        /// Provides the underlying strong refernce to the given action. This method is marked not be inlined, to ensure that no temporaries are left
+        /// Provides the underlying strong reference to the given action. This method is marked not be inlined, to ensure that no temporaries are left
         /// on the stack that might still root the strong reference. The caller must not "leak" the object out of the given action for any lifetime
         /// assertions to be safe.
         /// </summary>
@@ -107,7 +109,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
-        /// Provides the underlying strong refernce to the given function. This method is marked not be inlined, to ensure that no temporaries are left
+        /// Provides the underlying strong reference to the given function. This method is marked not be inlined, to ensure that no temporaries are left
         /// on the stack that might still root the strong reference. The caller must not "leak" the object out of the given action for any lifetime
         /// assertions to be safe.
         /// </summary>

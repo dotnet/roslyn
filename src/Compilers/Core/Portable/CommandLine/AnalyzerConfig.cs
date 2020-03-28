@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,11 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
-using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// at 2018-04-21 19:37:05Z. New keys may be added to this list in newer versions, but old ones will
         /// not be removed.
         /// </remarks>
-        public static ImmutableHashSet<string> ReservedKeys { get; }
+        internal static ImmutableHashSet<string> ReservedKeys { get; }
             = ImmutableHashSet.CreateRange(Section.PropertiesKeyComparer, new[] {
                 "root",
                 "indent_style",
@@ -50,21 +51,21 @@ namespace Microsoft.CodeAnalysis
         /// A set of values that are reserved for special use for the editorconfig specification
         /// and will always be lower-cased by the parser.
         /// </summary>
-        public static ImmutableHashSet<string> ReservedValues { get; }
+        internal static ImmutableHashSet<string> ReservedValues { get; }
             = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
 
-        public Section GlobalSection { get; }
+        internal Section GlobalSection { get; }
 
         /// <summary>
         /// The directory the editorconfig was contained in, with all directory separators
         /// replaced with '/'.
         /// </summary>
-        public string NormalizedDirectory { get; }
+        internal string NormalizedDirectory { get; }
 
         /// <summary>
         /// The path passed to <see cref="Parse(string, string)"/> during construction.
         /// </summary>
-        public string PathToFile { get; }
+        internal string PathToFile { get; }
 
         /// <summary>
         /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
@@ -72,12 +73,12 @@ namespace Microsoft.CodeAnalysis
         internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
             (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
 
-        public ImmutableArray<Section> NamedSections { get; }
+        internal ImmutableArray<Section> NamedSections { get; }
 
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         private AnalyzerConfig(
             Section globalSection,
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
             }
 
-            Section globalSection = null;
+            Section? globalSection = null;
             var namedSectionBuilder = ImmutableArray.CreateBuilder<Section>();
 
             // N.B. The editorconfig documentation is quite loose on property interpretation.
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            return new AnalyzerConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
+            return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set
         /// of key-value pairs.
         /// </summary>
-        public sealed class Section
+        internal sealed class Section
         {
             /// <summary>
             /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to

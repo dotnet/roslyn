@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -47,13 +49,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service, out WorkItem workItem);
 
+                public int WorkItemCount
+                {
+                    get
+                    {
+                        lock (_gate)
+                        {
+                            return WorkItemCount_NoLock;
+                        }
+                    }
+                }
+
                 public bool HasAnyWork
                 {
                     get
                     {
                         lock (_gate)
                         {
-                            return HasAnyWork_NoLock;
+                            return WorkItemCount_NoLock > 0;
                         }
                     }
                 }
@@ -137,7 +150,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     RaiseCancellation_NoLock(cancellations);
                 }
 
-                private bool HasAnyWork_NoLock => WorkItemCount_NoLock > 0;
                 protected Workspace Workspace => _workspace;
 
                 private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
@@ -265,7 +277,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return pair.Key;
                     }
 
-                    return Contract.FailWithReturn<ProjectId>("Shouldn't reach here");
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

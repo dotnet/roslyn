@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenericNameSignatureHelpProvider()
         {
         }
@@ -80,8 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var simpleName = genericIdentifier.Parent as SimpleNameSyntax;
-            if (simpleName == null)
+            if (!(genericIdentifier.Parent is SimpleNameSyntax simpleName))
             {
                 return null;
             }
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     symbol, semanticModel, position,
                     symbolDisplayService, anonymousTypeDisplayService,
                     false,
-                    c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
+                    c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
@@ -244,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parts.Add(Punctuation(SyntaxKind.ColonToken));
                 parts.Add(Space());
 
-                bool needComma = false;
+                var needComma = false;
 
                 // class/struct constraint must be first
                 if (typeParam.HasReferenceTypeConstraint)

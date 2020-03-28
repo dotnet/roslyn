@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2333,15 +2335,12 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
-                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
@@ -2398,15 +2397,12 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
-                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29),
                 // file.cs(7,81): warning CS0642: Possible mistaken empty statement
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(7, 81)
@@ -2460,7 +2456,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;").WithArguments("int[]").WithLocation(7, 8),
                 // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2873,9 +2869,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         for (/*<bind/>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;;);
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
-                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         for (/*<bind/>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;;);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ChangeSignature
@@ -77,6 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             SyntaxKind.ConstructorBlock)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -458,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim declaredParameters = declarationSymbol.GetParameters()
-            If paramNodes.Count() <> declaredParameters.Count() Then
+            If paramNodes.Count() <> declaredParameters.Length Then
                 Return Nothing
             End If
 
@@ -548,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return separators
         End Function
 
-        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
+        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvokeAsync(
                 methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
                 document As Document,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
@@ -604,7 +607,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
+            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).
+                Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
     End Class
 End Namespace

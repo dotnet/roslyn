@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,15 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchStatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SwitchStatementHighlighter()
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            SwitchStatementSyntax switchStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             spans.Add(switchStatement.SwitchKeyword.Span);
 
             foreach (var switchSection in switchStatement.Sections)
@@ -37,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
                 HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
             }
-
-            return spans;
         }
 
         /// <summary>
@@ -74,8 +74,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
             else
             {
-                foreach (var child in node.ChildNodes())
+                foreach (var childNodeOrToken in node.ChildNodesAndTokens())
                 {
+                    if (childNodeOrToken.IsToken)
+                        continue;
+
+                    var child = childNodeOrToken.AsNode();
                     var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                     var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a type parameter in a generic type or generic method.
     /// </summary>
-    internal abstract partial class TypeParameterSymbol : TypeSymbol, ITypeParameterSymbol
+    internal abstract partial class TypeParameterSymbol : TypeSymbol, ITypeParameterSymbolInternal
     {
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -430,14 +433,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        internal static bool? IsNotNullableFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
 
             bool? result = false;
             foreach (TypeWithAnnotations constraintType in constraintTypes)
             {
-                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType);
+                bool? fromType = IsNotNullableFromConstraintType(constraintType, out _);
                 if (fromType == true)
                 {
                     return true;
@@ -451,8 +454,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType)
+        internal static bool? IsNotNullableFromConstraintType(TypeWithAnnotations constraintType, out bool isNonNullableValueType)
         {
+            if (constraintType.Type.IsNonNullableValueType())
+            {
+                isNonNullableValueType = true;
+                return true;
+            }
+
+            isNonNullableValueType = false;
+
             if (constraintType.NullableAnnotation.IsAnnotated())
             {
                 return false;
@@ -460,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintType.TypeKind == TypeKind.TypeParameter)
             {
-                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).IsNotNullableIfReferenceType;
+                bool? isNotNullable = ((TypeParameterSymbol)constraintType.Type).IsNotNullable;
 
-                if (isNotNullableIfReferenceType == false)
+                if (isNotNullable == false)
                 {
                     return false;
                 }
-                else if (isNotNullableIfReferenceType == null)
+                else if (isNotNullable == null)
                 {
                     return null;
                 }
@@ -505,46 +516,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected bool? CalculateIsNotNullableIfReferenceType()
+        protected bool? CalculateIsNotNullableFromNonTypeConstraints()
         {
-            bool? fromReferenceTypeConstraint = false;
-
-            if (this.HasNotNullConstraint)
+            if (this.HasNotNullConstraint || this.HasValueTypeConstraint)
             {
                 return true;
             }
 
             if (this.HasReferenceTypeConstraint)
             {
-                fromReferenceTypeConstraint = !this.ReferenceTypeConstraintIsNullable;
+                return !this.ReferenceTypeConstraintIsNullable;
+            }
 
-                if (fromReferenceTypeConstraint == true)
-                {
-                    return true;
-                }
+            return false;
+        }
+
+        protected bool? CalculateIsNotNullable()
+        {
+            bool? fromNonTypeConstraints = CalculateIsNotNullableFromNonTypeConstraints();
+
+            if (fromNonTypeConstraints == true)
+            {
+                return fromNonTypeConstraints;
             }
 
             ImmutableArray<TypeWithAnnotations> constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
 
             if (constraintTypes.IsEmpty)
             {
-                return fromReferenceTypeConstraint;
+                return fromNonTypeConstraints;
             }
 
-            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes);
+            bool? fromTypes = IsNotNullableFromConstraintTypes(constraintTypes);
 
-            if (fromTypes == true || fromReferenceTypeConstraint == false)
+            if (fromTypes == true || fromNonTypeConstraints == false)
             {
                 return fromTypes;
             }
 
-            Debug.Assert(fromReferenceTypeConstraint == null);
+            Debug.Assert(fromNonTypeConstraints == null);
             Debug.Assert(fromTypes != true);
             return null;
         }
 
-        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
-        internal abstract bool? IsNotNullableIfReferenceType { get; }
+        internal abstract bool? IsNotNullable { get; }
 
         public sealed override bool IsValueType
         {
@@ -658,80 +673,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             return this;
         }
 
-        #region ITypeParameterTypeSymbol Members
-
-#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
-        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
-            ReferenceTypeConstraintIsNullable switch
-            {
-                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
-                false => CodeAnalysis.NullableAnnotation.NotAnnotated,
-                true => CodeAnalysis.NullableAnnotation.Annotated,
-                null => CodeAnalysis.NullableAnnotation.Disabled,
-            };
-#pragma warning restore IDE0055 // Fix formatting
-
-        TypeParameterKind ITypeParameterSymbol.TypeParameterKind
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return (TypeParameterKind)this.TypeParameterKind;
-            }
+            return new PublicModel.TypeParameterSymbol(this, DefaultNullableAnnotation);
         }
 
-        IMethodSymbol ITypeParameterSymbol.DeclaringMethod
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get { return this.DeclaringMethod; }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.TypeParameterSymbol(this, nullableAnnotation);
         }
-
-        INamedTypeSymbol ITypeParameterSymbol.DeclaringType
-        {
-            get { return this.DeclaringType; }
-        }
-
-        ImmutableArray<ITypeSymbol> ITypeParameterSymbol.ConstraintTypes
-        {
-            get
-            {
-                return this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => (ITypeSymbol)c.Type);
-            }
-        }
-
-        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
-        {
-            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.NullableAnnotation.ToPublicAnnotation());
-        }
-
-        ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        ITypeParameterSymbol ITypeParameterSymbol.ReducedFrom
-        {
-            get { return this.ReducedFrom; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitTypeParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitTypeParameter(this);
-        }
-
-        #endregion
     }
 }

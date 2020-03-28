@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public partial class MSBuildProjectLoader
     {
         // the workspace that the projects and solutions are intended to be loaded into.
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _workspaceServices;
 
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
@@ -28,15 +31,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private ImmutableDictionary<string, string> _properties;
 
         internal MSBuildProjectLoader(
-            Workspace workspace,
+            HostWorkspaceServices workspaceServices,
             DiagnosticReporter diagnosticReporter,
             ProjectFileLoaderRegistry projectFileLoaderRegistry,
             ImmutableDictionary<string, string> properties)
         {
-            _workspace = workspace;
-            _diagnosticReporter = diagnosticReporter ?? new DiagnosticReporter(workspace);
+            _workspaceServices = workspaceServices;
+            _diagnosticReporter = diagnosticReporter;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspace, _diagnosticReporter);
+            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspaceServices, _diagnosticReporter);
 
             _properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
-            : this(workspace, diagnosticReporter: null, projectFileLoaderRegistry: null, properties)
+            : this(workspace.Services, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
         }
 
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buildManager = new ProjectBuildManager(_properties);
 
             var worker = new Worker(
-                _workspace,
+                _workspaceServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
@@ -238,7 +241,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buildManager = new ProjectBuildManager(_properties);
 
             var worker = new Worker(
-                _workspace,
+                _workspaceServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -122,26 +124,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // roll back to the initial state for the buffer after conflict resolution
             this.UndoTemporaryEdits(subjectBuffer, disconnect: false, undoConflictResolution: replacementText == string.Empty);
 
-            using (var transaction = undoHistory.CreateTransaction(GetUndoTransactionDescription(replacementText)))
-            using (var edit = subjectBuffer.CreateEdit(EditOptions.None, null, propagateSpansEditTag))
-            {
-                foreach (var span in spans)
-                {
-                    if (span.GetText(subjectBuffer.CurrentSnapshot) != replacementText)
-                    {
-                        edit.Replace(span.GetSpan(subjectBuffer.CurrentSnapshot), replacementText);
-                    }
-                }
+            using var transaction = undoHistory.CreateTransaction(GetUndoTransactionDescription(replacementText));
+            using var edit = subjectBuffer.CreateEdit(EditOptions.None, null, propagateSpansEditTag);
 
-                edit.ApplyAndLogExceptions();
-                if (!edit.HasEffectiveChanges && !this.UndoStack.Any())
+            foreach (var span in spans)
+            {
+                if (span.GetText(subjectBuffer.CurrentSnapshot) != replacementText)
                 {
-                    transaction.Cancel();
+                    edit.Replace(span.GetSpan(subjectBuffer.CurrentSnapshot), replacementText);
                 }
-                else
-                {
-                    transaction.Complete();
-                }
+            }
+
+            edit.ApplyAndLogExceptions();
+            if (!edit.HasEffectiveChanges && !this.UndoStack.Any())
+            {
+                transaction.Cancel();
+            }
+            else
+            {
+                transaction.Complete();
             }
         }
 

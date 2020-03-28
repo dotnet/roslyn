@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -303,30 +305,25 @@ class C
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.Main", @"{
-  // Code size       31 (0x1f)
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (object V_0,
-                bool V_1,
-                object V_2)
+  .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  call       ""void System.Console.Write(bool)""
-  IL_0009:  nop
-  IL_000a:  ldnull
-  IL_000b:  stloc.2
-  IL_000c:  ldc.i4.1
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  brfalse.s  IL_001e
-  IL_0011:  nop
-  IL_0012:  ldstr      "" Branch taken""
-  IL_0017:  call       ""void System.Console.Write(string)""
-  IL_001c:  nop
-  IL_001d:  nop
-  IL_001e:  ret
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
 }");
         }
 
@@ -362,29 +359,24 @@ class C
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-  // Code size       31 (0x1f)
+  // Code size       27 (0x1b)
   .maxstack  1
-  .locals init (string V_0,
-                bool V_1,
-                string V_2)
+  .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  call       ""void System.Console.Write(bool)""
-  IL_0009:  nop
-  IL_000a:  ldnull
-  IL_000b:  stloc.2
-  IL_000c:  ldc.i4.1
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  brfalse.s  IL_001e
-  IL_0011:  nop
-  IL_0012:  ldstr      "" Branch taken""
-  IL_0017:  call       ""void System.Console.Write(string)""
-  IL_001c:  nop
-  IL_001d:  nop
-  IL_001e:  ret
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
+
 }");
         }
 
@@ -5593,7 +5585,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b) (bool a, System.Guid b)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid> System.ValueTuple<bool, System.Guid>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
             comp.VerifyIL("Program.CoalesceUserStruct", @"{
@@ -5637,7 +5629,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b, string c) (bool a, System.Guid b, string c)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid, string> System.ValueTuple<bool, System.Guid, string>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
         }
@@ -5832,9 +5824,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         t1 = t1 ?? t2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
         }
     }
 }

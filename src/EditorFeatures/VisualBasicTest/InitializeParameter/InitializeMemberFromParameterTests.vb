@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -696,19 +698,19 @@ End Structure
 
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Never_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Always_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning))
             End Get
         End Property
     End Class

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
@@ -13,6 +15,7 @@ Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -25,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub InvokeSignatureHelpWithoutDocumentShouldNotStartNewSession()
             Dim emptyProvider = New Mock(Of IDocumentProvider)
-            emptyProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(DirectCast(Nothing, Document)))
+            emptyProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(DirectCast(Nothing, Document))
             Dim controller As Controller = CreateController(documentProvider:=emptyProvider)
             controller.WaitForController()
 
@@ -217,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New TypeCharCommandArgs(CreateMock(Of ITextView), CreateMock(Of ITextBuffer), "a"c),
                 Sub() GetMocks(controller).Buffer.Insert(0, "a"), TestCommandExecutionContext.Create())
 
-            GetMocks(controller).DocumentProvider.Verify(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken)), Times.Never)
+            GetMocks(controller).DocumentProvider.Verify(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken)), Times.Never)
         End Sub
 
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
@@ -251,8 +254,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(document))
-                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(document)
+                documentProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(document)
             End If
 
             If provider Is Nothing Then
@@ -266,6 +268,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
                 .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
 
+            Dim mockCompletionBroker = New Mock(Of IAsyncCompletionBroker)
+            mockCompletionBroker.Setup(Function(b) b.GetSession(It.IsAny(Of ITextView))).Returns(DirectCast(Nothing, IAsyncCompletionSession))
 
             Dim controller = New Controller(
                 threadingContext,
@@ -274,7 +278,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 presenter.Object,
                 asyncListener.Object,
                 documentProvider.Object,
-                {provider})
+                {provider},
+                mockCompletionBroker.Object)
 
             s_controllerMocksMap.Add(controller, New ControllerMocks(
                       view,

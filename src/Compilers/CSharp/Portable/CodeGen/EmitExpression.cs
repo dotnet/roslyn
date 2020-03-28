@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -405,32 +407,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // if T happens to be a value type, it could be a target of mutating calls.
                     receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
 
-                    // unconstrained case needs to handle case where T is actually a struct.
-                    // such values are never nulls
-                    // we will emit a check for such case, but the check is really a JIT-time 
-                    // constant since JIT will know if T is a struct or not.
+                    if (receiverTemp is null)
+                    {
+                        // unconstrained case needs to handle case where T is actually a struct.
+                        // such values are never nulls
+                        // we will emit a check for such case, but the check is really a JIT-time 
+                        // constant since JIT will know if T is a struct or not.
 
-                    // if ((object)default(T) != null) 
-                    // {
-                    //     goto whenNotNull
-                    // }
-                    // else
-                    // {
-                    //     temp = receiverRef
-                    //     receiverRef = ref temp
-                    // }
-                    EmitDefaultValue(receiverType, true, receiver.Syntax);
-                    EmitBox(receiverType, receiver.Syntax);
-                    _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
-                    EmitLoadIndirect(receiverType, receiver.Syntax);
+                        // if ((object)default(T) != null) 
+                        // {
+                        //     goto whenNotNull
+                        // }
+                        // else
+                        // {
+                        //     temp = receiverRef
+                        //     receiverRef = ref temp
+                        // }
+                        EmitDefaultValue(receiverType, true, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                        _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
 
-                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(cloneTemp);
-                    _builder.EmitLocalAddress(cloneTemp);
-                    _builder.EmitLocalLoad(cloneTemp);
-                    EmitBox(receiver.Type, receiver.Syntax);
+                        cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                        _builder.EmitLocalStore(cloneTemp);
+                        _builder.EmitLocalAddress(cloneTemp);
+                        _builder.EmitLocalLoad(cloneTemp);
+                        EmitBox(receiverType, receiver.Syntax);
 
-                    // here we have loaded a ref to a temp and its boxed value { &T, O }
+                        // here we have loaded a ref to a temp and its boxed value { &T, O }
+                    }
+                    else
+                    {
+                        // We are calling the expression on a copy of the target anyway, 
+                        // so even if T is a struct, we don't need to make sure we call the expression on the original target.
+
+                        // We currently have an address on the stack. Duplicate it, and load the value of the address.
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
+                        EmitBox(receiverType, receiver.Syntax);
+                    }
                 }
                 else
                 {
@@ -1479,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             CallKind callKind;
 
-            if (method.IsStatic)
+            if (!method.RequiresInstanceReceiver)
             {
                 callKind = CallKind.Call;
             }
@@ -1520,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             //       otherwise we should not use direct 'call' and must use constrained call;
 
                             // calling a method defined in a value type
-                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ConsiderEverything2));
+                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
                             tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.Call;
                         }
@@ -1748,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 stack += 1;
             }
 
-            if (!call.Method.IsStatic)
+            if (call.Method.RequiresInstanceReceiver)
             {
                 // The call pops the receiver off the stack.
                 stack -= 1;
@@ -1905,6 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we can ignore that if the actual result is unused
             if (used)
             {
+                _sawStackalloc = true;
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
 
@@ -1984,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+            if (originalDef.ContainingType.Name == NamedTypeSymbol.ValueTupleTypeName &&
                     (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||
@@ -2004,7 +2020,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
-                Debug.Assert(!assignmentOperator.IsRef);
                 return;
             }
 
@@ -2071,6 +2086,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //    i.e. target must not be on the heap and we should not be in a try block.
         private bool TryEmitAssignmentInPlace(BoundAssignmentOperator assignmentOperator, bool used)
         {
+            // If the left hand is itself a ref, then we can't use in-place assignment
+            // because we need to spill the creation. This code can't be written in C#, but
+            // can be produced by lowering.
+            if (assignmentOperator.IsRef)
+            {
+                return false;
+            }
+
             var left = assignmentOperator.Left;
 
             // if result is used, and lives on heap, we must keep RHS value on the stack.
@@ -3284,11 +3307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+                    Debug.Assert(conversionKind != ConversionKind.NullLiteral && conversionKind != ConversionKind.DefaultLiteral);
 
                     if (conversionKind.IsImplicitConversion() &&
                         conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.DefaultOrNullLiteral)
+                        conversionKind != ConversionKind.NullLiteral &&
+                        conversionKind != ConversionKind.DefaultLiteral)
                     {
                         return StackMergeType(conversion.Operand);
                     }
