@@ -24,7 +24,7 @@
              HasDialogFrame="True"
              WindowStartupLocation="CenterOwner"
              vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
-             Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+             Background="{DynamicResource {x:Static vs:EnvironmentColors.EnvironmentBackgroundBrushKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
             <Setter Property="IsTabStop" Value="False" />
