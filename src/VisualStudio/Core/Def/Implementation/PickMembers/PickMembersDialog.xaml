@@ -4,6 +4,7 @@
              x:Name="dialog"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -32,6 +33,8 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBorderBrushKey}}"/>
         </Style>
+        <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
+        <Style TargetType="u:AutomationDelegatingListViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewItemStyleKey}}" />
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
@@ -75,10 +78,7 @@
                           SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                           PreviewKeyDown="OnListViewPreviewKeyDown"
                           MouseDoubleClick="OnListViewDoubleClick"
-                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}"
-                          Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
-                                           <!-- TODO: Setting the AutomationDelegatingListView's Background should not be necessary.
-                                                The AutomationDelegatingListView should inherit styles from ListView -->
+                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}">
                     <u:AutomationDelegatingListView.ItemTemplate x:Uid="SelectableMemberListItem">
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -93,10 +93,7 @@
                                        Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
                                 <TextBlock x:Uid="SelectableMemberName"
-                                           Text="{Binding SymbolName}"
-                                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-                                           <!-- TODO: Setting the TextBlock's Foreground should not be necessary.
-                                                The AutomationDelegatingListView should inherit styles from ListView -->
+                                           Text="{Binding SymbolName}"/>
                             </StackPanel>
                         </DataTemplate>
                     </u:AutomationDelegatingListView.ItemTemplate>
