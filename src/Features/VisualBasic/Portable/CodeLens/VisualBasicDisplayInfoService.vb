@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

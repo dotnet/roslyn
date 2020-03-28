@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NamedParameterCompletionProvider()
         {
         }
