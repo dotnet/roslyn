@@ -370,6 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         explicitCastInCode: explicitCastInCode,
                         rewrittenType: (NamedTypeSymbol)rewrittenType);
 
+                case ConversionKind.MethodGroup when oldNodeOpt is { Type: { TypeKind: TypeKind.FunctionPointer } funcPtrType }:
+                    {
+                        var mg = (BoundMethodGroup)rewrittenOperand;
+                        Debug.Assert(oldNodeOpt.SymbolOpt is { });
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt, type: funcPtrType, hasErrors: false);
+                    }
+
                 case ConversionKind.MethodGroup:
                     {
                         // we eliminate the method group conversion entirely from the bound nodes following local lowering

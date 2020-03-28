@@ -1748,6 +1748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DupReturnTypeMod = 8754,
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
+        ERR_MethFuncPtrMismatch = 8757,
+        ERR_FuncPtrRefMismatch = 8758,
+        ERR_FuncPtrMethMustBeStatic = 8759,
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
@@ -1772,6 +1775,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
 
         ERR_ConditionalOnLocalFunction = 8783,
+
+        ERR_AddressOfMethodGroupInExpressionTree = 8785,
+        ERR_WrongFuncPtrCallingConvention = 8786,
+        ERR_MissingAddressOf = 8787,
+        ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
 
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,

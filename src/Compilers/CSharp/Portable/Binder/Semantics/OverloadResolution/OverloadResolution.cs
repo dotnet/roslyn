@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -122,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             MethodOrPropertyOverloadResolution(
-                methods, typeArguments, receiver, arguments, result, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
-                allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind,
-                returnType: returnType);
+                methods, typeArguments, receiver, arguments, result,
+                isMethodGroupConversion, allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic,
+                allowUnexpandedForm, returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
@@ -161,29 +162,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
-                results: results, members: members, typeArguments: typeArguments,
-                receiver: receiver, arguments: arguments, completeResults: false,
-                isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
-                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
+                results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
+                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                ref useSiteDiagnostics, inferWithDynamic, allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
                 PerformMemberOverloadResolution(
-                    results: results, members: members, typeArguments: typeArguments,
-                    receiver: receiver, arguments: arguments, completeResults: true,
-                    isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
-                    allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
-                    allowUnexpandedForm: allowUnexpandedForm);
+                    results, members, typeArguments, receiver, arguments,
+                    completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
+                    allowRefOmittedArguments, isFunctionPointerResolution, callingConvention,
+                    ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -232,6 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind,
             TypeSymbol returnType,
             bool allowRefOmittedArguments,
+            bool isFunctionPointerResolution,
+            Cci.CallingConvention callingConvention,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -283,8 +285,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isMethodGroupConversion)
                 {
-                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteDiagnostics, returnRefKind, returnType);
+                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteDiagnostics, returnRefKind, returnType, isFunctionPointerResolution);
                 }
+            }
+
+            if (isFunctionPointerResolution)
+            {
+                RemoveCallingConventionMismatches(results, callingConvention);
+                RemoveStaticInstanceMismatches(results, requireStatic: true);
             }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
@@ -363,11 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We are in a context where only instance (or only static) methods are permitted. We reject the others.
             bool keepStatic = isImplicitReceiver && isStaticContext || Binder.IsMemberAccessedThroughType(receiverOpt);
 
+            RemoveStaticInstanceMismatches(results, keepStatic);
+        }
+
+        private static void RemoveStaticInstanceMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, bool requireStatic) where TMember : Symbol
+        {
             for (int f = 0; f < results.Count; ++f)
             {
                 var result = results[f];
                 TMember member = result.Member;
-                if (result.Result.IsValid && member.RequiresInstanceReceiver() == keepStatic)
+                if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
                 {
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
                 }
@@ -400,6 +413,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+#nullable enable
+        private void RemoveCallingConventionMismatches<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, Cci.CallingConvention expectedConvention) where TMember : Symbol
+        {
+            if (typeof(TMember) != typeof(MethodSymbol))
+            {
+                return;
+            }
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                var result = results[i];
+                var member = (MethodSymbol)(Symbol)result.Member;
+                if (result.Result.IsValid)
+                {
+                    if (!member.CallingConvention.IsCallingConvention(expectedConvention)
+                        || member.CallingConvention.HasUnknownCallingConventionAttributeBits())
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(
+                            result.Member, result.LeastOverriddenMember,
+                            MemberAnalysisResult.WrongCallingConvention());
+                    }
+                }
+            }
+        }
+#nullable restore
 
         private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt)
         {
@@ -449,7 +488,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             RefKind? returnRefKind,
-            TypeSymbol returnType) where TMember : Symbol
+            TypeSymbol returnType,
+            bool isFunctionPointerConversion) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, then a delegate conversion overload resolution
             // rejects candidates that have the wrong return ref kind or return type.
@@ -466,10 +506,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var method = (MethodSymbol)(Symbol)result.Member;
-                bool returnsMatch =
-                    (object)returnType == null ||
-                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
-                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                bool returnsMatch;
+
+                if (returnType is null || method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    returnsMatch = true;
+                }
+                else if (returnRefKind == RefKind.None)
+                {
+                    returnsMatch = Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                    if (!returnsMatch && isFunctionPointerConversion)
+                    {
+                        returnsMatch = ConversionsBase.HasImplicitPointerConversion(method.ReturnType, returnType);
+                    }
+                }
+                else
+                {
+                    returnsMatch = false;
+                }
+
                 if (!returnsMatch)
                 {
                     results[f] = new MemberResolutionResult<TMember>(
@@ -2628,7 +2683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conv.IsMethodGroup)
             {
                 DiagnosticBag ignore = DiagnosticBag.GetInstance();
-                bool result = !_binder.MethodGroupIsCompatibleWithDelegate(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
+                bool result = !_binder.MethodIsCompatibleWithDelegateOrFunctionPointer(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
                 ignore.Free();
                 return result;
             }

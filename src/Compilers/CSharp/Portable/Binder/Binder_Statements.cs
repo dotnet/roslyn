@@ -2133,32 +2133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.MethodGroup:
                     {
-                        var methodGroup = (BoundMethodGroup)operand;
-                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
-                        {
-                            var nodeForSquiggle = syntax;
-                            while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
-                            {
-                                nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
-                            }
-
-                            if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
-                            {
-                                nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
-                            }
-
-                            var location = nodeForSquiggle.Location;
-
-                            if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
-                            {
-                                return;
-                            }
-
-                            Error(diagnostics,
-                                targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
-                                location, methodGroup.Name, targetType);
-                        }
-
+                        reportMethodGroupErrors((BoundMethodGroup)operand);
+                        return;
+                    }
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        reportMethodGroupErrors(((BoundUnconvertedAddressOfOperator)operand).Operand);
                         return;
                     }
                 case BoundKind.Literal:
@@ -2202,6 +2182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
+
+                case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);
+                        return;
+                    }
             }
 
             var sourceType = operand.Type;
@@ -2212,6 +2198,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(operand.HasAnyErrors && operand.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
+
+            void reportMethodGroupErrors(BoundMethodGroup methodGroup)
+            {
+                if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
+                {
+                    var nodeForError = syntax;
+                    while (nodeForError.Kind() == SyntaxKind.ParenthesizedExpression)
+                    {
+                        nodeForError = ((ParenthesizedExpressionSyntax)nodeForError).Expression;
+                    }
+
+                    if (nodeForError.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForError.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                    {
+                        nodeForError = ((MemberAccessExpressionSyntax)nodeForError).Name;
+                    }
+
+                    var location = nodeForError.Location;
+
+                    if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
+                    {
+                        return;
+                    }
+
+                    ErrorCode errorCode;
+
+                    switch (targetType.TypeKind)
+                    {
+                        case TypeKind.FunctionPointer:
+                            if (operand.Kind == BoundKind.MethodGroup)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MissingAddressOf, location);
+                                return;
+                            }
+                            errorCode = ErrorCode.ERR_MethFuncPtrMismatch;
+                            break;
+                        case TypeKind.Delegate:
+                            errorCode = ErrorCode.ERR_MethDelegateMismatch;
+                            break;
+                        default:
+                            errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            break;
+                    }
+
+                    Error(diagnostics, errorCode, location, methodGroup.Name, targetType);
+                }
+            }
         }
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(

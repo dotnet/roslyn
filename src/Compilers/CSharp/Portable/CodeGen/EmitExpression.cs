@@ -323,6 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitCalli((BoundFunctionPointerInvocation)expression, used ? UseKind.UsedAsValue : UseKind.Unused);
                     break;
 
+                case BoundKind.FunctionPointerLoad:
+                    EmitLoadFunction((BoundFunctionPointerLoad)expression);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -3453,6 +3457,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(method.RefKind != RefKind.None);
             }
+        }
+
+        private void EmitLoadFunction(BoundFunctionPointerLoad load)
+        {
+            Debug.Assert(load.Type is { TypeKind: TypeKind.FunctionPointer });
+            _builder.EmitOpCode(ILOpCode.Ldftn);
+            EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
         }
     }
 }

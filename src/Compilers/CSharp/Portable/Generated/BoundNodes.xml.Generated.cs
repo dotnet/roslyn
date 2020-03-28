@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnaryOperator,
         IncrementOperator,
         AddressOfOperator,
+        UnconvertedAddressOfOperator,
+        FunctionPointerLoad,
         PointerIndirectionOperator,
         PointerElementAccess,
         FunctionPointerInvocation,
@@ -978,6 +980,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand != this.Operand || isManaged != this.IsManaged || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedAddressOfOperator : BoundExpression
+    {
+        public BoundUnconvertedAddressOfOperator(SyntaxNode syntax, BoundMethodGroup operand, bool hasErrors = false)
+            : base(BoundKind.UnconvertedAddressOfOperator, syntax, null, hasErrors || operand.HasErrors())
+        {
+
+            RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Operand = operand;
+        }
+
+
+        public BoundMethodGroup Operand { get; }
+
+        public new TypeSymbol? Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedAddressOfOperator(this);
+
+        public BoundUnconvertedAddressOfOperator Update(BoundMethodGroup operand)
+        {
+            if (operand != this.Operand)
+            {
+                var result = new BoundUnconvertedAddressOfOperator(this.Syntax, operand, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundFunctionPointerLoad : BoundExpression
+    {
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.FunctionPointerLoad, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.TargetMethod = targetMethod;
+        }
+
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type)
+            : base(BoundKind.FunctionPointerLoad, syntax, type)
+        {
+
+            RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.TargetMethod = targetMethod;
+        }
+
+
+        public MethodSymbol TargetMethod { get; }
+
+        public new TypeSymbol Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerLoad(this);
+
+        public BoundFunctionPointerLoad Update(MethodSymbol targetMethod, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(targetMethod, this.TargetMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundFunctionPointerLoad(this.Syntax, targetMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7489,6 +7562,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitIncrementOperator((BoundIncrementOperator)node, arg);
                 case BoundKind.AddressOfOperator: 
                     return VisitAddressOfOperator((BoundAddressOfOperator)node, arg);
+                case BoundKind.UnconvertedAddressOfOperator: 
+                    return VisitUnconvertedAddressOfOperator((BoundUnconvertedAddressOfOperator)node, arg);
+                case BoundKind.FunctionPointerLoad: 
+                    return VisitFunctionPointerLoad((BoundFunctionPointerLoad)node, arg);
                 case BoundKind.PointerIndirectionOperator: 
                     return VisitPointerIndirectionOperator((BoundPointerIndirectionOperator)node, arg);
                 case BoundKind.PointerElementAccess: 
@@ -7853,6 +7930,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitUnaryOperator(BoundUnaryOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIncrementOperator(BoundIncrementOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAddressOfOperator(BoundAddressOfOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitFunctionPointerLoad(BoundFunctionPointerLoad node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerElementAccess(BoundPointerElementAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, A arg) => this.DefaultVisit(node, arg);
@@ -8045,6 +8124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitUnaryOperator(BoundUnaryOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIncrementOperator(BoundIncrementOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAddressOfOperator(BoundAddressOfOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerElementAccess(BoundPointerElementAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node) => this.DefaultVisit(node);
@@ -8286,6 +8367,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Operand);
             return null;
         }
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            this.Visit(node.Operand);
+            return null;
+        }
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node) => null;
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             this.Visit(node.Operand);
@@ -9183,6 +9270,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(operand, node.IsManaged, type);
+        }
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            BoundMethodGroup operand = (BoundMethodGroup)this.Visit(node.Operand);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(operand);
+        }
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.TargetMethod, type);
         }
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
@@ -10427,6 +10525,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(operand, node.IsManaged, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            BoundMethodGroup operand = (BoundMethodGroup)this.Visit(node.Operand);
+            BoundUnconvertedAddressOfOperator updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(operand);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(operand);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            MethodSymbol targetMethod = GetUpdatedSymbol(node, node.TargetMethod);
+            BoundFunctionPointerLoad updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(targetMethod, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(targetMethod, node.Type);
             }
             return updatedNode;
         }
@@ -12607,6 +12739,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("isManaged", node.IsManaged, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node, object? arg) => new TreeDumperNode("unconvertedAddressOfOperator", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node, object? arg) => new TreeDumperNode("functionPointerLoad", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("targetMethod", node.TargetMethod, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
