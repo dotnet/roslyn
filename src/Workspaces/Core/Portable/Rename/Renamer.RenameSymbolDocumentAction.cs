@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Action that will rename a type to match the current document name
         /// </summary>
-        internal class RenameSymbolDocumentAction : RenameDocumentAction
+        internal sealed class RenameSymbolDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
 

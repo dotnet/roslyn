@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Action that will sync the namespace of the document to match the folders property 
         /// of that document
         /// </summary>
-        internal class SyncNamespaceDocumentAction : RenameDocumentAction
+        internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
 
