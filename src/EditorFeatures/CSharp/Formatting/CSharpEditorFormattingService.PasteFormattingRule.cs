@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 {
     internal partial class CSharpEditorFormattingService : IEditorFormattingService
     {
-        internal class PasteFormattingRule : AbstractFormattingRule
+        internal class PasteFormattingRule : FormattingRule
         {
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        protected override AbstractFormattingRule GetMultiLineFormattingRule()
+        protected override FormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 
         protected override VariableDeclaratorSyntax WithInitializer(VariableDeclaratorSyntax variable, ExpressionSyntax value)

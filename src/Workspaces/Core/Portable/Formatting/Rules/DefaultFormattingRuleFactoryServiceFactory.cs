@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 return false;
             }
 
-            public AbstractFormattingRule CreateRule(Document document, int position)
+            public FormattingRule CreateRule(Document document, int position)
             {
                 return NoOpFormattingRule.Instance;
             }

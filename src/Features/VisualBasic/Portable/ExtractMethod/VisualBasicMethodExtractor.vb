@@ -71,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of Rules.FormattingRule)
+            Return SpecializedCollections.SingletonEnumerable(Of FormattingRule)(New ExtractMethodFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
         Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return OperationStatus.Succeeded
         End Function
 
-        Private Class FormattingRule
+        Private Class ExtractMethodFormattingRule
             Inherits CompatAbstractFormattingRule
 
             Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation

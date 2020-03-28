@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return UseBaseIndentation;
             }
 
-            public AbstractFormattingRule CreateRule(Document document, int position)
+            public FormattingRule CreateRule(Document document, int position)
             {
                 if (BaseIndentation == 0)
                 {

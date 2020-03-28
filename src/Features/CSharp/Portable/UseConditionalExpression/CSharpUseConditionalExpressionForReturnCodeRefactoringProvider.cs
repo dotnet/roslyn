@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             => returnOperation.Syntax is ReturnStatementSyntax statement &&
                statement.Expression is RefExpressionSyntax;
 
-        protected override AbstractFormattingRule GetMultiLineFormattingRule()
+        protected override FormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 
         protected override StatementSyntax WrapWithBlockIfAppropriate(

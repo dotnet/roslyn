@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
 
-        private static readonly AbstractFormattingRule s_instance = new FormattingRule();
+        private static readonly CodeAnalysis.Formatting.Rules.FormattingRule s_instance = new FormattingRule();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
         }
 
-        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
+        protected override CodeAnalysis.Formatting.Rules.FormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
         {
             return s_instance;
         }
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<AbstractFormattingRule> formattingRules,
+            IEnumerable<CodeAnalysis.Formatting.Rules.FormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
             IOptionService optionService,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                    token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
-        private class FormattingRule : AbstractFormattingRule
+        private class FormattingRule : CodeAnalysis.Formatting.Rules.FormattingRule
         {
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
             {

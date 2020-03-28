@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     // there is no way for a user to be remove this provider.
     //
     // to reduce number of unnecessary heap allocations, most of them just return null.
-    internal sealed class DefaultOperationProvider : AbstractFormattingRule
+    internal sealed class DefaultOperationProvider : FormattingRule
     {
         public static readonly DefaultOperationProvider Instance = new DefaultOperationProvider();
 

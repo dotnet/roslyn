@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal readonly struct NextAnchorIndentationOperationAction
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
+        private readonly ImmutableArray<FormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
         private readonly AnalyzerConfigOptions _options;
         private readonly List<AnchorIndentationOperation> _list;
 
         public NextAnchorIndentationOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
+            ImmutableArray<FormattingRule> formattingRules,
             int index,
             SyntaxNode node,
             AnalyzerConfigOptions options,

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         : ILanguageService
 #endif
     {
-        IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
-        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken);
+        IEnumerable<FormattingRule> GetDefaultFormattingRules();
+        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, bool shouldUseFormattingSpanCollapse, AnalyzerConfigOptions options, IEnumerable<FormattingRule> rules, CancellationToken cancellationToken);
     }
 }

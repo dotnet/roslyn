@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of FormattingRule)
             Return Nothing
         End Function
 

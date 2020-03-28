@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// format span
         /// </summary>
-        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<AbstractFormattingRule> rules)
+        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<FormattingRule> rules)
         {
             var snapshot = buffer.CurrentSnapshot;
             snapshot.FormatAndApplyToBuffer(span, rules, CancellationToken.None);

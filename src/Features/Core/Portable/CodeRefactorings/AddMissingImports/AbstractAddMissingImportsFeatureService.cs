@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        private sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        private sealed class CleanUpNewLinesFormatter : FormattingRule
         {
             private readonly SourceText _text;
 

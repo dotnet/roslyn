@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
         }
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<CodeAnalysis.Formatting.Rules.FormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }

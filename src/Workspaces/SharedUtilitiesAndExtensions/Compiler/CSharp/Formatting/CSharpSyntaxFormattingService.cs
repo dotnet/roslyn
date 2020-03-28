@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #endif
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
-        private readonly ImmutableList<AbstractFormattingRule> _rules;
+        private readonly ImmutableList<FormattingRule> _rules;
 
 #if !CODE_STYLE
         [ImportingConstructor]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #endif
         public CSharpSyntaxFormattingService()
         {
-            _rules = ImmutableList.Create<AbstractFormattingRule>(
+            _rules = ImmutableList.Create<FormattingRule>(
                 new WrappingFormattingRule(),
                 new SpacingFormattingRule(),
                 new NewLineUserSettingFormattingRule(),
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 DefaultOperationProvider.Instance);
         }
 
-        public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
+        public override IEnumerable<FormattingRule> GetDefaultFormattingRules()
         {
             return _rules;
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
+        protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<FormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
             return new CSharpFormatEngine(node, options, formattingRules, token1, token2).Format(cancellationToken);
         }

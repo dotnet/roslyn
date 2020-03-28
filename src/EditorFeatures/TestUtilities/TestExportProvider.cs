@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
                 .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
-                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(FormattingRule)))
                 .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
-                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(FormattingRule)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(

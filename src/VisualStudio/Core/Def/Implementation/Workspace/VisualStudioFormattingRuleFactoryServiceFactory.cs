@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
             }
 
-            public AbstractFormattingRule CreateRule(Document document, int position)
+            public FormattingRule CreateRule(Document document, int position)
             {
                 if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
                 {

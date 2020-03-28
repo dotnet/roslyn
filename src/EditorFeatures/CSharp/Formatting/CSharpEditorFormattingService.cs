@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return SpecializedCollections.EmptyList<TextChange>();
             }
 
-            var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
+            var rules = new List<FormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
             var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
+        private IEnumerable<FormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return token;
         }
 
-        private async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private async Task<IList<TextChange>> FormatTokenAsync(Document document, OptionSet options, SyntaxToken token, IEnumerable<FormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+        private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<FormattingRule> formattingRules, SyntaxNode root)
         {
             return new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             Document document,
             OptionSet options,
             SyntaxToken endToken,
-            IEnumerable<AbstractFormattingRule> formattingRules,
+            IEnumerable<FormattingRule> formattingRules,
             CancellationToken cancellationToken)
         {
             if (!IsEndToken(endToken))
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
+        private IEnumerable<FormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
                 tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
             {
-                return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
+                return SpecializedCollections.EmptyEnumerable<FormattingRule>();
             }
 
             return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);

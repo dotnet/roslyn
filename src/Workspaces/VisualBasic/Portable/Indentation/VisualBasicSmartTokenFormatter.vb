@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Implements ISmartTokenFormatter
 
         Private ReadOnly _optionSet As OptionSet
-        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
+        Private ReadOnly _formattingRules As IEnumerable(Of FormattingRule)
 
         Private ReadOnly _root As CompilationUnitSyntax
 
         Public Sub New(optionSet As OptionSet,
-                       formattingRules As IEnumerable(Of AbstractFormattingRule),
+                       formattingRules As IEnumerable(Of FormattingRule),
                        root As CompilationUnitSyntax)
             Contract.ThrowIfNull(optionSet)
             Contract.ThrowIfNull(formattingRules)

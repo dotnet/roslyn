@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of FormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of FormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             oldTree As SyntaxTree,
             newDirtySpan As SnapshotSpan,
             newTree As SyntaxTree,
-            cancellationToken As CancellationToken) As IEnumerable(Of AbstractFormattingRule)
+            cancellationToken As CancellationToken) As IEnumerable(Of FormattingRule)
 
             ' if the span we are going to format is same as the span that got changed, don't bother to do anything special.
             ' just do full format of the span.

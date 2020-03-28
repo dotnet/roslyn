@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Sub New(node As SyntaxNode,
                        options As AnalyzerConfigOptions,
-                       formattingRules As IEnumerable(Of AbstractFormattingRule),
+                       formattingRules As IEnumerable(Of FormattingRule),
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)
             MyBase.New(TreeData.Create(node),

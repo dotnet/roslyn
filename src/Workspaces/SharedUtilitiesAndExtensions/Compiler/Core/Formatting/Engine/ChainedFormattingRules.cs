@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private static readonly ConcurrentDictionary<(Type type, string name), Type> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type>();
 
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
+        private readonly ImmutableArray<FormattingRule> _formattingRules;
         private readonly AnalyzerConfigOptions _options;
 
-        private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addIndentBlockOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addAlignTokensOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
+        private readonly ImmutableArray<FormattingRule> _addSuppressOperationsRules;
+        private readonly ImmutableArray<FormattingRule> _addAnchorIndentationOperationsRules;
+        private readonly ImmutableArray<FormattingRule> _addIndentBlockOperationsRules;
+        private readonly ImmutableArray<FormattingRule> _addAlignTokensOperationsRules;
+        private readonly ImmutableArray<FormattingRule> _getAdjustNewLinesOperationRules;
+        private readonly ImmutableArray<FormattingRule> _getAdjustSpacesOperationRules;
 
-        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, AnalyzerConfigOptions options)
+        public ChainedFormattingRules(IEnumerable<FormattingRule> formattingRules, AnalyzerConfigOptions options)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(options);
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             _formattingRules = formattingRules.ToImmutableArray();
             _options = options;
 
-            _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
-            _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAnchorIndentationOperations));
-            _addIndentBlockOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddIndentBlockOperations));
-            _addAlignTokensOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAlignTokensOperations));
-            _getAdjustNewLinesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustNewLinesOperation));
-            _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
+            _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.AddSuppressOperations));
+            _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.AddAnchorIndentationOperations));
+            _addIndentBlockOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.AddIndentBlockOperations));
+            _addAlignTokensOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.AddAlignTokensOperations));
+            _getAdjustNewLinesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.GetAdjustNewLinesOperation));
+            _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(FormattingRule.GetAdjustSpacesOperation));
         }
 
         public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             return action.Invoke();
         }
 
-        private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
+        private static ImmutableArray<FormattingRule> FilterToRulesImplementingMethod(ImmutableArray<FormattingRule> rules, string name)
         {
             return rules.Where(rule =>
             {
                 var type = GetTypeImplementingMethod(rule, name);
-                if (type == typeof(AbstractFormattingRule))
+                if (type == typeof(FormattingRule))
                 {
                     return false;
                 }

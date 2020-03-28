@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public CSharpFormatEngine(
             SyntaxNode node,
             AnalyzerConfigOptions options,
-            IEnumerable<AbstractFormattingRule> formattingRules,
+            IEnumerable<FormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : base(TreeData.Create(node),

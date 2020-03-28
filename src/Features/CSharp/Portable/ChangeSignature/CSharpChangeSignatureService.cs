@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<FormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }

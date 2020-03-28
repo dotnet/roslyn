@@ -11,16 +11,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    internal class BaseIndentationFormattingRule : AbstractFormattingRule
+    internal class BaseIndentationFormattingRule : FormattingRule
     {
-        private readonly AbstractFormattingRule _vbHelperFormattingRule;
+        private readonly FormattingRule _vbHelperFormattingRule;
         private readonly int _baseIndentation;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
         private readonly SyntaxNode _commonNode;
         private readonly TextSpan _span;
 
-        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, AbstractFormattingRule vbHelperFormattingRule = null)
+        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, FormattingRule vbHelperFormattingRule = null)
         {
             _span = span;
             SetInnermostNodeForSpan(root, ref _span, out _token1, out _token2, out _commonNode);

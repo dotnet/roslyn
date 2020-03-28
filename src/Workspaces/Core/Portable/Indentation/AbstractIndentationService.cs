@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Indentation
     internal abstract partial class AbstractIndentationService<TSyntaxRoot> : IIndentationService
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
-        protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle);
+        protected abstract FormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle);
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
+        private IEnumerable<FormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();

@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return true;
         }
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
+        private IEnumerable<FormattingRule> GetFormattingRules(Document document)
         {
             var indentStyle = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None).GetOption(FormattingOptions.SmartIndent);
             return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.ForIndentStyle(indentStyle)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<AbstractFormattingRule> rules = null)
+        private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<FormattingRule> rules = null)
         {
             if (!session.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && shouldHonorAutoFormattingOnCloseBraceOption)
             {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 _indentStyle = indentStyle;
             }
 
-            public static AbstractFormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
+            public static FormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
             {
                 Debug.Assert(s_instances[(int)indentStyle]._indentStyle == indentStyle);
                 return s_instances[(int)indentStyle];

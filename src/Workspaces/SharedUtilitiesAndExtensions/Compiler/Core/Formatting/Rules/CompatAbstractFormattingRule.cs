@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    internal abstract class CompatAbstractFormattingRule : AbstractFormattingRule
+    internal abstract class CompatAbstractFormattingRule : FormattingRule
     {
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
