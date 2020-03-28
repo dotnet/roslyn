@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsObjectType(ISymbol symbol)
-            => symbol is ITypeSymbol typeSymbol && typeSymbol.SpecialType == SpecialType.System_Object;
+            => symbol.IsKind(SymbolKind.NamedType, out ITypeSymbol typeSymbol) && typeSymbol.SpecialType == SpecialType.System_Object;
 
         private static bool CheckContainingType(IMethodSymbol x)
         {
