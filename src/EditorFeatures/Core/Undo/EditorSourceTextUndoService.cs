@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Undo
 {
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _undoHistoryRegistry = undoHistoryRegistry;

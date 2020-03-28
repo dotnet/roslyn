@@ -386,26 +386,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (name == DocumentationCommentXmlNames.ListElementName)
             {
                 var rawListType = element.Attribute(DocumentationCommentXmlNames.TypeAttributeName)?.Value;
-                DocumentationCommentListType listType;
-                switch (rawListType)
+                var listType = rawListType switch
                 {
-                    case "table":
-                        listType = DocumentationCommentListType.Table;
-                        break;
-
-                    case "number":
-                        listType = DocumentationCommentListType.Number;
-                        break;
-
-                    case "bullet":
-                        listType = DocumentationCommentListType.Bullet;
-                        break;
-
-                    default:
-                        listType = DocumentationCommentListType.None;
-                        break;
-                }
-
+                    "table" => DocumentationCommentListType.Table,
+                    "number" => DocumentationCommentListType.Number,
+                    "bullet" => DocumentationCommentListType.Bullet,
+                    _ => DocumentationCommentListType.None,
+                };
                 state.PushList(listType);
             }
             else if (name == DocumentationCommentXmlNames.ItemElementName)

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private const int ImplicitCacheTimeoutInMS = 10000;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCacheHostServiceFactory()
         {
         }

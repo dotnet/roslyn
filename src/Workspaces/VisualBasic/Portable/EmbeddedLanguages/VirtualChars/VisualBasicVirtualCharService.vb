@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Text
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
         Public Sub New()
         End Sub
 

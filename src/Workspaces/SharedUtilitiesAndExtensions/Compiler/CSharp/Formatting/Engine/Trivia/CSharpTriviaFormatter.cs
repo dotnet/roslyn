@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (_newLine == default)
             {
-                var text = this.Context.Options.GetOption(FormattingOptions.NewLine);
+                var text = this.Context.Options.GetOption(FormattingOptions2.NewLine);
                 _newLine = SyntaxFactory.EndOfLine(text);
             }
 
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
                 }
 
-                return LineColumnRule.Preserve();
+                return LineColumnRule.Preserve;
             }
 
             // preprocessor case
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
                     _succeeded = false;
-                    return LineColumnRule.Preserve();
+                    return LineColumnRule.Preserve;
                 }
 
                 // if current line is the first line of the file, don't put extra line 1
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation();
+                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation;
             }
 
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _succeeded = false;
             }
 
-            return LineColumnRule.Preserve();
+            return LineColumnRule.Preserve;
         }
 
         protected override bool ContainsImplicitLineBreak(SyntaxTrivia trivia)
@@ -200,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     false /* forceIndentation */,
                     indentation,
                     indentationDelta,
-                    this.Options.GetOption(FormattingOptions.UseTabs),
-                    this.Options.GetOption(FormattingOptions.TabSize),
-                    this.Options.GetOption(FormattingOptions.NewLine));
+                    this.Options.GetOption(FormattingOptions2.UseTabs),
+                    this.Options.GetOption(FormattingOptions2.TabSize),
+                    this.Options.GetOption(FormattingOptions2.NewLine));
 
                 var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
                 Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override LineColumnDelta Format(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<SyntaxTrivia> changes,
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<SyntaxTrivia> changes,
             CancellationToken cancellationToken)
         {
             if (trivia.HasStructure)
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override LineColumnDelta Format(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<TextChange> changes, CancellationToken cancellationToken)
         {
             if (trivia.HasStructure)
             {
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private LineColumnDelta FormatStructuredTrivia(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<SyntaxTrivia> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<SyntaxTrivia> changes, CancellationToken cancellationToken)
         {
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private LineColumnDelta FormatStructuredTrivia(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<TextChange> changes, CancellationToken cancellationToken)
         {
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {

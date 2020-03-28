@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         public readonly struct Result
         {
             public readonly ResultKind Kind;
-            public readonly CodeStyleOption<bool> Option;
+            public readonly CodeStyleOption2<bool> Option;
             public readonly IInvocationOperation InvocationOperation;
             public readonly InvocationExpressionSyntax Invocation;
             public readonly IMethodSymbol SliceLikeMethod;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             public readonly IOperation Op2;
 
             public Result(
-                ResultKind kind, CodeStyleOption<bool> option,
+                ResultKind kind, CodeStyleOption2<bool> option,
                 IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
                 IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
                 IOperation op1, IOperation op2)

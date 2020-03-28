@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan lineSpan, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, Document document, SyntaxToken token)
         {
-            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.IsUnsafe(), isPartial: true, isAsync: modifiers.IsAsync);
+            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifier(), isPartial: true, isAsync: modifiers.IsAsync);
             var displayText = GetDisplayText(method, semanticModel, span.Start);
 
             return MemberInsertionCompletionItem.Create(

@@ -144,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         {
             var snapshot = line.Snapshot;
             if (index + value.Length > snapshot.Length)
-            {
                 return false;
-            }
 
             for (var i = 0; i < value.Length; i++)
             {
@@ -161,12 +159,25 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 }
 
                 if (actualCharacter != expectedCharacter)
-                {
                     return false;
-                }
             }
 
             return true;
+        }
+
+        public static bool Contains(this ITextSnapshotLine line, int index, string value, bool ignoreCase)
+        {
+            var snapshot = line.Snapshot;
+            for (var i = index; i < line.End; i++)
+            {
+                if (i + value.Length > snapshot.Length)
+                    return false;
+
+                if (line.StartsWith(i, value, ignoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

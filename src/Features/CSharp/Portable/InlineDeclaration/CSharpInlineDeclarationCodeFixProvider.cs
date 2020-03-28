@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpInlineDeclarationCodeFixProvider()
         {
         }
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // type of the out-var-decl affects overload resolution or generic instantiation).
             var originalRoot = editor.OriginalRoot;
 
-            var originalNodes = diagnostics.SelectAsArray(diagnostic => FindDiagnosticNodes(document, diagnostic, options, cancellationToken));
+            var originalNodes = diagnostics.SelectAsArray(diagnostic => FindDiagnosticNodes(diagnostic, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document,
@@ -85,13 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
                         options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, t.invocationOrCreation, currentNode, declarationsToRemove),
+                        t.identifier, currentNode, declarationsToRemove),
                 cancellationToken).ConfigureAwait(false);
         }
 
         private (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
-                    Document document, Diagnostic diagnostic,
-                    OptionSet options, CancellationToken cancellationToken)
+            Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // Recover the nodes we care about.
             var declaratorLocation = diagnostic.AdditionalLocations[0];
@@ -110,8 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
-            IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation,
-            SyntaxNode currentNode, HashSet<StatementSyntax> declarationsToRemove)
+            IdentifierNameSyntax identifier, SyntaxNode currentNode, HashSet<StatementSyntax> declarationsToRemove)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
             // Check if using out-var changed problem semantics.
-            var semanticsChanged = SemanticsChanged(semanticModel, currentRoot, currentNode, identifier, declarationExpression);
+            var semanticsChanged = SemanticsChanged(semanticModel, currentNode, identifier, declarationExpression);
             if (semanticsChanged)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
@@ -326,7 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         private bool SemanticsChanged(
             SemanticModel semanticModel,
-            SyntaxNode root,
             SyntaxNode nodeToReplace,
             IdentifierNameSyntax identifier,
             DeclarationExpressionSyntax declarationExpression)

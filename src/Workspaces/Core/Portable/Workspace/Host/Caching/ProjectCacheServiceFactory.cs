@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class ProjectCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCacheServiceFactory()
         {
         }
@@ -34,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public IDisposable EnableCaching(ProjectId key)
             {
-                return _hostService != null
-                    ? _hostService.EnableCaching(key)
-                    : null;
+                return _hostService?.EnableCaching(key);
             }
         }
     }

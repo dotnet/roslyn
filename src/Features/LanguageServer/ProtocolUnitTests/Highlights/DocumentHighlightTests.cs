@@ -31,7 +31,7 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.DocumentHighlight[]
             {
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].Single()),
@@ -39,7 +39,7 @@ class A
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].Single())
             };
 
-            var results = await RunGetDocumentHighlightAsync(solution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 
@@ -54,9 +54,9 @@ class A
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGetDocumentHighlightAsync(solution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 

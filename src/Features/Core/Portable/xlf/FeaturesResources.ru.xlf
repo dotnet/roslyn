@@ -2075,16 +2075,6 @@ This version used in: {2}</source>
         <target state="translated">Объявление переменной может быть встроенным.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Предпочитать явно указанное имя элемента кортежа</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Использовать явно указанное имя кортежа</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Удалить документ "{0}"</target>
@@ -2268,16 +2258,6 @@ This version used in: {2}</source>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">В отчете о диагностике "{0}" используется исходное расположение "{1}" в файле "{2}". Это расположение находится за пределами указанного файла.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Обнаружен недостижимый код</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Удалить недостижимый код</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">

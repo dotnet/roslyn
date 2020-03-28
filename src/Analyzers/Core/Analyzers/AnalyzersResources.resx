@@ -244,6 +244,12 @@
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
+  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
+    <value>Prefer explicitly provided tuple element name</value>
+  </data>
+  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
+    <value>Use explicitly provided tuple name</value>
+  </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>

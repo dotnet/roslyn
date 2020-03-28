@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -13,8 +15,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 {
     internal class ValidateFormatStringOption
     {
-        public static PerLanguageOption<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
-            new PerLanguageOption<bool>(
+        public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
+            new PerLanguageOption2<bool>(
                 nameof(ValidateFormatStringOption),
                 nameof(ReportInvalidPlaceholdersInStringDotFormatCalls),
                 defaultValue: true,
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     internal class ValidateFormatStringOptionProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ValidateFormatStringOptionProvider()
         {
         }

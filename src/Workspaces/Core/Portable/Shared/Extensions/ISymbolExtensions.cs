@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.IsUnsafe(),
+                isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed);
@@ -690,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-                .WhereAsArray(s => !s.IsUnsafe());
+                .WhereAsArray(s => !s.RequiresUnsafeModifier());
         }
     }
 }

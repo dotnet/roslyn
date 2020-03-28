@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
     internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeCleanerServiceFactory()
         {
         }

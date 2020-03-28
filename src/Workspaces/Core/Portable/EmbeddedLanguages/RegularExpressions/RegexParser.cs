@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var captureToken = _lexer.TryScanNumberOrCaptureName();
             if (captureToken == null)
             {
-                return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                return ParseConditionalExpressionGrouping(openParenToken, questionToken);
             }
 
             var capture = captureToken.Value;
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (!HasCapture((string)capture.Value))
                 {
                     _lexer.Position = afterInnerOpenParen;
-                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken);
                 }
 
                 // Capture name existed.  For this to be a capture grouping it exactly has to
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (_currentToken.Kind != RegexKind.CloseParenToken)
                 {
                     _lexer.Position = afterInnerOpenParen;
-                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken);
                 }
 
                 innerCloseParenToken = _currentToken;
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexConditionalGroupingNode ParseConditionalExpressionGrouping(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken innerOpenParenToken)
+            RegexToken openParenToken, RegexToken questionToken)
         {
             // Reproduce very specific errors the .NET regex parser looks for.  Technically,
             // we would error out in these cases no matter what.  However, it means we can
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
         {
             if (result is RegexAlternationNode topAlternation &&
-                topAlternation.Left is RegexAlternationNode innerAlternation)
+                topAlternation.Left is RegexAlternationNode)
             {
                 return new RegexAlternationNode(
                     topAlternation.Left,
@@ -1481,7 +1481,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
             {
                 var backslashToken = _currentToken;
-                var afterSlash = _lexer.Position;
 
                 // trivia is not allowed anywhere in a character class, and definitely not between
                 // a \ and the following character.

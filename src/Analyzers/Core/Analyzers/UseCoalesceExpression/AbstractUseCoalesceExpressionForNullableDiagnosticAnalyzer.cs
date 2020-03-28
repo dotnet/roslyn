@@ -10,10 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     internal abstract class AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer<
@@ -32,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
-                   CodeStyleOptions.PreferCoalesceExpression,
+                   CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(conditionMemberAccess, out var conditionExpression, out var conditionSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out var unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out _);
 
             if (conditionName != nameof(Nullable<int>.HasValue))
             {
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(whenPartMemberAccess, out var whenPartExpression, out var whenPartSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out _);
 
             if (whenPartName != nameof(Nullable<int>.Value))
             {

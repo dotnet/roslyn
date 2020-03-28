@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis
             ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
         }
 
+        internal ImmutableHashSet<ProjectId> ProjectIds => _projectIds;
+
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> RemoveItemsWithEmptyValues(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> map)
         {
@@ -124,16 +126,23 @@ namespace Microsoft.CodeAnalysis
             return builder?.ToImmutable() ?? map;
         }
 
-        internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IEnumerable<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
 
-            // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything. The only thing we can reuse is our
-            // actual map of project references for all the other projects, so we'll do that
-            var referencedProjects = referencedProjectIds.ToImmutableHashSet();
-            var referencesMap = referencedProjects.IsEmpty
-                ? _referencesMap.Remove(projectId)
-                : _referencesMap.SetItem(projectId, referencedProjects);
+            // This method we can't optimize very well: changing project references arbitrarily could invalidate pretty much anything.
+            // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
+
+            // only include projects contained in the solution:
+            var referencedProjectIds = projectReferences.IsEmpty() ? ImmutableHashSet<ProjectId>.Empty :
+                projectReferences
+                    .Where(r => _projectIds.Contains(r.ProjectId))
+                    .Select(r => r.ProjectId)
+                    .ToImmutableHashSet();
+
+            var referencesMap = referencedProjectIds.IsEmpty ?
+                _referencesMap.Remove(projectId) : _referencesMap.SetItem(projectId, referencedProjectIds);
+
             return new ProjectDependencyGraph(_projectIds, referencesMap);
         }
 

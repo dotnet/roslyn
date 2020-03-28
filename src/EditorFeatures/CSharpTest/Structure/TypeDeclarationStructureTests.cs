@@ -16,12 +16,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestClass()
+        public async Task TestClass1()
         {
             const string code = @"
 {|hint:$$class C{|textspan:
 {
 }|}|}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestClass2(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$class C{{|textspan:
+{{
+}}|}}|}}
+{typeKind}D
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestClass3(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$class C{{|textspan:
+{{
+}}|}}|}}
+
+{typeKind}D
+{{
+}}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -58,12 +97,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestInterface()
+        public async Task TestInterface1()
         {
             const string code = @"
 {|hint:$$interface I{|textspan:
 {
 }|}|}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestInterface2(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$interface I{{|textspan:
+{{
+}}|}}|}}
+{typeKind}D
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestInterface3(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$interface I{{|textspan:
+{{
+}}|}}|}}
+
+{typeKind}D
+{{
+}}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
@@ -100,12 +178,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestStruct()
+        public async Task TestStruct1()
         {
             const string code = @"
 {|hint:$$struct S{|textspan:
 {
 }|}|}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestStruct2(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$struct C{{|textspan:
+{{
+}}|}}|}}
+{typeKind}D
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        public async Task TestStruct3(string typeKind)
+        {
+            var code = $@"
+{{|hint:$$struct C{{|textspan:
+{{
+}}|}}|}}
+
+{typeKind}D
+{{
+}}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));

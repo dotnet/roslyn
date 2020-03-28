@@ -1009,12 +1009,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 references.AddRange(TestBase.PortableRefsMinimal);
             }
 
-            var systemRuntimeFacade = element.Attribute(CommonReferenceFacadeSystemRuntimeAttributeName);
-            if (systemRuntimeFacade != null &&
-                ((bool?)systemRuntimeFacade).HasValue &&
-                ((bool?)systemRuntimeFacade).Value)
+            var netcore30 = element.Attribute(CommonReferencesNetCoreApp30Name);
+            if (netcore30 != null &&
+                ((bool?)netcore30).HasValue &&
+                ((bool?)netcore30).Value)
             {
-                references.Add(TestBase.SystemRuntimeFacadeRef);
+                references = TargetFrameworkUtil.NetCoreApp30References.ToList();
+            }
+
+            var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
+            if (netstandard20 != null &&
+                ((bool?)netstandard20).HasValue &&
+                ((bool?)netstandard20).Value)
+            {
+                references = TargetFrameworkUtil.NetStandard20References.ToList();
             }
 
             return references;

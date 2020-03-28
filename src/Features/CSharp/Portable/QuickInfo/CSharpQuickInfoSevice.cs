@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     internal class CSharpQuickInfoServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpQuickInfoServiceFactory()
         {
         }

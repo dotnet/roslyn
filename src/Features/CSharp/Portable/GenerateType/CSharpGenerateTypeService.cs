@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateTypeService()
         {
         }
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var typeArguments = state.SimpleName.Arity == genericName.TypeArgumentList.Arguments.Count
                     ? genericName.TypeArgumentList.Arguments.OfType<SyntaxNode>().ToList()
                     : Enumerable.Repeat<SyntaxNode>(null, state.SimpleName.Arity);
-                return this.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
+                return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken);
             }
 
             return ImmutableArray<ITypeParameterSymbol>.Empty;
@@ -579,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
+        public override async Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(
             INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
             var compilationUnit = (CompilationUnitSyntax)selectedDocumentRoot;
@@ -588,15 +589,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 // Search the NS declaration in the root
                 var containerList = new List<string>(containers);
-                var enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit);
+                var enclosingNamespace = FindNamespaceInMemberDeclarations(compilationUnit.Members, indexDone: 0, containerList);
                 if (enclosingNamespace != null)
                 {
                     var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken);
                     if (enclosingNamespaceSymbol.Symbol != null)
                     {
-                        return Tuple.Create((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
-                                            (INamespaceOrTypeSymbol)namedTypeSymbol,
-                                            enclosingNamespace.CloseBraceToken.GetLocation());
+                        return ((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
+                                namedTypeSymbol,
+                                enclosingNamespace.CloseBraceToken.GetLocation());
                     }
                 }
             }
@@ -604,41 +605,32 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
             var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
             var lastMember = compilationUnit.Members.LastOrDefault();
-            Location afterThisLocation = null;
-            if (lastMember != null)
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0));
-            }
-            else
-            {
-                afterThisLocation = semanticModel.SyntaxTree.GetLocation(new TextSpan());
-            }
+            var afterThisLocation = lastMember != null
+                ? semanticModel.SyntaxTree.GetLocation(new TextSpan(lastMember.Span.End, 0))
+                : semanticModel.SyntaxTree.GetLocation(new TextSpan());
 
-            return Tuple.Create(globalNamespace,
-                                rootNamespaceOrType,
-                                afterThisLocation);
+            return (globalNamespace, rootNamespaceOrType, afterThisLocation);
         }
 
-        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, CompilationUnitSyntax compilationUnit)
+        private NamespaceDeclarationSyntax FindNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members, int indexDone, List<string> containers)
         {
-            foreach (var member in compilationUnit.Members)
+            foreach (var member in members)
             {
-                var namespaceDeclaration = GetDeclaringNamespace(containers, 0, member);
-                if (namespaceDeclaration != null)
+                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
                 {
-                    return namespaceDeclaration;
+                    var found = FindNamespaceInNamespace(namespaceDeclaration, indexDone, containers);
+                    if (found != null)
+                        return found;
                 }
             }
 
             return null;
         }
 
-        private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, SyntaxNode localRoot)
+        private NamespaceDeclarationSyntax FindNamespaceInNamespace(NamespaceDeclarationSyntax namespaceDecl, int indexDone, List<string> containers)
         {
-            if (!(localRoot is NamespaceDeclarationSyntax namespaceDecl) || namespaceDecl.Name is AliasQualifiedNameSyntax)
-            {
+            if (namespaceDecl.Name is AliasQualifiedNameSyntax)
                 return null;
-            }
 
             var namespaceContainers = new List<string>();
             GetNamespaceContainers(namespaceDecl.Name, namespaceContainers);
@@ -651,20 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             indexDone += namespaceContainers.Count;
             if (indexDone == containers.Count)
-            {
                 return namespaceDecl;
-            }
 
-            foreach (var member in namespaceDecl.Members)
-            {
-                var resultant = GetDeclaringNamespace(containers, indexDone, member);
-                if (resultant != null)
-                {
-                    return resultant;
-                }
-            }
-
-            return null;
+            return FindNamespaceInMemberDeclarations(namespaceDecl.Members, indexDone, containers);
         }
 
         private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
