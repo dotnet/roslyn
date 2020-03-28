@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
-                ClearSolutionDataInternal();
+                ClearSolutionInternal();
 
                 Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
