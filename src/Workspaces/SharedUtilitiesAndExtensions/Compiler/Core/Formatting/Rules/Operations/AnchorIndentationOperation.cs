@@ -8,11 +8,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// preserve relative spaces between anchor token and first tokens on lines within the given text span 
-    /// as long as it doesn't have explicit line operations associated with them
+    /// preserve relative spaces between anchor token and first tokens on lines within the given text span as long as it
+    /// doesn't have explicit line operations associated with them
     /// </summary>
-    internal sealed class AnchorIndentationOperation
+    internal readonly struct AnchorIndentationOperation
     {
+        public readonly SyntaxToken AnchorToken;
+        public readonly TextSpan TextSpan;
+
+        public readonly SyntaxToken StartToken;
+        public readonly SyntaxToken EndToken;
+
         internal AnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan)
         {
             Contract.ThrowIfTrue(anchorToken.RawKind == 0);
@@ -21,17 +27,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.AnchorToken = anchorToken;
-            this.TextSpan = textSpan;
+            AnchorToken = anchorToken;
+            TextSpan = textSpan;
 
-            this.StartToken = startToken;
-            this.EndToken = endToken;
+            StartToken = startToken;
+            EndToken = endToken;
         }
-
-        public SyntaxToken AnchorToken { get; }
-        public TextSpan TextSpan { get; }
-
-        public SyntaxToken StartToken { get; }
-        public SyntaxToken EndToken { get; }
     }
 }
