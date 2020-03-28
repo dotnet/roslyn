@@ -256,10 +256,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         public void AddInitialSuppressOperation(SuppressOperation operation)
         {
             // don't add stuff if it is empty
-            if (operation == null || operation.TextSpan.IsEmpty)
-            {
+            if (operation.TextSpan.IsEmpty)
                 return;
-            }
 
             var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
             AddSuppressOperation(operation, onSameLine);
@@ -312,11 +310,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddSpacingSuppressOperation(SuppressOperation operation, bool twoTokensOnSameLine)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
-            {
+            if (operation.TextSpan.IsEmpty)
                 return;
-            }
 
             // we might need to merge bits with enclosing suppress flag
             var option = operation.Option;
@@ -340,11 +335,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddFormattingSuppressOperation(SuppressOperation operation)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
-            {
+            if (operation.TextSpan.IsEmpty)
                 return;
-            }
 
             // we might need to merge bits with enclosing suppress flag
             var option = operation.Option;
@@ -362,11 +354,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddWrappingSuppressOperation(SuppressOperation operation, bool twoTokensOnSameLine)
         {
             // don't add stuff if it is empty
-            if (operation == null ||
-                operation.TextSpan.IsEmpty)
-            {
+            if (operation.TextSpan.IsEmpty)
                 return;
-            }
 
             var option = operation.Option;
             if (!option.IsMaskOn(SuppressOption.NoWrapping) || _suppressWrappingMap.Contains(operation.TextSpan))

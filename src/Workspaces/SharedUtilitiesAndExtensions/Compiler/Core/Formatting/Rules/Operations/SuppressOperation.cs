@@ -10,26 +10,26 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// <summary>
     /// suppress formatting operations within the given text span
     /// </summary>
-    internal sealed class SuppressOperation
+    internal readonly struct SuppressOperation
     {
-        internal SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
+        public readonly TextSpan TextSpan;
+        public readonly SuppressOption Option;
+
+        public readonly SyntaxToken StartToken;
+        public readonly SyntaxToken EndToken;
+
+        public SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
         {
             Contract.ThrowIfTrue(textSpan.Start < 0 || textSpan.Length < 0);
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.TextSpan = textSpan;
-            this.Option = option;
+            TextSpan = textSpan;
+            Option = option;
 
-            this.StartToken = startToken;
-            this.EndToken = endToken;
+            StartToken = startToken;
+            EndToken = endToken;
         }
-
-        public TextSpan TextSpan { get; }
-        public SuppressOption Option { get; }
-
-        public SyntaxToken StartToken { get; }
-        public SyntaxToken EndToken { get; }
 
 #if DEBUG
         public override string ToString()

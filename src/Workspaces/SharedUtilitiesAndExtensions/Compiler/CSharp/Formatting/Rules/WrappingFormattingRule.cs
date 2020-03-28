@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -155,18 +156,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken endToken)
         {
             if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-            {
                 return;
-            }
 
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
 
-            for (var i = 0; i < list.Count; i++)
+            using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var copy);
+
+            foreach (var item in list)
             {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
-                {
-                    list[i] = null;
-                }
+                if (item.TextSpan.Start >= span.Start && item.TextSpan.End <= span.End && item.Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
+                    continue;
+
+                copy.Add(item);
+            }
+
+            if (copy.Count != list.Count)
+            {
+                list.Clear();
+                list.AddRange(copy);
             }
         }
     }

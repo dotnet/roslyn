@@ -152,37 +152,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // operation has found
                 var list = new List<SuppressOperation>();
 
-                bool predicate(SuppressOperation o)
-                {
-                    if (o == null)
-                    {
-                        return true;
-                    }
-
-                    if (!o.TextSpan.Contains(startPosition))
-                    {
-                        return true;
-                    }
-
-                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
-                    {
-                        return true;
-                    }
-
-                    if (!o.Option.IsMaskOn(mask))
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }
-
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)
                 {
                     _formattingRules.AddSuppressOperations(list, currentIndentationNode);
 
-                    list.RemoveAll(predicate);
+                    list.RemoveAll(Predicate);
                     if (list.Count > 0)
                     {
                         return list;
@@ -192,6 +167,22 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 return null;
+
+                // local functions
+
+                bool Predicate(SuppressOperation o)
+                {
+                    if (!o.TextSpan.Contains(startPosition))
+                        return true;
+
+                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
+                        return true;
+
+                    if (!o.Option.IsMaskOn(mask))
+                        return true;
+
+                    return false;
+                }
             }
         }
     }
