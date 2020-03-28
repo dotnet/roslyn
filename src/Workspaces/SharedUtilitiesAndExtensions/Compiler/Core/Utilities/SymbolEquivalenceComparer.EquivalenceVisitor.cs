@@ -411,8 +411,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 // If we're validating the actual unconstructed ValueTuple type itself, we're done at this point.  No
-                // need to check field types. For VB we have to unwrap tuples to their underlying types to do this
-                // check.
+                // need to check field types.
+                //
+                // For VB we have to unwrap tuples to their underlying types to do this check.
+                // https://github.com/dotnet/roslyn/issues/42860
+
                 var xUnderlying = x.TupleUnderlyingType;
                 if (xUnderlying != null)
                 {
