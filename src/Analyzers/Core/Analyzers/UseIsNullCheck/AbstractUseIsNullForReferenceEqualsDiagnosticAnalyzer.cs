@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     // Needs special casing for C# as long as
                     // https://github.com/dotnet/csharplang/issues/1284
                     // is not implemented.
-                    properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.UnconstrainedGeneric, "");
+                    properties = properties.Add(UseIsNullConstants.UnconstrainedGeneric, "");
                 }
             }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var negated = syntaxFacts.IsLogicalNotExpression(invocation.Parent);
             if (negated)
             {
-                properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
+                properties = properties.Add(UseIsNullConstants.Negated, "");
             }
 
             var severity = option.Notification.Severity;

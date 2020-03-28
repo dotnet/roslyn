@@ -112,6 +112,11 @@
         <target state="new">Use implicit type</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_is_null_check">
+        <source>Use 'is null' check</source>
+        <target state="new">Use 'is null' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="new">Use pattern matching</target>
