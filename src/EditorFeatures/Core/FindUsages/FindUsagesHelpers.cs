@@ -138,5 +138,43 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return ImmutableArray.Create(symbol);
             }
         }
+
+        private static SymbolDisplayFormat GetFormat(ISymbol definition)
+        {
+            return definition.Kind == SymbolKind.Parameter
+                ? s_parameterDefinitionFormat
+                : s_definitionFormat;
+        }
+
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
+        private static readonly SymbolDisplayFormat s_definitionFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType,
+                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
+                localOptions: SymbolDisplayLocalOptions.IncludeType,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
+            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
+
+        public static ImmutableArray<TaggedText> GetDisplayParts(ISymbol definition)
+            => definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+
+        public static ImmutableArray<TaggedText> GetNameDisplayParts(ISymbol definition)
+            => definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
     }
 }
