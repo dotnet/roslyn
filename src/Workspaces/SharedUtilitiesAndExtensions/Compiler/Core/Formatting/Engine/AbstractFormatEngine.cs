@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public AbstractFormatEngine(
             TreeData treeData,
             AnalyzerConfigOptions options,
-            IEnumerable<FormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : this(

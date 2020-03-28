@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetParentWithBiggerSpan(node.Parent);
         }
 
-        public static IEnumerable<FormattingRule> Concat(this FormattingRule rule, IEnumerable<FormattingRule> rules)
+        public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
         {
             return SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
         }

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Friend NotInheritable Class EndRegionFormattingRule
-        Inherits FormattingRule
+        Inherits AbstractFormattingRule
 
         Public Shared ReadOnly Instance As New EndRegionFormattingRule()
 

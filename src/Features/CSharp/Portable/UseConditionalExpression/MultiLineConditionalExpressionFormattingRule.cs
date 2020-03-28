@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     /// 
     /// i.e. both branches will be on a newline, indented once from the parent indentation.
     /// </summary>
-    internal class MultiLineConditionalExpressionFormattingRule : FormattingRule
+    internal class MultiLineConditionalExpressionFormattingRule : AbstractFormattingRule
     {
-        public static readonly FormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
 
         private MultiLineConditionalExpressionFormattingRule()
         {

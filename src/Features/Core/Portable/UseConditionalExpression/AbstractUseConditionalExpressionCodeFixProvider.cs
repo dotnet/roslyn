@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        protected abstract FormattingRule GetMultiLineFormattingRule();
+        protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
         protected abstract Task FixOneAsync(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // formatted to explicitly format things.  Note: all we will format is the new
             // conditional expression as that's the only node that has the appropriate
             // annotation on it.
-            var rules = new List<FormattingRule> { GetMultiLineFormattingRule() };
+            var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
 
             var formattedRoot = Formatter.Format(changedRoot,
                 SpecializedFormattingAnnotation,

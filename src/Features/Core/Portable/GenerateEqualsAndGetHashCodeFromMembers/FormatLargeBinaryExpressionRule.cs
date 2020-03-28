@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// Specialized formatter for the "return a == obj.a &amp;&amp; b == obj.b &amp;&amp; c == obj.c &amp;&amp; ...
         /// code that we spit out.
         /// </summary>
-        private class FormatLargeBinaryExpressionRule : FormattingRule
+        private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
         {
             private readonly ISyntaxFactsService _syntaxFacts;
 

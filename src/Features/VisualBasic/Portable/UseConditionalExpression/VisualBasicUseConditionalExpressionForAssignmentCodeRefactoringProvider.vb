@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetMultiLineFormattingRule() As FormattingRule
+        Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
         End Function
 

@@ -9,14 +9,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal readonly struct NextGetAdjustNewLinesOperation
     {
-        private readonly ImmutableArray<FormattingRule> _formattingRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxToken _previousToken;
         private readonly SyntaxToken _currentToken;
         private readonly AnalyzerConfigOptions _options;
 
         public NextGetAdjustNewLinesOperation(
-            ImmutableArray<FormattingRule> formattingRules,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxToken previousToken,
             SyntaxToken currentToken,

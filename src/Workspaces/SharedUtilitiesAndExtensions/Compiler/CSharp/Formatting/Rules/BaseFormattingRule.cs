@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal abstract class BaseFormattingRule : FormattingRule
+    internal abstract class BaseFormattingRule : AbstractFormattingRule
     {
         protected void AddUnindentBlockOperation(
             List<IndentBlockOperation> list,

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        private class FormattingRule : CodeAnalysis.Formatting.Rules.FormattingRule
+        private class FormattingRule : CodeAnalysis.Formatting.Rules.AbstractFormattingRule
         {
             public FormattingRule()
             {

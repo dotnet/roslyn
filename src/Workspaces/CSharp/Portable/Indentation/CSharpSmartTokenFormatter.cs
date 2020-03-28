@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
     {
         private readonly OptionSet _optionSet;
-        private readonly IEnumerable<FormattingRule> _formattingRules;
+        private readonly IEnumerable<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
 
         public CSharpSmartTokenFormatter(
             OptionSet optionSet,
-            IEnumerable<FormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root)
         {
             Contract.ThrowIfNull(optionSet);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
-        private class NoLineChangeFormattingRule : FormattingRule
+        private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {

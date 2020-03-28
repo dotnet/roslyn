@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             public readonly SyntacticDocument Document;
             public readonly TSyntaxRoot Root;
-            public readonly IEnumerable<FormattingRule> Rules;
+            public readonly IEnumerable<AbstractFormattingRule> Rules;
             public readonly BottomUpBaseIndentationFinder Finder;
 
             private readonly ISyntaxFactsService _syntaxFacts;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
-                IEnumerable<FormattingRule> rules,
+                IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)

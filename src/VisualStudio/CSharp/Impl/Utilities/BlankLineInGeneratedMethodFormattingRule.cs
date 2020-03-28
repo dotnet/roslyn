@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
 {
-    internal sealed class BlankLineInGeneratedMethodFormattingRule : FormattingRule
+    internal sealed class BlankLineInGeneratedMethodFormattingRule : AbstractFormattingRule
     {
         public static readonly BlankLineInGeneratedMethodFormattingRule Instance = new BlankLineInGeneratedMethodFormattingRule();
 

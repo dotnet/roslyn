@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 {
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
-        private static readonly CodeAnalysis.Formatting.Rules.FormattingRule s_memberSeparationRule = new FormattingRule();
+        private static readonly CodeAnalysis.Formatting.Rules.AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
 
         public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
             : base(languageServices.GetService<ICodeGenerationService>())
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected override IEnumerable<CodeAnalysis.Formatting.Rules.FormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<CodeAnalysis.Formatting.Rules.AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
         }

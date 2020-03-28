@@ -3485,7 +3485,7 @@ class Program{
             Assert.Equal(expected, newSnapshot.GetText());
         }
 
-        private static Tuple<OptionSet, IEnumerable<FormattingRule>> GetService(
+        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
             TestWorkspace workspace)
         {
             var options = workspace.Options;

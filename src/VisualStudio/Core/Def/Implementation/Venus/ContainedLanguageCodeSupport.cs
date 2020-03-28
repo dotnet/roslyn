@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             string eventHandlerName,
             uint itemidInsertionPoint,
             bool useHandlesClause,
-            FormattingRule additionalFormattingRule,
+            AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);

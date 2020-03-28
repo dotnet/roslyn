@@ -136,7 +136,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Private Class VisualBasicHelperFormattingRule
             Inherits CompatAbstractFormattingRule
 
-            Public Shared Shadows Instance As FormattingRule = New VisualBasicHelperFormattingRule()
+            Public Shared Shadows Instance As AbstractFormattingRule = New VisualBasicHelperFormattingRule()
 
             Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
                 ' we need special behavior for VB due to @Helper code generation weird-ness.

@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal readonly struct NextAlignTokensOperationAction
     {
-        private readonly ImmutableArray<FormattingRule> _formattingRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
         private readonly AnalyzerConfigOptions _options;
         private readonly List<AlignTokensOperation> _list;
 
         public NextAlignTokensOperationAction(
-            ImmutableArray<FormattingRule> formattingRules,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
             AnalyzerConfigOptions options,

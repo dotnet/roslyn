@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #End If
         Inherits AbstractSyntaxFormattingService
 
-        Private ReadOnly _rules As ImmutableList(Of FormattingRule)
+        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
 
 #If Not CODE_STYLE Then
         <ImportingConstructor>
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #Else
         Public Sub New()
 #End If
-            _rules = ImmutableList.Create(Of FormattingRule)(
+            _rules = ImmutableList.Create(Of AbstractFormattingRule)(
                 New StructuredTriviaFormattingRule(),
                 New ElasticTriviaFormattingRule(),
                 New AdjustSpaceFormattingRule(),
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 DefaultOperationProvider.Instance)
         End Sub
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of FormattingRule)
+        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
             Return _rules
         End Function
 
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, options As AnalyzerConfigOptions, formattingRules As IEnumerable(Of FormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+        Protected Overrides Function Format(root As SyntaxNode, options As AnalyzerConfigOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
             Return New VisualBasicFormatEngine(root, options, formattingRules, token1, token2).Format(cancellationToken)
         End Function
     End Class

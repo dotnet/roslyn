@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    internal sealed class NoOpFormattingRule : FormattingRule
+    internal sealed class NoOpFormattingRule : AbstractFormattingRule
     {
         public static readonly NoOpFormattingRule Instance = new NoOpFormattingRule();
 

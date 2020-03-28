@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
-    internal sealed class EndRegionFormattingRule : FormattingRule
+    internal sealed class EndRegionFormattingRule : AbstractFormattingRule
     {
         public static readonly EndRegionFormattingRule Instance = new EndRegionFormattingRule();
 

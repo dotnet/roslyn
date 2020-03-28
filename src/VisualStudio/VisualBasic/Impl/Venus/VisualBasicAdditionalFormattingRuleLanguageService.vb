@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Public Sub New()
         End Sub
 
-        Public Function GetAdditionalCodeGenerationRule() As FormattingRule Implements IAdditionalFormattingRuleLanguageService.GetAdditionalCodeGenerationRule
+        Public Function GetAdditionalCodeGenerationRule() As AbstractFormattingRule Implements IAdditionalFormattingRuleLanguageService.GetAdditionalCodeGenerationRule
             Return LineAdjustmentFormattingRule.Instance
         End Function
     End Class

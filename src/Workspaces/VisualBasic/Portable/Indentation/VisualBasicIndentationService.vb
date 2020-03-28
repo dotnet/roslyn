@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Public Shared ReadOnly DefaultInstance As New VisualBasicIndentationService()
         Public Shared ReadOnly WithoutParameterAlignmentInstance As New VisualBasicIndentationService(NoOpFormattingRule.Instance)
 
-        Private ReadOnly _specializedIndentationRule As FormattingRule
+        Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
@@ -29,16 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         End Sub
 
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Intentionally used for creating multiple instances")>
-        Private Sub New(specializedIndentationRule As FormattingRule)
+        Private Sub New(specializedIndentationRule As AbstractFormattingRule)
             _specializedIndentationRule = specializedIndentationRule
         End Sub
 
-        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions.IndentStyle) As FormattingRule
+        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions.IndentStyle) As AbstractFormattingRule
             Return If(_specializedIndentationRule, New SpecialFormattingRule(indentStyle))
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules As IEnumerable(Of FormattingRule),
+                formattingRules As IEnumerable(Of AbstractFormattingRule),
                 root As CompilationUnitSyntax,
                 line As TextLine,
                 optionService As IOptionService,

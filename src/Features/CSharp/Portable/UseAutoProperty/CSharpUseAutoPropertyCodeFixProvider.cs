@@ -74,15 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
-        protected override IEnumerable<FormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
-            var rules = new List<FormattingRule> { new SingleLinePropertyFormattingRule() };
+            var rules = new List<AbstractFormattingRule> { new SingleLinePropertyFormattingRule() };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             return rules;
         }
 
-        private class SingleLinePropertyFormattingRule : FormattingRule
+        private class SingleLinePropertyFormattingRule : AbstractFormattingRule
         {
             private bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
             {

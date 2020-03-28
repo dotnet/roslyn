@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// Provide a custom formatting operation provider that can intercept/filter/replace default formatting operations.
     /// </summary>
     /// <remarks>All methods defined in this class can be called concurrently. Must be thread-safe.</remarks>
-    internal abstract class FormattingRule
+    internal abstract class AbstractFormattingRule
     {
         /// <summary>
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by

@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             VisualStudioProjectTracker? projectTrackerOpt,
             ProjectId projectId,
             Guid languageServiceGuid,
-            FormattingRule? vbHelperFormattingRule = null)
+            AbstractFormattingRule? vbHelperFormattingRule = null)
             : this(bufferCoordinator,
                    componentModel,
                    projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>(),
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             VisualStudioProject? project,
             string filePath,
             Guid languageServiceGuid,
-            FormattingRule? vbHelperFormattingRule = null)
+            AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
