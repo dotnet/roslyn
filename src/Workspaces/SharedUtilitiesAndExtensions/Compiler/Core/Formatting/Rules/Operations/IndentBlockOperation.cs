@@ -10,9 +10,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// <summary>
     /// set indentation level for the given text span. it can be relative, absolute or dependent to other tokens
     /// </summary>
-    internal sealed class IndentBlockOperation
+    internal readonly struct IndentBlockOperation
     {
-        internal IndentBlockOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, int indentationDelta, IndentBlockOption option)
+        public readonly SyntaxToken BaseToken;
+        public readonly TextSpan TextSpan;
+
+        public readonly IndentBlockOption Option;
+
+        public readonly SyntaxToken StartToken;
+        public readonly SyntaxToken EndToken;
+
+        public readonly bool IsRelativeIndentation;
+        public readonly int IndentationDeltaOrPosition;
+
+        public IndentBlockOperation(
+            SyntaxToken startToken,
+            SyntaxToken endToken,
+            TextSpan textSpan,
+            int indentationDelta,
+            IndentBlockOption option)
         {
             Contract.ThrowIfFalse(option.IsMaskOn(IndentBlockOption.PositionMask));
 
@@ -31,7 +47,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.IndentationDeltaOrPosition = indentationDelta;
         }
 
-        internal IndentBlockOperation(SyntaxToken baseToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, int indentationDelta, IndentBlockOption option)
+        internal IndentBlockOperation(
+            SyntaxToken baseToken,
+            SyntaxToken startToken,
+            SyntaxToken endToken,
+            TextSpan textSpan,
+            int indentationDelta,
+            IndentBlockOption option)
         {
             Contract.ThrowIfFalse(option.IsMaskOn(IndentBlockOption.PositionMask));
 
@@ -52,17 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.IsRelativeIndentation = true;
             this.IndentationDeltaOrPosition = indentationDelta;
         }
-
-        public SyntaxToken BaseToken { get; }
-        public TextSpan TextSpan { get; }
-
-        public IndentBlockOption Option { get; }
-
-        public SyntaxToken StartToken { get; }
-        public SyntaxToken EndToken { get; }
-
-        public bool IsRelativeIndentation { get; }
-        public int IndentationDeltaOrPosition { get; }
 
 #if DEBUG
         public override string ToString()

@@ -79,12 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                             {
                                 _formattingRules.AddIndentBlockOperations(list, n);
                                 foreach (var element in list)
-                                {
-                                    if (element != null)
-                                    {
-                                        operations.Add(element);
-                                    }
-                                }
+                                    operations.Add(element);
 
                                 list.Clear();
                             });
@@ -100,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 // make sure operations we have has effects over the formatting span
-                operations.RemoveAll(o => o == null || !o.TextSpan.IntersectsWith(span));
+                operations.RemoveAll(o => !o.TextSpan.IntersectsWith(span));
 
                 // we couldn't find anything
                 // return initial location so that we can get base indentation correctly

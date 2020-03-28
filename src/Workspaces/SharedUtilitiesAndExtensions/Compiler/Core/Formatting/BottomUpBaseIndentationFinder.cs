@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -52,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // make sure we found new starting point of new indentation.
                 // such operation should start span after the token (a token that is right before the new indentation),
                 // contains current position, and position should be before the existing next token
-                if (token.Span.End <= operation.TextSpan.Start &&
-                    operation.TextSpan.IntersectsWith(position) &&
+                if (token.Span.End <= operation.Value.TextSpan.Start &&
+                    operation.Value.TextSpan.IntersectsWith(position) &&
                     position <= token.GetNextToken(includeZeroWidth: true).SpanStart)
                 {
                     return GetIndentationOfCurrentPosition(tree, token, position, cancellationToken);
@@ -137,15 +139,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             Func<SyntaxToken, int> tokenColumnGetter,
             CancellationToken cancellationToken)
         {
-            var tuple = GetIndentationRuleOfCurrentPosition(root, token, list, position);
-            var indentationLevel = tuple.indentation;
-            var operation = tuple.operation;
+            var (indentationLevel, operationOpt) = GetIndentationRuleOfCurrentPosition(root, list, position);
 
-            if (operation == null)
-            {
+            if (operationOpt == null)
                 return indentationLevel * _indentationSize + extraSpaces;
-            }
 
+            var operation = operationOpt.Value;
             if (operation.IsRelativeIndentation)
             {
                 var baseToken = operation.BaseToken;
@@ -176,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             throw ExceptionUtilities.Unreachable;
         }
 
-        private (int indentation, IndentBlockOperation operation) GetIndentationRuleOfCurrentPosition(
-            SyntaxNode root, SyntaxToken token, List<IndentBlockOperation> list, int position)
+        private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(
+            SyntaxNode root, List<IndentBlockOperation> list, int position)
         {
             var indentationLevel = 0;
             var operations = GetIndentBlockOperationsFromSmallestSpan(root, list, position);
@@ -211,12 +210,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // gather all indent operations 
             var list = new List<IndentBlockOperation>();
-            allNodes.Do(n => _formattingRules.AddIndentBlockOperations(list, n));
+            foreach (var node in allNodes)
+                _formattingRules.AddIndentBlockOperations(list, node);
 
             // sort them in right order
-            list.RemoveAll(CommonFormattingHelpers.IsNull);
             list.Sort(CommonFormattingHelpers.IndentBlockOperationComparer);
-
             return list;
         }
 
@@ -268,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return default;
         }
 
-        private IndentBlockOperation GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)
+        private IndentBlockOperation? GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)
         {
             var startNode = token.Parent;
 
@@ -280,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 _formattingRules.AddIndentBlockOperations(list, currentNode);
 
-                if (list.Any(o => o != null && o.TextSpan.Contains(position)))
+                if (list.Any(o => o.TextSpan.Contains(position)))
                 {
                     break;
                 }
@@ -289,11 +287,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // well, found no appropriate one
-            list.RemoveAll(CommonFormattingHelpers.IsNull);
             if (list.Count == 0)
-            {
                 return null;
-            }
 
             // now sort the found ones in right order
             list.Sort(CommonFormattingHelpers.IndentBlockOperationComparer);

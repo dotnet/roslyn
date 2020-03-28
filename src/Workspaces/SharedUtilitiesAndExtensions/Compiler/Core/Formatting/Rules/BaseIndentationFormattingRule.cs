@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -65,43 +66,44 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
         {
-            for (var i = 0; i < list.Count; i++)
+            using var _ = ArrayBuilder<IndentBlockOperation>.GetInstance(out var copy);
+
+            var changed = false;
+            foreach (var operation in list)
             {
-                var operation = list[i];
-
-                // already filtered out operation
-                if (operation == null)
-                {
-                    continue;
-                }
-
                 // if span is same as us, make sure we only include ourselves.
                 if (_span == operation.TextSpan && !Myself(operation))
-                {
-                    list[i] = null;
                     continue;
-                }
 
                 // inside of us, skip it.
                 if (_span.Contains(operation.TextSpan))
                 {
+                    copy.AddRange(operation);
                     continue;
                 }
 
                 // throw away operation that encloses ourselves
                 if (operation.TextSpan.Contains(_span))
-                {
-                    list[i] = null;
                     continue;
-                }
 
                 // now we have an interesting case where indentation block intersects with us.
                 // this can happen if code is split in two different script blocks or nuggets.
                 // here, we will re-adjust block to be contained within our span.
                 if (operation.TextSpan.IntersectsWith(_span))
                 {
-                    list[i] = CloneAndAdjustFormattingOperation(operation);
+                    changed = true;
+                    copy.Add(CloneAndAdjustFormattingOperation(operation));
+                    continue;
                 }
+
+                copy.Add(operation);
+            }
+
+            // If we adjusted any items or skipped any items, replace the original list with the new values.
+            if (changed || list.Count != copy.Count)
+            {
+                list.Clear();
+                list.AddRange(copy);
             }
         }
 
