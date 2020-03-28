@@ -84,11 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
-            document = await Formatter.FormatAsync(
-                  document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                  options: null, Formatter.GetDefaultFormattingRules(document), cancellationToken).ConfigureAwait(false);
+            var formattedDoc = await Formatter.FormatAsync(
+                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options: null,
+                 CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+                 cancellationToken).ConfigureAwait(false);
 
-            return document;
+            return formattedDoc;
         }
 
         private Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
