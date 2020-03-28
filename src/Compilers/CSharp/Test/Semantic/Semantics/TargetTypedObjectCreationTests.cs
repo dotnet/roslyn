@@ -826,6 +826,16 @@ public class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
+
+            var @new = nodes[0];
+            Assert.Equal("InterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
+            Assert.Equal("InterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+            Assert.Equal("CoClassType..ctor()", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
         }
 
         [Fact]
@@ -857,6 +867,16 @@ public class MainClass
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
+
+            var @new = nodes[0];
+            Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).Type.ToTestDisplayString());
+            Assert.Equal("NonGenericInterfaceType", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+            Assert.Equal("GenericCoClassType<System.Int32, System.String>..ctor(System.String x)", model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(@new).Kind);
         }
 
         [Fact]
