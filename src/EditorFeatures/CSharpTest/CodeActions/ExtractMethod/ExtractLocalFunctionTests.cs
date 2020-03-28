@@ -81,7 +81,7 @@ dotnet_naming_style.pascal_case.capitalization = pascal_case";
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -108,7 +108,7 @@ dotnet_naming_style.pascal_case.capitalization = pascal_case";
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1467,7 +1467,7 @@ class C
             return v;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1514,7 +1514,7 @@ class C
             return v;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3241,7 +3241,7 @@ class Program
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3268,7 +3268,7 @@ class Program
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3295,7 +3295,7 @@ class Program
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3322,7 +3322,7 @@ class Program
             return b != true;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3370,7 +3370,7 @@ class TimePeriod
             _seconds = value * 3600;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3418,7 +3418,7 @@ class TimePeriod
             _seconds = value * 3600;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3463,7 +3463,7 @@ class TimePeriod
             }
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3508,7 +3508,7 @@ class TimePeriod
             }
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3563,7 +3563,7 @@ class Indexer
             testArr[index] = value;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3618,7 +3618,7 @@ class Indexer
             testArr[index] = value;
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3673,7 +3673,7 @@ class Indexer
             }
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -3728,7 +3728,7 @@ class Indexer
             }
         }
     }
-}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.TrueWithSilentEnforcement));
+}", CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4249,7 +4249,7 @@ dotnet_naming_symbols.local_functions.required_modifiers = static
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSilentEnforcement));
         }
 
         [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
@@ -4707,6 +4707,41 @@ class C : B
 
     }
 }");
+        }
+
+        [WorkItem(22150, "https://github.com/dotnet/roslyn/issues/22150")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractLocalFunctionToLocalFunction()
+        {
+            var code = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void Local() { }
+        [|Local();|]
+    }
+
+    static void Local() => System.Console.WriteLine();
+}";
+            var expected = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void Local() { }
+        {|Rename:NewMethod|}();
+
+        void NewMethod()
+        {
+            Local();
+        }
+    }
+
+    static void Local() => System.Console.WriteLine();
+}";
+
+            await TestInRegularAndScript1Async(code, expected);
         }
     }
 }

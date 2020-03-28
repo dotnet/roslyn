@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static SyntaxNode GetInitializer(CodeGenerationPropertyInfo info)
-        {
-            return info == null ? null : info._initializer;
-        }
+            => info?._initializer;
 
         public static SyntaxNode GetInitializer(IPropertySymbol property)
         {

@@ -124,11 +124,14 @@ End Class</File>.Value
         End Function
     End Class
 
-    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic)>
+    <[Shared]>
+    <PartNotDiscoverable>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

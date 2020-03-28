@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey, object> changedOptionSet = null)
+        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();

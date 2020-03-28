@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var locations = await GetDefinitionsWithFindUsagesService(document, position, cancellationToken).ConfigureAwait(false);
+            var locations = await GetDefinitionsWithFindUsagesServiceAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
             if ((locations.Count == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         ///  Using the find usages service is more expensive than using the definitions service because a lot of unnecessary information is computed. However,
         ///  TypeScript doesn't provide an <see cref="IGoToDefinitionService"/> implementation that will return definitions so we must use <see cref="IFindUsagesService"/>.
         /// </summary>
-        private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesService(Document document, int pos, CancellationToken cancellationToken)
+        private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
         {
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
 

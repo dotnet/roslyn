@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,10 +23,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseSimpleUsingStatementCodeFixProvider()
         {
         }
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 var lastStatement = result[result.Count - 1];
                 result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(
-                    remainingTrivia.Insert(0, CSharpSyntaxFactsService.Instance.ElasticCarriageReturnLineFeed));
+                    remainingTrivia.Insert(0, CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed));
             }
 
             for (int i = 0, n = result.Count; i < n; i++)
@@ -130,12 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
         {
-            return SyntaxFactory.LocalDeclarationStatement(
+            return LocalDeclarationStatement(
                 usingStatement.AwaitKeyword,
                 usingStatement.UsingKeyword,
                 modifiers: default,
                 usingStatement.Declaration,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

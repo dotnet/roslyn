@@ -6,12 +6,9 @@
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/corefx/blob/68b76c30eafb3647c11e3f766a2645b130ca1448/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {

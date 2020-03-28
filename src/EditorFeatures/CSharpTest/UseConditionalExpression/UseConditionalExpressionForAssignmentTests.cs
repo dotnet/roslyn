@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider());
 
-        private static readonly Dictionary<OptionKey, object> s_preferImplicitTypeAlways = new Dictionary<OptionKey, object>
-        {
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement },
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement },
-        };
+        private static readonly IDictionary<OptionKey2, object> s_preferImplicitTypeAlways = OptionsSet
+        (
+            (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement),
+            (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement),
+            (CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement)
+        );
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignment()
@@ -496,9 +496,7 @@ class C
     {
         var i = true ? 0 : 1;
     }
-}", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement }
-});
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -528,9 +526,7 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement }
-});
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -560,9 +556,7 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement }
-});
+}", options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]

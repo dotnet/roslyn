@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ErrorType);
                     ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-                else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType != namedTypeSymbol)
+                else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType is INamedTypeSymbol underlyingType && underlyingType != namedTypeSymbol)
                 {
                     // A tuple is a named type with some added information
                     // We only need to store this extra information if there is some

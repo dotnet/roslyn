@@ -7,7 +7,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
-    using Microsoft.CodeAnalysis.Shared.Extensions;
     using static Helpers;
 
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer

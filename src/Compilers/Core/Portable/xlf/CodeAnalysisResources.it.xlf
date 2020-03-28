@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
-        <target state="translated">La modifica della versione di un riferimento ad assembly durante il debug: '{0}' ha modificato la versione in '{1}'.</target>
+        <target state="translated">La modifica della versione di un riferimento ad assembly durante il debug non è consentita: '{0}' ha modificato la versione in '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">

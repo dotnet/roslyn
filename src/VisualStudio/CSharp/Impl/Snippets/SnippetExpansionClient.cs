@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -112,8 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             var addImportService = document.GetLanguageService<IAddImportsService>();
+            var generator = document.GetLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst, cancellationToken);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, placeSystemNamespaceFirst, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 

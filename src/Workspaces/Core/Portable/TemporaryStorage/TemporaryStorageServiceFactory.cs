@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TemporaryStorageServiceFactory()
         {
         }
@@ -362,11 +363,6 @@ namespace Microsoft.CodeAnalysis.Host
                     if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-                    }
-
-                    if (stream.Length == 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))

@@ -6,12 +6,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageServiceFactory(typeof(ILineSeparatorService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspLineSeparatorServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspLineSeparatorServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ILineSeparatorService>();

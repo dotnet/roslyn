@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 

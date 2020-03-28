@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndProject == default)
+            if (symbolAndProject == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);

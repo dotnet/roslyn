@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -42,19 +41,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
         public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
-
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<CodeAction>(null);
-        }
-
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<CodeAction>(null);
-        }
     }
 }

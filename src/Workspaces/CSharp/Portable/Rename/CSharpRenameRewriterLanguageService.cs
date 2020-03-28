@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRenameConflictLanguageService()
         {
         }
@@ -298,30 +300,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return true;
                 }
 
-                if (node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
+                if (node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
                 {
-                    var parent = (ParenthesizedLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.ParameterList, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return ReferenceEquals(parenLambda.ParameterList, node);
                 }
 
-                if (node.IsParentKind(SyntaxKind.SimpleLambdaExpression))
+                if (node.IsParentKind(SyntaxKind.SimpleLambdaExpression, out SimpleLambdaExpressionSyntax simpleLambda))
                 {
-                    var parent = (SimpleLambdaExpressionSyntax)node;
-                    if (ReferenceEquals(parent.Parameter, node))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return ReferenceEquals(simpleLambda.Parameter, node);
                 }
 
                 return true;
@@ -605,9 +591,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else
                 {
                     var parsedIdentifier = SyntaxFactory.ParseName(currentNewIdentifier);
-                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName))
+                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                     {
-                        valueText = ((IdentifierNameSyntax)parsedIdentifier).Identifier.ValueText;
+                        valueText = identifierName.Identifier.ValueText;
                     }
                 }
 
@@ -629,8 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                     else
                     {
-                        var semanticModel = GetSemanticModelForNode(parent, _speculativeModel ?? _semanticModel);
-                        newToken = Simplification.CSharpSimplificationService.TryEscapeIdentifierToken(newToken, parent, semanticModel);
+                        newToken = CSharpSimplificationHelpers.TryEscapeIdentifierToken(newToken, parent);
                     }
                 }
 
@@ -746,12 +731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             SyntaxToken token,
             IEnumerable<ISymbol> newReferencedSymbols)
         {
-            if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName, out ExpressionSyntax expression) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
                 token.GetPreviousToken().Kind() != SyntaxKind.DotToken &&
                 token.GetNextToken().Kind() != SyntaxKind.DotToken)
             {
-                var expression = (ExpressionSyntax)token.Parent;
                 var enclosingMemberDeclaration = expression.FirstAncestorOrSelf<MemberDeclarationSyntax>();
                 if (enclosingMemberDeclaration != null)
                 {
@@ -860,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
                     {
-                        var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
+                        var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property.Symbol != null)
                         {
@@ -1225,15 +1209,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public bool IsIdentifierValid(string replacementText, ISyntaxFactsService syntaxFactsService)
         {
-            string escapedIdentifier;
-            if (replacementText.StartsWith("@", StringComparison.Ordinal))
+            // Identifiers we never consider valid to rename to.
+            switch (replacementText)
             {
-                escapedIdentifier = replacementText;
+                case "var":
+                case "dynamic":
+                case "unmanaged":
+                case "notnull":
+                    return false;
             }
-            else
-            {
-                escapedIdentifier = "@" + replacementText;
-            }
+
+            var escapedIdentifier = replacementText.StartsWith("@", StringComparison.Ordinal)
+                ? replacementText : "@" + replacementText;
 
             // Make sure we got an identifier. 
             if (!syntaxFactsService.IsValidIdentifier(escapedIdentifier))
@@ -1263,17 +1250,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             var nodeToSpeculate = node.GetAncestorsOrThis(n => SpeculationAnalyzer.CanSpeculateOnNode(n)).LastOrDefault();
             if (nodeToSpeculate == null)
             {
-                if (node.IsKind(SyntaxKind.NameMemberCref))
+                if (node.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMember))
                 {
-                    nodeToSpeculate = ((NameMemberCrefSyntax)node).Name;
+                    nodeToSpeculate = nameMember.Name;
                 }
-                else if (node.IsKind(SyntaxKind.QualifiedCref))
+                else if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
                 {
-                    nodeToSpeculate = ((QualifiedCrefSyntax)node).Container;
+                    nodeToSpeculate = qualifiedCref.Container;
                 }
-                else if (node.IsKind(SyntaxKind.TypeConstraint))
+                else if (node.IsKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint))
                 {
-                    nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
+                    nodeToSpeculate = typeConstraint.Type;
                 }
                 else if (node is BaseTypeSyntax baseType)
                 {

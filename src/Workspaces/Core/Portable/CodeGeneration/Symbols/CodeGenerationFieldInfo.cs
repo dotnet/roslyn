@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         private static SyntaxNode GetInitializer(CodeGenerationFieldInfo info)
-        {
-            return info == null ? null : info._initializer;
-        }
+            => info?._initializer;
 
         public static SyntaxNode GetInitializer(IFieldSymbol field)
         {

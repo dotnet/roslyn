@@ -40,28 +40,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-            {
-                switch (m.Kind)
+                => m.Kind switch
                 {
-                    case SymbolKind.Field:
-                        return new WrappedFieldSymbol((IFieldSymbol)m, docCommentFormattingService);
-
-                    case SymbolKind.Event:
-                        return new WrappedEventSymbol((IEventSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.Method:
-                        return new WrappedMethodSymbol((IMethodSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.NamedType:
-                        return new WrappedNamedTypeSymbol((INamedTypeSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.Property:
-                        return new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(m.Kind);
-                }
-            }
+                    SymbolKind.Field => new WrappedFieldSymbol((IFieldSymbol)m, docCommentFormattingService),
+                    SymbolKind.Event => new WrappedEventSymbol((IEventSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.Method => new WrappedMethodSymbol((IMethodSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.NamedType => new WrappedNamedTypeSymbol((INamedTypeSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.Property => new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    _ => throw ExceptionUtilities.UnexpectedValue(m.Kind),
+                };
 
             public bool IsAnonymousType => _symbol.IsAnonymousType;
             public bool IsComImport => _symbol.IsComImport;

@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     internal class StubVsEditorAdaptersFactoryService : IVsEditorAdaptersFactoryService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StubVsEditorAdaptersFactoryService()
         {
         }

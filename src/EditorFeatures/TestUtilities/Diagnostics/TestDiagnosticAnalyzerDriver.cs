@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
         {
-            return GetDiagnosticsAsync(project, document: null, filterSpan: default, getDocumentDiagnostics: false, getProjectDiagnostics: true);
+            return GetDiagnosticsAsync(project, document: null, filterSpan: null, getDocumentDiagnostics: false, getProjectDiagnostics: true);
         }
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             _ = await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                new[] { (object)checksums },
                 workspace.CurrentSolution,
+                new[] { (object)checksums },
                 callbackTarget: null,
                 CancellationToken.None).ConfigureAwait(false);
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var snapshotService = workspace.Services.GetService<CodeAnalysis.Execution.IRemotableDataService>();
             var assetBuilder = new CodeAnalysis.Execution.CustomAssetBuilder(workspace);
 
-            foreach (var (_, reference) in _diagnosticAnalyzerService.AnalyzerInfoCache.GetHostAnalyzerReferencesMap())
+            foreach (var (_, reference) in _diagnosticAnalyzerService.HostAnalyzers.GetHostAnalyzerReferencesMap())
             {
                 if (!(reference is AnalyzerFileReference))
                 {

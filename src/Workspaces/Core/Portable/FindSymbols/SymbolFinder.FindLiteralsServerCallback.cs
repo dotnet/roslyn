@@ -14,20 +14,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
 
             public FindLiteralsServerCallback(
                 Solution solution,
-                IStreamingFindLiteralReferencesProgress progress,
-                CancellationToken cancellationToken)
+                IStreamingFindLiteralReferencesProgress progress)
             {
                 _solution = solution;
                 _progress = progress;
-                _cancellationToken = cancellationToken;
             }
 
-            public Task ReportProgressAsync(int current, int maximum)
-                => _progress.ReportProgressAsync(current, maximum);
+            public Task AddItemsAsync(int count)
+                => _progress.ProgressTracker.AddItemsAsync(count);
+
+            public Task ItemCompletedAsync()
+                => _progress.ProgressTracker.ItemCompletedAsync();
 
             public async Task OnReferenceFoundAsync(
                 DocumentId documentId, TextSpan span)

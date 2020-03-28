@@ -1814,6 +1814,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForId_ThrowsOperationCancelledException : DiagnosticSuppressor
+        {
+            public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
+            public SuppressionDescriptor SuppressionDescriptor { get; }
+            public DiagnosticSuppressorForId_ThrowsOperationCancelledException(string suppressedDiagnosticId)
+            {
+                SuppressionDescriptor = new SuppressionDescriptor(
+                    id: "SPR0001",
+                    suppressedDiagnosticId: suppressedDiagnosticId,
+                    justification: $"Suppress {suppressedDiagnosticId}");
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(SuppressionDescriptor);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                CancellationTokenSource.Cancel();
+                context.CancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions : DiagnosticSuppressor
         {
             private readonly NotImplementedException _exception;
@@ -2084,6 +2107,31 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterSymbolAction(
                     context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
                     SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class RegisterOperationBlockAndOperationActionAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                "ID0001",
+                "Title",
+                "Message",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override void Initialize(AnalysisContext analysisContext)
+            {
+                analysisContext.RegisterOperationAction(_ => { }, OperationKind.Invocation);
+                analysisContext.RegisterOperationBlockStartAction(OnOperationBlockStart);
+            }
+
+            private void OnOperationBlockStart(OperationBlockStartAnalysisContext context)
+            {
+                context.RegisterOperationBlockEndAction(
+                    endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
             }
         }
     }

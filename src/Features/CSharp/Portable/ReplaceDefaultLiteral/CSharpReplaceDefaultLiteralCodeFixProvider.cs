@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         private const string CS8505 = nameof(CS8505); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpReplaceDefaultLiteralCodeFixProvider()
         {
         }
@@ -45,9 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
-                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression))
+                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression, out LiteralExpressionSyntax defaultLiteral))
             {
-                var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
                 var (newExpression, displayText) = GetReplacementExpressionAndText(

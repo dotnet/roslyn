@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim rewrittenNode = invocationExpression
 
-            If invocationExpression.Expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+            If invocationExpression.Expression?.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(invocationExpression.Expression, MemberAccessExpressionSyntax)
                 Dim targetSymbol = semanticModel.GetSymbolInfo(memberAccess.Name)
 

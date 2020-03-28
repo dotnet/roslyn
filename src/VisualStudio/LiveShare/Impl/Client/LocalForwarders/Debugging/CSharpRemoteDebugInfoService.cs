@@ -18,6 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ILanguageDebugInfoService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspDebugInfoServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspDebugInfoServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpRemoteDebugInfoService(languageServices);

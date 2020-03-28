@@ -39,7 +39,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             internal AssemblyData(Assembly assembly)
             {
-                ModuleData = default(ModuleData);
+                ModuleData = null;
                 Assembly = assembly;
             }
         }

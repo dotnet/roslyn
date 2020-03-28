@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -1750,7 +1754,97 @@ class C : IGoo
 }");
         }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        this.Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static int [||]Value { get; }
+
+    public static void Set(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private static readonly int value;
+
+    public static int GetValue()
+    {
+        return value;
+    }
+
+    public static void Set(int value)
+    {
+        C.value = value;
+    }
+}");
+        }
+
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

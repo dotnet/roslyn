@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -12,20 +14,40 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
     internal class RoslynProjectsHandler : ProjectsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynProjectsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, RoslynMethods.ProjectsName)]
     internal class CSharpProjectsHandler : ProjectsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpProjectsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, RoslynMethods.ProjectsName)]
     internal class VisualBasicProjectsHandler : ProjectsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicProjectsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, RoslynMethods.ProjectsName)]
     internal class TypeScriptProjectsHandler : ProjectsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptProjectsHandler()
+        {
+        }
     }
 }

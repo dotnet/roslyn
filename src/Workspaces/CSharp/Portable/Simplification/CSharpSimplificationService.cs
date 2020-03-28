@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpDefaultExpressionReducer());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSimplificationService() : base(s_reducers)
         {
         }
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken, SemanticModel semanticModel)
+        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken)
         {
             // do not escape an already escaped identifier
             if (syntaxToken.IsVerbatimIdentifier())

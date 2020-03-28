@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService)
         {
             _indentationManagerService = indentationManagerService;

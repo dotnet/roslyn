@@ -18,6 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ILanguageDebugInfoService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspDebugInfoServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspDebugInfoServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new VBRemoteDebugInfoService(languageServices);

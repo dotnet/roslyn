@@ -14,6 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [Obsolete]
     internal class VBLspIndentationServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspIndentationServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return languageServices.GetOriginalLanguageService<ISynchronousIndentationService>();

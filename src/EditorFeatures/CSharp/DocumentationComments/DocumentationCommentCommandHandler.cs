@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DocumentationCommentCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
-                    !(returnType.IsKind(SyntaxKind.PredefinedType) && ((PredefinedTypeSyntax)returnType).Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
+                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
                 {
                     list.Add("/// <returns></returns>");
                 }

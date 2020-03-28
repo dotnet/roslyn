@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // it won't be changed in the middle of VS running.
                 var fullPath = fileKey.FullPath;
 
-                info = default;
+                info = null;
                 pImage = default;
                 length = default;
 
@@ -328,13 +328,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string? assemblyDir = null;
             foreach (var moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder.Count == 0)
+                if (assemblyDir is null)
                 {
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);

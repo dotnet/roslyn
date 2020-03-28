@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                 SymbolKind.Field => BuildField(symbol as IFieldSymbol),
                 SymbolKind.Event => BuildEvent(symbol as IEventSymbol),
                 SymbolKind.Property => BuildProperty(symbol as IPropertySymbol),
-                _ => default(UnresolvedRQNode),
+                _ => null,
             };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)

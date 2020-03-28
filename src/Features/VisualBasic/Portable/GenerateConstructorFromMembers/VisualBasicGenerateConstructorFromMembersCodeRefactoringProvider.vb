@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
 
@@ -15,12 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
         Inherits AbstractGenerateConstructorFromMembersCodeRefactoringProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         ''' <summary>
         ''' For testing purposes only.
         ''' </summary>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
         Friend Sub New(pickMembersService_forTesting As IPickMembersService)
             MyBase.New(pickMembersService_forTesting)
         End Sub

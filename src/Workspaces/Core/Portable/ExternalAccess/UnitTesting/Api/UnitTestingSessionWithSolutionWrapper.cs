@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingSessionWithSolutionWrapper : IDisposable

@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis
             return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
-            MessageId = "System.Xml.XmlReader.Create",
-            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
-XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
-However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
-So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private XDocument GetXDocument(CancellationToken cancellationToken)
         {
             using var stream = GetSourceStream(cancellationToken);
@@ -77,7 +71,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 {
                     try
                     {
-                        _docComments = new Dictionary<string, string>();
+                        var comments = new Dictionary<string, string>();
 
                         var doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
@@ -86,12 +80,15 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                             {
                                 using var reader = e.CreateReader();
                                 reader.MoveToContent();
-                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
+                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
+
+                        _docComments = comments;
                     }
                     catch (Exception)
                     {
+                        _docComments = new Dictionary<string, string>();
                     }
                 }
             }
