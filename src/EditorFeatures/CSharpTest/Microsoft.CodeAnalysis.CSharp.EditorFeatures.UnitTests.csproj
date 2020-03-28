@@ -77,7 +77,4 @@
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
-  <ItemGroup>
-    <ExpectedCompile Remove="DecompiledSource\DecompiledSourceFormattingTests.cs" />
-  </ItemGroup>
 </Project>
