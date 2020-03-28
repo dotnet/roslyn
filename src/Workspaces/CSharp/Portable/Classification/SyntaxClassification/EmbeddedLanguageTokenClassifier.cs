@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     {
         public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create((int)SyntaxKind.StringLiteralToken);
 
-        public EmbeddedLanguageTokenClassifier() 
+        public EmbeddedLanguageTokenClassifier()
             : base(CSharpEmbeddedLanguageProvider.Instance)
         {
         }
