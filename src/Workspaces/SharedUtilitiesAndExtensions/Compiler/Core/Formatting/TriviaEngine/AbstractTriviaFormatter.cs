@@ -410,13 +410,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             if (spaceOperation != null &&
-                spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
-                spaceOperation.Space == 1)
+                spaceOperation.Value.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
+                spaceOperation.Value.Space == 1)
             {
                 return defaultRule;
             }
 
-            return defaultRule.With(spaces: spaceOperation.Space);
+            return defaultRule.With(spaces: spaceOperation.Value.Space);
         }
 
         /// <summary>

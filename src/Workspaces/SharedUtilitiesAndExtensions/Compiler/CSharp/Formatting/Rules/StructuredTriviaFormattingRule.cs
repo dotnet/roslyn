@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
             {
@@ -33,22 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        private AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        private AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
-            {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
 
             if (previousToken.Kind() == SyntaxKind.RegionKeyword && currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
-            {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
-            }
 
             if (currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
-            {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
 
             return nextOperation.Invoke();
         }

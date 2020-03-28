@@ -114,12 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
-                {
                     return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-                }
 
                 return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
             }

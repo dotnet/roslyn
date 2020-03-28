@@ -148,15 +148,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)
-                if (spaceOperation != null && spaceOperation.Option == AdjustSpacesOption.ForceSpaces)
+                if (spaceOperation != null && spaceOperation.Value.Option == AdjustSpacesOption.ForceSpaces)
                 {
-                    return FormattingOperations.CreateAdjustSpacesOperation(spaceOperation.Space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    return FormattingOperations.CreateAdjustSpacesOperation(spaceOperation.Value.Space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
                 return spaceOperation;

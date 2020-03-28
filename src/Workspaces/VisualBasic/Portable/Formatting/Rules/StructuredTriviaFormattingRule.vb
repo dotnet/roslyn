@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation?
             If UnderStructuredTrivia(previousToken, currentToken) Then
                 If previousToken.Kind = SyntaxKind.HashToken AndAlso SyntaxFacts.IsPreprocessorKeyword(CType(currentToken.Kind, SyntaxKind)) Then
                     Return CreateAdjustSpacesOperation(space:=0, option:=AdjustSpacesOption.ForceSpacesIfOnSingleLine)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class SpacingFormattingRule : BaseFormattingRule
     {
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (options == null)
             {

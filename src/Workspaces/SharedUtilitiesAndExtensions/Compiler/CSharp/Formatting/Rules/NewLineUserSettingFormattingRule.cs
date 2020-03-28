@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
 

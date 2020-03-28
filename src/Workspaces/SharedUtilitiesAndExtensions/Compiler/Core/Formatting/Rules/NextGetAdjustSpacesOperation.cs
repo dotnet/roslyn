@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private NextGetAdjustSpacesOperation NextOperation
             => new NextGetAdjustSpacesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
 
-        public AdjustSpacesOperation Invoke()
+        public AdjustSpacesOperation? Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (_index >= _formattingRules.Length)

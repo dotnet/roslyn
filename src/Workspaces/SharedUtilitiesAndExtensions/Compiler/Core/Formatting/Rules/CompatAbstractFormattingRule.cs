@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override sealed AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             var nextOperationCopy = nextOperation;
             return GetAdjustSpacesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
@@ -98,16 +98,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
         public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustNewLinesOperation nextOperation)
-        {
-            return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+            => base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
 
         /// <summary>
         /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustSpacesOperation nextOperation)
-        {
-            return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+        public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustSpacesOperation nextOperation)
+            => base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
     }
 }
