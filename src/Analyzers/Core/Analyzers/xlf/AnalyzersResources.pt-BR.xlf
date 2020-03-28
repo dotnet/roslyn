@@ -117,6 +117,11 @@
         <target state="new">Populate switch</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="new">Prefer explicitly provided tuple element name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
@@ -205,6 +210,11 @@
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="new">Use coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="new">Use explicitly provided tuple name</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

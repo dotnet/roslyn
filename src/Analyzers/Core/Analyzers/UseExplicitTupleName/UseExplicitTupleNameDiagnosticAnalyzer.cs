@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
                    CodeStyleOptions2.PreferExplicitTupleNames,
-                   title: new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   title: new LocalizableResourceString(nameof(AnalyzersResources.Use_explicitly_provided_tuple_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Prefer_explicitly_provided_tuple_element_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
