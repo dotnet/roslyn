@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             => !(char1 == char2);
 
         public static bool operator ==(VirtualChar ch1, char ch2)
-            => ch1.Equals(ch2);
+            => ch1.Value == ch2;
 
         public static bool operator !=(VirtualChar ch1, char ch2)
             => !(ch1 == ch2);
