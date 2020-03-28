@@ -28,6 +28,8 @@
              vs2:ImageThemingUtilities.ThemeScrollBars="True"
              Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
     <Window.Resources>
+        <vs3:BrushToColorConverter x:Key="BrushToColorConverter"/>
+        <vs2:ThemedImageSourceConverter x:Key="ThemedImageSourceConverter" />
         <Style TargetType="ListBoxItem">
             <Setter Property="IsTabStop" Value="False" />
         </Style>
@@ -36,7 +38,6 @@
         </Style>
         <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
         <Style TargetType="u:AutomationDelegatingListViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewItemStyleKey}}" />
-        <vs3:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
@@ -90,9 +91,18 @@
                                           Focusable="False"
                                           AutomationProperties.AutomationId="{Binding SymbolName}">
                                 </CheckBox>
-                                <Image x:Uid="SelectableMemberGlyph" 
-                                       Margin="8,0,0,0"
-                                               Source="{Binding Glyph}"/>
+                                <Image x:Uid="SelectableMemberGlyph" Margin="8,0,0,0">
+                                    <Image.Source>
+                                        <MultiBinding Converter="{StaticResource ThemedImageSourceConverter}">
+                                            <Binding Path="Glyph" />
+                                            <Binding Path="Background"
+                                                     Mode="OneWay"
+                                                     RelativeSource="{RelativeSource AncestorType=u:AutomationDelegatingListView,Mode=FindAncestor}"
+                                                     Converter="{StaticResource BrushToColorConverter}"/>
+                                            <Binding Source="{x:Static vs3:Boxes.BooleanTrue}" />
+                                        </MultiBinding>
+                                    </Image.Source>
+                                </Image>
                                 <TextBlock x:Uid="SelectableMemberName"
                                            Text="{Binding SymbolName}"/>
                             </StackPanel>
