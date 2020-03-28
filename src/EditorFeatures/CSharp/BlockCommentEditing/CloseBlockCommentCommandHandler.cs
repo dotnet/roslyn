@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
                             if (args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value))
+                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, out _, out _))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
                                 return true;
