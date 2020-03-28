@@ -79,11 +79,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // want to bail out using the above check.
                     if (_objectAndDynamicCompareEqually)
                     {
-                        if ((xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
-                            (yKind == SymbolKind.DynamicType && IsObjectType(x)))
-                        {
-                            return true;
-                        }
+                        return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                               (yKind == SymbolKind.DynamicType && IsObjectType(x));
                     }
 
                     return false;
