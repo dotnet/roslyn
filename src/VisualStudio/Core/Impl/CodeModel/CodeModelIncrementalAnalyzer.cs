@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -25,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -67,10 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // REVIEW: do we need to fire events when a document is removed from the solution?
                 FireEvents(documentId, CancellationToken.None);
+                return Task.CompletedTask;
             }
 
             public void FireEvents(DocumentId documentId, CancellationToken cancellationToken)
@@ -138,8 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
+                return Task.CompletedTask;
             }
             #endregion
         }

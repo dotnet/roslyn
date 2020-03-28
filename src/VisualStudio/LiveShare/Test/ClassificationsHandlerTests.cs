@@ -24,10 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {|classify:var|} i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var classifyLocation = ranges["classify"].First();
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var classifyLocation = locations["classify"].First();
 
-            var results = await TestHandleAsync<ClassificationParams, object[]>(solution, CreateClassificationParams(classifyLocation));
+            var results = await TestHandleAsync<ClassificationParams, object[]>(workspace.CurrentSolution, CreateClassificationParams(classifyLocation));
             AssertJsonEquals(new ClassificationSpan[] { CreateClassificationSpan("keyword", classifyLocation.Range) }, results);
         }
 

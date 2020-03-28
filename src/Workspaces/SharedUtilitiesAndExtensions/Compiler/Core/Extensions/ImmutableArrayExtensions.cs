@@ -4,10 +4,14 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -41,19 +45,24 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-            => items.IsDefault ? ImmutableArray<T>.Empty : items;
-
-        internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
+        internal static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
         {
-            if (items is ImmutableArray<T> array && !array.IsDefault)
+            if (items is null)
             {
-                return (IReadOnlyList<T>)items;
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
             }
-            else
+
+            if (items is ImmutableArray<T> array)
             {
-                return items.ToImmutableArrayOrEmpty();
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
             }
+
+            if (items is ICollection<T> collection && collection.Count == 0)
+            {
+                return SpecializedCollections.EmptyBoxedImmutableArray<T>();
+            }
+
+            return ImmutableArray.CreateRange(items);
         }
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
-                properties.Add(EmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
+                properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
                 if (change.NewPosition != null)
                 {
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             return Task.FromResult(CompletionChange.Create(
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
-                newPositionString == null ? default(int?) : int.Parse(newPositionString)));
+                newPositionString == null ? (int?)null : int.Parse(newPositionString)));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

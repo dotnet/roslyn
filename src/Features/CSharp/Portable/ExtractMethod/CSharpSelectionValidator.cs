@@ -8,9 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -32,22 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public override async Task<SelectionResult> GetValidSelectionAsync(CancellationToken cancellationToken)
         {
-            if (!this.ContainsValidSelection)
+            if (!ContainsValidSelection)
             {
                 return NullSelection;
             }
 
-            var text = this.SemanticDocument.Text;
-            var root = this.SemanticDocument.Root;
-            var model = this.SemanticDocument.SemanticModel;
-            var doc = this.SemanticDocument;
+            var text = SemanticDocument.Text;
+            var root = SemanticDocument.Root;
+            var model = SemanticDocument.SemanticModel;
+            var doc = SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
             var selectionInfo = GetInitialSelectionInfo(root, text);
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
-            selectionInfo = AssignFinalSpan(selectionInfo, text, cancellationToken);
-            selectionInfo = ApplySpecialCases(selectionInfo, text, cancellationToken);
+            selectionInfo = AssignFinalSpan(selectionInfo, text);
+            selectionInfo = ApplySpecialCases(selectionInfo, text);
             selectionInfo = CheckErrorCasesAndAppendDescriptions(selectionInfo, root);
 
             // there was a fatal error that we couldn't even do negative preview, return error result
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 selectionInfo.Status,
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
-                this.Options,
+                Options,
                 selectionInfo.SelectionInExpression,
                 doc,
                 selectionInfo.FirstTokenInFinalSpan,
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
+        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
             {
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             return AssignFinalSpan(selectionInfo.With(s => s.FirstTokenInFinalSpan = assign.Right.GetFirstToken(includeZeroWidth: true))
                                                 .With(s => s.LastTokenInFinalSpan = assign.Right.GetLastToken(includeZeroWidth: true)),
-                                   text, cancellationToken);
+                                   text);
         }
 
         private TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
         {
-            var adjustedSpan = GetAdjustedSpan(text, this.OriginalSpan);
+            var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
             var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
@@ -345,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text, CancellationToken cancellationToken)
+        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -486,14 +484,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public SelectionInfo With(Action<SelectionInfo> valueSetter)
             {
-                var newInfo = this.Clone();
+                var newInfo = Clone();
                 valueSetter(newInfo);
                 return newInfo;
             }
 
             public SelectionInfo Clone()
             {
-                return (SelectionInfo)this.MemberwiseClone();
+                return (SelectionInfo)MemberwiseClone();
             }
         }
     }

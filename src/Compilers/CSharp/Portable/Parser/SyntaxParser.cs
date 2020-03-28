@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var offset = point.Position - _firstToken;
             Debug.Assert(offset >= 0 && offset < _tokenCount);
             _tokenOffset = offset;
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
             _currentNode = default(BlendedNode);
             _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
             if (_blendedTokens != null)
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(_allowModeReset);
 
                     _mode = value;
-                    _currentToken = default(SyntaxToken);
+                    _currentToken = null;
                     _currentNode = default(BlendedNode);
                     _tokenCount = _tokenOffset;
                 }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // erase current state
             _currentNode = default(BlendedNode);
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
 
             return result;
         }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
 
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
 
             if (_blendedTokens != null)
             {

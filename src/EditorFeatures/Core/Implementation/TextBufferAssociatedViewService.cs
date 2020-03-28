@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public TextBufferAssociatedViewService()
         {
         }

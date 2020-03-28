@@ -29,6 +29,7 @@
     <Rule Id="CA1066" Action="None" />
     <Rule Id="CA1067" Action="Warning" />
     <Rule Id="CA1068" Action="Warning" />
+    <Rule Id="CA1069" Action="None" /> <!-- Enums values should not be duplicated -->
     <Rule Id="CA1303" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA1304" Action="None" />
     <Rule Id="CA1508" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
@@ -108,8 +109,7 @@
     <Rule Id="RS0025" Action="Error" />
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
-    <Rule Id="RS0033" Action="None" /> <!-- Importing constructor should be [Obsolete] -->
-    <Rule Id="RS0034" Action="None" /> <!-- 'type_name' is MEF-exported and should have a single importing constructor of the correct form -->
+    <Rule Id="RS0040" Action="None" /> <!-- Defaultable types should have defaultable fields -->
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />
@@ -164,7 +164,6 @@
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
-    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers">
     <Rule Id="HAA0101" Action="None" />

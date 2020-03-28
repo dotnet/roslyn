@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;

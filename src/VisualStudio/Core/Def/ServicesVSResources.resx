@@ -1360,8 +1360,8 @@ I agree to all of the foregoing:</value>
   <data name="Editor_Color_Scheme" xml:space="preserve">
     <value>Editor Color Scheme</value>
   </data>
-  <data name="Enhanced" xml:space="preserve">
-    <value>Enhanced</value>
+  <data name="Visual_Studio_2019" xml:space="preserve">
+    <value>Visual Studio 2019</value>
   </data>
   <data name="Visual_Studio_2017" xml:space="preserve">
     <value>Visual Studio 2017</value>
@@ -1371,5 +1371,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations" xml:space="preserve">
     <value>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</value>
+  </data>
+  <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
+    <value>Prefer simplified boolean expressions</value>
   </data>
 </root>

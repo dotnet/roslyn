@@ -4,22 +4,17 @@
 
 using System.Collections.Generic;
 using System.Threading;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract class TriviaDataWithList : TriviaData
     {
-        public TriviaDataWithList(OptionSet optionSet, string language)
-            : base(optionSet, language)
+        public TriviaDataWithList(AnalyzerConfigOptions options, string language)
+            : base(options, language)
         {
         }
 
-        public abstract List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken);
+        public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public static Task<TResult> PerformTask(Func<TArg, TResult> func, TArg arg, TaskScheduler scheduler, CancellationToken cancellationToken)
+            public static Task<TResult> PerformTaskAsync(Func<TArg, TResult> func, TArg arg, TaskScheduler scheduler, CancellationToken cancellationToken)
             {
                 // Use a pooled strongbox so we don't box the provided arg.
                 var box = GetBox();
@@ -94,11 +96,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
         // tasks.
         private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => Threading<TArg, TResult>.PerformTask(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
+            => Threading<TArg, TResult>.PerformTaskAsync(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
 
         // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
         // tasks we need to do.
         public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => Threading<TArg, bool>.PerformTask(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
+            => Threading<TArg, bool>.PerformTaskAsync(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
     }
 }

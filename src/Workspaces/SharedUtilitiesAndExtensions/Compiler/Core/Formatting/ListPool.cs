@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -17,12 +16,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static void Free(List<T> list)
         {
             SharedPools.Default<List<T>>().ClearAndFree(list);
-        }
-
-        public static List<T> ReturnAndFree(List<T> list)
-        {
-            SharedPools.Default<List<T>>().ForgetTrackedObject(list);
-            return list;
         }
     }
 }

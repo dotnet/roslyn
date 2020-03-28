@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     /// These statements are cached for the lifetime of the connection and are only finalized
     /// (i.e. destroyed) when the connection is closed.
     /// </summary>
-    internal partial class SqlConnection
+    internal class SqlConnection
     {
         /// <summary>
         /// The raw handle to the underlying DB.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
         /// </summary>
-        private readonly Dictionary<string, SqlStatement> _queryToStatement = new Dictionary<string, SqlStatement>();
+        private readonly Dictionary<string, SqlStatement> _queryToStatement;
 
         /// <summary>
         /// Whether or not we're in a transaction.  We currently don't supported nested transactions.
@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
         {
             faultInjector?.OnNewConnection();
+
+            // Allocate dictionary before doing any sqlite work.  That way if it throws
+            // we don't have to do any additional cleanup.
+            var queryToStatement = new Dictionary<string, SqlStatement>();
 
             // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can
             // be used provided each one is only used from a single thread at a time.
@@ -76,30 +80,45 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
             Contract.ThrowIfNull(handle);
 
-            raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+            try
+            {
+                raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+                var connection = new SqlConnection(handle, faultInjector, queryToStatement);
 
-            return new SqlConnection(faultInjector, handle);
+                // Attach (creating if necessary) a singleton in-memory write cache to this connection.
+                //
+                // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory
+                // database allows two or more database connections in the same process to have access
+                // to the same in-memory database. An in-memory database in shared cache is
+                // automatically deleted and memory is reclaimed when the last connection to that
+                // database closes.
+                //
+                // Using `cache=shared as writecache` at the end ensures all connections see the same db
+                // and the same data when reading and writing.  i.e. if one connection writes data to
+                // this, another connection will see that data when reading.  Without this, each
+                // connection would get their own private memory db independent of all other
+                // connections.
+                connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
+
+                return connection;
+            }
+            catch
+            {
+                // If we failed to create connection, ensure that we still release the sqlite
+                // handle.
+                raw.sqlite3_close(handle);
+                throw;
+            }
         }
 
-        private SqlConnection(IPersistentStorageFaultInjector faultInjector, sqlite3 handle)
+        private SqlConnection(sqlite3 handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
-            _faultInjector = faultInjector;
+            // This constructor avoids allocations since failure (e.g. OutOfMemoryException) would
+            // leave the object partially-constructed, and the finalizer would run later triggering
+            // a crash.
             _handle = handle;
-
-            // Attach (creating if necessary) a singleton in-memory write cache to this connection.
-            //
-            // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory
-            // database allows two or more database connections in the same process to have access
-            // to the same in-memory database. An in-memory database in shared cache is
-            // automatically deleted and memory is reclaimed when the last connection to that
-            // database closes.
-            //
-            // Using `cache=shared as writecache` at the end ensures all connections see the same db
-            // and the same data when reading and writing.  i.e. if one connection writes data to
-            // this, another connection will see that data when reading.  Without this, each
-            // connection would get their own private memory db independent of all other
-            // connections.
-            this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
+            _faultInjector = faultInjector;
+            _queryToStatement = queryToStatement;
         }
 
         ~SqlConnection()
@@ -119,7 +138,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             Contract.ThrowIfNull(_handle);
 
             // release all the cached statements we have.
-            foreach (var statement in _queryToStatement.Values)
+            //
+            // use the struct-enumerator of our dictionary to prevent any allocations here.  We
+            // don't want to risk an allocation causing an OOM which prevents executing the
+            // following cleanup code.
+            foreach (var (_, statement) in _queryToStatement)
             {
                 statement.Close_OnlyForUseBySqlConnection();
             }

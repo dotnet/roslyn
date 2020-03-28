@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 int spaces,
                 string originalString,
                 CancellationToken cancellationToken)
-                : base(context.OptionSet, LanguageNames.CSharp)
+                : base(context.Options, LanguageNames.CSharp)
             {
                 Contract.ThrowIfNull(context);
                 Contract.ThrowIfNull(formattingRules);
@@ -60,10 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return _textChanges;
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                return _formatter.FormatToSyntaxTrivia(cancellationToken);
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => _formatter.FormatToSyntaxTrivia(cancellationToken);
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {

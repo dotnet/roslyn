@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string language,
             DiagnosticAnalyzer analyzer,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(CreateHostAnalyzerManager(language, analyzer), hostDiagnosticUpdateSource)
+            : this(CreateHostDiagnosticAnalyzers(language, ImmutableArray.Create(analyzer)), hostDiagnosticUpdateSource)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
             IAsynchronousOperationListener listener = null)
-            : this(CreateHostAnalyzerManager(language, analyzers), hostDiagnosticUpdateSource, listener: listener)
+            : this(CreateHostDiagnosticAnalyzers(language, analyzers), hostDiagnosticUpdateSource, listener: listener)
         {
         }
 
@@ -35,23 +35,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
             IDiagnosticUpdateSourceRegistrationService registrationService = null)
-            : this(CreateHostAnalyzerManager(analyzersMap), hostDiagnosticUpdateSource, registrationService)
+            : this(CreateHostDiagnosticAnalyzers(analyzersMap), hostDiagnosticUpdateSource, registrationService)
         {
         }
 
         internal TestDiagnosticAnalyzerService(
             ImmutableArray<AnalyzerReference> hostAnalyzerReferences,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(CreateHostAnalyzerManager(hostAnalyzerReferences), hostDiagnosticUpdateSource)
+            : this(new HostDiagnosticAnalyzers(hostAnalyzerReferences), hostDiagnosticUpdateSource)
         {
         }
 
         private TestDiagnosticAnalyzerService(
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostDiagnosticAnalyzers hostAnalyzers,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService = null,
             IAsynchronousOperationListener listener = null)
-            : base(analyzerInfoCache, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
+            : base(new DiagnosticAnalyzerInfoCache(), hostAnalyzers, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
         {
         }
 
@@ -63,26 +63,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        private static DiagnosticAnalyzerInfoCache CreateHostAnalyzerManager(string language, DiagnosticAnalyzer analyzer)
-        {
-            return CreateHostAnalyzerManager(language, ImmutableArray.Create(analyzer));
-        }
-
-        private static DiagnosticAnalyzerInfoCache CreateHostAnalyzerManager(string language, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static HostDiagnosticAnalyzers CreateHostDiagnosticAnalyzers(string language, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var map = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(language, analyzers)));
-            return CreateHostAnalyzerManager(map);
+            return CreateHostDiagnosticAnalyzers(map);
         }
 
-        private static DiagnosticAnalyzerInfoCache CreateHostAnalyzerManager(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
+        private static HostDiagnosticAnalyzers CreateHostDiagnosticAnalyzers(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {
             var analyzerReferences = ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap));
-            return CreateHostAnalyzerManager(analyzerReferences);
+            return new HostDiagnosticAnalyzers(analyzerReferences);
         }
 
-        private static DiagnosticAnalyzerInfoCache CreateHostAnalyzerManager(ImmutableArray<AnalyzerReference> hostAnalyzerReferences)
-        {
-            return new DiagnosticAnalyzerInfoCache(hostAnalyzerReferences);
-        }
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference()
+            => HostAnalyzers.GetDiagnosticDescriptorsPerReference(AnalyzerInfoCache);
+
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(Project project)
+            => HostAnalyzers.GetDiagnosticDescriptorsPerReference(AnalyzerInfoCache, project);
     }
 }

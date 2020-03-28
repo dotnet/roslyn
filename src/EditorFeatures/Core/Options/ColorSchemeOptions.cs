@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -12,19 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         internal const string ColorSchemeSettingKey = "TextEditor.Roslyn.ColorScheme";
 
-        public static readonly Option<SchemeName> ColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
+        public static readonly Option2<SchemeName> ColorScheme = new Option2<SchemeName>(nameof(ColorSchemeOptions),
             nameof(ColorScheme),
-            defaultValue: SchemeName.Enhanced,
+            defaultValue: SchemeName.VisualStudio2019,
             storageLocations: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
-        // The applied color scheme is a local setting because it is the scheme that is applied to 
-        // the users current registry hive.
-        public static readonly Option<SchemeName> AppliedColorScheme = new Option<SchemeName>(nameof(ColorSchemeOptions),
-            nameof(AppliedColorScheme),
-            defaultValue: SchemeName.None,
-            storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\ColorSchemeApplier\AppliedColorScheme"));
-
-        public static readonly Option<UseEnhancedColors> LegacyUseEnhancedColors = new Option<UseEnhancedColors>(nameof(ColorSchemeOptions),
+        public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new Option2<UseEnhancedColors>(nameof(ColorSchemeOptions),
             nameof(LegacyUseEnhancedColors),
             defaultValue: UseEnhancedColors.Default,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
@@ -42,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     internal class ColorSchemeOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ColorSchemeOptionsProvider()
         {
         }
 
         public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(
             ColorSchemeOptions.ColorScheme,
-            ColorSchemeOptions.AppliedColorScheme,
             ColorSchemeOptions.LegacyUseEnhancedColors);
     }
 }

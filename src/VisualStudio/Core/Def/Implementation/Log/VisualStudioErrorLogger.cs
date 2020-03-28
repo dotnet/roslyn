@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
     internal class VisualStudioErrorLogger : IErrorLoggerService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioErrorLogger()
         {
         }
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
 
             if (ShouldReportCrashDumps(source))
             {
-                WatsonReporter.Report(name, exception);
+                FatalError.ReportWithoutCrash(exception);
             }
         }
 

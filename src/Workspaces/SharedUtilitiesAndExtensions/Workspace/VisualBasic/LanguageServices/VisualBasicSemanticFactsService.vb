@@ -6,11 +6,13 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -19,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -33,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
 
-        Protected Overrides ReadOnly Property SyntaxFactsService As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Private Sub New()
         End Sub
@@ -49,6 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End Get
         End Property
+
+        Protected Overrides Function ToIdentifierToken(identifier As String) As SyntaxToken
+            Return identifier.ToIdentifierToken
+        End Function
 
         Public Function IsExpressionContext(semanticModel As SemanticModel,
                                             position As Integer,
@@ -165,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
-                    If SyntaxFactsService.IsExecutableStatement(ancestor) Then
+                    If SyntaxFacts.IsExecutableStatement(ancestor) Then
                         Return Nothing
                     End If
                 End If
@@ -347,6 +354,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISemanticFactsService_GenerateUniqueName(semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, filter As Func(Of ISymbol, Boolean), usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
             Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, filter, usedNames, cancellationToken)
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueName(baseName As String, usedNames As IEnumerable(Of String)) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+            Return MyBase.GenerateUniqueName(baseName, usedNames)
         End Function
     End Class
 End Namespace

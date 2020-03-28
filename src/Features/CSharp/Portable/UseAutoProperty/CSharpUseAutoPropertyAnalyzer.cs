@@ -66,15 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
             Compilation compilation, CancellationToken cancellationToken)
         {
-            var groups = analysisResults.Select(r => (TypeDeclarationSyntax)r.PropertyDeclaration.Parent)
+            var groups = analysisResults.Select(r => (typeDeclaration: (TypeDeclarationSyntax)r.PropertyDeclaration.Parent, r.SemanticModel))
                                         .Distinct()
-                                        .GroupBy(n => n.SyntaxTree);
+                                        .GroupBy(n => n.typeDeclaration.SyntaxTree);
 
             foreach (var (tree, typeDeclarations) in groups)
             {
-                var semanticModel = compilation.GetSemanticModel(tree);
-
-                foreach (var typeDeclaration in typeDeclarations)
+                foreach (var (typeDeclaration, semanticModel) in typeDeclarations)
                 {
                     foreach (var argument in typeDeclaration.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
                     {

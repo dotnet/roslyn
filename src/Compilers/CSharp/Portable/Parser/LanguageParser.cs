@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var usingDirective = _syntaxFactory.UsingDirective(usingToken, staticToken, alias, name, semicolon);
-            if (staticToken != default(SyntaxToken))
+            if (staticToken != null)
             {
                 usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingStatic);
             }
@@ -1373,13 +1373,13 @@ tryAgain:
             Debug.Assert(!IsInAsync);
 
             var classOrStructOrInterface = this.EatToken();
+
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
-
-            _termState = saveTerm;
             var baseList = this.ParseBaseList();
+            _termState = saveTerm;
 
             // Parse class body
             bool parseMembers = true;
@@ -2212,7 +2212,7 @@ parse_member_name:;
                     {
                         this.Reset(ref afterTypeResetPoint);
                         explicitInterfaceOpt = null;
-                        identifierOrThisOpt = default;
+                        identifierOrThisOpt = null;
                         typeParameterListOpt = null;
                         type = ParseReturnType();
                         goto parse_member_name;
@@ -2957,7 +2957,7 @@ parse_member_name:;
 
         private ExpressionSyntax ParsePossibleRefExpression()
         {
-            var refKeyword = default(SyntaxToken);
+            var refKeyword = (SyntaxToken)null;
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 refKeyword = this.EatToken();
@@ -2965,7 +2965,7 @@ parse_member_name:;
             }
 
             var expression = this.ParseExpressionCore();
-            if (refKeyword != default(SyntaxToken))
+            if (refKeyword != null)
             {
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
             }
@@ -4319,7 +4319,7 @@ tryAgain:
                                     expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
                                 }
 
-                                args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression));
+                                args.Add(_syntaxFactory.Argument(null, refKindKeyword: null, expression));
                             }
                             else
                             {
@@ -4839,7 +4839,7 @@ tryAgain:
             {
                 return _syntaxFactory.TypeParameter(
                     default(SyntaxList<AttributeListSyntax>),
-                    default(SyntaxToken),
+                    varianceKeyword: null,
                     this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
@@ -5304,9 +5304,7 @@ tryAgain:
         }
 
         private bool IsEndOfTypeArgumentList()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
-        }
+            => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
 
         private bool IsOpenName()
         {
@@ -5515,7 +5513,8 @@ tryAgain:
         {
             NameSyntax name = this.ParseAliasQualifiedName(options);
 
-            while (this.IsDotOrColonColon())
+            // Handle .. tokens for error recovery purposes.
+            while (this.IsDotOrColonColon() || this.CurrentToken.Kind == SyntaxKind.DotDotToken)
             {
                 if (this.PeekToken(1).Kind == SyntaxKind.ThisKeyword)
                 {
@@ -5534,46 +5533,59 @@ tryAgain:
             NameSyntax left,
             SyntaxToken separator)
         {
+            Debug.Assert(
+                separator.Kind == SyntaxKind.DotToken ||
+                separator.Kind == SyntaxKind.DotDotToken ||
+                separator.Kind == SyntaxKind.ColonColonToken);
             var right = this.ParseSimpleName(options);
 
-            if (separator.Kind == SyntaxKind.DotToken)
+            switch (separator.Kind)
             {
-                return _syntaxFactory.QualifiedName(left, separator, right);
-            }
-            else if (separator.Kind == SyntaxKind.ColonColonToken)
-            {
-                if (left.Kind != SyntaxKind.IdentifierName)
-                {
-                    separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
-                }
-
-                // If the left hand side is not an identifier name then the user has done
-                // something like Goo.Bar::Blah. We've already made an error node for the
-                // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
-
-                var identifierLeft = left as IdentifierNameSyntax;
-                if (identifierLeft == null)
-                {
-                    separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                case SyntaxKind.DotToken:
                     return _syntaxFactory.QualifiedName(left, separator, right);
-                }
-                else
-                {
-                    if (identifierLeft.Identifier.ContextualKind == SyntaxKind.GlobalKeyword)
+                case SyntaxKind.DotDotToken:
+                    // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
+
+                    var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
+                    var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
+                    var rightDot = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
+
+                    return _syntaxFactory.QualifiedName(
+                        _syntaxFactory.QualifiedName(left, leftDot, missingName),
+                        rightDot, right);
+
+                case SyntaxKind.ColonColonToken:
+                    if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
                     }
 
-                    identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
+                    // If the left hand side is not an identifier name then the user has done
+                    // something like Goo.Bar::Blah. We've already made an error node for the
+                    // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
 
-                    // If the name on the right had errors or warnings then we need to preserve
-                    // them in the tree.
-                    return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());
-                }
-            }
-            else
-            {
-                return left;
+                    var identifierLeft = left as IdentifierNameSyntax;
+                    if (identifierLeft == null)
+                    {
+                        separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                        return _syntaxFactory.QualifiedName(left, separator, right);
+                    }
+                    else
+                    {
+                        if (identifierLeft.Identifier.ContextualKind == SyntaxKind.GlobalKeyword)
+                        {
+                            identifierLeft = _syntaxFactory.IdentifierName(ConvertToKeyword(identifierLeft.Identifier));
+                        }
+
+                        identifierLeft = CheckFeatureAvailability(identifierLeft, MessageID.IDS_FeatureGlobalNamespace);
+
+                        // If the name on the right had errors or warnings then we need to preserve
+                        // them in the tree.
+                        return WithAdditionalDiagnostics(_syntaxFactory.AliasQualifiedName(identifierLeft, separator, right), left.GetDiagnostics());
+                    }
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -6322,7 +6334,7 @@ done:;
                     case SyntaxKind.ForKeyword:
                         return this.ParseForOrForEachStatement(attributes);
                     case SyntaxKind.ForEachKeyword:
-                        return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
+                        return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
                     case SyntaxKind.GotoKeyword:
                         return this.ParseGotoStatement(attributes);
                     case SyntaxKind.IfKeyword:
@@ -7434,7 +7446,7 @@ done:;
                 {
                     // Looks like a foreach statement.  Parse it that way instead
                     this.Reset(ref resetPoint);
-                    return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
+                    return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
                 }
                 else
                 {
@@ -7821,7 +7833,7 @@ tryAgain:
                 // As a special case, when a tuple literal is the governing expression of
                 // a switch statement we permit the switch statement's own parentheses to be omitted.
                 // LDM 2018-04-04.
-                openParen = closeParen = default;
+                openParen = closeParen = null;
             }
             else
             {
@@ -7955,7 +7967,7 @@ tryAgain:
             return _syntaxFactory.UnsafeStatement(attributes, @unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = default)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = null)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -8107,12 +8119,12 @@ tryAgain:
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
             {
-                awaitKeyword = default;
+                awaitKeyword = null;
                 usingKeyword = EatToken();
             }
             else
             {
-                awaitKeyword = default;
+                awaitKeyword = null;
                 usingKeyword = null;
                 canParseAsLocalFunction = true;
             }
@@ -10095,7 +10107,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -10105,7 +10117,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -10138,11 +10150,11 @@ tryAgain:
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: expression);
                     }
 
                     list.Add(arg);
@@ -10152,7 +10164,7 @@ tryAgain:
                 {
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
                     var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: missing));
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: null, expression: missing));
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -10964,8 +10976,8 @@ tryAgain:
 
         private (BlockSyntax, ExpressionSyntax) ParseLambdaBody()
             => CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? (ParseBlock(attributes: default), default(ExpressionSyntax))
-                : (default(BlockSyntax), ParsePossibleRefExpression());
+                ? (ParseBlock(attributes: default), (ExpressionSyntax)null)
+                : ((BlockSyntax)null, ParsePossibleRefExpression());
 
         private ParameterListSyntax ParseLambdaParameterList()
         {

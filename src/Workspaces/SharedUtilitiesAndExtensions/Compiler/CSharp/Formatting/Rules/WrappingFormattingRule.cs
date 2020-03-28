@@ -6,20 +6,15 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -29,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddSpecificNodesSuppressOperations(list, node);
 
-            if (!optionSet.GetOption(CSharpFormattingOptions.WrappingPreserveSingleLine))
+            if (!options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine))
             {
                 RemoveSuppressOperationForBlock(list, node);
             }
 
-            if (!optionSet.GetOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine))
+            if (!options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine))
             {
                 RemoveSuppressOperationForStatementMethodDeclaration(list, node);
             }

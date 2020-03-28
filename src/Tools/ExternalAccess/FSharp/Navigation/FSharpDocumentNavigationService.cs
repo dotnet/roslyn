@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -13,6 +14,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
     [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
     internal class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FSharpDocumentNavigationService()
+        {
+        }
+
         /// <summary>
         /// Determines whether it is possible to navigate to the given position in the specified document.
         /// </summary>

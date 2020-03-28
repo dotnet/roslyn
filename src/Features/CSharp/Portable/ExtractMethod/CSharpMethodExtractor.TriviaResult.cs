@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.BeforeEndOfSpan => body != null
                         ? body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
                         : semicolonToken,
-                    _ => Contract.FailWithReturn<SyntaxToken>("can't happen"),
+                    _ => throw ExceptionUtilities.UnexpectedValue(location)
                 };
             }
 
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     TriviaLocation.AfterEndOfSpan => FilterTriviaList(list.Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.AfterBeginningOfSpan => FilterTriviaList(AppendTrailingTrivia(tokenPair).Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
                     TriviaLocation.BeforeEndOfSpan => FilterTriviaList(tokenPair.PreviousToken.TrailingTrivia.Concat(list).Concat(tokenPair.NextToken.LeadingTrivia)),
-                    _ => Contract.FailWithReturn<IEnumerable<SyntaxTrivia>>("Shouldn't reach here"),
+                    _ => throw ExceptionUtilities.UnexpectedValue(location),
                 };
             }
 
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     MethodDeclarationSyntax methodDeclaration => (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken),
                     LocalFunctionStatementSyntax localFunctionDeclaration => (localFunctionDeclaration.Body, localFunctionDeclaration.ExpressionBody, localFunctionDeclaration.SemicolonToken),
-                    _ => throw new NotSupportedException("SyntaxNode expected to be MethodDeclarationSyntax or LocalFunctionStatementSyntax."),
+                    _ => throw ExceptionUtilities.UnexpectedValue(method)
                 };
             }
 

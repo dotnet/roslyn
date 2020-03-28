@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public event Action<bool>? TrackingSpansChanged;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ActiveStatementTrackingService()
         {
         }
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var lastCommittedSolution = _editSession.DebuggingSession.LastCommittedSolution;
                     var currentSolution = _editSession.DebuggingSession.Workspace.CurrentSolution;
-                    var activeSpansToTrack = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance();
+                    using var _ = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance(out var activeSpansToTrack);
 
                     foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
                     {
@@ -230,8 +231,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             TrackActiveSpansNoLock(baseDocument, document, snapshot, documentActiveStatements);
                         }
                     }
-
-                    activeSpansToTrack.Free();
 
                     _service.OnTrackingSpansChanged(leafChanged: true);
                 }

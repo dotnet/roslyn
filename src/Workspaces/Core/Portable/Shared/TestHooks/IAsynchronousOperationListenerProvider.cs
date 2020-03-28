@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.CreateExpeditedWaitTask()).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
                 {
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return _singletonListeners.Where(kv => featureNames.Contains(kv.Key)).Select(kv => (IAsynchronousOperationWaiter)kv.Value);
         }
 
-        private class NullOperationListener : IAsynchronousOperationListener
+        private sealed class NullOperationListener : IAsynchronousOperationListener
         {
             public IAsyncToken BeginAsyncOperation(
                 string name,
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private class NullListenerProvider : IAsynchronousOperationListenerProvider
+        private sealed class NullListenerProvider : IAsynchronousOperationListenerProvider
         {
             public IAsynchronousOperationListener GetListener(string featureName) => NullListener;
         }

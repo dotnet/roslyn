@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         private DocumentId _activeDocumentId;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestDocumentTrackingService()
         {
         }

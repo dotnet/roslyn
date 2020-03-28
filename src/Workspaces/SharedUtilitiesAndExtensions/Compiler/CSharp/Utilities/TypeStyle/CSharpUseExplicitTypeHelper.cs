@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -73,13 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpression) &&
+                declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
-                var parent = (DeclarationExpressionSyntax)typeName.Parent;
-                if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // If it is currently not var, explicit typing exists, return. 
@@ -89,11 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
-                var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
                 var variable = variableDeclaration.Variables.First();
                 if (!AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, variable.Initializer.Value,

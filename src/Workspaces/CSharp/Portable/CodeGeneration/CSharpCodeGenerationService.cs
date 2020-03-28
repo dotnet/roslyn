@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CodeGenerationOptions options)
         {
-            var newModifierTokens = ArrayBuilder<SyntaxToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var newModifierTokens);
             CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, options, Accessibility.NotApplicable);
             if (newModifierTokens.Count == 0)
             {
@@ -663,10 +663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // TODO: Move more APIs to use pooled ArrayBuilder
             // https://github.com/dotnet/roslyn/issues/34960
-            var list = newModifierTokens.ToList();
-            newModifierTokens.Free();
-            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
-                .ToSyntaxTokenList();
+            return GetUpdatedDeclarationAccessibilityModifiers(
+                newModifierTokens, modifiersList,
+                modifier => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()));
         }
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)

@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
+
+#if !CODE_STYLE
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {

@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -23,13 +25,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
+        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
+
+        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
+
+        // use eventMap and taskQueue to serialize events
+        private readonly EventMap _eventMap;
+        private readonly TaskQueue _eventQueue;
+
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
+        public HostDiagnosticAnalyzers HostAnalyzers { get; private set; }
 
         private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
         public IAsynchronousOperationListener Listener { get; }
 
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -46,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
             Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
             IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
@@ -53,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             PrimaryWorkspace primaryWorkspace,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
-            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
+            : this(new DiagnosticAnalyzerInfoCache(),
+                   new HostDiagnosticAnalyzers(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
                    hostDiagnosticUpdateSource,
                    registrationService,
                    listener)
@@ -61,16 +78,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostDiagnosticAnalyzers hostAnalyzers,
             AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
-            : this(registrationService)
         {
             AnalyzerInfoCache = analyzerInfoCache;
+            HostAnalyzers = hostAnalyzers;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            _eventMap = new EventMap();
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
+
+            registrationService.Register(this);
         }
 
         private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector =
-            new Regex(@"\blang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new Regex(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
@@ -90,36 +90,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 semanticModel, info, regexType, methodNamesOfInterest);
         }
 
-        public static bool IsDefinitelyNotPattern(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        public static bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
         {
             if (!syntaxFacts.IsStringLiteral(token))
-            {
-                return true;
-            }
+                return false;
 
-            if (!IsMethodOrConstructorArgument(token, syntaxFacts) &&
-                !HasRegexLanguageComment(token, syntaxFacts, out _))
-            {
-                return true;
-            }
-
-            return false;
+            return IsMethodOrConstructorArgument(token, syntaxFacts) ||
+                   HasRegexLanguageComment(token, syntaxFacts, out _);
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxToken token, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxToken token, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             if (HasRegexLanguageComment(token.GetPreviousToken().TrailingTrivia, syntaxFacts, out options))
-            {
                 return true;
-            }
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
                 if (HasRegexLanguageComment(node.GetLeadingTrivia(), syntaxFacts, out options))
-                {
                     return true;
-                }
+
+                // Stop walking up once we hit a statement.  We don't need/want statements higher up the parent chain to
+                // have any impact on this token.
+                if (syntaxFacts.IsStatement(node))
+                    break;
             }
 
             options = default;
@@ -127,7 +121,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxTriviaList list, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxTriviaList list, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             foreach (var trivia in list)
             {
@@ -142,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private static bool HasRegexLanguageComment(
-            SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, out RegexOptions options)
+            SyntaxTrivia trivia, ISyntaxFacts syntaxFacts, out RegexOptions options)
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
@@ -189,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return (true, options);
         }
 
-        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFactsService syntaxFacts)
+        private static bool IsMethodOrConstructorArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent.Parent);
 
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// where at least one (but not necessarily more) of the parameters should be treated as a
         /// pattern.
         /// </summary>
-        private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFactsService syntaxFacts)
+        private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol regexType, ISyntaxFacts syntaxFacts)
         {
             var result = syntaxFacts.IsCaseSensitive
                 ? new HashSet<string>()
@@ -219,7 +213,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public bool IsRegexPattern(SyntaxToken token, CancellationToken cancellationToken, out RegexOptions options)
         {
             options = default;
-            if (IsDefinitelyNotPattern(token, _info.SyntaxFacts))
+            if (!IsPossiblyPatternToken(token, _info.SyntaxFacts))
             {
                 return false;
             }
@@ -358,7 +352,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return RegexOptions.None;
         }
 
-        private string GetNameOfType(SyntaxNode typeNode, ISyntaxFactsService syntaxFacts)
+        private string GetNameOfType(SyntaxNode typeNode, ISyntaxFacts syntaxFacts)
         {
             if (syntaxFacts.IsQualifiedName(typeNode))
             {

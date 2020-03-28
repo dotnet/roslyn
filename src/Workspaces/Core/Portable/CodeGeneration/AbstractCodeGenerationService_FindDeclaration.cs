@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var declaration = default(SyntaxNode);
+            var declaration = (SyntaxNode)null;
             IList<bool> availableIndices = null;
 
             var symbol = namespaceOrType;
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
-            var fallbackDeclaration = default(SyntaxNode);
+            var fallbackDeclaration = (SyntaxNode)null;
             if (locationOpt != null && locationOpt.IsInSource)
             {
                 var token = locationOpt.FindToken(cancellationToken);
