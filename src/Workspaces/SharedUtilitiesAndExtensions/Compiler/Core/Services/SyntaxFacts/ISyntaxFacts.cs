@@ -9,6 +9,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
+
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal partial interface ISyntaxFacts
@@ -347,6 +353,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
+        bool IsClassDeclaration(SyntaxNode node);
+        bool IsNamespaceDeclaration(SyntaxNode node);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
@@ -385,7 +393,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
-        bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration);
+        /// <summary>
+        /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see
+        /// langword="false"/> only the span up through the type name will be considered.  If <see langword="true"/>
+        /// then the span through the base-list will be considered.
+        /// </summary>
+        bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, out SyntaxNode typeDeclaration);
 
         bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration);
         bool IsOnParameterHeader(SyntaxNode root, int position, out SyntaxNode parameter);
@@ -417,6 +430,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
+
+        bool CanHaveAccessibility(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the accessibility of the declaration.
+        /// </summary>
+        Accessibility GetAccessibility(SyntaxNode declaration);
+
+        public abstract void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
+
+        public abstract SyntaxTokenList GetModifierTokens(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the <see cref="DeclarationKind"/> for the declaration.
+        /// </summary>
+        DeclarationKind GetDeclarationKind(SyntaxNode declaration);
     }
 
     [Flags]

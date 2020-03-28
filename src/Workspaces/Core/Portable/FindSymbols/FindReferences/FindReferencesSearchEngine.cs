@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
-            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
         }
 
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)

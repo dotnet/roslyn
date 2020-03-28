@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             public FallbackSyntaxClassifier(EmbeddedLanguageInfo info)
             {
                 _info = info;
-                SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind, info.InterpolatedTextTokenKind);
+                SyntaxTokenKinds = ImmutableArray.Create(
+                    info.CharLiteralTokenKind,
+                    info.StringLiteralTokenKind,
+                    info.InterpolatedTextTokenKind);
             }
 
             public override void AddClassifications(
                 Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
                 ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
             {
-                if (_info.StringLiteralTokenKind != token.RawKind &&
+                if (_info.CharLiteralTokenKind != token.RawKind &&
+                    _info.StringLiteralTokenKind != token.RawKind &&
                     _info.InterpolatedTextTokenKind != token.RawKind)
                 {
                     return;

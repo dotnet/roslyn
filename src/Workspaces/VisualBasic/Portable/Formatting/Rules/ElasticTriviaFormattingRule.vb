@@ -323,7 +323,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                IsBeginStatement(Of WithStatementSyntax, WithBlockSyntax)(currentStatement) Then
 
                 If TypeOf previousStatement Is NamespaceStatementSyntax OrElse
-                   TypeOf previousStatement Is TypeStatementSyntax Then
+                   TypeOf previousStatement Is TypeStatementSyntax OrElse
+                   TypeOf previousStatement Is IfStatementSyntax Then
                     Return GetActualLines(previousToken, currentToken, 1)
                 Else
                     Return GetActualLines(previousToken, currentToken, 2, 1)

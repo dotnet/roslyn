@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var isUnsafe = false;
                 if (!State.IsContainedInUnsafeType)
                 {
-                    isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
+                    isUnsafe = returnType.RequiresUnsafeModifier() || parameters.Any(p => p.Type.RequiresUnsafeModifier());
                 }
 
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     // Otherwise, figure out what accessibility modifier to use and optionally
                     // mark it as static.
-                    if (containingType.IsContainedWithin(State.TypeToGenerateIn) && !isAbstract)
+                    if (containingType.IsContainedWithin(State.TypeToGenerateIn))
                     {
-                        return Accessibility.Private;
+                        return isAbstract ? Accessibility.Protected : Accessibility.Private;
                     }
                     else if (DerivesFrom(containingType) && State.IsStatic)
                     {

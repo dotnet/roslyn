@@ -229,16 +229,16 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: true),
                 compilationOptions,
                 parseOptions,
-                documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)),
-                projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)),
-                metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)),
-                analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)),
-                additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)),
                 analyzerConfigDocuments: SpecializedCollections.EmptyBoxedImmutableArray<DocumentInfo>(),
                 hostObjectType);
         }
 
-        private ProjectInfo With(
+        internal ProjectInfo With(
             ProjectAttributes? attributes = null,
             Optional<CompilationOptions?> compilationOptions = default,
             Optional<ParseOptions?> parseOptions = default,
@@ -322,22 +322,22 @@ namespace Microsoft.CodeAnalysis
             => With(parseOptions: parseOptions);
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo>? documents)
-            => With(documents: documents.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(documents)));
+            => With(documents: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(documents, nameof(documents)));
 
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo>? additionalDocuments)
-            => With(additionalDocuments: additionalDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(additionalDocuments)));
+            => With(additionalDocuments: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(additionalDocuments, nameof(additionalDocuments)));
 
         public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo>? analyzerConfigDocuments)
-            => With(analyzerConfigDocuments: analyzerConfigDocuments.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerConfigDocuments)));
+            => With(analyzerConfigDocuments: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerConfigDocuments, nameof(analyzerConfigDocuments)));
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference>? projectReferences)
-            => With(projectReferences: projectReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(projectReferences)));
+            => With(projectReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)));
 
         public ProjectInfo WithMetadataReferences(IEnumerable<MetadataReference>? metadataReferences)
-            => With(metadataReferences: metadataReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(metadataReferences)));
+            => With(metadataReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences)));
 
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference>? analyzerReferences)
-            => With(analyzerReferences: analyzerReferences.AsBoxedImmutableArrayWithNonNullItems() ?? throw new ArgumentNullException(nameof(analyzerReferences)));
+            => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
         internal string GetDebuggerDisplay()
             => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ProjectAttributes With(
-                VersionStamp? version = default,
+                VersionStamp? version = null,
                 string? name = null,
                 string? assemblyName = null,
                 string? language = null,

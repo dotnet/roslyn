@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// <summary>
         /// This option is used by TypeScript.
         /// </summary>
+#pragma warning disable RS0030 // Do not used banned APIs - to avoid a binary breaking API change.
         public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new PerLanguageOption<bool>(
             "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
+#pragma warning restore RS0030 // Do not used banned APIs
     }
 }

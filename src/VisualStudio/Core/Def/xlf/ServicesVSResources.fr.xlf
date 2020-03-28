@@ -427,6 +427,11 @@
         <target state="translated">Préférer une instruction 'using' simple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Préférer les fonctions locales statiques</target>

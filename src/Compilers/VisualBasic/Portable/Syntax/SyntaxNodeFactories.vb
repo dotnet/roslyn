@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseTrailingTrivia(text As String, Optional offset As Integer = 0) As SyntaxTriviaList
             Dim s = New InternalSyntax.Scanner(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
             Using s
-                Return New SyntaxTriviaList(Nothing, s.ScanMultilineTrivia().Node, 0, 0)
+                Return New SyntaxTriviaList(Nothing, s.ScanSingleLineTrivia().Node, 0, 0)
             End Using
         End Function
 

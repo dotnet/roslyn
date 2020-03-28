@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
             private void AddLastStatementOfConstruct(StatementSyntax statement)
             {
-                if (statement == default(StatementSyntax))
+                if (statement == null)
                 {
                     return;
                 }

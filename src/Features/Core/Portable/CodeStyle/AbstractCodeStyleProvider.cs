@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         TOptionKind, TCodeStyleProvider>
         where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>, new()
     {
-        private readonly Option<CodeStyleOption<TOptionKind>> _option;
+        private readonly Option2<CodeStyleOption2<TOptionKind>> _option;
         private readonly string _language;
         private readonly string _descriptorId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
 
         protected AbstractCodeStyleProvider(
-            Option<CodeStyleOption<TOptionKind>> option,
+            Option2<CodeStyleOption2<TOptionKind>> option,
             string language,
             string descriptorId,
             LocalizableString title,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// handle ReportDiagnostic.Default and will map that back to the appropriate value in that
         /// case.
         /// </summary>
-        protected static ReportDiagnostic GetOptionSeverity(CodeStyleOption<TOptionKind> optionValue)
+        protected static ReportDiagnostic GetOptionSeverity(CodeStyleOption2<TOptionKind> optionValue)
         {
             var severity = optionValue.Notification.Severity;
             return severity == ReportDiagnostic.Default

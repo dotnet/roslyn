@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -18,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        private IDictionary<OptionKey, object> EndOfLine => Option(
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        private IDictionary<OptionKey2, object> EndOfLine => Option(
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine);
 
-        private IDictionary<OptionKey, object> BeginningOfLine => Option(
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        private IDictionary<OptionKey2, object> BeginningOfLine => Option(
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine);
 
         private Task TestEndOfLine(string markup, string expected)
@@ -657,6 +658,28 @@ EndOfLine,
         a &&
         b &&
         c;
+}");
+        }
+
+        [WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrapLowerPrecedenceInLargeBinary()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C
+{
+    bool v = [||]a + b + c + d == x * y * z;
+}",
+EndOfLine,
+@"class C
+{
+    bool v = a + b + c + d ==
+        x * y * z;
+}",
+@"class C
+{
+    bool v = a + b + c + d ==
+             x * y * z;
 }");
         }
     }

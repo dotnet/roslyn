@@ -261,21 +261,6 @@
   <data name="Generate_implicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate implicit conversion operator in '{0}'</value>
   </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above" xml:space="preserve">
-    <value>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</value>
-  </data>
-  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below" xml:space="preserve">
-    <value>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</value>
-  </data>
-  <data name="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</value>
-  </data>
-  <data name="This_code_added_to_correctly_implement_the_disposable_pattern" xml:space="preserve">
-    <value>This code added to correctly implement the disposable pattern.</value>
-  </data>
-  <data name="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above" xml:space="preserve">
-    <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
-  </data>
   <data name="try_block" xml:space="preserve">
     <value>try block</value>
     <comment>{Locked="try"} "try" is a C# keyword and should not be localized.</comment>
@@ -496,9 +481,6 @@
   <data name="Make_method_async_remain_void" xml:space="preserve">
     <value>Make method async (stay void)</value>
   </data>
-  <data name="Add_this" xml:space="preserve">
-    <value>Add 'this.'</value>
-  </data>
   <data name="Convert_to_switch_statement" xml:space="preserve">
     <value>Convert to 'switch' statement</value>
   </data>
@@ -540,9 +522,6 @@
   </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
-  </data>
-  <data name="Add_accessibility_modifiers" xml:space="preserve">
-    <value>Add accessibility modifiers</value>
   </data>
   <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
     <value>Add/remove braces for single-line control statements</value>
@@ -648,6 +627,12 @@
   <data name="Reverse_for_statement" xml:space="preserve">
     <value>Reverse 'for' statement</value>
     <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
   </data>
   <data name="Convert_to_regular_string" xml:space="preserve">
     <value>Convert to regular string</value>

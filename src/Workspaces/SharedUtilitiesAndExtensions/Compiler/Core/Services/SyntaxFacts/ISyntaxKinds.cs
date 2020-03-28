@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int AwaitExpression { get; }
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
+        int ConditionalExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
