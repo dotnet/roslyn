@@ -48,6 +48,5 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
         }
-
     }
 }

@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     return null;
                 }
 
-                var changenameSpaceService = document.GetLanguageService<IChangeNamespaceService>();
-                var canChange = await changenameSpaceService.CanChangeNamespaceAsync(document, applicableNode, cancellationToken).ConfigureAwait(false);
+                var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+                var canChange = await changeNamespaceService.CanChangeNamespaceAsync(document, applicableNode, cancellationToken).ConfigureAwait(false);
 
                 if (!canChange || !IsDocumentPathRootedInProjectFolder(document))
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
-                var namespaceFromFolders = TryBuildNamespaceFromFolders(provider, document.Folders, syntaxFacts);
+                var namespaceFromFolders = changeNamespaceService.TryBuildNamespaceFromFolders(document.Folders, syntaxFacts);
                 var targetNamespace = namespaceFromFolders == null
                     ? null
                     : ConcatNamespace(defaultNamespace, namespaceFromFolders);
@@ -183,18 +183,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 return defaultNamespaceFromProjects.Single();
-            }
-
-            /// <summary>
-            /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
-            /// </summary>
-            private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
-                IEnumerable<string> folders,
-                ISyntaxFactsService syntaxFacts)
-            {
-                var parts = folders.SelectMany(folder => folder.Split(new[] { '.' }).SelectAsArray(service.EscapeIdentifier));
-                return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
             }
 
             private static string ConcatNamespace(string rootNamespace, string namespaceSuffix)
