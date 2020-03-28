@@ -21,11 +21,16 @@
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
              HasDialogFrame="True"
-             WindowStartupLocation="CenterOwner">
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
-            <Setter Property="IsTabStop" 
-                    Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBorderBrushKey}}"/>
         </Style>
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
@@ -70,7 +75,10 @@
                           SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                           PreviewKeyDown="OnListViewPreviewKeyDown"
                           MouseDoubleClick="OnListViewDoubleClick"
-                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}">
+                          ItemsSource="{Binding MemberContainers, Mode=TwoWay}"
+                          Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+                                           <!-- TODO: Setting the AutomationDelegatingListView's Background should not be necessary.
+                                                The AutomationDelegatingListView should inherit styles from ListView -->
                     <u:AutomationDelegatingListView.ItemTemplate x:Uid="SelectableMemberListItem">
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -84,8 +92,11 @@
                                 <Image x:Uid="SelectableMemberGlyph" 
                                        Margin="8,0,0,0"
                                                Source="{Binding Glyph}"/>
-                                <TextBlock x:Uid="SelectableMemberName" 
-                                                   Text="{Binding SymbolName}"/>
+                                <TextBlock x:Uid="SelectableMemberName"
+                                           Text="{Binding SymbolName}"
+                                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                                           <!-- TODO: Setting the TextBlock's Foreground should not be necessary.
+                                                The AutomationDelegatingListView should inherit styles from ListView -->
                             </StackPanel>
                         </DataTemplate>
                     </u:AutomationDelegatingListView.ItemTemplate>
@@ -93,7 +104,7 @@
 
                 <StackPanel Grid.Column="1">
 
-                    <vs:DialogButton Name="UpButton" 
+                    <Button Name="UpButton" 
                                  AutomationProperties.Name="{Binding MoveUpAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
@@ -105,8 +116,8 @@
                                         Width="16" 
                                         Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}"
                                         Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
-                    </vs:DialogButton>
-                    <vs:DialogButton Name="DownButton" 
+                    </Button>
+                    <Button Name="DownButton" 
                                  AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
@@ -119,7 +130,7 @@
                                         Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
                                         Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
 
-                    </vs:DialogButton>
+                    </Button>
 
                     <Button x:Uid="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 
