@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool IsPublicOnlyAccessibility(State state, Project project)
-            {
-                return _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
-            }
+                => _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
 
             private TypeKindOptions GetTypeKindOption(State state)
             {

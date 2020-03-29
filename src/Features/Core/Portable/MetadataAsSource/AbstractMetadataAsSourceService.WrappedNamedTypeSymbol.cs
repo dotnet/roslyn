@@ -84,34 +84,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
 
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return _symbol.GetTypeArgumentCustomModifiers(ordinal);
-            }
+                => _symbol.GetTypeArgumentCustomModifiers(ordinal);
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
-            {
-                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
-            }
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public INamedTypeSymbol ConstructUnboundGenericType()
-            {
-                return _symbol.ConstructUnboundGenericType();
-            }
+                => _symbol.ConstructUnboundGenericType();
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-            {
-                return _symbol.FindImplementationForInterfaceMember(interfaceMember);
-            }
+                => _symbol.FindImplementationForInterfaceMember(interfaceMember);
 
             public override ImmutableArray<ISymbol> GetMembers()
-            {
-                return _members;
-            }
+                => _members;
 
             public IEnumerable<string> MemberNames => throw new NotImplementedException();
 

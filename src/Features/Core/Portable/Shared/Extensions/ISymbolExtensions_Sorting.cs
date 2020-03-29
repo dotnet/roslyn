@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static int CompareProperties(IPropertySymbol xProperty, string[] xTypeNames, IPropertySymbol yProperty, string[] yTypeNames)
-        {
-            return CompareParameters(xProperty.Parameters, xTypeNames, yProperty.Parameters, yTypeNames);
-        }
+            => CompareParameters(xProperty.Parameters, xTypeNames, yProperty.Parameters, yTypeNames);
 
         private static int CompareMethods(IMethodSymbol xMethod, string[] xTypeNames, IMethodSymbol yMethod, string[] yTypeNames)
         {
@@ -110,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static int CompareEvents(IEventSymbol xEvent, string[] xTypeNames, IEventSymbol yEvent, string[] yTypeNames)
-        {
-            return CompareParameters(GetMethodOrIndexerOrEventParameters(xEvent), xTypeNames, GetMethodOrIndexerOrEventParameters(yEvent), yTypeNames);
-        }
+            => CompareParameters(GetMethodOrIndexerOrEventParameters(xEvent), xTypeNames, GetMethodOrIndexerOrEventParameters(yEvent), yTypeNames);
 
         private static int CompareNamedTypes(INamedTypeSymbol xNamedType, INamedTypeSymbol yNamedType)
         {

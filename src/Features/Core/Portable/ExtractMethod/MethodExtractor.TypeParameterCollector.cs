@@ -32,14 +32,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
-            {
-                arrayTypeSymbol.ElementType.Accept(this);
-            }
+                => arrayTypeSymbol.ElementType.Accept(this);
 
             public override void VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
-            {
-                pointerTypeSymbol.PointedAtType.Accept(this);
-            }
+                => pointerTypeSymbol.PointedAtType.Accept(this);
 
             public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
@@ -50,9 +46,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterTypeSymbol)
-            {
-                _typeParameters.Add(typeParameterTypeSymbol);
-            }
+                => _typeParameters.Add(typeParameterTypeSymbol);
         }
     }
 }

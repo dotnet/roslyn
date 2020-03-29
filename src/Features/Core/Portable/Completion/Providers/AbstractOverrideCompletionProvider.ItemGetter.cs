@@ -166,9 +166,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private bool IsOnStartLine(int position)
-            {
-                return _text.Lines.IndexOf(position) == _startLineNumber;
-            }
+                => _text.Lines.IndexOf(position) == _startLineNumber;
         }
     }
 }

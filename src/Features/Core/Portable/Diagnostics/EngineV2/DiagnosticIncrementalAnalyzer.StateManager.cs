@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
             public IEnumerable<StateSet> GetAllStateSets()
-            {
-                return GetAllHostStateSets().Concat(GetAllProjectStateSets());
-            }
+                => GetAllHostStateSets().Concat(GetAllProjectStateSets());
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
@@ -82,9 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// this will only return <see cref="StateSet"/>s that have same language as <paramref name="project"/>.
             /// </summary>
             public IEnumerable<StateSet> GetStateSets(Project project)
-            {
-                return GetStateSets(project.Id).Where(s => s.Language == project.Language);
-            }
+                => GetStateSets(project.Id).Where(s => s.Language == project.Language);
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
@@ -257,9 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
-            {
-                ProjectAnalyzerReferenceChanged?.Invoke(this, args);
-            }
+                => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 string language,

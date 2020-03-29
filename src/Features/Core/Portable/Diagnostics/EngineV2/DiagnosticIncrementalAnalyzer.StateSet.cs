@@ -280,9 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public string NonLocalStateName { get; }
 
                 public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
-                {
-                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
-                }
+                    => s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
             }
         }
     }

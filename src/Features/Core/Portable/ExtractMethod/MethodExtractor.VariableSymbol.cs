@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override int DisplayOrder => 0;
 
             protected override int CompareTo(VariableSymbol right)
-            {
-                return CompareTo((ParameterVariableSymbol)right);
-            }
+                => CompareTo((ParameterVariableSymbol)right);
 
             public int CompareTo(ParameterVariableSymbol other)
             {
@@ -198,9 +196,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override int DisplayOrder => 1;
 
             protected override int CompareTo(VariableSymbol right)
-            {
-                return CompareTo((LocalVariableSymbol<T>)right);
-            }
+                => CompareTo((LocalVariableSymbol<T>)right);
 
             public int CompareTo(LocalVariableSymbol<T> other)
             {
@@ -292,9 +288,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private bool ContainsNoisyTrivia(SyntaxTriviaList list)
-            {
-                return list.Any(t => !_nonNoisySet.Contains(t.RawKind));
-            }
+                => list.Any(t => !_nonNoisySet.Contains(t.RawKind));
         }
 
         protected class QueryVariableSymbol : NotMovableVariableSymbol, IComparable<QueryVariableSymbol>
@@ -311,9 +305,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override int DisplayOrder => 2;
 
             protected override int CompareTo(VariableSymbol right)
-            {
-                return CompareTo((QueryVariableSymbol)right);
-            }
+                => CompareTo((QueryVariableSymbol)right);
 
             public int CompareTo(QueryVariableSymbol other)
             {
