@@ -19,15 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             byte INumericTC<byte>.MaxValue => byte.MaxValue;
 
-            (byte leftMax, byte rightMin) INumericTC<byte>.Partition(byte min, byte max)
-            {
-                Debug.Assert(min < max);
-                int half = (max - min) / 2;
-                byte leftMax = (byte)(min + half);
-                byte rightMin = (byte)(leftMax + 1);
-                return (leftMax, rightMin);
-            }
-
             bool INumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
             {
                 switch (relation)
@@ -53,9 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (byte)(value + 1);
             }
 
+            byte INumericTC<byte>.Prev(byte value)
+            {
+                Debug.Assert(value != byte.MinValue);
+                return (byte)(value - 1);
+            }
+
             byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.ByteValue;
 
             string INumericTC<byte>.ToString(byte value) => value.ToString();
+
+            byte INumericTC<byte>.Random(Random random)
+            {
+                return (byte)random.Next(byte.MinValue, byte.MaxValue + 1);
+            }
         }
     }
 }

@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (_hasNaN, _hasMinusInf, _hasPlusInf, _numbers) = (hasNaN, hasMinusInf, hasPlusInf, numbers);
             }
 
-            public static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
+            internal static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
+                hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues);
 
-            public static readonly IValueSet<TFloating> NoValues = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
+            internal static readonly IValueSet<TFloating> NoValues = new FloatingValueSet<TFloating, TFloatingTC>(
+                hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues);
 
             internal static IValueSet<TFloating> Random(int expectedSize, Random random)
             {
@@ -70,9 +70,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasNaN: true,
                                 hasMinusInf: false,
                                 hasPlusInf: false,
-                                numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance)
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues
                                 );
                         case BinaryOperatorKind.LessThan:
+                        case BinaryOperatorKind.GreaterThan:
+                            return NoValues;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(relation);
+                    }
+                }
+                if (tc.Related(Equal, tc.MinusInf, value))
+                {
+                    switch (relation)
+                    {
+                        case BinaryOperatorKind.Equal:
+                        case BinaryOperatorKind.LessThanOrEqual:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: true,
+                                hasPlusInf: false,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues
+                                );
+                        case BinaryOperatorKind.GreaterThanOrEqual:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: true,
+                                hasPlusInf: true,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues
+                                );
+                        case BinaryOperatorKind.LessThan:
+                            return NoValues;
+                        case BinaryOperatorKind.GreaterThan:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: false,
+                                hasPlusInf: true,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues
+                                );
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(relation);
+                    }
+                }
+                if (tc.Related(Equal, tc.PlusInf, value))
+                {
+                    switch (relation)
+                    {
+                        case BinaryOperatorKind.Equal:
+                        case BinaryOperatorKind.GreaterThanOrEqual:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: false,
+                                hasPlusInf: true,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues
+                                );
+                        case BinaryOperatorKind.LessThanOrEqual:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: true,
+                                hasPlusInf: true,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues
+                                );
+                        case BinaryOperatorKind.LessThan:
+                            return new FloatingValueSet<TFloating, TFloatingTC>(
+                                hasNaN: false,
+                                hasMinusInf: true,
+                                hasPlusInf: false,
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues
+                                );
                         case BinaryOperatorKind.GreaterThan:
                             return NoValues;
                         default:

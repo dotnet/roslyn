@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 #nullable enable
 
@@ -23,72 +26,75 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, INumericTC<T>
         {
-            private readonly Interval _rootInterval;
+            private readonly ImmutableArray<(T first, T last)> _intervals;
 
-            internal NumericValueSet(Interval rootInterval) => this._rootInterval = rootInterval;
+            public readonly static NumericValueSet<T, TTC> AllValues = new NumericValueSet<T, TTC>(default(TTC).MinValue, default(TTC).MaxValue);
+            public readonly static NumericValueSet<T, TTC> NoValues = new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty);
 
-            bool IValueSet.IsEmpty => _rootInterval is Interval.Excluded;
+            internal NumericValueSet(T first, T last) : this(ImmutableArray.Create((first, last)))
+            {
+                TTC tc = default;
+                Debug.Assert(tc.Related(LessThanOrEqual, first, last));
+            }
+
+            internal NumericValueSet(ImmutableArray<(T first, T last)> intervals)
+            {
+                _intervals = intervals;
+            }
+
+            bool IValueSet.IsEmpty => _intervals.Length == 0;
 
             public bool Any(BinaryOperatorKind relation, T value)
             {
                 TTC tc = default;
-                return anyInterval(_rootInterval, relation, value, tc.MinValue, tc.MaxValue);
-
-                // Compute the result of <see cref="IValueSet{T}.Any"/> for a given interval.
-                static bool anyInterval(Interval interval, BinaryOperatorKind relation, T value, T minValue, T maxValue)
+                switch (relation)
                 {
-                    TTC tc = default;
-                    Debug.Assert(tc.Related(LessThanOrEqual, minValue, maxValue));
-                    switch (interval)
+                    case LessThan:
+                    case LessThanOrEqual:
+                        return _intervals.Length > 0 && tc.Related(relation, _intervals[0].first, value);
+                    case GreaterThan:
+                    case GreaterThanOrEqual:
+                        return _intervals.Length > 0 && tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
+                    case Equal:
+                        return anyIntervalContains(0, _intervals.Length - 1, value);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(relation);
+                }
+
+                bool anyIntervalContains(int firstIntervalIndex, int lastIntervalIndex, T value)
+                {
+                    while (true)
                     {
-                        case Interval.Excluded _:
-                            return false;
-                        case Interval.Included _:
-                            switch (relation)
+                        if ((lastIntervalIndex - firstIntervalIndex + 1) < 4)
+                        {
+                            for (int i = firstIntervalIndex; i <= lastIntervalIndex; i++)
                             {
-                                case LessThan:
-                                    return tc.Related(LessThan, minValue, value);
-                                case LessThanOrEqual:
-                                    return tc.Related(LessThanOrEqual, minValue, value);
-                                case GreaterThan:
-                                    return tc.Related(GreaterThan, maxValue, value);
-                                case GreaterThanOrEqual:
-                                    return tc.Related(GreaterThanOrEqual, maxValue, value);
-                                case Equal:
-                                    return tc.Related(LessThanOrEqual, minValue, value) && tc.Related(GreaterThanOrEqual, maxValue, value);
-                                default:
-                                    throw new ArgumentException(nameof(relation));
+                                var interval = _intervals[i];
+                                if (tc.Related(GreaterThanOrEqual, value, interval.first) && tc.Related(LessThanOrEqual, value, interval.last))
+                                    return true;
                             }
-                        case Interval.Mixed mixed:
-                            switch (relation)
+
+                            return false;
+                        }
+                        else
+                        {
+                            int midIndex = firstIntervalIndex + (lastIntervalIndex - firstIntervalIndex) / 2;
+                            if (tc.Related(LessThanOrEqual, value, _intervals[midIndex].last))
                             {
-                                case LessThan when tc.Related(LessThanOrEqual, value, minValue):
-                                    return false;
-                                case LessThan when tc.Related(LessThan, maxValue, value):
-                                    return true;
-                                case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
-                                    return false;
-                                case GreaterThan when tc.Related(GreaterThan, minValue, value):
-                                    return true;
-                                case LessThanOrEqual when tc.Related(LessThan, value, minValue):
-                                    return false;
-                                case LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value):
-                                    return true;
-                                case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
-                                    return false;
-                                case GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value):
-                                    return true;
-                                case Equal when tc.Related(LessThan, value, minValue) || tc.Related(LessThan, maxValue, value):
-                                    return false;
-                                default:
-                                    var (leftMax, rightMin) = tc.Partition(minValue, maxValue);
-                                    return
-                                        anyInterval(mixed.Left, relation, value, minValue, leftMax) ||
-                                        anyInterval(mixed.Right, relation, value, rightMin, maxValue);
-                            };
-                        default:
-                            throw new ArgumentException(nameof(interval));
-                    };
+                                lastIntervalIndex = midIndex;
+                                continue;
+                            }
+                            else if (tc.Related(GreaterThanOrEqual, value, _intervals[midIndex + 1].first))
+                            {
+                                firstIntervalIndex = midIndex + 1;
+                                continue;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -97,61 +103,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool All(BinaryOperatorKind relation, T value)
             {
                 TTC tc = default;
-                return allInterval(_rootInterval, relation, value, tc.MinValue, tc.MaxValue);
-
-                // Compute the result of <see cref="IValueSet{T}.All"/> for a given interval.
-                static bool allInterval(Interval interval, BinaryOperatorKind relation, T value, T minValue, T maxValue)
+                switch (relation)
                 {
-                    TTC tc = default;
-                    Debug.Assert(tc.Related(LessThanOrEqual, minValue, maxValue));
-                    switch (interval)
-                    {
-                        case Interval.Excluded _:
-                            return true;
-                        case Interval.Included _:
-                            switch (relation)
-                            {
-                                case LessThan:
-                                    return tc.Related(LessThan, maxValue, value);
-                                case LessThanOrEqual:
-                                    return tc.Related(LessThanOrEqual, maxValue, value);
-                                case GreaterThan:
-                                    return tc.Related(GreaterThan, minValue, value);
-                                case GreaterThanOrEqual:
-                                    return tc.Related(GreaterThanOrEqual, minValue, value);
-                                case Equal:
-                                    return tc.Related(Equal, minValue, value) && tc.Related(Equal, maxValue, value);
-                                default:
-                                    throw new ArgumentException(nameof(relation));
-                            }
-                        case Interval.Mixed mixed:
-                            switch (relation)
-                            {
-                                case LessThan when tc.Related(LessThanOrEqual, value, minValue):
-                                    return false;
-                                case LessThan when tc.Related(LessThan, maxValue, value):
-                                    return true;
-                                case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
-                                    return false;
-                                case GreaterThan when tc.Related(GreaterThan, minValue, value):
-                                    return true;
-                                case LessThanOrEqual when tc.Related(LessThan, value, minValue):
-                                    return false;
-                                case LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value):
-                                    return true;
-                                case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
-                                    return false;
-                                case GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value):
-                                    return true;
-                                default:
-                                    var (leftMax, rightMin) = tc.Partition(minValue, maxValue);
-                                    return
-                                        allInterval(mixed.Left, relation, value, minValue, leftMax) &&
-                                        allInterval(mixed.Right, relation, value, rightMin, maxValue);
-                            }
-                        default:
-                            throw new ArgumentException(nameof(interval));
-                    };
+                    case LessThan:
+                    case LessThanOrEqual:
+                        return _intervals.Length == 0 || tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
+                    case GreaterThan:
+                    case GreaterThanOrEqual:
+                        return _intervals.Length == 0 || tc.Related(relation, _intervals[0].first, value);
+                    case Equal:
+                        return _intervals.Length == 0 ||
+                            _intervals.Length == 1 && tc.Related(Equal, _intervals[0].first, value) && tc.Related(Equal, _intervals[0].last, value);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(relation);
                 }
             }
 
@@ -159,112 +123,161 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Complement()
             {
-                return new NumericValueSet<T, TTC>(complementInterval(_rootInterval));
-
-                static Interval complementInterval(Interval interval)
+                TTC tc = default;
+                var builder = ArrayBuilder<(T first, T last)>.GetInstance();
+                if (_intervals.Length == 0)
                 {
-                    switch (interval)
+                    builder.Add((tc.MinValue, tc.MaxValue));
+                }
+                else
+                {
+                    // add a prefix if apropos.
+                    if (tc.Related(LessThan, tc.MinValue, _intervals[0].first))
                     {
-                        case Interval.Included _:
-                            return Interval.Excluded.Instance;
-                        case Interval.Excluded _:
-                            return Interval.Included.Instance;
-                        case Interval.Mixed(var left, var right):
-                            return Interval.Mixed.Create(complementInterval(left), complementInterval(right));
-                        default:
-                            throw new ArgumentException(nameof(interval));
+                        builder.Add((tc.MinValue, tc.Prev(_intervals[0].first)));
+                    }
+                    // add the in-between intervals
+                    for (int i = 0, n = _intervals.Length - 1; i < n; i++)
+                    {
+                        builder.Add((tc.Next(_intervals[i].last), tc.Prev(_intervals[i + 1].first)));
+                    }
+                    // add a suffix if apropos
+                    if (tc.Related(LessThan, _intervals[_intervals.Length - 1].last, tc.MaxValue))
+                    {
+                        builder.Add((tc.Next(_intervals[_intervals.Length - 1].last), tc.MaxValue));
                     }
                 }
+
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
             }
 
             IValueSet IValueSet.Complement() => this.Complement();
 
             public IValueSet<T> Intersect(IValueSet<T> o)
             {
-                var other = ((NumericValueSet<T, TTC>)o);
-                var newInterval = intersectInterval(_rootInterval, other._rootInterval);
-                if (newInterval == _rootInterval)
-                    return this;
-                if (newInterval == other._rootInterval)
-                    return other;
-                return new NumericValueSet<T, TTC>(newInterval);
-
-                static Interval intersectInterval(Interval left, Interval right)
+                var other = (NumericValueSet<T, TTC>)o;
+                TTC tc = default;
+                var builder = ArrayBuilder<(T first, T last)>.GetInstance();
+                var left = this._intervals;
+                var right = other._intervals;
+                int l = 0;
+                int r = 0;
+                while (l < left.Length && r < right.Length)
                 {
-                    switch (left, right)
+                    var leftInterval = left[l];
+                    var rightInterval = right[r];
+                    if (tc.Related(LessThan, leftInterval.last, rightInterval.first))
                     {
-                        case (Interval.Excluded _, _):
-                            return left;
-                        case (_, Interval.Excluded _):
-                            return right;
-                        case (Interval.Included _, _):
-                            return right;
-                        case (_, Interval.Included _):
-                            return left;
-                        case (Interval.Mixed m1, Interval.Mixed m2):
-                            return intersectMixed(m1, m2);
-                        default:
-                            throw new ArgumentException("(left, right)");
+                        l++;
+                    }
+                    else if (tc.Related(LessThan, rightInterval.last, leftInterval.first))
+                    {
+                        r++;
+                    }
+                    else
+                    {
+                        Add(builder, Max(leftInterval.first, rightInterval.first), Min(leftInterval.last, rightInterval.last));
+                        if (tc.Related(LessThan, leftInterval.last, rightInterval.last))
+                        {
+                            l++;
+                        }
+                        else if (tc.Related(LessThan, rightInterval.last, leftInterval.last))
+                        {
+                            r++;
+                        }
+                        else
+                        {
+                            l++;
+                            r++;
+                        }
                     }
                 }
 
-                static Interval intersectMixed(Interval.Mixed m1, Interval.Mixed m2)
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+            }
+
+            /// <summary>
+            /// Add an interval to the end of the builder.
+            /// </summary>
+            private static void Add(ArrayBuilder<(T first, T last)> builder, T first, T last)
+            {
+                TTC tc = default;
+                Debug.Assert(tc.Related(LessThanOrEqual, first, last));
+                Debug.Assert(tc.Related(GreaterThanOrEqual, first, tc.MinValue));
+                Debug.Assert(tc.Related(LessThanOrEqual, last, tc.MaxValue));
+                Debug.Assert(builder.Count == 0 || tc.Related(LessThanOrEqual, builder.Last().first, first));
+                if (builder.Count > 0 && tc.Related(GreaterThanOrEqual, builder.Last().last, tc.Prev(first)))
                 {
-                    if (m1 == m2)
-                        return m1;
-                    var newLeft = intersectInterval(m1.Left, m2.Left);
-                    var newRight = intersectInterval(m1.Right, m2.Right);
-                    if (newLeft == m1.Left && newRight == m1.Right)
-                        return m1;
-                    if (newLeft == m2.Left && newRight == m2.Right)
-                        return m2;
-                    return Interval.Mixed.Create(newLeft, newRight);
+                    // merge with previous interval when adjacent
+                    var oldLastInterval = builder.Pop();
+                    oldLastInterval.last = Max(last, oldLastInterval.last);
+                    builder.Push(oldLastInterval);
                 }
+                else
+                {
+                    builder.Add((first, last));
+                }
+            }
+            private static T Min(T a, T b)
+            {
+                TTC tc = default;
+                return tc.Related(LessThan, a, b) ? a : b;
+            }
+
+            private static T Max(T a, T b)
+            {
+                TTC tc = default;
+                return tc.Related(LessThan, a, b) ? b : a;
             }
 
             IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IValueSet<T>)other);
 
             public IValueSet<T> Union(IValueSet<T> o)
             {
-                var other = ((NumericValueSet<T, TTC>)o);
-                var newInterval = unionInterval(_rootInterval, other._rootInterval);
-                if (newInterval == _rootInterval)
-                    return this;
-                if (newInterval == other._rootInterval)
-                    return other;
-                return new NumericValueSet<T, TTC>(newInterval);
-
-                static Interval unionInterval(Interval left, Interval right)
+                var other = (NumericValueSet<T, TTC>)o;
+                TTC tc = default;
+                var builder = ArrayBuilder<(T first, T last)>.GetInstance();
+                var left = this._intervals;
+                var right = other._intervals;
+                int l = 0;
+                int r = 0;
+                while (l < left.Length && r < right.Length)
                 {
-                    switch (left, right)
+                    var leftInterval = left[l];
+                    var rightInterval = right[r];
+                    if (tc.Related(LessThan, leftInterval.last, rightInterval.first))
                     {
-                        case (Interval.Excluded _, _):
-                            return right;
-                        case (_, Interval.Excluded _):
-                            return left;
-                        case (Interval.Included _, _):
-                            return left;
-                        case (_, Interval.Included _):
-                            return right;
-                        case (Interval.Mixed m1, Interval.Mixed m2) when m1 == m2:
-                            return m1;
-                        case (Interval.Mixed m1, Interval.Mixed m2):
-                            return unionMixed(m1, m2);
-                        default:
-                            throw new ArgumentException("(left, right)");
+                        Add(builder, leftInterval.first, leftInterval.last);
+                        l++;
+                    }
+                    else if (tc.Related(LessThan, rightInterval.last, leftInterval.first))
+                    {
+                        Add(builder, rightInterval.first, rightInterval.last);
+                        r++;
+                    }
+                    else
+                    {
+                        Add(builder, Min(leftInterval.first, rightInterval.first), Max(leftInterval.last, rightInterval.last));
+                        l++;
+                        r++;
                     }
                 }
 
-                static Interval unionMixed(Interval.Mixed m1, Interval.Mixed m2)
+                while (l < left.Length)
                 {
-                    var newLeft = unionInterval(m1.Left, m2.Left);
-                    var newRight = unionInterval(m1.Right, m2.Right);
-                    if (newLeft == m1.Left && newRight == m1.Right)
-                        return m1;
-                    if (newLeft == m2.Left && newRight == m2.Right)
-                        return m2;
-                    return Interval.Mixed.Create(newLeft, newRight);
+                    var leftInterval = left[l];
+                    Add(builder, leftInterval.first, leftInterval.last);
+                    l++;
                 }
+
+                while (r < right.Length)
+                {
+                    var rightInterval = right[r];
+                    Add(builder, rightInterval.first, rightInterval.last);
+                    r++;
+                }
+
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
             }
 
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<T>)other);
@@ -272,85 +285,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static IValueSet<T> Random(int expectedSize, Random random)
             {
                 TTC tc = default;
-
-                // Since 2 out of 3 of the intervals will be merged with neighbors, triple the expected size
-                return new NumericValueSet<T, TTC>(randomInterval(3 * expectedSize, tc.MinValue, tc.MaxValue));
-
-                Interval randomInterval(int size, T minValue, T maxValue)
+                T[] values = new T[expectedSize * 2];
+                for (int i = 0, n = expectedSize * 2; i < n; i++)
                 {
-                    if (size < 2 || tc.Related(Equal, minValue, maxValue))
-                        return random.NextDouble() < 0.5 ? Interval.Included.Instance : Interval.Excluded.Instance;
-
-                    int leftSize = 1 + random.Next(size - 1);
-                    int rightSize = size - leftSize;
-                    (T leftMax, T rightMin) = tc.Partition(minValue, maxValue);
-                    return Interval.Mixed.Create(randomInterval(leftSize, minValue, leftMax), randomInterval(rightSize, rightMin, maxValue));
+                    values[i] = tc.Random(random);
                 }
+                Array.Sort(values);
+                var builder = ArrayBuilder<(T first, T last)>.GetInstance();
+                for (int i = 0, n = values.Length; i < n; i += 2)
+                {
+                    T first = values[i];
+                    T last = values[i + 1];
+                    Add(builder, first, last);
+                }
+
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
             }
 
             /// <summary>
-            /// An (inefficiently produced) string representation for testing purposes.
+            /// A string representation for testing purposes.
             /// </summary>
             public override string ToString()
             {
                 TTC tc = default;
-                var intervalSequence = asIntervalSequence(_rootInterval, tc.MinValue, tc.MaxValue);
-                intervalSequence = compressIntervalSequence(intervalSequence);
-                return string.Join(",", intervalSequence.Select(p => $"[{tc.ToString(p.min)}..{tc.ToString(p.max)}]"));
-
-                static IEnumerable<(T min, T max)> asIntervalSequence(Interval interval, T minValue, T maxValue)
-                {
-                    switch (interval)
-                    {
-                        case Interval.Included _:
-                            yield return (minValue, maxValue);
-                            break;
-                        case Interval.Excluded _:
-                            break;
-                        case Interval.Mixed(var left, var right):
-                            TTC tc = default;
-                            (T leftMax, T rightMin) = tc.Partition(minValue, maxValue);
-                            foreach (var p in asIntervalSequence(left, minValue, leftMax))
-                                yield return p;
-                            foreach (var p in asIntervalSequence(right, rightMin, maxValue))
-                                yield return p;
-                            break;
-                    }
-                }
-
-                static IEnumerable<(T min, T max)> compressIntervalSequence(IEnumerable<(T min, T max)> intervalSequence)
-                {
-                    TTC tc = default;
-                    (T min, T max) pending = default;
-                    bool anySeen = false;
-                    foreach (var p in intervalSequence)
-                    {
-                        if (!anySeen)
-                        {
-                            pending = p;
-                            anySeen = true;
-                            continue;
-                        }
-
-                        if (tc.Related(Equal, tc.Next(pending.max), p.min))
-                        {
-                            pending.max = p.max;
-                        }
-                        else
-                        {
-                            yield return pending;
-                            pending = p;
-                        }
-                    }
-
-                    if (anySeen)
-                        yield return pending;
-                }
+                return string.Join(",", this._intervals.Select(p => $"[{tc.ToString(p.first)}..{tc.ToString(p.last)}]"));
             }
 
-            public override bool Equals(object? obj) => obj is NumericValueSet<T, TTC> other && this._rootInterval.Equals(other._rootInterval);
+            public override bool Equals(object? obj) =>
+                obj is NumericValueSet<T, TTC> other &&
+                this._intervals.SequenceEqual(other._intervals);
 
-            public override int GetHashCode() => this._rootInterval.GetHashCode();
+            public override int GetHashCode()
+            {
+                int result = _intervals.Length;
+                for (int i = 0, n = result; i < n; i++)
+                {
+                    result = Hash.Combine(_intervals[i].GetHashCode(), result);
+                }
+
+                return result;
+            }
         }
     }
 }

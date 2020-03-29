@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
             /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
             /// </summary>
-            float INumericTC<float>.Next(float value)
+            public float Next(float value)
             {
                 Debug.Assert(!float.IsNaN(value));
                 Debug.Assert(!float.IsInfinity(value));
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private unsafe static uint FloatAsUint(float d)
             {
+                if (d == 0)
+                    return 0;
                 float* dp = &d;
                 uint* lp = (uint*)dp;
                 return *lp;
@@ -57,39 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 uint* lp = &l;
                 float* dp = (float*)lp;
                 return *dp;
-            }
-
-            /// <summary>
-            /// The implementation of Partition depends critically on the internal representation of an IEEE floating-point
-            /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
-            /// value, and the integer representations are ordered by value the same as the floating-point numbers they represent.
-            /// </summary>
-            (float leftMax, float rightMin) INumericTC<float>.Partition(float min, float max)
-            {
-                Debug.Assert(min < max);
-
-                if (min == float.MinValue && max == float.MaxValue)
-                    return (-UintAsFloat(1), 0.0f); // skip negative zero
-
-                Debug.Assert((min >= 0) == (max >= 0));
-
-                // we partition the set of floating-point numbers in half.  Note that having the same
-                // number of values on the left and the right (which is what we want) is not the same thing as the
-                // numeric average of the two numbers (which would be a highly unbalanced partition)
-                if (min < 0)
-                {
-                    uint minl = FloatAsUint(-max);
-                    uint maxl = FloatAsUint(-min);
-                    uint midl = minl + (maxl - minl) / 2;
-                    return (-UintAsFloat(midl + 1), -UintAsFloat(midl));
-                }
-                else
-                {
-                    uint minl = FloatAsUint(min);
-                    uint maxl = FloatAsUint(max);
-                    uint midl = minl + (maxl - minl) / 2;
-                    return (UintAsFloat(midl), UintAsFloat(midl + 1));
-                }
             }
 
             bool INumericTC<float>.Related(BinaryOperatorKind relation, float left, float right)
@@ -117,6 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>
             string INumericTC<float>.ToString(float value) => FormattableString.Invariant($"{value:G9}");
+
+            float INumericTC<float>.Prev(float value)
+            {
+                return -Next(-value);
+            }
+
+            float INumericTC<float>.Random(Random random)
+            {
+                return (float)(random.NextDouble() * 100 - 50);
+            }
         }
     }
 }
