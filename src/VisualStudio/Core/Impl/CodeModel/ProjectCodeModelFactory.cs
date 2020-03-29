@@ -65,14 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public IEnumerable<ProjectCodeModel> GetAllProjectCodeModels()
-        {
-            return _projectCodeModels.Values;
-        }
+            => _projectCodeModels.Values;
 
         internal void OnProjectClosed(ProjectId projectId)
-        {
-            _projectCodeModels.TryRemove(projectId, out _);
-        }
+            => _projectCodeModels.TryRemove(projectId, out _);
 
         public ProjectCodeModel TryGetProjectCodeModel(ProjectId id)
         {
@@ -81,18 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
-        {
-            return GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
-        }
+            => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
         public void ScheduleDeferredCleanupTask(Action a)
-        {
-            _deferredCleanupTasks.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
-        }
+            => _deferredCleanupTasks.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
 
         void IDisposable.Dispose()
-        {
-            _deferredCleanupTasks.Join();
-        }
+            => _deferredCleanupTasks.Join();
     }
 }
