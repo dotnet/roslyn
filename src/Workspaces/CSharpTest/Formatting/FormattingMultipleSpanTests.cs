@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Simple1()
-        {
-            await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
-        }
+            => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
