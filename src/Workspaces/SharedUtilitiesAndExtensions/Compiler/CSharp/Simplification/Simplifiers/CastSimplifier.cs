@@ -158,6 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                        ImmutableArray<ITypeSymbol>.CastUp(castType.AllInterfaces).Contains(castTypeInfo.ConvertedType);
             }
 
+            if (castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) &&
+                !castType.Equals(outerType) &&
+                outerType.IsNullable())
+            {
+                // We have a cast like `(T?)(X)default`. We can't remove the inner cast as it effects what value
+                // 'default' means in this context.
+                return false;
+            }
+
             if (parentIsOrAsExpression)
             {
                 // Note: speculationAnalyzer.ReplacementChangesSemantics() ensures that the parenting is or as expression are not broken.

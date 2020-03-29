@@ -5288,5 +5288,22 @@ class C
     }
 }");
         }
+
+        [WorkItem(29726, "https://github.com/dotnet/roslyn/issues/29726")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestDefaultLiteralWithNullableCastInCoalesce()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        int x = (int?)[|(int)default|] ?? 42;
+    }
+}");
+        }
     }
 }
