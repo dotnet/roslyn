@@ -121,6 +121,25 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
+        [Obsolete("Use overload without ISymbolDisplayService")]
+        protected SignatureHelpItem CreateItem(
+            ISymbol orderSymbol,
+            SemanticModel semanticModel,
+            int position,
+            ISymbolDisplayService symbolDisplayService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            IList<SymbolDisplayPart> prefixParts,
+            IList<SymbolDisplayPart> separatorParts,
+            IList<SymbolDisplayPart> suffixParts,
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts = null)
+        {
+            return CreateItem(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
+                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
+        }
+
         protected SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
