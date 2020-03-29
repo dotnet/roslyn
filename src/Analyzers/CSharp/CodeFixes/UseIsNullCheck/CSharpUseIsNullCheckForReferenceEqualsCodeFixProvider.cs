@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         }
 
         protected override string GetIsNullTitle()
-            => CSharpFeaturesResources.Use_is_null_check;
+            => CSharpAnalyzersResources.Use_is_null_check;
 
         protected override string GetIsNotNullTitle()
             => GetIsNullTitle();

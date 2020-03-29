@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
         End Sub
 
         Protected Overrides Function GetIsNullTitle() As String
-            Return VBFeaturesResources.Use_Is_Nothing_check
+            Return VisualBasicAnalyzersResources.Use_Is_Nothing_check
         End Function
 
         Protected Overrides Function GetIsNotNullTitle() As String
-            Return VBFeaturesResources.Use_IsNot_Nothing_check
+            Return VisualBasicAnalyzersResources.Use_IsNot_Nothing_check
         End Function
 
         Protected Overrides Function CreateNullCheck(argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
