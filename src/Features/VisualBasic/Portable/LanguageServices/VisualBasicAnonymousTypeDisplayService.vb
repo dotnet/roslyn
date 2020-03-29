@@ -35,25 +35,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer, displayService As ISymbolDisplayService) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
-                Return GetDelegateAnonymousType(anonymousType, semanticModel, position, displayService)
+                Return GetDelegateAnonymousType(anonymousType, semanticModel, position)
             Else
-                Return GetNormalAnonymousType(anonymousType, semanticModel, position, displayService)
+                Return GetNormalAnonymousType(anonymousType, semanticModel, position)
             End If
         End Function
 
         Private Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
                                                   semanticModel As SemanticModel,
-                                                  position As Integer,
-                                                  displayService As ISymbolDisplayService) As IList(Of SymbolDisplayPart)
+                                                  position As Integer) As IList(Of SymbolDisplayPart)
             Dim method = anonymousType.DelegateInvokeMethod
 
             Dim members = New List(Of SymbolDisplayPart)()
             members.Add(Punctuation("<"))
             members.AddRange(MassageDelegateParts(
                 method,
-                displayService.ToMinimalDisplayParts(semanticModel, position, method, s_anonymousDelegateFormat)))
+                method.ToMinimalDisplayParts(semanticModel, position, s_anonymousDelegateFormat)))
             members.Add(Punctuation(">"))
 
             Return members
@@ -80,8 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
         Private Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
                                                 semanticModel As SemanticModel,
-                                                position As Integer,
-                                                displayService As ISymbolDisplayService) As IList(Of SymbolDisplayPart)
+                                                position As Integer) As IList(Of SymbolDisplayPart)
             Dim members = New List(Of SymbolDisplayPart)()
 
             members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)))
@@ -108,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 members.AddRange(Space())
                 members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.AsKeyword)))
                 members.AddRange(Space())
-                members.AddRange(displayService.ToMinimalDisplayParts(semanticModel, position, [property].Type).Select(Function(p) p.MassageErrorTypeNames("?")))
+                members.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position).Select(Function(p) p.MassageErrorTypeNames("?")))
             Next
 
             members.AddRange(Space())

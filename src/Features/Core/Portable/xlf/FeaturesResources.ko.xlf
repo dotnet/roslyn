@@ -2305,16 +2305,6 @@ This version used in: {2}</source>
         <target state="translated">람다와 로컬 함수 간에 전환하면 디버그 세션을 계속할 수 없게 됩니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">변수 선언 분해</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">변수 선언을 분해할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">인수 이름 '{0}' 추가(후행 인수 포함)</target>

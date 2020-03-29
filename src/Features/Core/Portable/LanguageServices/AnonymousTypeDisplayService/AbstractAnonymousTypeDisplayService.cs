@@ -12,15 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
     {
         public abstract IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position,
-            ISymbolDisplayService displayService);
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,
-            int position,
-            ISymbolDisplayService displayService)
+            int position)
         {
             if (!directNormalAnonymousTypeReferences.Any())
             {
@@ -49,11 +47,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 anonymousTypeParts.AddRange(Space());
                 anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
                 anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position, displayService));
+                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position));
             }
 
             // Now, inline any delegate anonymous types we've got.
-            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position, displayService);
+            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);

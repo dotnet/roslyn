@@ -2305,16 +2305,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Alternar entre um lambda e uma função local impedirá que a sessão de depuração continue.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Desconstruir declaração de variável</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">A declaração de variável pode ser desconstruída</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Adicionar nome de argumento '{0}' (incluindo argumentos à direita)</target>

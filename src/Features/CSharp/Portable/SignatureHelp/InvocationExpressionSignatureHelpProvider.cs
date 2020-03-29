@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the regular signature help items
-            var symbolDisplayService = document.Project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
             var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
                                            .ToImmutableArray()
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             methodGroup = methodGroup.Sort(
-                symbolDisplayService, semanticModel, invocationExpression.SpanStart);
+                semanticModel, invocationExpression.SpanStart);
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type is INamedTypeSymbol expressionType && expressionType.TypeKind == TypeKind.Delegate)
             {
-                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService,
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService,
                     documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
 
                 return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
