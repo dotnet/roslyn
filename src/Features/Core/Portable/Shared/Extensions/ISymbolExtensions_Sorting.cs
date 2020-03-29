@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ISymbolExtensions2
     {
-        [Obsolete("Use overload without ISymbolDisplayService", error: false)]
+        [Obsolete("Use overload without ISymbolDisplayService")]
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             this ImmutableArray<TSymbol> symbols,
             ISymbolDisplayService symbolDisplayService,
