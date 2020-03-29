@@ -120,9 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [Fact]
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
-        {
-            await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
-        }
+            => await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
 
         private async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
@@ -272,26 +270,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            {
-                return Analyzers;
-            }
+                => Analyzers;
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            {
-                return ImmutableArray<DiagnosticAnalyzer>.Empty;
-            }
+                => ImmutableArray<DiagnosticAnalyzer>.Empty;
 
             public ImmutableArray<CodeFixProvider> GetFixers()
-            {
-                return Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
-            }
+                => Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
 
             public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public MockDiagnosticAnalyzer(ImmutableArray<string> reportedDiagnosticIds)
-                {
-                    SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIds);
-                }
+                    => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIds);
 
                 public MockDiagnosticAnalyzer()
                     : this(ImmutableArray.Create(MockFixer.Id))
@@ -330,14 +320,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public Dictionary<string, string> Messages = new Dictionary<string, string>();
 
             public void LogException(object source, Exception exception)
-            {
-                Messages.Add(source.GetType().Name, ToLogFormat(exception));
-            }
+                => Messages.Add(source.GetType().Name, ToLogFormat(exception));
 
             private static string ToLogFormat(Exception exception)
-            {
-                return exception.Message + Environment.NewLine + exception.StackTrace;
-            }
+                => exception.Message + Environment.NewLine + exception.StackTrace;
         }
 
         [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
