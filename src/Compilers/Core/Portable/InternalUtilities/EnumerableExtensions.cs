@@ -204,25 +204,35 @@ namespace Roslyn.Utilities
         }
 
         public static bool IsEmpty<T>(this IReadOnlyCollection<T> source)
-            => source.Count == 0;
+        {
+            return source.Count == 0;
+        }
 
         public static bool IsEmpty<T>(this ICollection<T> source)
-            => source.Count == 0;
+        {
+            return source.Count == 0;
+        }
 
         public static bool IsEmpty(this string source)
-            => source.Length == 0;
+        {
+            return source.Length == 0;
+        }
 
         /// <remarks>
         /// This method is necessary to avoid an ambiguity between <see cref="IsEmpty{T}(IReadOnlyCollection{T})"/> and <see cref="IsEmpty{T}(ICollection{T})"/>.
         /// </remarks>
         public static bool IsEmpty<T>(this T[] source)
-            => source.Length == 0;
+        {
+            return source.Length == 0;
+        }
 
         /// <remarks>
         /// This method is necessary to avoid an ambiguity between <see cref="IsEmpty{T}(IReadOnlyCollection{T})"/> and <see cref="IsEmpty{T}(ICollection{T})"/>.
         /// </remarks>
         public static bool IsEmpty<T>(this List<T> source)
-            => source.Count == 0;
+        {
+            return source.Count == 0;
+        }
 
         private static readonly Func<object, bool> s_notNullTest = x => x != null;
 
@@ -330,22 +340,34 @@ namespace Roslyn.Utilities
         }
 
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T>? comparer)
-            => source.OrderBy(Functions<T>.Identity, comparer);
+        {
+            return source.OrderBy(Functions<T>.Identity, comparer);
+        }
 
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
-            => source.OrderBy(Comparer<T>.Create(compare));
+        {
+            return source.OrderBy(Comparer<T>.Create(compare));
+        }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
-            => source.OrderBy(Comparisons<T>.Comparer);
+        {
+            return source.OrderBy(Comparisons<T>.Comparer);
+        }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
-            => source.ThenBy(Functions<T>.Identity, comparer);
+        {
+            return source.ThenBy(Functions<T>.Identity, comparer);
+        }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, Comparison<T> compare)
-            => source.ThenBy(Comparer<T>.Create(compare));
+        {
+            return source.ThenBy(Comparer<T>.Create(compare));
+        }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
-            => source.ThenBy(Comparisons<T>.Comparer);
+        {
+            return source.ThenBy(Comparisons<T>.Comparer);
+        }
 
         private static class Comparisons<T> where T : IComparable<T>
         {
@@ -377,7 +399,9 @@ namespace Roslyn.Utilities
         }
 
         public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
-            => sequence.Any(predicate);
+        {
+            return sequence.Any(predicate);
+        }
 
         public static bool Contains(this IEnumerable<string?> sequence, string? s)
         {
@@ -393,7 +417,9 @@ namespace Roslyn.Utilities
         }
 
         public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
-            => Comparer<T>.Create(comparison);
+        {
+            return Comparer<T>.Create(comparison);
+        }
 
         public static ImmutableDictionary<K, V> ToImmutableDictionaryOrEmpty<K, V>(this IEnumerable<KeyValuePair<K, V>>? items)
             where K : notnull

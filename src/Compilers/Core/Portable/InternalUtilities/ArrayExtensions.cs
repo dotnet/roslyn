@@ -46,7 +46,9 @@ namespace Roslyn.Utilities
         }
 
         internal static T[] Append<T>(this T[] array, T item)
-            => InsertAt(array, array.Length, item);
+        {
+            return InsertAt(array, array.Length, item);
+        }
 
         internal static T[] InsertAt<T>(this T[] array, int position, T[] items)
         {
@@ -66,10 +68,14 @@ namespace Roslyn.Utilities
         }
 
         internal static T[] Append<T>(this T[] array, T[] items)
-            => InsertAt(array, array.Length, items);
+        {
+            return InsertAt(array, array.Length, items);
+        }
 
         internal static T[] RemoveAt<T>(this T[] array, int position)
-            => RemoveAt(array, position, 1);
+        {
+            return RemoveAt(array, position, 1);
+        }
 
         internal static T[] RemoveAt<T>(this T[] array, int position, int length)
         {
@@ -101,10 +107,14 @@ namespace Roslyn.Utilities
         }
 
         internal static T[] ReplaceAt<T>(this T[] array, int position, int length, T[] items)
-            => InsertAt(RemoveAt(array, position, length), position, items);
+        {
+            return InsertAt(RemoveAt(array, position, length), position, items);
+        }
 
         internal static void ReverseContents<T>(this T[] array)
-            => ReverseContents(array, 0, array.Length);
+        {
+            ReverseContents(array, 0, array.Length);
+        }
 
         internal static void ReverseContents<T>(this T[] array, int start, int count)
         {

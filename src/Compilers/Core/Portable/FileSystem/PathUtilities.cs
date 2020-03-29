@@ -91,17 +91,25 @@ namespace Roslyn.Utilities
         }
 
         public static string GetExtension(string path)
-            => FileNameUtilities.GetExtension(path);
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
 
         public static string ChangeExtension(string path, string? extension)
-            => FileNameUtilities.ChangeExtension(path, extension);
+        {
+            return FileNameUtilities.ChangeExtension(path, extension);
+        }
 
         public static string RemoveExtension(string path)
-            => FileNameUtilities.ChangeExtension(path, extension: null);
+        {
+            return FileNameUtilities.ChangeExtension(path, extension: null);
+        }
 
         [return: NotNullIfNotNull(parameterName: "path")]
         public static string? GetFileName(string? path, bool includeExtension = true)
-            => FileNameUtilities.GetFileName(path, includeExtension);
+        {
+            return FileNameUtilities.GetFileName(path, includeExtension);
+        }
 
         /// <summary>
         /// Get directory name from path.
@@ -111,7 +119,9 @@ namespace Roslyn.Utilities
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
         public static string? GetDirectoryName(string? path)
-            => GetDirectoryName(path, IsUnixLikePlatform);
+        {
+            return GetDirectoryName(path, IsUnixLikePlatform);
+        }
 
         internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
@@ -166,7 +176,9 @@ namespace Roslyn.Utilities
         /// </summary>
         [return: NotNullIfNotNull(parameterName: "path")]
         public static string? GetPathRoot(string? path)
-            => GetPathRoot(path, IsUnixLikePlatform);
+        {
+            return GetPathRoot(path, IsUnixLikePlatform);
+        }
 
         [return: NotNullIfNotNull(parameterName: "path")]
         private static string? GetPathRoot(string? path, bool isUnixLike)
@@ -590,7 +602,9 @@ namespace Roslyn.Utilities
         /// True if the two paths are the same.
         /// </summary>
         public static bool PathsEqual(string path1, string path2)
-            => PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));
+        {
+            return PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));
+        }
 
         /// <summary>
         /// True if the two paths are the same.  (but only up to the specified length)
@@ -741,7 +755,9 @@ namespace Roslyn.Utilities
             }
 
             public int GetHashCode(string? s)
-                => PathHashCode(s);
+            {
+                return PathHashCode(s);
+            }
         }
 
         internal static class TestAccessor

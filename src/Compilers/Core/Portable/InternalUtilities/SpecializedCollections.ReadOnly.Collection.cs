@@ -22,16 +22,24 @@ namespace Roslyn.Utilities
                 }
 
                 public void Add(T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void Clear()
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public bool Contains(T item)
-                    => this.Underlying.Contains(item);
+                {
+                    return this.Underlying.Contains(item);
+                }
 
                 public void CopyTo(T[] array, int arrayIndex)
-                    => this.Underlying.CopyTo(array, arrayIndex);
+                {
+                    this.Underlying.CopyTo(array, arrayIndex);
+                }
 
                 public int Count
                 {
@@ -44,7 +52,9 @@ namespace Roslyn.Utilities
                 public bool IsReadOnly => true;
 
                 public bool Remove(T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

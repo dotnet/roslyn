@@ -22,37 +22,59 @@ namespace Roslyn.Utilities
                 }
 
                 public new bool Add(T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void ExceptWith(IEnumerable<T> other)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void IntersectWith(IEnumerable<T> other)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
-                    => !other.IsEmpty();
+                {
+                    return !other.IsEmpty();
+                }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
-                    => false;
+                {
+                    return false;
+                }
 
                 public bool IsSubsetOf(IEnumerable<T> other)
-                    => true;
+                {
+                    return true;
+                }
 
                 public bool IsSupersetOf(IEnumerable<T> other)
-                    => other.IsEmpty();
+                {
+                    return other.IsEmpty();
+                }
 
                 public bool Overlaps(IEnumerable<T> other)
-                    => false;
+                {
+                    return false;
+                }
 
                 public bool SetEquals(IEnumerable<T> other)
-                    => other.IsEmpty();
+                {
+                    return other.IsEmpty();
+                }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void UnionWith(IEnumerable<T> other)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

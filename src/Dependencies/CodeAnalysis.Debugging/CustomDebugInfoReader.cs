@@ -333,7 +333,9 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// Skips past a record.
         /// </summary>
         private static void SkipRecord(byte[] bytes, ref int offset, int size)
-            => offset += size - CustomDebugInfoConstants.RecordHeaderSize;
+        {
+            offset += size - CustomDebugInfoConstants.RecordHeaderSize;
+        }
 
         /// <summary>
         /// Get the import strings for a given method, following forward pointers as necessary.
@@ -568,7 +570,9 @@ RETRY:
         }
 
         private static bool IsCSharpExternAliasInfo(string import)
-            => import.Length > 0 && import[0] == 'Z';
+        {
+            return import.Length > 0 && import[0] == 'Z';
+        }
 
         /// <summary>
         /// Parse a string representing a C# using (or extern alias) directive.
@@ -855,7 +859,9 @@ RETRY:
         }
 
         private static string FormatMethodToken(int methodToken)
-            => string.Format("0x{0:x8}", methodToken);
+        {
+            return string.Format("0x{0:x8}", methodToken);
+        }
 
         /// <summary>
         /// Read UTF8 string with null terminator.

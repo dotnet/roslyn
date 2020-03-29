@@ -125,7 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
-            => !IsLambdaBody(node);
+        {
+            return !IsLambdaBody(node);
+        }
 
         /// <summary>
         /// Returns true if the specified <paramref name="node"/> represents a body of a lambda.
@@ -260,7 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// We define this function to minimize differences between C# and VB implementation.
         /// </remarks>
         public static bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
-            => IsLambdaBody(node);
+        {
+            return IsLambdaBody(node);
+        }
 
         public static bool IsLambdaBodyStatementOrExpression(SyntaxNode node, out SyntaxNode lambdaBody)
         {
@@ -469,6 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
-            => (SyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;
+        {
+            return (SyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody?.Expression;
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace Roslyn.Utilities
         }
 
         public static bool IsNull<T>(this WeakReference<T> reference) where T : class?
-            => !reference.TryGetTarget(out var target);
+        {
+            return !reference.TryGetTarget(out var target);
+        }
     }
 }

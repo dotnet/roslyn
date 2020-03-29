@@ -81,7 +81,9 @@ namespace Roslyn.Utilities
         #region "Poolable"
 
         private StringTable(ObjectPool<StringTable>? pool)
-            => _pool = pool;
+        {
+            _pool = pool;
+        }
 
         private readonly ObjectPool<StringTable>? _pool;
         private static readonly ObjectPool<StringTable> s_staticPool = CreatePool();
@@ -93,7 +95,9 @@ namespace Roslyn.Utilities
         }
 
         public static StringTable GetInstance()
-            => s_staticPool.Allocate();
+        {
+            return s_staticPool.Allocate();
+        }
 
         public void Free()
         {
@@ -650,7 +654,9 @@ foundIdx:
         }
 
         private static int LocalIdxFromHash(int hash)
-            => hash & LocalSizeMask;
+        {
+            return hash & LocalSizeMask;
+        }
 
         private static int SharedIdxFromHash(int hash)
         {
@@ -659,10 +665,14 @@ foundIdx:
         }
 
         private int LocalNextRandom()
-            => _localRandom++;
+        {
+            return _localRandom++;
+        }
 
         private static int SharedNextRandom()
-            => Interlocked.Increment(ref StringTable.s_sharedRandom);
+        {
+            return Interlocked.Increment(ref StringTable.s_sharedRandom);
+        }
 
         internal static bool TextEquals(string array, string text, int start, int length)
         {

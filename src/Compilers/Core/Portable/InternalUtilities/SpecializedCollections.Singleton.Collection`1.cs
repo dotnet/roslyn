@@ -19,32 +19,48 @@ namespace Roslyn.Utilities
                 private readonly T _loneValue;
 
                 public List(T value)
-                    => _loneValue = value;
+                {
+                    _loneValue = value;
+                }
 
                 public void Add(T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void Clear()
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public bool Contains(T item)
-                    => EqualityComparer<T>.Default.Equals(_loneValue, item);
+                {
+                    return EqualityComparer<T>.Default.Equals(_loneValue, item);
+                }
 
                 public void CopyTo(T[] array, int arrayIndex)
-                    => array[arrayIndex] = _loneValue;
+                {
+                    array[arrayIndex] = _loneValue;
+                }
 
                 public int Count => 1;
 
                 public bool IsReadOnly => true;
 
                 public bool Remove(T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public IEnumerator<T> GetEnumerator()
-                    => new Enumerator<T>(_loneValue);
+                {
+                    return new Enumerator<T>(_loneValue);
+                }
 
                 IEnumerator IEnumerable.GetEnumerator()
-                    => GetEnumerator();
+                {
+                    return GetEnumerator();
+                }
 
                 public T this[int index]
                 {
@@ -75,10 +91,14 @@ namespace Roslyn.Utilities
                 }
 
                 public void Insert(int index, T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void RemoveAt(int index)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

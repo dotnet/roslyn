@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             public void Reset()
-                => _index = -1;
+            {
+                _index = -1;
+            }
         }
     }
 }

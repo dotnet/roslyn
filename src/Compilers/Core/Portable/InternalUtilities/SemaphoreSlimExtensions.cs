@@ -30,10 +30,14 @@ namespace Roslyn.Utilities
             private readonly SemaphoreSlim _semaphore;
 
             public SemaphoreDisposer(SemaphoreSlim semaphore)
-                => _semaphore = semaphore;
+            {
+                _semaphore = semaphore;
+            }
 
             public void Dispose()
-                => _semaphore.Release();
+            {
+                _semaphore.Release();
+            }
         }
     }
 }

@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Collections
         private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>>? _pool;
 
         private OrderPreservingMultiDictionary(ObjectPool<OrderPreservingMultiDictionary<K, V>> pool)
-            => _pool = pool;
+        {
+            _pool = pool;
+        }
 
         public void Free()
         {
@@ -84,7 +86,9 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         private void EnsureDictionary()
-            => _dictionary ??= PooledDictionary<K, ValueSet>.GetInstance();
+        {
+            _dictionary ??= PooledDictionary<K, ValueSet>.GetInstance();
+        }
 
         public bool IsEmpty => _dictionary == null;
 
@@ -108,13 +112,19 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
-            => _dictionary is null ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
+        {
+            return _dictionary is null ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
+        }
 
         IEnumerator<KeyValuePair<K, ValueSet>> IEnumerable<KeyValuePair<K, ValueSet>>.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         /// <summary>
         /// Get all values associated with K, in the order they were added.
@@ -158,10 +168,14 @@ namespace Microsoft.CodeAnalysis.Collections
             private readonly object _value;
 
             internal ValueSet(V value)
-                => _value = value;
+            {
+                _value = value;
+            }
 
             internal ValueSet(ArrayBuilder<V> values)
-                => _value = values;
+            {
+                _value = values;
+            }
 
             internal void Free()
             {
@@ -226,13 +240,19 @@ namespace Microsoft.CodeAnalysis.Collections
             internal int Count => (_value as ArrayBuilder<V>)?.Count ?? 1;
 
             IEnumerator IEnumerable.GetEnumerator()
-                => GetEnumerator();
+            {
+                return GetEnumerator();
+            }
 
             IEnumerator<V> IEnumerable<V>.GetEnumerator()
-                => GetEnumerator();
+            {
+                return GetEnumerator();
+            }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(this);
+            {
+                return new Enumerator(this);
+            }
 
             internal ValueSet WithAddedItem(V item)
             {
@@ -285,7 +305,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 public void Reset()
-                    => _index = -1;
+                {
+                    _index = -1;
+                }
 
                 public void Dispose()
                 {

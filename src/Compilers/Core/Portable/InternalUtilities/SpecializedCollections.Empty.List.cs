@@ -29,13 +29,19 @@ namespace Roslyn.Utilities
                 }
 
                 public int IndexOf(T item)
-                    => -1;
+                {
+                    return -1;
+                }
 
                 public void Insert(int index, T item)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public void RemoveAt(int index)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public T this[int index]
                 {

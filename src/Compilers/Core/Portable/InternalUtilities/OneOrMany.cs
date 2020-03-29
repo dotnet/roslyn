@@ -132,7 +132,9 @@ namespace Roslyn.Utilities
         }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+        {
+            return new Enumerator(this);
+        }
 
         internal struct Enumerator
         {

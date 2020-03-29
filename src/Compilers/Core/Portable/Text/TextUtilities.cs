@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determine if the character in question is any line break character
         /// </summary>
         internal static bool IsAnyLineBreakCharacter(char c)
-            => c == '\n' || c == '\r' || c == '\u0085' || c == '\u2028' || c == '\u2029';
+        {
+            return c == '\n' || c == '\r' || c == '\u0085' || c == '\u2028' || c == '\u2029';
+        }
     }
 }

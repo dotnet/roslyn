@@ -17,10 +17,14 @@ namespace Roslyn.Utilities
         /// This is how VB Anonymous Types combine hash values for fields.
         /// </summary>
         internal static int Combine(int newKey, int currentKey)
-            => unchecked((currentKey * (int)0xA5555529) + newKey);
+        {
+            return unchecked((currentKey * (int)0xA5555529) + newKey);
+        }
 
         internal static int Combine(bool newKeyPart, int currentKey)
-            => Combine(currentKey, newKeyPart ? 1 : 0);
+        {
+            return Combine(currentKey, newKeyPart ? 1 : 0);
+        }
 
         /// <summary>
         /// This is how VB Anonymous Types combine hash values for fields.
@@ -251,7 +255,9 @@ namespace Roslyn.Utilities
             => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
-            => GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+        {
+            return GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+        }
 
         internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
         {
@@ -274,7 +280,9 @@ namespace Roslyn.Utilities
         /// <param name="start">The start index of the first character to hash</param>
         /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending at the end of the string.</returns>
         internal static int GetFNVHashCode(string text, int start)
-            => GetFNVHashCode(text, start, length: text.Length - start);
+        {
+            return GetFNVHashCode(text, start, length: text.Length - start);
+        }
 
         /// <summary>
         /// Compute the hashcode of a string using FNV-1a
@@ -283,7 +291,9 @@ namespace Roslyn.Utilities
         /// <param name="text">The input string</param>
         /// <returns>The FNV-1a hash code of <paramref name="text"/></returns>
         internal static int GetFNVHashCode(string text)
-            => CombineFNVHash(Hash.FnvOffsetBias, text);
+        {
+            return CombineFNVHash(Hash.FnvOffsetBias, text);
+        }
 
         /// <summary>
         /// Compute the hashcode of a string using FNV-1a
@@ -335,7 +345,9 @@ namespace Roslyn.Utilities
         /// <param name="ch">The character to hash</param>
         /// <returns>The FNV-1a hash code of the character.</returns>
         internal static int GetFNVHashCode(char ch)
-            => Hash.CombineFNVHash(Hash.FnvOffsetBias, ch);
+        {
+            return Hash.CombineFNVHash(Hash.FnvOffsetBias, ch);
+        }
 
         /// <summary>
         /// Combine a string with an existing FNV-1a hash code
@@ -362,6 +374,8 @@ namespace Roslyn.Utilities
         /// <param name="ch">The new character to combine</param>
         /// <returns>The result of combining <paramref name="hashCode"/> with <paramref name="ch"/> using the FNV-1a algorithm</returns>
         internal static int CombineFNVHash(int hashCode, char ch)
-            => unchecked((hashCode ^ ch) * Hash.FnvPrime);
+        {
+            return unchecked((hashCode ^ ch) * Hash.FnvPrime);
+        }
     }
 }

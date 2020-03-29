@@ -21,7 +21,9 @@ namespace Roslyn.Utilities
                 }
 
                 public new IEnumerator<T> GetEnumerator()
-                    => this.Underlying.GetEnumerator();
+                {
+                    return this.Underlying.GetEnumerator();
+                }
             }
         }
     }

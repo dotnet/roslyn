@@ -78,7 +78,9 @@ namespace Roslyn.Utilities
             }
 
             public void Reset()
-                => throw new NotSupportedException();
+            {
+                throw new NotSupportedException();
+            }
         }
 
         private ConsList()
@@ -117,19 +119,29 @@ namespace Roslyn.Utilities
         }
 
         public bool Any()
-            => this != Empty;
+        {
+            return this != Empty;
+        }
 
         public ConsList<T> Push(T value)
-            => new ConsList<T>(value, this);
+        {
+            return new ConsList<T>(value, this);
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+        {
+            return new Enumerator(this);
+        }
 
         public override string ToString()
         {

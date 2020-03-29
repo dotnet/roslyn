@@ -71,7 +71,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         // test code which needs to verify the handler is called in specific cases and will continually
         // overwrite this value.
         public static void OverwriteHandler(Action<Exception>? value)
-            => s_fatalHandler = value;
+        {
+            s_fatalHandler = value;
+        }
 
         private static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
 #if NET20 // CancellationToken is not defined on NET20, we have an empty stub for it to reduce the amount of conditional code.

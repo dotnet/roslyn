@@ -24,10 +24,14 @@ namespace Roslyn.Utilities
                 public object? Current => throw new InvalidOperationException();
 
                 public bool MoveNext()
-                    => false;
+                {
+                    return false;
+                }
 
                 public void Reset()
-                    => throw new InvalidOperationException();
+                {
+                    throw new InvalidOperationException();
+                }
             }
         }
     }

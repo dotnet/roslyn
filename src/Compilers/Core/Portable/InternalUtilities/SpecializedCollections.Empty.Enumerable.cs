@@ -21,10 +21,14 @@ namespace Roslyn.Utilities
                 private readonly IEnumerator<T> _enumerator = Enumerator<T>.Instance;
 
                 public IEnumerator<T> GetEnumerator()
-                    => _enumerator;
+                {
+                    return _enumerator;
+                }
 
                 System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-                    => GetEnumerator();
+                {
+                    return GetEnumerator();
+                }
             }
         }
     }

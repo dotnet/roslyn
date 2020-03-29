@@ -60,7 +60,9 @@ namespace Roslyn.Utilities
                 }
 
                 public void Reset()
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 object? IEnumerator.Current => this.Current;
 
@@ -135,13 +137,19 @@ namespace Roslyn.Utilities
             }
 
             IEnumerator IEnumerable.GetEnumerator()
-                => GetEnumerator();
+            {
+                return GetEnumerator();
+            }
 
             IEnumerator<V> IEnumerable<V>.GetEnumerator()
-                => GetEnumerator();
+            {
+                return GetEnumerator();
+            }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(this);
+            {
+                return new Enumerator(this);
+            }
 
             public ValueSet Add(V v)
             {
@@ -192,7 +200,9 @@ namespace Roslyn.Utilities
             }
 
             public bool Equals(ValueSet other)
-                => _value == other._value;
+            {
+                return _value == other._value;
+            }
         }
 
         private readonly Dictionary<K, ValueSet> _dictionary;
@@ -219,10 +229,14 @@ namespace Roslyn.Utilities
         }
 
         public MultiDictionary()
-            => _dictionary = new Dictionary<K, ValueSet>();
+        {
+            _dictionary = new Dictionary<K, ValueSet>();
+        }
 
         public MultiDictionary(IEqualityComparer<K> comparer)
-            => _dictionary = new Dictionary<K, ValueSet>(comparer);
+        {
+            _dictionary = new Dictionary<K, ValueSet>(comparer);
+        }
 
         public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)
         {
@@ -252,21 +266,33 @@ namespace Roslyn.Utilities
         }
 
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
-            => _dictionary.GetEnumerator();
+        {
+            return _dictionary.GetEnumerator();
+        }
 
         IEnumerator<KeyValuePair<K, ValueSet>> IEnumerable<KeyValuePair<K, ValueSet>>.GetEnumerator()
-            => GetEnumerator();
+        {
+            return GetEnumerator();
+        }
 
         public bool ContainsKey(K k)
-            => _dictionary.ContainsKey(k);
+        {
+            return _dictionary.ContainsKey(k);
+        }
 
         internal void Clear()
-            => _dictionary.Clear();
+        {
+            _dictionary.Clear();
+        }
 
         public void Remove(K key)
-            => _dictionary.Remove(key);
+        {
+            _dictionary.Remove(key);
+        }
     }
 }

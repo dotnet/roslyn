@@ -52,12 +52,18 @@ namespace Roslyn.Utilities
         public const string TypeAttributeName = "type";
 
         public static bool ElementEquals(string name1, string name2, bool fromVb = false)
-            => string.Equals(name1, name2, fromVb ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        {
+            return string.Equals(name1, name2, fromVb ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        }
 
         public static bool AttributeEquals(string name1, string name2)
-            => string.Equals(name1, name2, StringComparison.Ordinal);
+        {
+            return string.Equals(name1, name2, StringComparison.Ordinal);
+        }
 
         public static new bool Equals(object left, object right)
-            => object.Equals(left, right);
+        {
+            return object.Equals(left, right);
+        }
     }
 }

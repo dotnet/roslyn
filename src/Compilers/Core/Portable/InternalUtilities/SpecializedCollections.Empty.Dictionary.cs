@@ -29,10 +29,14 @@ namespace Roslyn.Utilities
                 }
 
                 public void Add(TKey key, TValue value)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public bool ContainsKey(TKey key)
-                    => false;
+                {
+                    return false;
+                }
 
                 public ICollection<TKey> Keys
                 {
@@ -46,7 +50,9 @@ namespace Roslyn.Utilities
                 IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
 
                 public bool Remove(TKey key)
-                    => throw new NotSupportedException();
+                {
+                    throw new NotSupportedException();
+                }
 
                 public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
                 {

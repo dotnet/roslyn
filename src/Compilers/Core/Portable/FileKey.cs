@@ -38,7 +38,9 @@ namespace Roslyn.Utilities
 
         /// <exception cref="IOException"/>
         public static FileKey Create(string fullPath)
-            => new FileKey(fullPath, FileUtilities.GetFileTimeStamp(fullPath));
+        {
+            return new FileKey(fullPath, FileUtilities.GetFileTimeStamp(fullPath));
+        }
 
         public override int GetHashCode()
         {
@@ -48,10 +50,14 @@ namespace Roslyn.Utilities
         }
 
         public override bool Equals(object? obj)
-            => obj is FileKey && Equals((FileKey)obj);
+        {
+            return obj is FileKey && Equals((FileKey)obj);
+        }
 
         public override string ToString()
-            => string.Format("'{0}'@{1}", FullPath, Timestamp);
+        {
+            return string.Format("'{0}'@{1}", FullPath, Timestamp);
+        }
 
         public bool Equals(FileKey other)
         {

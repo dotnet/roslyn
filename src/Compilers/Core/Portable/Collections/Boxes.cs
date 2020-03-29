@@ -28,19 +28,29 @@ namespace Microsoft.CodeAnalysis
         private static readonly object?[] s_boxedAsciiChars = new object?[128];
 
         public static object Box(bool b)
-            => b ? BoxedTrue : BoxedFalse;
+        {
+            return b ? BoxedTrue : BoxedFalse;
+        }
 
         public static object Box(byte b)
-            => b == 0 ? BoxedByteZero : b;
+        {
+            return b == 0 ? BoxedByteZero : b;
+        }
 
         public static object Box(sbyte sb)
-            => sb == 0 ? BoxedSByteZero : sb;
+        {
+            return sb == 0 ? BoxedSByteZero : sb;
+        }
 
         public static object Box(short s)
-            => s == 0 ? BoxedInt16Zero : s;
+        {
+            return s == 0 ? BoxedInt16Zero : s;
+        }
 
         public static object Box(ushort us)
-            => us == 0 ? BoxedUInt16Zero : us;
+        {
+            return us == 0 ? BoxedUInt16Zero : us;
+        }
 
         public static object Box(int i)
         {
@@ -53,13 +63,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static object Box(uint u)
-            => u == 0 ? BoxedUInt32Zero : u;
+        {
+            return u == 0 ? BoxedUInt32Zero : u;
+        }
 
         public static object Box(long l)
-            => l == 0 ? BoxedInt64Zero : l;
+        {
+            return l == 0 ? BoxedInt64Zero : l;
+        }
 
         public static object Box(ulong ul)
-            => ul == 0 ? BoxedUInt64Zero : ul;
+        {
+            return ul == 0 ? BoxedUInt64Zero : ul;
+        }
 
         public static unsafe object Box(float f)
         {
