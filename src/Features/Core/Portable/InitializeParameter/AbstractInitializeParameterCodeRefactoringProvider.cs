@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +22,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
+        TTypeDeclarationSyntax,
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax> : CodeRefactoringProvider
+        where TTypeDeclarationSyntax : SyntaxNode
         where TParameterSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
@@ -30,13 +35,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
-        protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
-            IBlockOperation blockStatementOpt,
+            IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
             TextSpan parameterSpan,
             CancellationToken cancellationToken);
@@ -46,12 +50,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
-            IBlockOperation blockStatementOpt,
+            IBlockOperation? blockStatementOpt,
             CancellationToken cancellationToken);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
-            SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
+            SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
+            SyntaxNode? statementToAddAfterOpt, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -74,8 +78,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var parameterNodes = generator.GetParameters(functionDeclaration);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
 
@@ -135,7 +139,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
         }
 
-        protected bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
+        protected bool CanOfferRefactoring(
+            SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
+            CancellationToken cancellationToken, [MaybeNullWhen(false)] out IBlockOperation? blockStatementOpt)
         {
             blockStatementOpt = null;
 
@@ -193,26 +199,26 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
                 var childOperation = semanticModel.GetOperation(child, cancellationToken);
-                if (IsParameterReference(childOperation, parameter))
-                {
+                if (childOperation != null && IsParameterReference(childOperation, parameter))
                     return true;
-                }
             }
 
             return false;
         }
 
-        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentOperation assignmentExpression)
-            => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
+        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression)
+            => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out _);
 
         protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType,
-            out IAssignmentOperation assignmentExpression, out ISymbol fieldOrProperty)
+            [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression,
+            [NotNullWhen(true)] out ISymbol? fieldOrProperty)
         {
-            if (statement is IExpressionStatementOperation expressionStatement)
+            if (statement is IExpressionStatementOperation expressionStatement &&
+                expressionStatement.Operation is IAssignmentOperation assignment)
             {
-                assignmentExpression = expressionStatement.Operation as IAssignmentOperation;
-                return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType, out fieldOrProperty);
+                assignmentExpression = assignment;
+                return IsFieldOrPropertyReference(assignmentExpression.Target, containingType, out fieldOrProperty);
             }
 
             fieldOrProperty = null;
@@ -224,7 +230,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
 
         protected static bool IsFieldOrPropertyReference(
-            IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)
+            IOperation? operation, INamedTypeSymbol containingType,
+            [NotNullWhen(true)] out ISymbol? fieldOrProperty)
         {
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))

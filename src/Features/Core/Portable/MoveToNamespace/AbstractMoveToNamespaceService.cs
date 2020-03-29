@@ -173,15 +173,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return Task.FromResult(MoveToNamespaceResult.Failed);
             }
 
-            switch (analysisResult.Container)
+            return analysisResult.Container switch
             {
-                case MoveToNamespaceAnalysisResult.ContainerType.Namespace:
-                    return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
-                case MoveToNamespaceAnalysisResult.ContainerType.NamedType:
-                    return MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
-                default:
-                    throw new InvalidOperationException();
-            }
+                MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)

@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 

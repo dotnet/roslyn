@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     internal class VBLspDebugInfoServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBLspDebugInfoServiceFactory()
         {
         }

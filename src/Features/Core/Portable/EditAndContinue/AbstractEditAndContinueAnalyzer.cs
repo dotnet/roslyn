@@ -3781,19 +3781,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static ITypeSymbol GetType(ISymbol localOrParameter)
-        {
-            switch (localOrParameter.Kind)
+            => localOrParameter.Kind switch
             {
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)localOrParameter).Type;
-
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)localOrParameter).Type;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind);
-            }
-        }
+                SymbolKind.Parameter => ((IParameterSymbol)localOrParameter).Type,
+                SymbolKind.Local => ((ILocalSymbol)localOrParameter).Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind),
+            };
 
         private SyntaxNode GetCapturedVariableScope(ISymbol localOrParameter, SyntaxNode memberBody, CancellationToken cancellationToken)
         {

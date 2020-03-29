@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private static readonly AnalyzerAssemblyLoader s_analyzerAssemblyLoader = new AnalyzerAssemblyLoader();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {

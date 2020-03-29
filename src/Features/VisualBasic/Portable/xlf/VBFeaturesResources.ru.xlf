@@ -1787,16 +1787,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Сделать Sub асинхронной</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Использовать флажок "Is Nothing"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Использовать флажок "IsNot Nothing"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
         <target state="translated">Преобразовать в "Select Case"</target>

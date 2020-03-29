@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
     internal class VisualStudioErrorLogger : IErrorLoggerService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioErrorLogger()
         {
         }

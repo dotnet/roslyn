@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -85,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
         {
         }
@@ -94,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
         {
         }
@@ -103,6 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
         {
         }
@@ -112,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
         {
         }

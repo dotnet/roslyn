@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            return this.TryConvertToExpressionBodyForBaseProperty(
+            return TryConvertToExpressionBodyForBaseProperty(
                 declaration, options, conversionPreference,
                 out arrowExpression, out semicolonToken);
         }

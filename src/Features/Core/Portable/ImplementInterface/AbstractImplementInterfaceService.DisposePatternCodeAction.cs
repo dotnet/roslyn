@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     disposedValueField, disposeMethodDisplayString);
 
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-                var finalizer = this.Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
+                var finalizer = Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
 
                 return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
             }
@@ -237,7 +236,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //     // TODO: dispose managed state...
                 // }
                 var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
-                ifDisposingStatement = this.Service.AddCommentInsideIfStatement(
+                ifDisposingStatement = Service.AddCommentInsideIfStatement(
                     ifDisposingStatement,
                     CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
                         .WithoutTrivia().WithTrailingTrivia(g.CarriageReturnLineFeed, g.CarriageReturnLineFeed);
@@ -301,7 +300,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);
 
-                var explicitInterfaceImplementations = Explicitly || !this.Service.CanImplementImplicitly
+                var explicitInterfaceImplementations = Explicitly || !Service.CanImplementImplicitly
                     ? ImmutableArray.Create(disposeMethod) : default;
 
                 var result = CodeGenerationSymbolFactory.CreateMethodSymbol(

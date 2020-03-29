@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

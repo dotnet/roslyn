@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return !ReferenceEquals(reference, null) &&
+            return reference is object &&
                    _projectId == reference._projectId &&
                    _aliases.SequenceEqual(reference._aliases) &&
                    _embedInteropTypes == reference._embedInteropTypes;

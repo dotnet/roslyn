@@ -67,6 +67,11 @@
         <target state="translated">Seçenekler belirtilen Çözümden gelmedi</target>
         <note />
       </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="new">Project does not contain specified reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Sadece Yeniden Düzenlenme</target>
@@ -1270,6 +1275,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">Projelerin eklenmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="new">The project already contains the specified reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

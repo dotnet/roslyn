@@ -16,6 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         Implements IAdditionalFormattingRuleLanguageService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

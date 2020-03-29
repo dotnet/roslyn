@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
                         // Don't enqueue item if we don't have any high priority analyzers
-                        if (this.Analyzers.IsEmpty)
+                        if (Analyzers.IsEmpty)
                         {
                             return;
                         }

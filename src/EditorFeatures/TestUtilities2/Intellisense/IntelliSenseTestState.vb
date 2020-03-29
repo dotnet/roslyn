@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <Export(GetType(IIntelliSenseTestState))>
@@ -11,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Implements IIntelliSenseTestState
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

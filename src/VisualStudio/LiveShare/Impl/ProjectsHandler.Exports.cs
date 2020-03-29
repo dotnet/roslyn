@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -14,6 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynProjectsHandler()
         {
         }
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpProjectsHandler()
         {
         }
@@ -32,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicProjectsHandler()
         {
         }
@@ -41,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptProjectsHandler()
         {
         }

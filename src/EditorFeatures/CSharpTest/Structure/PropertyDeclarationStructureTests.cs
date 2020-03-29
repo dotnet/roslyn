@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestProperty()
+        public async Task TestProperty1()
         {
             const string code = @"
 class C
@@ -26,6 +27,128 @@ class C
         get { }
         set { }
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public int Goo{|textspan:
+    {
+        get { }
+        set { }
+    }|}|}
+    public int Goo2
+    {
+        get { }
+        set { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty3()
+        {
+            const string code = @"
+class C
+{
+    $$public int Goo
+    {
+        get { }
+        set { }
+    }
+
+    public int Goo2
+    {
+        get { }
+        set { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(32, 82),
+                    hintSpan: TextSpan.FromBounds(18, 80),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty4()
+        {
+            const string code = @"
+class C
+{
+    $$public int Goo
+    {
+        get { }
+        set { }
+    }
+
+    public int this[int value]
+    {
+        get { }
+        set { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(32, 82),
+                    hintSpan: TextSpan.FromBounds(18, 80),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty5()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public int Goo{|textspan:
+    {
+        get { }
+        set { }
+    }|}|}
+
+    public event EventHandler Event;
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty6()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public int Goo{|textspan:
+    {
+        get { }
+        set { }
+    }|}|}
+
+    public event EventHandler Event
+    {
+        add { }
+        remove { }
+    }
 }";
 
             await VerifyBlockSpansAsync(code,
