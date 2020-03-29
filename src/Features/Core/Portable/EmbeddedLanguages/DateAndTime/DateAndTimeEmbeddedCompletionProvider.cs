@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 var properties = ImmutableDictionary.CreateBuilder<string, string>();
                 properties.Add(StartKey, textChange.Span.Start.ToString());
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
-                properties.Add(NewTextKey, textChange.NewText);
+                properties.Add(NewTextKey, textChange.NewText!);
                 properties.Add(DescriptionKey, embeddedItem.FullDescription);
                 properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name);
 
@@ -202,14 +204,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText)));
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetValue(DescriptionKey, out var description))
-            {
                 return SpecializedTasks.Null<CompletionDescription>();
-            }
 
-            return Task.FromResult(CompletionDescription.Create(
+            return Task.FromResult((CompletionDescription?)CompletionDescription.Create(
                 ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
         }
     }

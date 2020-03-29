@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 _replacementSpan = TextSpan.FromBounds(startPosition, context.Position);
             }
 
-            private static System.DateTime s_exampleDateTime = System.DateTime.Parse("2009-06-15T13:45:30.1234567Z");
+            private static DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567Z");
             private static CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
             private static CultureInfo s_primaryCulture = CultureInfo.CurrentCulture;
-            private static CultureInfo s_secondaryCulture = s_primaryCulture.Equals(s_enUsCulture) ? null : s_enUsCulture;
+            private static CultureInfo? s_secondaryCulture = s_primaryCulture.Equals(s_enUsCulture) ? null : s_enUsCulture;
 
             public void AddStandard(string displayText, string suffix, string description)
                 => Add(displayText, suffix, description, standard: true);
