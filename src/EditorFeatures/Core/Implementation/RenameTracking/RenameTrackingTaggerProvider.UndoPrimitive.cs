@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public bool CanMerge(ITextUndoPrimitive older)
-            {
-                return false;
-            }
+                => false;
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
             {

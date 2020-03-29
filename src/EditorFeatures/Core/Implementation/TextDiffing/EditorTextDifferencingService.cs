@@ -25,14 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
-        {
-            _differenceSelectorService = differenceSelectorService;
-        }
+            => _differenceSelectorService = differenceSelectorService;
 
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
-        }
+            => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
         public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
