@@ -50,19 +50,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(object? obj)
-        {
-            return obj is BitVector other && Equals(other);
-        }
+            => obj is BitVector other && Equals(other);
 
         public static bool operator ==(BitVector left, BitVector right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(BitVector left, BitVector right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
 
         public override int GetHashCode()
         {
@@ -90,9 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         [Conditional("DEBUG_BITARRAY")]
         private void Check()
-        {
-            Debug.Assert(_capacity == 0 || WordsForCapacity(_capacity) <= _bits.Length);
-        }
+            => Debug.Assert(_capacity == 0 || WordsForCapacity(_capacity) <= _bits.Length);
 
         public void EnsureCapacity(int newCapacity)
         {

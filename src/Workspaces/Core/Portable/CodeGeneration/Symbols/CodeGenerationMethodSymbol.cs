@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            return null;
-        }
+            => null;
 
         public override IMethodSymbol PartialImplementationPart => null;
 

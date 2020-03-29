@@ -88,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Returns true if the language is supported.
         /// </summary>
         public virtual bool IsSupported(string languageName)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Gets the <see cref="HostLanguageServices"/> for the language name.

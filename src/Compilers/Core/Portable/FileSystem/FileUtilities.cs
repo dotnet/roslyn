@@ -94,9 +94,7 @@ namespace Roslyn.Utilities
         }
 
         internal static string? ResolveRelativePath(string? path, string? baseDirectory)
-        {
-            return ResolveRelativePath(path, null, baseDirectory);
-        }
+            => ResolveRelativePath(path, null, baseDirectory);
 
         internal static string? ResolveRelativePath(string? path, string? basePath, string? baseDirectory)
         {
@@ -263,9 +261,7 @@ namespace Roslyn.Utilities
         }
 
         internal static string NormalizeDirectoryPath(string path)
-        {
-            return NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        }
+            => NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         internal static string? TryNormalizeAbsolutePath(string path)
         {

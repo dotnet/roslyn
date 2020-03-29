@@ -13,9 +13,7 @@ namespace Roslyn.Utilities
     internal static class ReaderWriterLockSlimExtensions
     {
         internal static ReadLockExiter DisposableRead(this ReaderWriterLockSlim @lock)
-        {
-            return new ReadLockExiter(@lock);
-        }
+            => new ReadLockExiter(@lock);
 
         internal readonly struct ReadLockExiter : IDisposable
         {
@@ -28,15 +26,11 @@ namespace Roslyn.Utilities
             }
 
             public void Dispose()
-            {
-                _lock.ExitReadLock();
-            }
+                => _lock.ExitReadLock();
         }
 
         internal static UpgradeableReadLockExiter DisposableUpgradeableRead(this ReaderWriterLockSlim @lock)
-        {
-            return new UpgradeableReadLockExiter(@lock);
-        }
+            => new UpgradeableReadLockExiter(@lock);
 
         internal readonly struct UpgradeableReadLockExiter : IDisposable
         {
@@ -59,15 +53,11 @@ namespace Roslyn.Utilities
             }
 
             public void EnterWrite()
-            {
-                _lock.EnterWriteLock();
-            }
+                => _lock.EnterWriteLock();
         }
 
         internal static WriteLockExiter DisposableWrite(this ReaderWriterLockSlim @lock)
-        {
-            return new WriteLockExiter(@lock);
-        }
+            => new WriteLockExiter(@lock);
 
         internal readonly struct WriteLockExiter : IDisposable
         {
@@ -80,9 +70,7 @@ namespace Roslyn.Utilities
             }
 
             public void Dispose()
-            {
-                _lock.ExitWriteLock();
-            }
+                => _lock.ExitWriteLock();
         }
 
         internal static void AssertCanRead(this ReaderWriterLockSlim @lock)

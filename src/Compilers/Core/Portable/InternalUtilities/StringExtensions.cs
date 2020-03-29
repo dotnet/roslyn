@@ -45,14 +45,10 @@ namespace Roslyn.Utilities
         }
 
         public static bool LooksLikeInterfaceName(this string name)
-        {
-            return name.Length >= 3 && name[0] == 'I' && char.IsUpper(name[1]) && char.IsLower(name[2]);
-        }
+            => name.Length >= 3 && name[0] == 'I' && char.IsUpper(name[1]) && char.IsLower(name[2]);
 
         public static bool LooksLikeTypeParameterName(this string name)
-        {
-            return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
-        }
+            => name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
 
         private static readonly Func<char, char> s_toLower = char.ToLower;
         private static readonly Func<char, char> s_toUpper = char.ToUpper;
@@ -98,9 +94,7 @@ namespace Roslyn.Utilities
         }
 
         internal static bool IsValidClrTypeName([NotNullWhen(returnValue: true)] this string? name)
-        {
-            return !RoslynString.IsNullOrEmpty(name) && name.IndexOf('\0') == -1;
-        }
+            => !RoslynString.IsNullOrEmpty(name) && name.IndexOf('\0') == -1;
 
         /// <summary>
         /// Checks if the given name is a sequence of valid CLR names separated by a dot.
@@ -210,9 +204,7 @@ namespace Roslyn.Utilities
         /// Remove one set of leading and trailing double quote characters, if both are present.
         /// </summary>
         internal static string Unquote(this string arg)
-        {
-            return Unquote(arg, out var quoted);
-        }
+            => Unquote(arg, out var quoted);
 
         internal static string Unquote(this string arg, out bool quoted)
         {
@@ -255,15 +247,11 @@ namespace Roslyn.Utilities
 
         // String isn't IEnumerable<char> in the current Portable profile. 
         internal static char First(this string arg)
-        {
-            return arg[0];
-        }
+            => arg[0];
 
         // String isn't IEnumerable<char> in the current Portable profile. 
         internal static char Last(this string arg)
-        {
-            return arg[arg.Length - 1];
-        }
+            => arg[arg.Length - 1];
 
         // String isn't IEnumerable<char> in the current Portable profile. 
         internal static bool All(this string arg, Predicate<char> predicate)

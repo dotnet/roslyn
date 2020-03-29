@@ -37,14 +37,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public void Connect()
-            {
-                this.TextContainer.TextChanged += _weakOnTextChanged;
-            }
+                => this.TextContainer.TextChanged += _weakOnTextChanged;
 
             public void Disconnect()
-            {
-                this.TextContainer.TextChanged -= _weakOnTextChanged;
-            }
+                => this.TextContainer.TextChanged -= _weakOnTextChanged;
 
             private void OnTextChanged(object sender, TextChangeEventArgs e)
             {

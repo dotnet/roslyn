@@ -32,9 +32,7 @@ namespace Roslyn.Utilities
                 }
 
                 public bool Contains(T item)
-                {
-                    return false;
-                }
+                    => false;
 
                 public void CopyTo(T[] array, int arrayIndex)
                 {

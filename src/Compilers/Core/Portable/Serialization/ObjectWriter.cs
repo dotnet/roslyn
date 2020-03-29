@@ -872,14 +872,10 @@ namespace Roslyn.Utilities
         }
 
         private static Exception NoSerializationTypeException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
-        }
+            => new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
 
         private static Exception NoSerializationWriterException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
-        }
+            => new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
         // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because

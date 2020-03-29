@@ -53,9 +53,7 @@ namespace Roslyn.Utilities
         }
 
         internal static T[] GetValues<T>() where T : struct
-        {
-            return (T[])Enum.GetValues(typeof(T));
-        }
+            => (T[])Enum.GetValues(typeof(T));
 
 #if DEBUG
         internal static bool ContainsAllValues<T>(int mask) where T : struct, Enum, IConvertible

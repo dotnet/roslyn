@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {

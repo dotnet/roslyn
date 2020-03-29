@@ -216,9 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
-        {
-            return FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
-        }
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,

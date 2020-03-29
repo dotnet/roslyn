@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override bool ContainsChanges => true;
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            {
-                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
-            }
+                => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {

@@ -32,14 +32,10 @@ namespace Roslyn.Utilities
                 }
 
                 public bool Contains(T item)
-                {
-                    return this.Underlying.Contains(item);
-                }
+                    => this.Underlying.Contains(item);
 
                 public void CopyTo(T[] array, int arrayIndex)
-                {
-                    this.Underlying.CopyTo(array, arrayIndex);
-                }
+                    => this.Underlying.CopyTo(array, arrayIndex);
 
                 public int Count
                 {

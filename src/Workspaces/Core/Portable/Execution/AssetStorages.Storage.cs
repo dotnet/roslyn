@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             public void AddAdditionalAsset(CustomAsset asset)
-            {
-                LazyInitialization.EnsureInitialized(ref _lazyAdditionalAssets, s_additionalAssetsCreator).TryAdd(asset.Checksum, asset);
-            }
+                => LazyInitialization.EnsureInitialized(ref _lazyAdditionalAssets, s_additionalAssetsCreator).TryAdd(asset.Checksum, asset);
 
             public async ValueTask<RemotableData?> TryGetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
             {

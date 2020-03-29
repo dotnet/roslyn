@@ -37,34 +37,22 @@ namespace Roslyn.Utilities
                 }
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsProperSubsetOf(other);
-                }
+                    => Underlying.IsProperSubsetOf(other);
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsProperSupersetOf(other);
-                }
+                    => Underlying.IsProperSupersetOf(other);
 
                 public bool IsSubsetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsSubsetOf(other);
-                }
+                    => Underlying.IsSubsetOf(other);
 
                 public bool IsSupersetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsSupersetOf(other);
-                }
+                    => Underlying.IsSupersetOf(other);
 
                 public bool Overlaps(IEnumerable<T> other)
-                {
-                    return Underlying.Overlaps(other);
-                }
+                    => Underlying.Overlaps(other);
 
                 public bool SetEquals(IEnumerable<T> other)
-                {
-                    return Underlying.SetEquals(other);
-                }
+                    => Underlying.SetEquals(other);
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
                 {

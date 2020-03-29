@@ -41,18 +41,14 @@ namespace Roslyn.Utilities
         /// Construct a concurrent set with the default concurrency level.
         /// </summary>
         public ConcurrentSet()
-        {
-            _dictionary = new ConcurrentDictionary<T, byte>(DefaultConcurrencyLevel, DefaultCapacity);
-        }
+            => _dictionary = new ConcurrentDictionary<T, byte>(DefaultConcurrencyLevel, DefaultCapacity);
 
         /// <summary>
         /// Construct a concurrent set using the specified equality comparer.
         /// </summary>
         /// <param name="equalityComparer">The equality comparer for values in the set.</param>
         public ConcurrentSet(IEqualityComparer<T> equalityComparer)
-        {
-            _dictionary = new ConcurrentDictionary<T, byte>(DefaultConcurrencyLevel, DefaultCapacity, equalityComparer);
-        }
+            => _dictionary = new ConcurrentDictionary<T, byte>(DefaultConcurrencyLevel, DefaultCapacity, equalityComparer);
 
         /// <summary>
         /// Obtain the number of elements in the set.
@@ -73,9 +69,7 @@ namespace Roslyn.Utilities
         /// <param name="value">The value to test.</param>
         /// <returns>true if the set contains the specified value; otherwise, false.</returns>
         public bool Contains(T value)
-        {
-            return _dictionary.ContainsKey(value);
-        }
+            => _dictionary.ContainsKey(value);
 
         /// <summary>
         /// Attempts to add a value to the set.
@@ -83,9 +77,7 @@ namespace Roslyn.Utilities
         /// <param name="value">The value to add.</param>
         /// <returns>true if the value was added to the set. If the value already exists, this method returns false.</returns>
         public bool Add(T value)
-        {
-            return _dictionary.TryAdd(value, 0);
-        }
+            => _dictionary.TryAdd(value, 0);
 
         public void AddRange(IEnumerable<T>? values)
         {
@@ -104,38 +96,28 @@ namespace Roslyn.Utilities
         /// <param name="value">The value to remove.</param>
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
         public bool Remove(T value)
-        {
-            return _dictionary.TryRemove(value, out var b);
-        }
+            => _dictionary.TryRemove(value, out var b);
 
         /// <summary>
         /// Clear the set
         /// </summary>
         public void Clear()
-        {
-            _dictionary.Clear();
-        }
+            => _dictionary.Clear();
 
         public struct KeyEnumerator
         {
             private readonly IEnumerator<KeyValuePair<T, byte>> _kvpEnumerator;
 
             internal KeyEnumerator(IEnumerable<KeyValuePair<T, byte>> data)
-            {
-                _kvpEnumerator = data.GetEnumerator();
-            }
+                => _kvpEnumerator = data.GetEnumerator();
 
             public T Current => _kvpEnumerator.Current.Key;
 
             public bool MoveNext()
-            {
-                return _kvpEnumerator.MoveNext();
-            }
+                => _kvpEnumerator.MoveNext();
 
             public void Reset()
-            {
-                _kvpEnumerator.Reset();
-            }
+                => _kvpEnumerator.Reset();
         }
 
         /// <summary>
@@ -162,19 +144,13 @@ namespace Roslyn.Utilities
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return GetEnumeratorImpl();
-        }
+            => GetEnumeratorImpl();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumeratorImpl();
-        }
+            => GetEnumeratorImpl();
 
         void ICollection<T>.Add(T item)
-        {
-            Add(item);
-        }
+            => Add(item);
 
         public void CopyTo(T[] array, int arrayIndex)
         {

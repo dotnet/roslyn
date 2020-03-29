@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
             public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-            {
-                DeclaredSymbolInfos = declaredSymbolInfos;
-            }
+                => DeclaredSymbolInfos = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
             {

@@ -44,9 +44,7 @@ namespace Roslyn.Utilities
                 }
 
                 public void Reset()
-                {
-                    _moveNextCalled = false;
-                }
+                    => _moveNextCalled = false;
             }
         }
     }

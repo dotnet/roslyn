@@ -158,9 +158,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
         protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
-        {
-            return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
-        }
+            => semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
 
         private void EnsureReplacedExpressionAndSemanticRoot()
         {
@@ -279,14 +277,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected bool SymbolInfosAreCompatible(SymbolInfo originalSymbolInfo, SymbolInfo newSymbolInfo, bool requireNonNullSymbols = false)
-        {
-            return SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
-        }
+            => SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
 
         protected bool SymbolsAreCompatible(ISymbol symbol, ISymbol newSymbol, bool requireNonNullSymbols = false)
-        {
-            return SymbolsAreCompatibleCore(symbol, newSymbol, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
-        }
+            => SymbolsAreCompatibleCore(symbol, newSymbol, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
 
         private static bool SymbolsAreCompatibleCore(ISymbol symbol, ISymbol newSymbol, bool performEquivalenceCheck, bool requireNonNullSymbols = false)
         {

@@ -21,14 +21,10 @@ namespace Roslyn.Utilities
         }
 
         bool IEqualityComparer<object?>.Equals(object? a, object? b)
-        {
-            return a == b;
-        }
+            => a == b;
 
         int IEqualityComparer<object?>.GetHashCode(object? a)
-        {
-            return ReferenceEqualityComparer.GetHashCode(a);
-        }
+            => ReferenceEqualityComparer.GetHashCode(a);
 
         public static int GetHashCode(object? a)
         {

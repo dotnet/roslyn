@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             private readonly ArrayBuilder<T> _builder;
 
             public DebuggerProxy(ArrayBuilder<T> builder)
-            {
-                _builder = builder;
-            }
+                => _builder = builder;
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
             public T[] A
@@ -47,9 +45,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private readonly ObjectPool<ArrayBuilder<T>> _pool;
 
         public ArrayBuilder(int size)
-        {
-            _builder = ImmutableArray.CreateBuilder<T>(size);
-        }
+            => _builder = ImmutableArray.CreateBuilder<T>(size);
 
         public ArrayBuilder()
             : this(8)
@@ -65,9 +61,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// Realizes the array.
         /// </summary>
         public ImmutableArray<T> ToImmutable()
-        {
-            return _builder.ToImmutable();
-        }
+            => _builder.ToImmutable();
 
         public int Count
         {
@@ -116,14 +110,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void Add(T item)
-        {
-            _builder.Add(item);
-        }
+            => _builder.Add(item);
 
         public void Insert(int index, T item)
-        {
-            _builder.Insert(index, item);
-        }
+            => _builder.Insert(index, item);
 
         public void EnsureCapacity(int capacity)
         {
@@ -134,29 +124,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void Clear()
-        {
-            _builder.Clear();
-        }
+            => _builder.Clear();
 
         public bool Contains(T item)
-        {
-            return _builder.Contains(item);
-        }
+            => _builder.Contains(item);
 
         public int IndexOf(T item)
-        {
-            return _builder.IndexOf(item);
-        }
+            => _builder.IndexOf(item);
 
         public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
-        {
-            return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
-        }
+            => _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
 
         public int IndexOf(T item, int startIndex, int count)
-        {
-            return _builder.IndexOf(item, startIndex, count);
-        }
+            => _builder.IndexOf(item, startIndex, count);
 
         public int FindIndex(Predicate<T> match)
             => FindIndex(0, this.Count, match);
@@ -179,67 +159,43 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public bool Remove(T element)
-        {
-            return _builder.Remove(element);
-        }
+            => _builder.Remove(element);
 
         public void RemoveAt(int index)
-        {
-            _builder.RemoveAt(index);
-        }
+            => _builder.RemoveAt(index);
 
         public void RemoveLast()
-        {
-            _builder.RemoveAt(_builder.Count - 1);
-        }
+            => _builder.RemoveAt(_builder.Count - 1);
 
         public void ReverseContents()
-        {
-            _builder.Reverse();
-        }
+            => _builder.Reverse();
 
         public void Sort()
-        {
-            _builder.Sort();
-        }
+            => _builder.Sort();
 
         public void Sort(IComparer<T> comparer)
-        {
-            _builder.Sort(comparer);
-        }
+            => _builder.Sort(comparer);
 
         public void Sort(Comparison<T> compare)
             => Sort(Comparer<T>.Create(compare));
 
         public void Sort(int startIndex, IComparer<T> comparer)
-        {
-            _builder.Sort(startIndex, _builder.Count - startIndex, comparer);
-        }
+            => _builder.Sort(startIndex, _builder.Count - startIndex, comparer);
 
         public T[] ToArray()
-        {
-            return _builder.ToArray();
-        }
+            => _builder.ToArray();
 
         public void CopyTo(T[] array, int start)
-        {
-            _builder.CopyTo(array, start);
-        }
+            => _builder.CopyTo(array, start);
 
         public T Last()
-        {
-            return _builder[_builder.Count - 1];
-        }
+            => _builder[_builder.Count - 1];
 
         public T First()
-        {
-            return _builder[0];
-        }
+            => _builder[0];
 
         public bool Any()
-        {
-            return _builder.Count > 0;
-        }
+            => _builder.Count > 0;
 
         /// <summary>
         /// Realizes the array.
@@ -384,19 +340,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         #endregion
 
         public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+            => new Enumerator(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
 
         internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {
@@ -441,29 +391,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void AddRange(ArrayBuilder<T> items)
-        {
-            _builder.AddRange(items._builder);
-        }
+            => _builder.AddRange(items._builder);
 
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
-        {
-            _builder.AddRange(items._builder);
-        }
+            => _builder.AddRange(items._builder);
 
         public void AddRange(ImmutableArray<T> items)
-        {
-            _builder.AddRange(items);
-        }
+            => _builder.AddRange(items);
 
         public void AddRange(ImmutableArray<T> items, int length)
-        {
-            _builder.AddRange(items, length);
-        }
+            => _builder.AddRange(items, length);
 
         public void AddRange<S>(ImmutableArray<S> items) where S : class, T
-        {
-            AddRange(ImmutableArray<T>.CastUp(items));
-        }
+            => AddRange(ImmutableArray<T>.CastUp(items));
 
         public void AddRange(T[] items, int start, int length)
         {
@@ -474,19 +414,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void AddRange(IEnumerable<T> items)
-        {
-            _builder.AddRange(items);
-        }
+            => _builder.AddRange(items);
 
         public void AddRange(params T[] items)
-        {
-            _builder.AddRange(items);
-        }
+            => _builder.AddRange(items);
 
         public void AddRange(T[] items, int length)
-        {
-            _builder.AddRange(items, length);
-        }
+            => _builder.AddRange(items, length);
 
         public void Clip(int limit)
         {

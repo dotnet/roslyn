@@ -100,8 +100,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 _constructedFrom.PartialImplementationPart;
 
         protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
-        }
+            => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
     }
 }

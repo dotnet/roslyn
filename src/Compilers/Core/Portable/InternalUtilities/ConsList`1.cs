@@ -119,29 +119,19 @@ namespace Roslyn.Utilities
         }
 
         public bool Any()
-        {
-            return this != Empty;
-        }
+            => this != Empty;
 
         public ConsList<T> Push(T value)
-        {
-            return new ConsList<T>(value, this);
-        }
+            => new ConsList<T>(value, this);
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
 
         public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+            => new Enumerator(this);
 
         public override string ToString()
         {

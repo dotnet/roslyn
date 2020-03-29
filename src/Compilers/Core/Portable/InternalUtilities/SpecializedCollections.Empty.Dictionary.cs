@@ -34,9 +34,7 @@ namespace Roslyn.Utilities
                 }
 
                 public bool ContainsKey(TKey key)
-                {
-                    return false;
-                }
+                    => false;
 
                 public ICollection<TKey> Keys
                 {

@@ -18,14 +18,10 @@ namespace Roslyn.Utilities
                 protected readonly TUnderlying Underlying;
 
                 public Enumerable(TUnderlying underlying)
-                {
-                    this.Underlying = underlying;
-                }
+                    => this.Underlying = underlying;
 
                 public IEnumerator GetEnumerator()
-                {
-                    return this.Underlying.GetEnumerator();
-                }
+                    => this.Underlying.GetEnumerator();
             }
         }
     }

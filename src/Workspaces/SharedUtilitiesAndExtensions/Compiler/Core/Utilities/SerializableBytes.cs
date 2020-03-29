@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static PooledStream CreateWritableStream()
-        {
-            return new ReadWriteStream();
-        }
+            => new ReadWriteStream();
 
         public class PooledStream : Stream
         {
@@ -246,14 +244,10 @@ namespace Microsoft.CodeAnalysis
             protected int CurrentChunkOffset { get { return GetChunkOffset(this.position); } }
 
             protected static int GetChunkIndex(long value)
-            {
-                return (int)(value / ChunkSize);
-            }
+                => (int)(value / ChunkSize);
 
             protected static int GetChunkOffset(long value)
-            {
-                return (int)(value % ChunkSize);
-            }
+                => (int)(value % ChunkSize);
 
             protected override void Dispose(bool disposing)
             {

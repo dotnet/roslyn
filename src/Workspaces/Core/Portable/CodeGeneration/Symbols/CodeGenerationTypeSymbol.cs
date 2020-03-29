@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected sealed override CodeGenerationSymbol Clone()
-        {
-            return CloneWithNullableAnnotation(this.NullableAnnotation);
-        }
+            => CloneWithNullableAnnotation(this.NullableAnnotation);
 
         protected abstract CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }

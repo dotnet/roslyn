@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         private Assembly LoadFromPathUnchecked(string fullPath)
-        {
-            return LoadFromPathUncheckedCore(fullPath);
-        }
+            => LoadFromPathUncheckedCore(fullPath);
 
         private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity identity = null)
         {

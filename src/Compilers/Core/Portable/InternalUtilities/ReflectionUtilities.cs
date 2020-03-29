@@ -97,14 +97,10 @@ namespace Roslyn.Utilities
         }
 
         internal static MethodInfo? GetDeclaredMethod(this TypeInfo typeInfo, string name, params Type[] paramTypes)
-        {
-            return FindItem(typeInfo.GetDeclaredMethods(name), paramTypes);
-        }
+            => FindItem(typeInfo.GetDeclaredMethods(name), paramTypes);
 
         internal static ConstructorInfo? GetDeclaredConstructor(this TypeInfo typeInfo, params Type[] paramTypes)
-        {
-            return FindItem(typeInfo.DeclaredConstructors, paramTypes);
-        }
+            => FindItem(typeInfo.DeclaredConstructors, paramTypes);
 
         public static T? CreateDelegate<T>(this MethodInfo? methodInfo)
             where T : Delegate
@@ -139,14 +135,10 @@ namespace Roslyn.Utilities
         }
 
         public static object? InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
-        {
-            return constructorInfo.InvokeConstructor<object?>(args);
-        }
+            => constructorInfo.InvokeConstructor<object?>(args);
 
         [return: MaybeNull]
         public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
-        {
-            return (T)methodInfo.Invoke(obj, args)!;
-        }
+            => (T)methodInfo.Invoke(obj, args)!;
     }
 }

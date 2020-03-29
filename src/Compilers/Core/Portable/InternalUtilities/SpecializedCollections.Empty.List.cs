@@ -29,9 +29,7 @@ namespace Roslyn.Utilities
                 }
 
                 public int IndexOf(T item)
-                {
-                    return -1;
-                }
+                    => -1;
 
                 public void Insert(int index, T item)
                 {

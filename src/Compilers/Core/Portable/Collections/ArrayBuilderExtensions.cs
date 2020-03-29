@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis
         // Note that the order of an IEnumerable from a List is from bottom to top of stack. An IEnumerable 
         // from the framework Stack is from top to bottom.
         public static void Push<T>(this ArrayBuilder<T> builder, T e)
-        {
-            builder.Add(e);
-        }
+            => builder.Add(e);
 
         public static T Pop<T>(this ArrayBuilder<T> builder)
         {
@@ -163,14 +161,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static T Peek<T>(this ArrayBuilder<T> builder)
-        {
-            return builder[builder.Count - 1];
-        }
+            => builder[builder.Count - 1];
 
         public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T>? builder)
-        {
-            return builder?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
-        }
+            => builder?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
 
         public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
             where T : struct

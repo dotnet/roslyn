@@ -42,14 +42,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return VisitType(symbol);
-            }
+                => VisitType(symbol);
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return VisitType(symbol);
-            }
+                => VisitType(symbol);
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {

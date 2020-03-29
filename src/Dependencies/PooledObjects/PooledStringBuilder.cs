@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         [System.Obsolete("Consider calling ToStringAndFree instead.")]
         public new string ToString()
-        {
-            return this.Builder.ToString();
-        }
+            => this.Builder.ToString();
 
         public string ToStringAndFree()
         {
@@ -93,8 +91,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public static implicit operator StringBuilder(PooledStringBuilder obj)
-        {
-            return obj.Builder;
-        }
+            => obj.Builder;
     }
 }

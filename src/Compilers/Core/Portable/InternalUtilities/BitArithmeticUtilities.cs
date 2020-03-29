@@ -11,9 +11,7 @@ namespace Roslyn.Utilities
     internal static class BitArithmeticUtilities
     {
         public static int CountBits(int v)
-        {
-            return CountBits(unchecked((uint)v));
-        }
+            => CountBits(unchecked((uint)v));
 
         public static int CountBits(uint v)
         {
@@ -26,9 +24,7 @@ namespace Roslyn.Utilities
         }
 
         public static int CountBits(long v)
-        {
-            return CountBits(unchecked((ulong)v));
-        }
+            => CountBits(unchecked((ulong)v));
 
         public static int CountBits(ulong v)
         {
