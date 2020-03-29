@@ -18,6 +18,7 @@
              ShowInTaskbar="False"
              HasDialogFrame="True"
              WindowStartupLocation="CenterOwner"
+             vs2:ImageThemingUtilities.ThemeScrollBars="True"
              vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
              Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
 
