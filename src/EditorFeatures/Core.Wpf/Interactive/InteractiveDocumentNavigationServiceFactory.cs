@@ -18,13 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveDocumentNavigationServiceFactory()
-        {
-            _singleton = new InteractiveDocumentNavigationService();
-        }
+            => _singleton = new InteractiveDocumentNavigationService();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

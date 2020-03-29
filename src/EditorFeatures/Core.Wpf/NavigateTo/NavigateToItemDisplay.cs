@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
         public NavigateToItemDisplay(INavigateToSearchResult searchResult)
-        {
-            _searchResult = searchResult;
-        }
+            => _searchResult = searchResult;
 
         public string AdditionalInformation => _searchResult.AdditionalInformation;
 
