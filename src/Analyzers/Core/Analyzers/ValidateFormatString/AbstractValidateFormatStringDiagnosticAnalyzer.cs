@@ -19,19 +19,19 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private const string DiagnosticID = IDEDiagnosticIds.ValidateFormatStringDiagnosticID;
 
         private static readonly LocalizableString Title = new LocalizableResourceString(
-            nameof(FeaturesResources.Invalid_format_string),
-            FeaturesResources.ResourceManager,
-            typeof(FeaturesResources));
+            nameof(AnalyzersResources.Invalid_format_string),
+            AnalyzersResources.ResourceManager,
+            typeof(AnalyzersResources));
 
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
-            nameof(FeaturesResources.Format_string_contains_invalid_placeholder),
-            FeaturesResources.ResourceManager,
-            typeof(FeaturesResources));
+            nameof(AnalyzersResources.Format_string_contains_invalid_placeholder),
+            AnalyzersResources.ResourceManager,
+            typeof(AnalyzersResources));
 
         private static readonly LocalizableString Description = new LocalizableResourceString(
-            nameof(FeaturesResources.Invalid_format_string),
-            FeaturesResources.ResourceManager,
-            typeof(FeaturesResources));
+            nameof(AnalyzersResources.Invalid_format_string),
+            AnalyzersResources.ResourceManager,
+            typeof(AnalyzersResources));
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticID,
