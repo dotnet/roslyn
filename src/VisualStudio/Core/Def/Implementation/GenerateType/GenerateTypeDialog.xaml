@@ -4,19 +4,23 @@
             x:ClassModifier="internal"
             x:Name="dialog"
             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+            xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
             mc:Ignorable="d" d:DesignWidth="460"
             Height="353" Width="460"
-            MinHeight="370" MinWidth="460"
+            MinHeight="353" MinWidth="460"
             Title="{Binding ElementName=dialog, Path=GenerateTypeDialogTitle}"
             HasHelpButton="True"
             ResizeMode="CanResizeWithGrip"
             ShowInTaskbar="False"
             HasDialogFrame="True"
-            WindowStartupLocation="CenterOwner">
+            WindowStartupLocation="CenterOwner"
+            vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+            vs2:ImageThemingUtilities.ThemeScrollBars="True"
+            Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
     <StackPanel Margin="0,0,0,9" >
         <Label Content="{Binding ElementName=dialog, Path=TypeDetails}" FontWeight="Bold" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"/>
         <Grid Margin="20,0,1,0" Height="49">
