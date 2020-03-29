@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
 
             public override TypeSyntax DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax

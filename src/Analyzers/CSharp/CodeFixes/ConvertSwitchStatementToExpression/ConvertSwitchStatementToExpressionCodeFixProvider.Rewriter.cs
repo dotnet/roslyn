@@ -203,9 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 => Visit(node.Expression);
 
             public override ExpressionSyntax DefaultVisit(SyntaxNode node)
-            {
-                throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
+                => throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
     }
 }
