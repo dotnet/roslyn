@@ -2230,16 +2230,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Implémenter {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">La chaîne de format contient un espace réservé non valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Chaîne de format non valide</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Utiliser un nom de membre déduit</target>

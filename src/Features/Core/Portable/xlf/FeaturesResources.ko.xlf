@@ -2230,16 +2230,6 @@ This version used in: {2}</source>
         <target state="translated">{0} 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">잘못된 형식 문자열</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">유추 멤버 이름 사용</target>
