@@ -8110,9 +8110,59 @@ Namespace VBTest
 End Namespace
 ]]></code>.Value
 
-            Await VerifyItemExistsAsync(source, "Substring")
+            Await VerifyItemIsAbsentAsync(source, "Substring")
             Await VerifyItemExistsAsync(source, "A")
             Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaWithOverloads2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As String)
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaWithOverloads3() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a as Integer) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
