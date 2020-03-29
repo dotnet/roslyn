@@ -184,24 +184,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public virtual string MetadataName
         {

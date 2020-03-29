@@ -296,9 +296,7 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="CanChangeActiveContextDocument"/> returns true.
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         /// <summary>
         /// Call this method when a document has been made the active context in the host environment.

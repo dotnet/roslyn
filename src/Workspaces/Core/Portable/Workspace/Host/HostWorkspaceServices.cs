@@ -95,9 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
         public virtual HostLanguageServices GetLanguageServices(string languageName)
-        {
-            throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
-        }
+            => throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
 
         public delegate bool MetadataFilter(IReadOnlyDictionary<string, object> metadata);
 

@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 => _compilation = compilation;
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
                 => symbol;
