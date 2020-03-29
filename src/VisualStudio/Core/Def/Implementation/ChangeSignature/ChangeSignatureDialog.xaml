@@ -20,6 +20,7 @@
     HasDialogFrame="True"
     WindowStartupLocation="CenterOwner"
     vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+    vs2:ImageThemingUtilities.ThemeScrollBars="True"
     Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
     <Window.Resources>
         <vs3:BrushToColorConverter x:Key="BrushToColorConverter"/>
