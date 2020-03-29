@@ -48,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override int GetTipText(out VSTREETOOLTIPTYPE eTipType, out string pbstrText)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public override int OnRequestSource(object pIUnknownTextView)
         {

@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public abstract void GetDescription(out string pBstr);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {

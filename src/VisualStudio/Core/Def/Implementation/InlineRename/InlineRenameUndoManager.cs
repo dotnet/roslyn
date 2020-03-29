@@ -65,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                     => pBstr = _description;
 
                 public void GetUnitType(out Guid pClsid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]out int plID)
-                {
-                    throw new NotImplementedException();
-                }
+                    => throw new NotImplementedException();
 
                 public void OnNextAdd()
                 {

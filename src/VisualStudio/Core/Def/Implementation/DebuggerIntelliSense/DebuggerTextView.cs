@@ -317,32 +317,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public void Close()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo, double? viewportWidthOverride, double? viewportHeightOverride)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public SnapshotSpan GetTextElementSpan(SnapshotPoint point)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
             => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void QueueSpaceReservationStackRefresh()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public IAdornmentLayer GetAdornmentLayer(string name)
             => _innerTextView.GetAdornmentLayer(name);
