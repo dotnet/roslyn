@@ -14,6 +14,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ISymbolExtensions2
     {
+        [Obsolete("Use overload without ISymbolDisplayService", error: false)]
+        public static ImmutableArray<TSymbol> Sort<TSymbol>(
+            this ImmutableArray<TSymbol> symbols,
+            ISymbolDisplayService symbolDisplayService,
+            SemanticModel semanticModel,
+            int position)
+            where TSymbol : ISymbol
+        {
+            return Sort(symbols, semanticModel, position);
+        }
+
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             this ImmutableArray<TSymbol> symbols,
             SemanticModel semanticModel,
