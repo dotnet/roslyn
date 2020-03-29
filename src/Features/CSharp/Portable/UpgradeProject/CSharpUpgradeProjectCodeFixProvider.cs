@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
         public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
-        {
-            return RequiredVersion(diagnostics).ToDisplayString();
-        }
+            => RequiredVersion(diagnostics).ToDisplayString();
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {

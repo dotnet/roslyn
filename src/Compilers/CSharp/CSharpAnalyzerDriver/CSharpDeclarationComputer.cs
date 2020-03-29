@@ -40,14 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static bool InvalidLevel(int? level)
-        {
-            return level.HasValue && level.Value <= 0;
-        }
+            => level.HasValue && level.Value <= 0;
 
         private static int? DecrementLevel(int? level)
-        {
-            return level.HasValue ? level - 1 : level;
-        }
+            => level.HasValue ? level - 1 : level;
 
         private static void ComputeDeclarations(
             SemanticModel model,

@@ -32,14 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractOrdinaryMethodSignatureHelpProvider
     {
         public override bool IsTriggerCharacter(char ch)
-        {
-            return ch == '(' || ch == ',';
-        }
+            => ch == '(' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == ')';
-        }
+            => ch == ')';
 
         private bool TryGetInvocationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out InvocationExpressionSyntax expression)
         {
@@ -52,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool IsTriggerToken(SyntaxToken token)
-        {
-            return SignatureHelpUtilities.IsTriggerParenOrComma<InvocationExpressionSyntax>(token, IsTriggerCharacter);
-        }
+            => SignatureHelpUtilities.IsTriggerParenOrComma<InvocationExpressionSyntax>(token, IsTriggerCharacter);
 
         private static bool IsArgumentListToken(InvocationExpressionSyntax expression, SyntaxToken token)
         {
