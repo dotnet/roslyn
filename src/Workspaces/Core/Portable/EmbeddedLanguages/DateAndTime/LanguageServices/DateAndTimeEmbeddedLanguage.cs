@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
         internal async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (!DateAndTimePatternDetector.IsPossiblyDateAndTimeToken(token, syntaxFacts, out _, out _))
                 return null;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
             return detector != null && detector.IsDateAndTimeToken(token, cancellationToken)
                 ? token : (SyntaxToken?)null;

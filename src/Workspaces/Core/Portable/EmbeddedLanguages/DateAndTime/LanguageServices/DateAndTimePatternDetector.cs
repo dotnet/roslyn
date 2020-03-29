@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
     {
         private const string FormatName = "format";
 
+        /// <summary>
+        /// Cache so that we can reuse the same <see cref="DateAndTimePatternDetector"/> when analyzing a particular
+        /// semantic model.  This saves the time from having to recreate this for every string literal that features
+        /// examine for a particular semantic model.
+        /// </summary>
         private static readonly ConditionalWeakTable<SemanticModel, DateAndTimePatternDetector?> _modelToDetector =
             new ConditionalWeakTable<SemanticModel, DateAndTimePatternDetector?>();
 
