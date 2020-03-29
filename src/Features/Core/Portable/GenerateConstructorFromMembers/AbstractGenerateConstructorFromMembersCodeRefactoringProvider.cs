@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
             => _pickMembersService_forTesting = pickMembersService_forTesting;
 
+        protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

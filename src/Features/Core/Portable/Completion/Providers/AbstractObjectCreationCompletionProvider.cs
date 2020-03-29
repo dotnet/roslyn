@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
             return (displayString, "", displayString);
         }
     }

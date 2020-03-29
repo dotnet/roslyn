@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
         {
         }
 
+        protected override string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format)
+            => SymbolDisplay.ToDisplayString(parameter, format);
+
         protected override bool PrefersThrowExpression(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
     }

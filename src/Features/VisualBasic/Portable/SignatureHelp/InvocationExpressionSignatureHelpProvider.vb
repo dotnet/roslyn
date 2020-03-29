@@ -99,8 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
-            memberGroup = memberGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
+            memberGroup = memberGroup.Sort(semanticModel, invocationExpression.SpanStart)
 
             Dim typeInfo = semanticModel.GetTypeInfo(targetExpression, cancellationToken)
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
@@ -112,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                  ToImmutableArrayOrEmpty().
                                  WhereAsArray(Function(p) p.IsIndexer).
                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                 Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart))
+                                 Sort(semanticModel, invocationExpression.SpanStart))
 
             Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
@@ -125,11 +124,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             If expressionType.IsDelegateType() Then
-                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
