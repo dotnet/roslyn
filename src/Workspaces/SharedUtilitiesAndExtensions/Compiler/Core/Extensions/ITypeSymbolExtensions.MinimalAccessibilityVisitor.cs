@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
 
             public override Accessibility DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override Accessibility VisitAlias(IAliasSymbol symbol)
                 => symbol.Target.Accept(this);

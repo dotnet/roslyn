@@ -22,14 +22,10 @@ namespace Roslyn.Utilities
                     => _loneValue = value;
 
                 public void Add(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void Clear()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public bool Contains(T item)
                     => EqualityComparer<T>.Default.Equals(_loneValue, item);
@@ -42,9 +38,7 @@ namespace Roslyn.Utilities
                 public bool IsReadOnly => true;
 
                 public bool Remove(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public IEnumerator<T> GetEnumerator()
                     => new Enumerator<T>(_loneValue);
@@ -81,14 +75,10 @@ namespace Roslyn.Utilities
                 }
 
                 public void Insert(int index, T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void RemoveAt(int index)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
             }
         }
     }

@@ -43,9 +43,7 @@ namespace System
 
         // The following private constructors mainly created for perf reason to avoid the checks
         private Index(int value)
-        {
-            _value = value;
-        }
+            => _value = value;
 
         /// <summary>Create an Index pointing at first element.</summary>
         public static Index Start => new Index(0);

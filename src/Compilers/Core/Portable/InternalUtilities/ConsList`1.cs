@@ -78,9 +78,7 @@ namespace Roslyn.Utilities
             }
 
             public void Reset()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
         }
 
         private ConsList()

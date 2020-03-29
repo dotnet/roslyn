@@ -101,8 +101,6 @@ namespace Roslyn.Utilities
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void Fail(string message = "Unexpected")
-        {
-            throw new InvalidOperationException(message);
-        }
+            => throw new InvalidOperationException(message);
     }
 }

@@ -22,14 +22,10 @@ namespace Roslyn.Utilities
                 }
 
                 public void Add(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void Clear()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public bool Contains(T item)
                     => false;
@@ -43,9 +39,7 @@ namespace Roslyn.Utilities
                 public bool IsReadOnly => true;
 
                 public bool Remove(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
             }
         }
     }

@@ -60,9 +60,7 @@ namespace Roslyn.Utilities
                 }
 
                 public void Reset()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 object? IEnumerator.Current => this.Current;
 

@@ -27,9 +27,7 @@ namespace Roslyn.Utilities
                     => false;
 
                 public void Reset()
-                {
-                    throw new InvalidOperationException();
-                }
+                    => throw new InvalidOperationException();
             }
         }
     }

@@ -22,19 +22,13 @@ namespace Roslyn.Utilities
                 }
 
                 public new bool Add(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void ExceptWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void IntersectWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                     => !other.IsEmpty();
@@ -55,14 +49,10 @@ namespace Roslyn.Utilities
                     => other.IsEmpty();
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void UnionWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
             }
         }
     }

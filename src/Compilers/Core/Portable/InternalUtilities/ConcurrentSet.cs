@@ -153,8 +153,6 @@ namespace Roslyn.Utilities
             => Add(item);
 
         public void CopyTo(T[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

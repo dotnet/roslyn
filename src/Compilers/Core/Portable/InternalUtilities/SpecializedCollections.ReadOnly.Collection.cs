@@ -22,14 +22,10 @@ namespace Roslyn.Utilities
                 }
 
                 public void Add(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void Clear()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public bool Contains(T item)
                     => this.Underlying.Contains(item);
@@ -48,9 +44,7 @@ namespace Roslyn.Utilities
                 public bool IsReadOnly => true;
 
                 public bool Remove(T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
             }
         }
     }

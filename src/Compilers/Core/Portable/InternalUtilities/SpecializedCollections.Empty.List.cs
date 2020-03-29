@@ -32,14 +32,10 @@ namespace Roslyn.Utilities
                     => -1;
 
                 public void Insert(int index, T item)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public void RemoveAt(int index)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public T this[int index]
                 {

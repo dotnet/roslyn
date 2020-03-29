@@ -48,9 +48,7 @@ namespace System
 
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
-        {
-            return Hash.Combine(Start.GetHashCode(), End.GetHashCode());
-        }
+            => Hash.Combine(Start.GetHashCode(), End.GetHashCode());
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>
         public override string ToString()
