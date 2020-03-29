@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         }
 
         public override bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)
-        {
-            return true;
-        }
+            => true;
     }
 }

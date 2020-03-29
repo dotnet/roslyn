@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         }
 
         private void Log(string format, params object[] args)
-        {
-            _logger.AppendFormat(format + Environment.NewLine, args);
-        }
+            => _logger.AppendFormat(format + Environment.NewLine, args);
     }
 }
