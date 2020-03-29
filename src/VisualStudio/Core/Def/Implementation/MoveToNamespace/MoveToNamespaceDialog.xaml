@@ -7,6 +7,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vs2="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
@@ -16,7 +17,9 @@
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
              HasDialogFrame="True"
-             WindowStartupLocation="CenterOwner">
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
 
     <Window.Resources>
         <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
@@ -53,7 +56,9 @@
         <StackPanel Grid.Row="1">
             <StackPanel Orientation="Horizontal"  
                         Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Margin="{StaticResource messageMargin}">
+                        Margin="{StaticResource messageMargin}"
+                        vs2:ImageThemingUtilities.ImageBackgroundColor="White">
+                        <!-- Set ImageBackgroundColor to White to prevent icon inversion -->
                 <imaging:CrispImage Name="MessageIcon"
                                     Moniker="{Binding Icon}" 
                                     Height="16"
@@ -61,6 +66,7 @@
                                     VerticalAlignment="Top" />
 
                 <vs:LiveTextBlock x:Name="MessageText"
+                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"
                            Text="{Binding Message}"
                            Margin="7, 0, 0, 0" />
             </StackPanel>
