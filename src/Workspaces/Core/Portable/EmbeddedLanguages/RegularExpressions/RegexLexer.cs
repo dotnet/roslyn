@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                     // Note: \n is the only newline the native regex parser looks for.
                     while (Position < Text.Length &&
-                            Text[Position].Value != '\n')
+                            Text[Position] != '\n')
                     {
                         Position++;
                     }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 var start = Position;
                 while (Position < Text.Length &&
-                       Text[Position].Value != ')')
+                       Text[Position] != ')')
                 {
                     Position++;
                 }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             for (var i = 0; i < val.Length; i++)
             {
                 if (position + i >= Text.Length ||
-                    Text[position + i].Value != val[i])
+                    Text[position + i] != val[i])
                 {
                     return false;
                 }
