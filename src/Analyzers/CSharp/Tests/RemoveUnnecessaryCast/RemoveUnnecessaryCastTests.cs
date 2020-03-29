@@ -4856,5 +4856,59 @@ class C
     }
 }");
         }
+
+        [WorkItem(38599, "https://github.com/dotnet/roslyn/issues/38599")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerInReturn()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    public static unsafe int Read(IntPtr pointer, int offset)
+    {
+        return ([|(int*)pointer|])[offset];
+    }
+}");
+        }
+
+        [WorkItem(32491, "https://github.com/dotnet/roslyn/issues/32491")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerWithTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+struct Block<T>
+    where T : unmanaged
+{
+    IntPtr m_ptr;
+    unsafe ref T GetRef( int index )
+    {
+        return ref ([|(T*)m_ptr|])[index];
+    }
+}");
+        }
+
+        [WorkItem(25021, "https://github.com/dotnet/roslyn/issues/25021")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerWithAddressAndCast()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private unsafe void foo()
+    {
+        var address = IntPtr.Zero;
+        var bar = (int*)&([|(long*)address|])[10];
+    }
+}");
+        }
     }
 }
