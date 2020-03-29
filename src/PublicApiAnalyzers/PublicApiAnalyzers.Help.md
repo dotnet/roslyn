@@ -38,12 +38,8 @@ To correctly model the API differences between target frameworks (or any other p
 For example, if you target both `net48` and `netcoreapp3.0` target frameworks, and APIs differ between each, then you would have the following:
 
 ```xml
-  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
-    <AdditionalFiles Include="net48/PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="net48/PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <AdditionalFiles Include="netcoreapp3.0/PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="netcoreapp3.0/PublicAPI.Unshipped.txt" />
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Unshipped.txt" />
   </ItemGroup>
 ```
