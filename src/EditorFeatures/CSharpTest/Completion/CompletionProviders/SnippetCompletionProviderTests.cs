@@ -172,6 +172,7 @@ class C
             internal const string PreProcessorSnippetPath = nameof(PreProcessorSnippetPath);
 
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public MockSnippetInfoService()
             {
             }

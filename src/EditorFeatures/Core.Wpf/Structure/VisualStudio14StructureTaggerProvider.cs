@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         AbstractStructureTaggerProvider<IOutliningRegionTag>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public VisualStudio14StructureTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

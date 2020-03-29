@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpExtractInterfaceService()
         {
         }

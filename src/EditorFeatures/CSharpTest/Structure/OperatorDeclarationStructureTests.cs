@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new OperatorDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestOperator()
+        public async Task TestOperator1()
         {
             const string code = @"
 class C
@@ -24,6 +25,85 @@ class C
     {|hint:$$public static int operator +(int i){|textspan:
     {
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static int operator -(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator3()
+        {
+            const string code = @"
+class C
+{
+    $$public static int operator +(int i)
+    {
+    }
+
+    public static int operator -(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(53, 69),
+                    hintSpan: TextSpan.FromBounds(18, 67),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator4()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static explicit operator C(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator5()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static explicit operator C(int i)
+    {
+    }
 }";
 
             await VerifyBlockSpansAsync(code,

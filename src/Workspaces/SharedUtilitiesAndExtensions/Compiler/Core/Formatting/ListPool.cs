@@ -17,11 +17,5 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             SharedPools.Default<List<T>>().ClearAndFree(list);
         }
-
-        public static List<T> ReturnAndFree(List<T> list)
-        {
-            SharedPools.Default<List<T>>().ForgetTrackedObject(list);
-            return list;
-        }
     }
 }

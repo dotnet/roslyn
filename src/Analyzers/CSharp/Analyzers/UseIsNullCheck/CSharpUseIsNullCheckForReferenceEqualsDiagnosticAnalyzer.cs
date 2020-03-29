@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer : AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer<SyntaxKind>
     {
         public CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer()
-            : base(CSharpFeaturesResources.Use_is_null_check)
+            : base(CSharpAnalyzersResources.Use_is_null_check)
         {
         }
 

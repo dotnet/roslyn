@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpRenameConflictLanguageService()
         {
         }

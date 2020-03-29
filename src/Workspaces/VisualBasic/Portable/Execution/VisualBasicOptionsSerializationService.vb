@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         Inherits AbstractOptionsSerializationService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

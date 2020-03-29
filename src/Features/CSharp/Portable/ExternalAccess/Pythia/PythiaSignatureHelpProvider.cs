@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
 {
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
         private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
         {
             _lazyImplementation = implementation;
