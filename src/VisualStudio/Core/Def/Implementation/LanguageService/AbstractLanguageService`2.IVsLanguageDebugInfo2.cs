@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         int IVsLanguageDebugInfo2.ValidateInstructionpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, TextSpan[] pCodeSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
     }
 }

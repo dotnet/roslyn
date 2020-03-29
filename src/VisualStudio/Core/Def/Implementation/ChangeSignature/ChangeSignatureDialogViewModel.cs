@@ -58,9 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public int GetStartingSelectionIndex()
-        {
-            return _thisParameter == null ? 0 : 1;
-        }
+            => _thisParameter == null ? 0 : 1;
 
         public bool PreviewChanges
         {
@@ -210,9 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal string TEST_GetSignatureDisplayText()
-        {
-            return GetSignatureDisplayParts().Select(p => p.ToString()).Join("");
-        }
+            => GetSignatureDisplayParts().Select(p => p.ToString()).Join("");
 
         private List<SymbolDisplayPart> GetSignatureDisplayParts()
         {
@@ -333,14 +329,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal bool TrySubmit()
-        {
-            return IsOkButtonEnabled;
-        }
+            => IsOkButtonEnabled;
 
         private bool IsDisabled(ParameterViewModel parameterViewModel)
-        {
-            return _disabledParameters.Contains(parameterViewModel.ParameterSymbol);
-        }
+            => _disabledParameters.Contains(parameterViewModel.ParameterSymbol);
 
         private IList<ParameterViewModel> GetSelectedGroup()
         {

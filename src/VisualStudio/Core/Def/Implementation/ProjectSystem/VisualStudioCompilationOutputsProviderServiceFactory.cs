@@ -18,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioCompilationOutputsProviderServiceFactory(VisualStudioWorkspaceImpl workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new VisualStudioCompilationOutputsProviderService(_workspace);

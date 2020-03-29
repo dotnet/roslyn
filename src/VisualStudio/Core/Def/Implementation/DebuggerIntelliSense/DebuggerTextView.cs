@@ -337,9 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void QueueSpaceReservationStackRefresh()
         {
@@ -347,19 +345,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public IAdornmentLayer GetAdornmentLayer(string name)
-        {
-            return _innerTextView.GetAdornmentLayer(name);
-        }
+            => _innerTextView.GetAdornmentLayer(name);
 
         public ISpaceReservationManager GetSpaceReservationManager(string name)
-        {
-            return _innerTextView.GetSpaceReservationManager(name);
-        }
+            => _innerTextView.GetSpaceReservationManager(name);
 
         IWpfTextViewLine IWpfTextView.GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void Cleanup()
         {

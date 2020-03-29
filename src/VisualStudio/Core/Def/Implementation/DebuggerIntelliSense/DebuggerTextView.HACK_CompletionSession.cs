@@ -56,9 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void CompletionOrSignatureHelpSession_Dismissed(object sender, EventArgs e)
-        {
-            HACK_RemoveShimCompletionSession();
-        }
+            => HACK_RemoveShimCompletionSession();
 
         /// <remarks>
         /// Dev11's debugger intellisense uses the old completion shims and routes commands through
