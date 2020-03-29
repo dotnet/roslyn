@@ -104,44 +104,28 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
@@ -157,9 +141,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
 
             ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
-            {
-                throw new System.NotImplementedException();
-            }
+                => throw new System.NotImplementedException();
         }
     }
 }

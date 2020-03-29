@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitAlias(IAliasSymbol symbol)
             {

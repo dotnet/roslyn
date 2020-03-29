@@ -88,9 +88,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable;
 

@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
