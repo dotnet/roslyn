@@ -4903,7 +4903,7 @@ using System;
 
 class C
 {
-    private unsafe void foo()
+    private unsafe void goo()
     {
         var address = IntPtr.Zero;
         var bar = (int*)&([|(long*)address|])[10];
@@ -4982,6 +4982,149 @@ class Program
             static void SameScope(decimal sum) { }
         }
     }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(IFormattable)$""""|];
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(FormattableString)$""""|];
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(FormattableString)$""""|]);
+    }
+
+    private void bar(string s) { }
+    private void bar(FormattableString s) { }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(FormattableString)$""""|]);
+    }
+
+    private void bar(FormattableString s) { }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar($"""");
+    }
+
+    private void bar(FormattableString s) { }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString5()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object o = [|(string)$""""|];
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object o = $"""";
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(IFormattable)$""""|]);
+    }
+
+    private void bar(IFormattable s) { }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar($"""");
+    }
+
+    private void bar(IFormattable s) { }
 }");
         }
     }

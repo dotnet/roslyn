@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -146,6 +147,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // Don't remove any non-identity pointer or IntPtr conversions.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return expressionType != null && expressionType.Equals(outerType);
+            }
+
+            if (expressionToCastType.IsInterpolatedString)
+            {
+                // interpolation casts are necessary to preserve semantics if our destination type is not itself
+                // FormattableString or some interface of FormattableString.
+
+                return castType.Equals(castTypeInfo.ConvertedType) ||
+                       ImmutableArray<ITypeSymbol>.CastUp(castType.AllInterfaces).Contains(castTypeInfo.ConvertedType);
             }
 
             if (parentIsOrAsExpression)
