@@ -5240,5 +5240,53 @@ class C
     }
 }");
         }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestOnInterfaceCallOnSealedClass()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public sealed class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}",
+
+@"
+using System;
+
+public sealed class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        _dbContext.Dispose();
+    }
+}");
+        }
     }
 }
