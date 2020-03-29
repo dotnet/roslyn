@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -122,25 +123,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 return true;
             }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsReference)
+
+            Debug.Assert(!expressionToCastType.IsIdentity);
+            if (expressionToCastType.IsExplicit)
             {
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
-                return false;
-            }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsUnboxing)
-            {
+                if (expressionToCastType.IsReference)
+                    return false;
+
                 // Unboxing conversions can cause a null ref exception, hence can never be removed.
-                return false;
-            }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
-            {
+                if (expressionToCastType.IsUnboxing)
+                    return false;
+
                 // Don't remove any explicit numeric casts.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                return false;
+                if (expressionToCastType.IsNumeric)
+                    return false;
             }
-            else if (expressionToCastType.IsPointer)
+
+            if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
             {
-                // Don't remove any non-identity pointer conversions.
+                // Don't remove any non-identity pointer or IntPtr conversions.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return expressionType != null && expressionType.Equals(outerType);
             }

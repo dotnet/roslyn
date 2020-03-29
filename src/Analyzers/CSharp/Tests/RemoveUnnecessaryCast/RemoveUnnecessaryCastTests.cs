@@ -4839,5 +4839,22 @@ class C
     }
 }");
         }
+
+        [WorkItem(41433, "https://github.com/dotnet/roslyn/issues/41433")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    unsafe int Test(IntPtr safePointer)
+    {
+        return ([|(int*)safePointer|])[0];
+    }
+}");
+        }
     }
 }
