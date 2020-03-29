@@ -5305,5 +5305,285 @@ public class C
     }
 }");
         }
+
+        [WorkItem(6309, "https://github.com/dotnet/roslyn/issues/6309")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    float X() => 2 / [|(float)X()|];
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float f1 = 0.00000000002f;
+        float f2 = 1 / f1;
+        double d = [|(float)f2|];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain3()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float f1 = 0.00000000002f;
+        float f2 = 1 / f1;
+        float f3 = [|(float)f2|];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnFieldRead()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M()
+    {
+        var v = [|(float)f|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M()
+    {
+        var v = f;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnFieldWrite()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M(float f1)
+    {
+        f = [|(float)f1|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M(float f1)
+    {
+        f = f1;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityInFieldInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    static float f1;
+    static float f2 = [|(float)f1|];
+}",
+@"
+using System;
+
+public class C
+{
+    static float f1;
+    static float f2 = f1;
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayRead()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M()
+    {
+        var v = [|(float)f[0]|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M()
+    {
+        var v = f[0];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayWrite()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M(float f2)
+    {
+        f[0] = [|(float)f2|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M(float f2)
+    {
+        f[0] = f2;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayInitializer1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = { f2 };
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayInitializer2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new float[] { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new float[] { f2 };
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnImplicitArrayInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new[] { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new[] { f2 };
+    }
+}");
+        }
     }
 }

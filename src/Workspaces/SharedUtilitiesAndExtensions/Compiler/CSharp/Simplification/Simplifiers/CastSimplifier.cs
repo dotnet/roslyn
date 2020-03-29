@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -120,6 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     {
                         return false;
                     }
+                }
+
+                if (SameSizedFloatingPointCastMustBePreserved(
+                        semanticModel, castNode, castedExpressionNode,
+                        expressionType, castType, cancellationToken))
+                {
+                    return false;
                 }
 
                 return true;
@@ -314,6 +323,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool SameSizedFloatingPointCastMustBePreserved(
+            SemanticModel semanticModel, ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            ITypeSymbol expressionType, ITypeSymbol castType, CancellationToken cancellationToken)
+        {
+            // Floating point casts can have subtle runtime behavior, even between the same fp types. For example, a
+            // cast from float-to-float can still change behavior because it may take a higher precision computation and
+            // truncate it to 32bits.
+            //
+            // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
+            // times are when we're loading or storing into a location we know has the same size that the cast size
+            // (i.e. reading/writing into a field).
+            if (expressionType.SpecialType != SpecialType.System_Double &&
+                expressionType.SpecialType != SpecialType.System_Single &&
+                castType.SpecialType != SpecialType.System_Double &&
+                castType.SpecialType != SpecialType.System_Single)
+            {
+                // wasn't a floating point conversion.
+                return false;
+            }
+
+            // Identity fp conversion is safe if this is a read from a fp field/array
+            if (IsFieldOrArrayElement(semanticModel, castedExpressionNode, cancellationToken))
+                return false;
+
+            castNode = castNode.WalkUpParentheses();
+            if (castNode.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                assignmentExpression.Right == castNode)
+            {
+                // Identity fp conversion is safe if this is a write toa fp field/array
+                if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
+                    return false;
+            }
+            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
+            {
+                // Identity fp conversion is safe if this is in an array initializer.
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer);
+                return typeInfo.Type?.Kind == SymbolKind.ArrayType;
+            }
+            else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
+                     equalsValue.Value == castNode &&
+                     equalsValue.Parent is VariableDeclaratorSyntax variableDeclarator)
+            {
+                // Identity fp conversion is safe if this is in an field initializer.
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+                if (symbol?.Kind == SymbolKind.Field)
+                    return false;
+            }
+
+            // We have to preserve this cast.
+            return true;
+        }
+
+        private static bool IsFieldOrArrayElement(
+            SemanticModel semanticModel, ExpressionSyntax expr, CancellationToken cancellationToken)
+        {
+            expr = expr.WalkDownParentheses();
+            var castedExpresionSymbol = semanticModel.GetSymbolInfo(expr, cancellationToken).Symbol;
+
+            // we're reading from a field of the same size.  it's safe to remove this case.
+            if (castedExpresionSymbol?.Kind == SymbolKind.Field)
+                return true;
+
+            if (expr is ElementAccessExpressionSyntax elementAccess)
+            {
+                var locationType = semanticModel.GetTypeInfo(elementAccess.Expression, cancellationToken);
+                return locationType.Type?.Kind == SymbolKind.ArrayType;
             }
 
             return false;
