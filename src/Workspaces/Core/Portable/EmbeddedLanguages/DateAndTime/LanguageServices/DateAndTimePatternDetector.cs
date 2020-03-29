@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             return new DateAndTimePatternDetector(semanticModel, info, dateTimeType, dateTimeOffsetType);
         }
 
+        /// <summary>
+        /// Checks if this <paramref name="token"/> is possibly a string literal token that could contain a date or time
+        /// format string passed into an method call.  If so, <paramref name="argumentNode"/> and <paramref
+        /// name="invocationExpression"/> will be the argument and invocatoin the string literal was passed as.
+        /// </summary>
         public static bool IsPossiblyDateAndTimeToken(
             SyntaxToken token, ISyntaxFacts syntaxFacts,
             [NotNullWhen(true)] out SyntaxNode? argumentNode,
