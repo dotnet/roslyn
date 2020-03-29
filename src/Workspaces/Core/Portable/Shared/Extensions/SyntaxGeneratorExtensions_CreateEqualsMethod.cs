@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // These will be all the expressions that we'll '&&' together inside the final
             // return statement of 'Equals'.
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
             if (factory.SupportsPatterns(parseOptions))
             {
@@ -195,7 +194,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            expressions.Free();
             return statements.ToImmutableAndFree();
         }
 
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // These will be all the expressions that we'll '&&' together inside the final
             // return statement of 'Equals'.
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
             if (!containingType.IsValueType)
             {
@@ -296,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            expressions.Free();
             return statements.ToImmutableAndFree();
         }
 

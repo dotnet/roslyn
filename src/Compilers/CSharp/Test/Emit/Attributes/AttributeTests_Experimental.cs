@@ -227,6 +227,45 @@ class C
                 Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
         }
 
+        [Fact]
+        public void TestDeprecatedLocalFunctions()
+        {
+            var source =
+@"
+using Windows.Foundation.Metadata;
+class A
+{
+    void M()
+    {
+        local1(); // 1
+        local2(); // 2
+
+        [Deprecated("""", DeprecationType.Deprecate, 0)]
+        void local1() { }
+
+        [Deprecated("""", DeprecationType.Remove, 0)]
+        void local2() { }
+
+#pragma warning disable 8321 // Unreferenced local function
+        [Deprecated("""", DeprecationType.Deprecate, 0)]
+        void local3()
+        {
+            // No obsolete warnings expected inside a deprecated local function
+            local1();
+            local2();
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { DeprecatedAttributeSource, ExperimentalAttributeSource, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS0618: 'local1()' is obsolete: ''
+                //         local1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "local1()").WithArguments("local1()", "").WithLocation(7, 9),
+                // (8,9): error CS0619: 'local2()' is obsolete: ''
+                //         local2(); // 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "local2()").WithArguments("local2()", "").WithLocation(8, 9));
+        }
+
         // Diagnostics for [Obsolete] members
         // are not suppressed in [Experimental] types.
         [Fact]

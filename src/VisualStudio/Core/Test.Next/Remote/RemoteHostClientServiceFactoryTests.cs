@@ -139,10 +139,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.CreateExpeditedWaitTask();
+            await workspaceListener.ExpeditedWaitAsync();
 
             var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
-            await listener.CreateExpeditedWaitTask();
+            await listener.ExpeditedWaitAsync();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));

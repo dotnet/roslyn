@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.DisplayName = value;
         }
 
-        public string ProjectFilePath
+        public string? ProjectFilePath
         {
             get => _visualStudioProject.FilePath;
             set => _visualStudioProject.FilePath = value;
@@ -139,12 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public ProjectId Id => _visualStudioProject.Id;
 
         public void SetOptions(string commandLineForOptions)
-        {
-            if (_visualStudioProjectOptionsProcessor != null)
-            {
-                _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
-            }
-        }
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
 
         public string? DefaultNamespace
         {

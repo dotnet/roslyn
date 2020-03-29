@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal class SerializerServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SerializerServiceFactory()
         {
         }

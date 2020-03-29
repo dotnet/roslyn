@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(TNode);
+            return null;
         }
 
         /// <summary>
@@ -993,7 +993,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1012,7 +1012,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1221,7 +1221,7 @@ recurse:
         {
             if (node == null)
             {
-                return default(T);
+                return null;
             }
 
             var annotations = this.Green.GetAnnotations();
@@ -1377,7 +1377,7 @@ recurse:
 
                 if (trivia.HasStructure && stepInto(trivia))
                 {
-                    token = trivia.GetStructure().FindTokenInternal(position);
+                    token = trivia.GetStructure()!.FindTokenInternal(position);
                 }
             }
 

@@ -204,9 +204,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            bool shouldRemoveAttribute(AttributeData a) =>
-                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-
             var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
 
             var someParameterHasAttribute = method.Parameters
@@ -230,6 +227,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+
+            bool shouldRemoveAttribute(AttributeData a) =>
+                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

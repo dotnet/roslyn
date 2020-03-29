@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return solution.WithAdditionalDocumentText(documentId, text, mode);
 
                 case null:
-                    throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
+                    throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(documentKind);

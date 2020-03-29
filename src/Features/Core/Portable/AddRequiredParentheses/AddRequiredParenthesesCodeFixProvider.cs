@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AddRequiredParenthesesCodeFixProvider()
         {
         }
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
                 // work we just did.
                 editor.ReplaceNode(node,
-                    (current, _) => syntaxFacts.Parenthesize(
+                    (current, _) => generator.AddParentheses(
                         current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 

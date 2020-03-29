@@ -37,6 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
                 => throw new InvalidOperationException();
 
+            // We should never be called in a context where we get references.
+            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+                => throw new InvalidOperationException();
+
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
                 => Task.CompletedTask;
@@ -45,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
 
-                var entries = ArrayBuilder<Entry>.GetInstance();
+                using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
                 if (definition.SourceSpans.Length == 1)
                 {
@@ -91,8 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     NotifyChange();
                 }
-
-                entries.Free();
             }
 
             private async Task<Entry> TryCreateEntryAsync(

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ISymbolExtensions2
     {
+        [Obsolete("Use overload without ISymbolDisplayService")]
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             this ImmutableArray<TSymbol> symbols,
             ISymbolDisplayService symbolDisplayService,
@@ -21,8 +22,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             int position)
             where TSymbol : ISymbol
         {
+            return Sort(symbols, semanticModel, position);
+        }
+
+        public static ImmutableArray<TSymbol> Sort<TSymbol>(
+            this ImmutableArray<TSymbol> symbols,
+            SemanticModel semanticModel,
+            int position)
+            where TSymbol : ISymbol
+        {
             var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
+            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
 
             return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
                           .ToImmutableArray();
@@ -122,12 +132,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static string[] GetParameterTypeNames(
             ISymbol symbol,
-            ISymbolDisplayService symbolDisplayService,
             SemanticModel semanticModel,
             int position)
         {
             return GetMethodOrIndexerOrEventParameters(symbol)
-                         .Select(p => symbolDisplayService.ToMinimalDisplayString(semanticModel, position, p.Type))
+                         .Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))
                          .ToArray();
         }
 
@@ -184,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     : s1.Kind == SymbolKind.Event ? -1 : 1;
             }
 
-            return Contract.FailWithReturn<int>(
-                string.Format("Comparing unexpected symbol kinds: {0} and {1}.", s1.Kind, s2.Kind));
+            throw ExceptionUtilities.UnexpectedValue((s1.Kind, s2.Kind));
         }
     }
 }

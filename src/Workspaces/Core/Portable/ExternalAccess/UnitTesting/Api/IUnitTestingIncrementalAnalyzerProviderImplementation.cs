@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal interface IUnitTestingIncrementalAnalyzerProviderImplementation
     {
-        IUnitTestingIncrementalAnalyzerImplementation CreateIncrementalAnalyzer(Workspace workspace);
+        IUnitTestingIncrementalAnalyzerImplementation CreateIncrementalAnalyzer();
     }
 }

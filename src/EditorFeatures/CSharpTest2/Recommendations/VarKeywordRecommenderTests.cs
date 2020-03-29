@@ -418,5 +418,27 @@ $$"));
             await VerifyAbsenceAsync(AddInsideMethod(
 @"ref int x = ref $$"));
         }
+
+        [WorkItem(10170, "https://github.com/dotnet/roslyn/issues/10170")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInPropertyPattern()
+        {
+            await VerifyKeywordAsync(
+@"
+using System;
+
+class Person { public string Name; }
+
+class Program
+{
+    void Goo(object o)
+    {
+        if (o is Person { Name: $$ })
+        {
+            Console.WriteLine(n);
+        }
+    }
+}");
+        }
     }
 }

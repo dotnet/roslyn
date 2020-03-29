@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -33,14 +31,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         TOptionKind, TCodeStyleProvider>
         where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>, new()
     {
-        private readonly Option<CodeStyleOption<TOptionKind>> _option;
+        private readonly Option2<CodeStyleOption2<TOptionKind>> _option;
         private readonly string _language;
         private readonly string _descriptorId;
         private readonly LocalizableString _title;
         private readonly LocalizableString _message;
 
         protected AbstractCodeStyleProvider(
-            Option<CodeStyleOption<TOptionKind>> option,
+            Option2<CodeStyleOption2<TOptionKind>> option,
             string language,
             string descriptorId,
             LocalizableString title,
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// handle ReportDiagnostic.Default and will map that back to the appropriate value in that
         /// case.
         /// </summary>
-        protected static ReportDiagnostic GetOptionSeverity(CodeStyleOption<TOptionKind> optionValue)
+        protected static ReportDiagnostic GetOptionSeverity(CodeStyleOption2<TOptionKind> optionValue)
         {
             var severity = optionValue.Notification.Severity;
             return severity == ReportDiagnostic.Default
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString title, LocalizableString message)
         {
             return new DiagnosticDescriptor(
-                this._descriptorId, title, message,
+                _descriptorId, title, message,
                 DiagnosticCategory.Style,
                 DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true);

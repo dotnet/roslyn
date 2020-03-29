@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
     /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently.
@@ -23,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             get;
         }
 
-        public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            CodeAction fixAction;
+            CodeAction? fixAction;
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+        protected abstract Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
         {
@@ -92,28 +94,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
 
-            var solution = fixAllContext.Solution;
-            var newDocuments = new List<Task<SyntaxNode>>(documents.Length);
+            using var _ = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
             foreach (var document in documents)
             {
+                // Don't bother examining any documents that aren't in the list of docs that
+                // actually have diagnostics.
                 if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
-                {
-                    newDocuments.Add(document.GetSyntaxRootAsync(fixAllContext.CancellationToken));
                     continue;
-                }
 
-                newDocuments.Add(FixAllInDocumentAsync(fixAllContext, document, diagnostics));
+                documentIdToNewNode.Add(document.Id, FixAllInDocumentAsync(fixAllContext, document, diagnostics));
             }
 
-            for (var i = 0; i < documents.Length; i++)
-            {
-                var newDocumentRoot = await newDocuments[i].ConfigureAwait(false);
-                if (newDocumentRoot == null)
-                {
-                    continue;
-                }
+            // Allow the processing of all the documents to happen concurrently.
+            await Task.WhenAll(documentIdToNewNode.Values).ConfigureAwait(false);
 
-                solution = solution.WithDocumentSyntaxRoot(documents[i].Id, newDocumentRoot);
+            var solution = fixAllContext.Solution;
+            foreach (var (docId, syntaxNodeTask) in documentIdToNewNode)
+            {
+                var newDocumentRoot = await syntaxNodeTask.ConfigureAwait(false);
+                if (newDocumentRoot == null)
+                    continue;
+
+                solution = solution.WithDocumentSyntaxRoot(docId, newDocumentRoot);
             }
 
             return solution;

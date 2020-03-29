@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
-            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
+            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());
 
             return syntaxFactory.OverrideAsync(
                 newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);

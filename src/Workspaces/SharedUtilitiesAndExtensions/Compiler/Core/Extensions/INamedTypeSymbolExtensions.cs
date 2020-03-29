@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -76,16 +77,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol method: return method.OverriddenMethod;
-                case IPropertySymbol property: return property.OverriddenProperty;
-                case IEventSymbol @event: return @event.OverriddenEvent;
-            }
-
-            return null;
-        }
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
+                _ => null,
+            };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
         {
@@ -178,39 +176,52 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            switch (implementation)
+            return implementation switch
             {
-                case IEventSymbol @event: return @event.ExplicitInterfaceImplementations.Length > 0;
-                case IMethodSymbol method: return method.ExplicitInterfaceImplementations.Length > 0;
-                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0;
-                default: return false;
-            }
+                IEventSymbol @event => @event.ExplicitInterfaceImplementations.Length > 0,
+                IMethodSymbol method => method.ExplicitInterfaceImplementations.Length > 0,
+                IPropertySymbol property => property.ExplicitInterfaceImplementations.Length > 0,
+                _ => false,
+            };
         }
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            IEnumerable<INamedTypeSymbol> interfaces,
+            bool includeMembersRequiringExplicitImplementation,
             CancellationToken cancellationToken)
         {
+            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> GetMembers;
+            if (includeMembersRequiringExplicitImplementation)
+            {
+                GetMembers = GetExplicitlyImplementableMembers;
+            }
+            else
+            {
+                GetMembers = GetImplicitlyImplementableMembers;
+            }
+
             return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
+                interfaces,
                 IsImplemented,
                 ImplementationExists,
-                (INamedTypeSymbol type, ISymbol within) =>
-                {
-                    if (type.TypeKind == TypeKind.Interface)
-                    {
-                        return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
-                                                                   m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                                   !IsPropertyWithNonPublicImplementableAccessor(m));
-                    }
-
-                    return type.GetMembers();
-                },
+                GetMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
 
             // local functions
+
+            static ImmutableArray<ISymbol> GetImplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)
+            {
+                if (type.TypeKind == TypeKind.Interface)
+                {
+                    return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                               m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
+                                                               !IsPropertyWithNonPublicImplementableAccessor(m));
+                }
+
+                return type.GetMembers();
+            }
 
             static bool IsPropertyWithNonPublicImplementableAccessor(ISymbol member)
             {
@@ -281,38 +292,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 interfaces,
                 IsExplicitlyImplemented,
                 ImplementationExists,
-                (INamedTypeSymbol type, ISymbol within) =>
-                {
-                    if (type.TypeKind == TypeKind.Interface)
-                    {
-                        return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
-                                                                   IsImplementable(m) && m.IsAccessibleWithin(within) &&
-                                                                   !IsPropertyWithInaccessibleImplementableAccessor(m, within));
-                    }
-
-                    return type.GetMembers();
-                },
+                GetExplicitlyImplementableMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
+        }
 
-            // local functions
-
-            static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
+        private static ImmutableArray<ISymbol> GetExplicitlyImplementableMembers(INamedTypeSymbol type, ISymbol within)
+        {
+            if (type.TypeKind == TypeKind.Interface)
             {
-                if (member.Kind != SymbolKind.Property)
-                {
-                    return false;
-                }
-
-                var property = (IPropertySymbol)member;
-
-                return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
+                return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
+                                                           IsImplementable(m) && m.IsAccessibleWithin(within) &&
+                                                           !IsPropertyWithInaccessibleImplementableAccessor(m, within));
             }
 
-            static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
+            return type.GetMembers();
+        }
+
+        private static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
+        {
+            if (member.Kind != SymbolKind.Property)
             {
-                return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
+                return false;
             }
+
+            var property = (IPropertySymbol)member;
+
+            return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
+        }
+
+        private static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
+        {
+            return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
         }
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
@@ -417,6 +428,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             ISymbol within)
         {
+            using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
+
             var systemAttributeType = compilation.AttributeType();
 
             foreach (var type in attributeSymbol.GetBaseTypesAndThis())
@@ -429,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var member in type.GetMembers())
                 {
                     var namedParameter = IsAttributeNamedParameter(member, within ?? compilation.Assembly);
-                    if (namedParameter != null)
+                    if (namedParameter != null && seenNames.Add(namedParameter.Name))
                     {
                         yield return namedParameter;
                     }

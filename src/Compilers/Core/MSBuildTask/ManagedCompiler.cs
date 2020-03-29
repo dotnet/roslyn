@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
                     // (to support using the dotnet cli)
-                    var responseTask = BuildServerConnection.RunServerCompilation(
+                    var responseTask = BuildServerConnection.RunServerCompilationAsync(
                         Language,
                         RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                         GetArguments(ToolArguments, responseFileCommands).ToList(),
@@ -949,77 +949,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     _store[nameof(EmitDebugInformation)] = false;
                 }
             }
-        }
-
-        /// <summary>
-        /// Validate parameters, log errors and warnings and return true if
-        /// Execute should proceed.
-        /// </summary>
-        protected override bool ValidateParameters()
-        {
-            return ListHasNoDuplicateItems(Resources, nameof(Resources), "LogicalName", Log) && ListHasNoDuplicateItems(Sources, nameof(Sources), Log);
-        }
-
-        /// <summary>
-        /// Returns true if the provided item list contains duplicate items, false otherwise.
-        /// </summary>
-        internal static bool ListHasNoDuplicateItems(ITaskItem[]? itemList, string parameterName, TaskLoggingHelper log)
-        {
-            return ListHasNoDuplicateItems(itemList, parameterName, disambiguatingMetadataName: null, log);
-        }
-
-        /// <summary>
-        /// Returns true if the provided item list contains duplicate items, false otherwise.
-        /// </summary>
-        /// <param name="itemList"></param>
-        /// <param name="disambiguatingMetadataName">Optional name of metadata that may legitimately disambiguate items. May be null.</param>
-        /// <param name="parameterName"></param>
-        /// <param name="log"></param>
-        private static bool ListHasNoDuplicateItems(ITaskItem[]? itemList, string parameterName, string? disambiguatingMetadataName, TaskLoggingHelper log)
-        {
-            if (itemList == null || itemList.Length == 0)
-            {
-                return true;
-            }
-
-            var alreadySeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (ITaskItem item in itemList)
-            {
-                string key;
-                string? disambiguatingMetadataValue = null;
-                if (disambiguatingMetadataName != null)
-                {
-                    disambiguatingMetadataValue = item.GetMetadata(disambiguatingMetadataName);
-                }
-
-                if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
-                {
-                    key = item.ItemSpec;
-                }
-                else
-                {
-                    key = item.ItemSpec + ":" + disambiguatingMetadataValue;
-                }
-
-                if (alreadySeen.ContainsKey(key))
-                {
-                    if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
-                    {
-                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
-                    }
-                    else
-                    {
-                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
-                    }
-                    return false;
-                }
-                else
-                {
-                    alreadySeen[key] = string.Empty;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>

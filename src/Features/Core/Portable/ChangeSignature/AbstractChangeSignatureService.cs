@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
@@ -166,11 +166,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
-            var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
-
-            var isExtensionMethod = context.Symbol is IMethodSymbol && (context.Symbol as IMethodSymbol).IsExtensionMethod;
-            return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
+            return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
@@ -180,8 +177,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
-                var streamingProgress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var streamingProgress = new StreamingProgressCollector();
 
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(

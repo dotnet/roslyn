@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         private readonly string _rootTemporaryPath;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MetadataAsSourceFileService()
         {
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 InitializeWorkspace(project);
                 Contract.ThrowIfNull(_workspace);
 
-                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
                 fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
-                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                             && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
                     }
 
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
                 if (navigateLocation == null)
                 {
-                    navigateLocation = await RelocateSymbol_NoLock(fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
+                    navigateLocation = await RelocateSymbol_NoLockAsync(fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
         }
 
-        private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Location> RelocateSymbol_NoLockAsync(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workspace);
 
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
+        private async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(compilation, "We are trying to produce a key for a language that doesn't support compilations.");

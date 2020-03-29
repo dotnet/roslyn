@@ -2,25 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
-#if CODE_STYLE
-    using Resources = CodeStyleFixesResources;
-#else
-    using Resources = WorkspacesResources;
-#endif
-
     internal static class FixAllContextHelper
     {
         public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
@@ -161,16 +153,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (fixAllScope)
             {
                 case FixAllScope.Custom:
-                    return string.Format(Resources.Fix_all_0, diagnosticId);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0, diagnosticId);
 
                 case FixAllScope.Document:
-                    return string.Format(Resources.Fix_all_0_in_1, diagnosticId, triggerDocument.Name);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument.Name);
 
                 case FixAllScope.Project:
-                    return string.Format(Resources.Fix_all_0_in_1, diagnosticId, triggerProject.Name);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name);
 
                 case FixAllScope.Solution:
-                    return string.Format(Resources.Fix_all_0_in_Solution, diagnosticId);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, diagnosticId);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(fixAllScope);

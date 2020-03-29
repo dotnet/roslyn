@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -10,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,16 +36,24 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+            if (document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+                && !string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // If we have a defined file header template, allow the analyzer and code fix to handle it
+                return;
+            }
+
+            var position = span.Start;
             var firstToken = root.GetFirstToken();
             if (!firstToken.FullSpan.IntersectsWith(position))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var banner = syntaxFacts.GetFileBanner(root);
 
             if (banner.Length > 0)
@@ -115,7 +127,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
             Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.
@@ -140,7 +152,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_file_banner, createChangedDocument)
+                : base(CodeFixesResources.Add_file_banner, createChangedDocument)
             {
             }
         }

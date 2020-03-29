@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.IsUnsafe(),
+                isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed);
@@ -250,9 +251,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
             {
-                if (string.IsNullOrEmpty(xmlText) && IsEligibleForAutomaticInheritdoc(symbol))
+                if (string.IsNullOrEmpty(xmlText))
                 {
-                    xmlText = $@"<doc><inheritdoc/></doc>";
+                    if (IsEligibleForAutomaticInheritdoc(symbol))
+                    {
+                        xmlText = $@"<doc><inheritdoc/></doc>";
+                    }
+                    else
+                    {
+                        return DocumentationComment.Empty;
+                    }
                 }
 
                 try
@@ -266,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
+            return RoslynString.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
 
             static bool IsEligibleForAutomaticInheritdoc(ISymbol symbol)
             {
@@ -683,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-                .WhereAsArray(s => !s.IsUnsafe());
+                .WhereAsArray(s => !s.RequiresUnsafeModifier());
         }
     }
 }

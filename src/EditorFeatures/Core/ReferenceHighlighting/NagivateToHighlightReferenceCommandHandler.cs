@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NavigateToHighlightReferenceCommandHandler(
             IOutliningManagerService outliningManagerService,
             IViewTagAggregatorFactoryService tagAggregatorFactory)

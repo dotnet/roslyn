@@ -35,22 +35,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// '(' this will just map to '(' as that's all that \( does in a regex.
         /// </summary>
         public static char MapEscapeChar(char ch)
-        {
-            switch (ch)
+            => ch switch
             {
-                default:
-                    return ch;
-
-                case 'a': return '\u0007';  // bell
-                case 'b': return '\b';      // backspace
-                case 'e': return '\u001B';  // escape
-                case 'f': return '\f';      // form feed
-                case 'n': return '\n';      // new line
-                case 'r': return '\r';      // carriage return
-                case 't': return '\t';      // tab
-                case 'v': return '\u000B';  // vertical tab
-            }
-        }
+                'a' => '\u0007',    // bell
+                'b' => '\b',        // backspace
+                'e' => '\u001B',    // escape
+                'f' => '\f',        // form feed
+                'n' => '\n',        // new line
+                'r' => '\r',        // carriage return
+                't' => '\t',        // tab
+                'v' => '\u000B',    // vertical tab
+                _ => ch,
+            };
 
         public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
         {

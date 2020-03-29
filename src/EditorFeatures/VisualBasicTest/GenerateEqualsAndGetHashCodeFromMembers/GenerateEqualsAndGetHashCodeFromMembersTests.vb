@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
@@ -244,6 +242,54 @@ Class Program
         Dim program = TryCast(obj, Program)
         Return program IsNot Nothing AndAlso
                P = program.P
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogInheritedMembers() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Base
+    Public Property C As Integer
+End Class
+
+Class Middle
+    Inherits Base
+
+    Public Property B As Integer
+End Class
+
+Class Derived
+    Inherits Middle
+
+    Public Property A As Integer
+    [||]
+End Class",
+"
+Class Base
+    Public Property C As Integer
+End Class
+
+Class Middle
+    Inherits Base
+
+    Public Property B As Integer
+End Class
+
+Class Derived
+    Inherits Middle
+
+    Public Property A As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim derived = TryCast(obj, Derived)
+        Return derived IsNot Nothing AndAlso
+               C = derived.C AndAlso
+               B = derived.B AndAlso
+               A = derived.A
     End Function
 End Class",
 chosenSymbols:=Nothing)

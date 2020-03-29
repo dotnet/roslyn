@@ -7,14 +7,14 @@
         <target state="translated">await と ConfigureAwait(false) を追加</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">'アクセシビリティ修飾子を追加します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
         <source>Add await</source>
         <target state="translated">await を追加する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_usings">
@@ -72,14 +72,14 @@
         <target state="translated">'out' パラメーターの割り当て (開始時)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Convert_switch_statement_to_expression">
-        <source>Convert switch statement to expression</source>
-        <target state="translated">switch ステートメントを式に変換します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">メソッドに変換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_string">
+        <source>Convert to regular string</source>
+        <target state="new">Convert to regular string</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -90,6 +90,16 @@
       <trans-unit id="Convert_to_switch_statement">
         <source>Convert to 'switch' statement</source>
         <target state="translated">'switch' ステートメントに変換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_verbatim_string">
+        <source>Convert to verbatim string</source>
+        <target state="new">Convert to verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -152,11 +162,6 @@
         <target state="translated">すべての出現箇所を簡素化します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
@@ -165,11 +170,6 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">クラス '{0}' のシールを解除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_switch_expression">
-        <source>Use 'switch' expression</source>
-        <target state="translated">'switch' 式を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -405,36 +405,6 @@
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
         <target state="translated">暗黙的な変換演算子を '{0}' に生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above">
-        <source>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</source>
-        <target state="translated">このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</source>
-        <target state="translated">TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下のファイナライザーをオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 上の Dispose(bool disposing) にアンマネージ リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
-        <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="translated">このコードは、破棄可能なパターンを正しく実装できるように追加されました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
-        <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
-        <target state="translated">TODO: 上のファイナライザーがオーバーライドされる場合は、次の行のコメントを解除してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_directive_is_unnecessary">
-        <source>Using directive is unnecessary.</source>
-        <target state="translated">Using ディレクティブは必要ありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -677,26 +647,6 @@
         <target state="translated">プロパティ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_explicit_type_instead_of_var">
-        <source>Use explicit type instead of 'var'</source>
-        <target state="translated">var' ではなく明示的な型を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicit_type">
-        <source>Use explicit type</source>
-        <target state="translated">明示的な型の使用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="use_var_instead_of_explicit_type">
-        <source>use 'var' instead of explicit type</source>
-        <target state="translated">明示的な型ではなく 'var' を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_implicit_type">
-        <source>Use implicit type</source>
-        <target state="translated">暗黙的な型の使用</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">名前空間宣言により、Autoselect は無効です。</target>
@@ -757,11 +707,6 @@
         <target state="translated">メソッドを非同期にする (void を維持)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_this">
-        <source>Add 'this.'</source>
-        <target state="translated">this' を追加します。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名前&gt;</target>
@@ -780,11 +725,6 @@
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
         <target state="translated">使用されていない関数を削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">is null' チェックを使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">

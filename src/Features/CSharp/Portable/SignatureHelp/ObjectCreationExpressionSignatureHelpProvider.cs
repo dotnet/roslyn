@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ObjectCreationExpressionSignatureHelpProvider()
         {
         }
@@ -74,15 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
+                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, type, cancellationToken)
+                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
 
             return CreateSignatureHelpItems(items, textSpan,
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);

@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Project project,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
-            bool thirdPartyNavigationAllowed = true,
-            bool throwOnHiddenDefinition = false)
+            bool thirdPartyNavigationAllowed = true)
         {
             var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 

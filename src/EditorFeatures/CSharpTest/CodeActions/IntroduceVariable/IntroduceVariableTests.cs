@@ -27,21 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => GetNestedActions(actions);
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
+        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
                 SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
                 SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()
@@ -1478,8 +1471,8 @@ index: 1);
     static void Main(string[] args)
     {
         int[] a = null;
-        var {|Rename:v|} = a = new[] { 1, 2, 3 };
-        int[] temp = checked(v);
+        var {|Rename:vs|} = a = new[] { 1, 2, 3 };
+        int[] temp = checked(vs);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -3463,8 +3456,8 @@ public class Test
         {
             int {|Rename:arg|} = x.Resolve();
             return factory(
-     arg
- );
+                        arg
+                    );
         });
 }";
 
@@ -5980,8 +5973,8 @@ class C
     byte[] getArray() => null;
     void test()
     {
-        byte[] {|Rename:v|} = getArray();
-        var goo = v[0];
+        byte[] {|Rename:vs|} = getArray();
+        var goo = vs[0];
     }
 }");
         }
@@ -7327,6 +7320,143 @@ class Bug
         throw new NotImplementedException();
     }
 }", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(561, "https://github.com/dotnet/roslyn/issues/561")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task DoNotGenerateBetweenElseAndIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+        }
+        else if ([|args.Length|] == 0)
+        {
+        }
+    }
+}",
+@"class C
+{
+    static void Main(string[] args)
+    {
+        int {|Rename:length|} = args.Length;
+        if (true)
+        {
+        }
+        else if (length == 0)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(12591, "https://github.com/dotnet/roslyn/issues/12591")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestWhitespaceSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Class1
+{
+    void M()
+    {
+        Foo(1,[| Bar()|]);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}",
+@"public class Class1
+{
+    void M()
+    {
+        object {|Rename:v2|} = Bar();
+        Foo(1, v2);
+    }
+
+    private void Foo(int v1, object v2)
+    {
+    }
+
+    private object Bar()
+    {
+    }
+}");
+        }
+
+        [WorkItem(56, "https://github.com/dotnet/roslyn/issues/56")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestGenerateNameForForeachExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var num in [|GetNumbers()|])
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IEnumerable<int> {|Rename:nums|} = GetNumbers();
+        foreach (var num in nums)
+        {
+
+        }
+    }
+
+    static IEnumerable<int> GetNumbers()
+    {
+        return new[] { 1, 2, 3 };
+    }
+}");
+        }
+
+        [WorkItem(15770, "https://github.com/dotnet/roslyn/issues/15770")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepReplacementIndentation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class D
+{
+    void C(int a)
+    {
+        C(
+            [|1 + 2|]);
+    }
+}",
+@"class D
+{
+    void C(int a)
+    {
+        const int {|Rename:A|} = 1 + 2;
+        C(
+            A);
+    }
+}",
+                index: 3);
         }
     }
 }

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
+        Private Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
             Using workspace = CreateTestWorkspace(definition, csharpParseOptions)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
                 Await AssertCodeEqual(expected, simplifiedDocument)
@@ -34,7 +34,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Return workspace
         End Function
 
-        Protected Async Function SimplifyAsync(workspace As TestWorkspace, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task(Of Document)
+        Protected Function SimplifyAsync(workspace As TestWorkspace) As System.Threading.Tasks.Task(Of Document)
+            Return SimplifyAsync(workspace, Nothing)
+        End Function
+
+        Private Async Function SimplifyAsync(workspace As TestWorkspace, options As Dictionary(Of OptionKey2, Object)) As System.Threading.Tasks.Task(Of Document)
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -58,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Private Async Function SimplifyAsync(workspace As Workspace,
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
-                         options As Dictionary(Of OptionKey, Object)) As Task(Of Document)
+                         options As Dictionary(Of OptionKey2, Object)) As Task(Of Document)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()

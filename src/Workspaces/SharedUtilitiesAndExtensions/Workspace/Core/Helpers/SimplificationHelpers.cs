@@ -4,9 +4,14 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -112,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (symbol.IsStatic)
                 return true;
 
-            if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
-                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
-                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions.QualifyMethodAccess, semanticModel.Language).Value) ||
-                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions.QualifyEventAccess, semanticModel.Language).Value)))
+            if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions2.QualifyFieldAccess, semanticModel.Language).Value ||
+                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions2.QualifyPropertyAccess, semanticModel.Language).Value) ||
+                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions2.QualifyMethodAccess, semanticModel.Language).Value) ||
+                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions2.QualifyEventAccess, semanticModel.Language).Value)))
             {
                 return false;
             }
@@ -125,12 +130,12 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
         {
-            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
+            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
         }
 
         internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
         {
-            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
+            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
         }
     }
 }

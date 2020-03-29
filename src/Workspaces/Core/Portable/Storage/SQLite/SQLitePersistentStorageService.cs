@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
-        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr LoadLibrary(string dllToLoad);
@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var myFolder = Path.GetDirectoryName(
                     typeof(SQLitePersistentStorage).Assembly.Location);
+                if (myFolder == null)
+                    return false;
 
                 var is64 = IntPtr.Size == 8;
                 var subfolder = is64 ? "x64" : "x86";
@@ -63,20 +65,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             return true;
         }
 
-        public SQLitePersistentStorageService(
-            IOptionService optionService,
-            IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker)
-            : base(optionService, locationService, solutionSizeTracker)
+        public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
+            : base(locationService)
         {
         }
 
         public SQLitePersistentStorageService(
-            IOptionService optionService,
             IPersistentStorageLocationService locationService,
-            ISolutionSizeTracker solutionSizeTracker,
             IPersistentStorageFaultInjector faultInjector)
-            : this(optionService, locationService, solutionSizeTracker)
+            : this(locationService)
         {
             _faultInjectorOpt = faultInjector;
         }
@@ -87,25 +84,23 @@ namespace Microsoft.CodeAnalysis.SQLite
             return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
-        protected override bool TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath, out IChecksummedPersistentStorage storage)
+        protected override IChecksummedPersistentStorage? TryOpenDatabase(
+            Solution solution, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                storage = null;
-                return false;
+                return null;
             }
 
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)
             {
-                storage = null;
-                return false;
+                return null;
             }
 
-            SQLitePersistentStorage sqlStorage = null;
+            SQLitePersistentStorage? sqlStorage = null;
             try
             {
                 sqlStorage = new SQLitePersistentStorage(
@@ -113,6 +108,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 sqlStorage.Initialize(solution);
 
+                return sqlStorage;
             }
             catch (Exception)
             {
@@ -129,22 +125,26 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
                 throw;
             }
-
-            storage = sqlStorage;
-            return true;
         }
 
-        private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
+        /// <summary>
+        /// Returns null in the case where an IO exception prevented us from being able to acquire
+        /// the db lock file.
+        /// </summary>
+        private static IDisposable? TryGetDatabaseOwnership(string databaseFilePath)
         {
-            return IOUtilities.PerformIO<IDisposable>(() =>
+            return IOUtilities.PerformIO<IDisposable?>(() =>
             {
                 // make sure directory exist first.
                 EnsureDirectory(databaseFilePath);
 
+                var directoryName = Path.GetDirectoryName(databaseFilePath);
+                Contract.ThrowIfNull(directoryName);
+
                 return File.Open(
-                    Path.Combine(Path.GetDirectoryName(databaseFilePath), LockFile),
+                    Path.Combine(directoryName, LockFile),
                     FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            });
+            }, defaultValue: null);
         }
 
         private static void EnsureDirectory(string databaseFilePath)

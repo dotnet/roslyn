@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -11,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol => null;
+        public virtual ISymbol ContainingSymbol => null;
 
         public IAssemblySymbol ContainingAssembly => null;
 

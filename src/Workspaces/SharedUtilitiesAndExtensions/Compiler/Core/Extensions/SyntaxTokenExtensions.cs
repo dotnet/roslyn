@@ -19,13 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return token.GetAncestor<SyntaxNode>(predicate);
         }
 
-        public static T? GetAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null)
-            where T : SyntaxNode
-        {
-            return token.Parent != null
-                ? token.Parent.FirstAncestorOrSelf(predicate)
-                : default;
-        }
+        public static T? GetAncestor<T>(this SyntaxToken token, Func<T, bool>? predicate = null) where T : SyntaxNode
+            => token.Parent?.FirstAncestorOrSelf(predicate);
 
         public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)
             where T : SyntaxNode

@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
                    message,
-                   CodeStyleOptions.PreferConditionalExpressionOverReturn)
+                   CodeStyleOptions2.PreferConditionalExpressionOverReturn)
         {
         }
 
         protected override bool TryMatchPattern(IConditionalOperation ifOperation)
             => UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    GetSyntaxFactsService(), ifOperation, out _, out _);
+                    GetSyntaxFacts(), ifOperation, out _, out _);
     }
 }

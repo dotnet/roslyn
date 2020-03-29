@@ -27,11 +27,6 @@
         <target state="translated">Změna dokumentu {0} není podporovaná.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
-        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
-        <target state="translated">K provedení úlohy se vyžaduje kompilace, ale projekt {0} ji nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Základní možnosti pro EditorConfig</target>
@@ -57,39 +52,9 @@
         <target state="translated">Při čtení obsahu zdrojového souboru {0} došlo k chybě -- {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Expression_level_preferences">
-        <source>Expression-level preferences</source>
-        <target state="translated">Předvolby na úrovni výrazů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences">
-        <source>Field preferences</source>
-        <target state="translated">Předvolby polí</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Odsazení a mezery</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
-        <source>Language keywords vs BCL types preferences</source>
-        <target state="translated">Předvolby klíčových slov jazyka a typů BCL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier_preferences">
-        <source>Modifier preferences</source>
-        <target state="translated">Předvolby modifikátorů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">Pravidla pojmenování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">Styly pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -102,29 +67,9 @@
         <target state="translated">Možnosti nepocházely ze zadaného řešení.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Organize_usings">
-        <source>Organize usings</source>
-        <target state="translated">Uspořádat direktivy using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_preferences">
-        <source>Parentheses preferences</source>
-        <target state="translated">Předvolby závorek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
-        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
-        <target state="translated">Předpona {0} neodpovídá očekávané předponě {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefix_0_is_not_expected">
-        <source>Prefix '{0}' is not expected</source>
-        <target state="translated">Předpona {0} se neočekávala.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
-        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
-        <target state="translated">Ke splnění úkolu se vyžaduje projekt s ID {0}, který ale není z řešení dostupný.</target>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="new">Project does not contain specified reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1332,14 +1277,9 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Přidávání projektů se nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">Specifikace symbolů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
-        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
-        <target state="translated">K provedení úlohy se vyžaduje strom syntaxe, ale dokument {0} ho nepodporuje.</target>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="new">The project already contains the specified reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -1360,6 +1300,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Pracovní prostor není platný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="new">{0} is in a different project.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -1440,11 +1385,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">Řešení už obsahuje zadaný dokument.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">Řešení neobsahuje zadaný dokument.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -1542,11 +1482,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">{0} je pořád otevřený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Element se stejným klíčem, ale odlišnou hodnotou už existuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Pole s víc než jedním rozměrem nejsou serializované.</target>
@@ -1560,11 +1495,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Zadaná cesta musí být absolutní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">Přetypování je redundantní.</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -1590,11 +1520,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
         <source>Invalid number of parameters for unary operator.</source>
         <target state="translated">Neplatný počet parametrů pro unární operátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">Očekávala se absolutní cesta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -1635,21 +1560,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Přidáno:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Opravit vše ({0})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Opravit vše ({0}) v: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Opravit vše ({0}) v řešení</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -1740,11 +1650,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
         <target state="translated">Ke splnění úkolu se vyžaduje služba typu {0}, není ale z pracovního prostoru dostupná.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Zadaná diagnostika nemůže být null.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -1847,21 +1752,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Upozornění</target>
         <note />
       </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Naplnit přepínač</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Přístup členů by měl být kvalifikovaný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Přidat složené závorky do příkazu {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable">
         <source>Enable</source>
         <target state="translated">Povolit</target>
@@ -1892,110 +1782,10 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Čtečka deserializace pro {0} přečetla nesprávný počet hodnot.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">PascalCase</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">Abstraktní metoda</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">Asynchronní metoda</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">Začíná na I</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="new">Class</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="new">Delegate</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="new">Enum</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="new">Event</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="new">Interface</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">Členové bez pole</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">Privátní metoda</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">Privátní nebo interní pole</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">Privátní nebo interní statické pole</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="new">Property</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">Veřejné nebo chráněné pole</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">Statické pole</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">Statická metoda</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="new">Struct</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">Typy</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">metoda</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">Chybějící předpona: {0}</target>
-        <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
@@ -2007,49 +1797,9 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">žádné</target>
         <note />
       </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">Chybějící přípona: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">Tato neúvodní slova musí začínat velkým písmenem: {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Návrh</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">Tato neúvodní slova musí začínat malým písmenem: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">Tato slova nemohou obsahovat malá písmena: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">Tato slova nemohou obsahovat velká písmena: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">Tato slova musí začínat velkými písmeny: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">První slovo ({0}) musí začínat velkým písmenem.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">První slovo ({0}) musí začínat malým písmenem.</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">
@@ -2217,11 +1967,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Konvence kódování v .NET</target>
         <note />
       </trans-unit>
-      <trans-unit id="this_dot_and_Me_dot_preferences">
-        <source>this. and Me. preferences</source>
-        <target state="translated">Předvolby pro this. a Me.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="translated">Rozsah [x-y] je v obráceném pořadí.</target>
@@ -2236,11 +1981,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <source>Regex issue: {0}</source>
         <target state="translated">Problém s regulárním výrazem: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="translated">Předvolby parametrů</target>
-        <note />
       </trans-unit>
     </body>
   </file>

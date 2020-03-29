@@ -2,23 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Diagnostics
-Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -29,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class LineContinuationTrivia
             Inherits AbstractLineBreakTrivia
 
-            Public Sub New(optionSet As OptionSet,
+            Public Sub New(options As AnalyzerConfigOptions,
                            originalString As String,
                            indentation As Integer)
-                MyBase.New(optionSet, originalString, 1, indentation, False)
+                MyBase.New(options, originalString, 1, indentation, False)
             End Sub
 
             Protected Overrides Function CreateStringFromState() As String
@@ -42,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 builder.Append(" "c)
                 builder.Append(SyntaxFacts.GetText(SyntaxKind.LineContinuationTrivia))
 
-                builder.AppendIndentationString(Me.Spaces, Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic), Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic))
+                builder.AppendIndentationString(Me.Spaces, Me.Options.GetOption(FormattingOptions2.UseTabs), Me.Options.GetOption(FormattingOptions2.TabSize))
                 Return StringBuilderPool.ReturnAndFree(builder)
             End Function
 
@@ -54,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return Me
                 End If
 
-                Return New LineContinuationTrivia(Me.OptionSet, Me._original, indentation)
+                Return New LineContinuationTrivia(Me.Options, Me._original, indentation)
             End Function
         End Class
     End Class

@@ -1459,7 +1459,7 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
+options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error))
         End Function
 
         <WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")>

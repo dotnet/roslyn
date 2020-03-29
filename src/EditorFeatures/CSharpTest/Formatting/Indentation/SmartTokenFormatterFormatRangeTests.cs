@@ -3472,7 +3472,7 @@ class Program{
             using var workspace = TestWorkspace.CreateCSharp(markup);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             var subjectDocument = workspace.Documents.Single();
 
@@ -3518,7 +3518,7 @@ class Program{
             using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             var tuple = GetService(workspace);
             var testDocument = workspace.Documents.Single();

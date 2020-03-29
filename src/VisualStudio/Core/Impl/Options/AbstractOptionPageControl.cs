@@ -54,9 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
             radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(RadioButton), radioButtonStyle);
+
+            var comboBoxStyle = new System.Windows.Style(typeof(ComboBox));
+            comboBoxStyle.Setters.Add(new Setter(ComboBox.MarginProperty, new Thickness() { Bottom = 7 }));
+            comboBoxStyle.Setters.Add(new Setter(ComboBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(ComboBox), comboBoxStyle);
         }
 
-        protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
+        private protected void BindToOption(CheckBox checkbox, Option2<bool> optionKey)
         {
             var binding = new Binding()
             {
@@ -69,21 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(CheckBox checkbox, Option<int> optionKey)
-        {
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new CheckBoxCheckedToIntConverter(),
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -96,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, Option<int> optionKey)
+        private protected void BindToOption(TextBox textBox, Option2<int> optionKey)
         {
             var binding = new Binding()
             {
@@ -109,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, PerLanguageOption<int> optionKey, string languageName)
+        private protected void BindToOption(TextBox textBox, PerLanguageOption2<int> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -122,7 +113,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
+        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                Converter = new ComboBoxItemTagToIndexConverter(),
+                ConverterParameter = comboBox
+            };
+
+            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
+                Path = new PropertyPath("Value"),
+                Converter = new ComboBoxItemTagToIndexConverter(),
+                ConverterParameter = comboBox
+            };
+
+            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {
@@ -169,18 +188,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class CheckBoxCheckedToIntConverter : IValueConverter
+    public class ComboBoxItemTagToIndexConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return !value.Equals(-1);
+            var comboBox = (ComboBox)parameter;
+
+            for (var index = 0; index < comboBox.Items.Count; index++)
+            {
+                var item = (ComboBoxItem)comboBox.Items[index];
+                if (item.Tag.Equals(value))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value.Equals(true) ? 1 : -1;
+            var index = (int)value;
+            if (index == -1)
+            {
+                return null;
+            }
+
+            var comboBox = (ComboBox)parameter;
+            var item = (ComboBoxItem)comboBox.Items[index];
+            return item.Tag;
         }
     }
 }

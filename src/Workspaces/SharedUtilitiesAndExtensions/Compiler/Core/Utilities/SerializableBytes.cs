@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis
 
         internal static PooledStream CreateReadableStream(byte[] bytes)
             => CreateReadableStream(bytes, bytes.Length);
-
 
         internal static PooledStream CreateReadableStream(byte[] bytes, int length)
         {
