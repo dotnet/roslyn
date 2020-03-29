@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -18,15 +17,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Deconstruct_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_deconstructed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_deconstructed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
