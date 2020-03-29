@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                return _textChanges;
-            }
+                => _textChanges;
 
             public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
                 => _formatter.FormatToSyntaxTrivia(cancellationToken);
