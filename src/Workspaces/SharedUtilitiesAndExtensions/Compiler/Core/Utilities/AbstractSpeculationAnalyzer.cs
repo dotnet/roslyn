@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
         {
-            return semanticRootOfOriginalExpression.ReplaceNode<SyntaxNode>(this.OriginalExpression, annotatedReplacedExpression);
+            return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
         }
 
         private void EnsureReplacedExpressionAndSemanticRoot()
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // expression in its parent, we annotate it here to allow us to get back to
                 // it after replace.
                 var annotation = new SyntaxAnnotation();
-                var annotatedExpression = _newExpressionForReplace.WithAdditionalAnnotations<TExpressionSyntax>(annotation);
+                var annotatedExpression = _newExpressionForReplace.WithAdditionalAnnotations(annotation);
                 _lazySemanticRootOfReplacedExpression = GetSemanticRootOfReplacedExpression(this.SemanticRootOfOriginalExpression, annotatedExpression);
                 _lazyReplacedExpression = (TExpressionSyntax)_lazySemanticRootOfReplacedExpression.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
             }
@@ -901,13 +901,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // No nested classes.
 
                 // A class with no nested classes and no accessible instance constructors is effectively sealed.
-                if (namedType.InstanceConstructors.All<IMethodSymbol>(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
+                if (namedType.InstanceConstructors.All(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
                     return true;
 
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
                     namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any<INamedTypeSymbol>(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
+                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
                 {
                     return true;
                 }
