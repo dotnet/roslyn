@@ -135,9 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
 
             public void Undo()
                 => UndoCalled = true;

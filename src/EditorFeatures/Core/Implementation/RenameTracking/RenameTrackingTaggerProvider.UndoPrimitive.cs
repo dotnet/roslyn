@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 => false;
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }
