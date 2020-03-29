@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus
         }
 
         public AbstractFormattingRule GetAdditionalCodeGenerationRule()
-        {
-            return BlankLineInGeneratedMethodFormattingRule.Instance;
-        }
+            => BlankLineInGeneratedMethodFormattingRule.Instance;
     }
 }
