@@ -22,18 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         }
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
-        {
-            return null;
-        }
+            => null;
 
         public string GetDefaultNamespace(Project project, Workspace workspace)
-        {
-            return _defaultNamespace;
-        }
+            => _defaultNamespace;
 
         public void SetDefaultNamespace(string defaultNamespace)
-        {
-            _defaultNamespace = defaultNamespace;
-        }
+            => _defaultNamespace = defaultNamespace;
     }
 }
