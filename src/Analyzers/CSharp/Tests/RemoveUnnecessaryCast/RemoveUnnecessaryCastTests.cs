@@ -5585,5 +5585,61 @@ public class C
     }
 }");
         }
+
+        [WorkItem(37953, "https://github.com/dotnet/roslyn/issues/37953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFromUnnecessarySwitchExpressionCast1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(DayOfWeek value)
+        => [|(DayOfWeek)value|] switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+}",
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(DayOfWeek value)
+        => value switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+}");
+        }
+
+        [WorkItem(37953, "https://github.com/dotnet/roslyn/issues/37953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestLeaveNecessarySwitchExpressionCast1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(int value)
+        => [|(DayOfWeek)value|] switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+}");
+        }
     }
 }
