@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => _map.ContainsKey(key);
 
             public void CopyTo(KeyValuePair<OptionKey2, object>[] array, int arrayIndex)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public IEnumerator<KeyValuePair<OptionKey2, object>> GetEnumerator()
                 => _map.GetEnumerator();
