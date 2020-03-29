@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -962,6 +963,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
                         if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                            return true;
+                    }
+                    else if (current is SelectOrGroupClauseSyntax ||
+                             current is OrderingSyntax)
+                    {
+                        var info = semanticModel.GetSymbolInfo(current, cancellationToken);
+                        if (TakesExpressionTree(info, expressionTypeOpt))
+                            return true;
+                    }
+                    else if (current is QueryClauseSyntax queryClause)
+                    {
+                        var info = semanticModel.GetQueryClauseInfo(queryClause, cancellationToken);
+                        if (TakesExpressionTree(info.CastInfo, expressionTypeOpt) ||
+                            TakesExpressionTree(info.OperationInfo, expressionTypeOpt))
                         {
                             return true;
                         }
@@ -970,6 +985,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+
+            static bool TakesExpressionTree(SymbolInfo info, INamedTypeSymbol expressionType)
+            {
+                foreach (var symbol in info.GetAllSymbols())
+                {
+                    if (symbol is IMethodSymbol method &&
+                        method.Parameters.Length > 0 &&
+                        expressionType.Equals(method.Parameters[0].Type?.OriginalDefinition))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static bool IsInDeconstructionLeft(

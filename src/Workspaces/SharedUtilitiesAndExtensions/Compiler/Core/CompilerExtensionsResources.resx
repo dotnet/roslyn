@@ -267,4 +267,7 @@
   <data name="Symbol_specifications" xml:space="preserve">
     <value>Symbol specifications</value>
   </data>
+  <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
+    <value>Specified sequence has duplicate items</value>
+  </data>
 </root>

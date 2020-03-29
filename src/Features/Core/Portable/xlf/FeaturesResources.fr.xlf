@@ -320,6 +320,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
         <target state="translated">Générer le paramètre '{0}'</target>

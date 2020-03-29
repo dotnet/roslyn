@@ -642,5 +642,8 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
+            => array.IndexOf(item, startIndex: 0, comparer);
     }
 }

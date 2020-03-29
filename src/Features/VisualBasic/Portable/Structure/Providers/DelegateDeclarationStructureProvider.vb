@@ -15,9 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(delegateDeclaration As DelegateStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(delegateDeclaration, spans)
+            CollectCommentsRegions(delegateDeclaration, spans, isMetadataAsSource)
         End Sub
     End Class
 End Namespace

@@ -2051,6 +2051,12 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Implement_remaining_members_explicitly" xml:space="preserve">
     <value>Implement remaining members explicitly</value>
   </data>
+  <data name="Generate_for_0" xml:space="preserve">
+    <value>Generate for '{0}'</value>
+  </data>
+  <data name="Generate_comparison_operators" xml:space="preserve">
+    <value>Generate comparison operators</value>
+  </data>
   <data name="Create_and_assign_remaining_as_fields" xml:space="preserve">
     <value>Create and assign remaining as fields</value>
   </data>
