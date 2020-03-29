@@ -20,7 +20,7 @@
             WindowStartupLocation="CenterOwner"
             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
             vs2:ImageThemingUtilities.ThemeScrollBars="True"
-            Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+            Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <StackPanel Margin="0,0,0,9" >
         <Label Content="{Binding ElementName=dialog, Path=TypeDetails}" FontWeight="Bold" Margin="20,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5"/>
         <Grid Margin="20,0,1,0" Height="49">

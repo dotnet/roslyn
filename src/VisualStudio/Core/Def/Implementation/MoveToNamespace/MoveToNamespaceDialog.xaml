@@ -19,7 +19,7 @@
              HasDialogFrame="True"
              WindowStartupLocation="CenterOwner"
              vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
-             Background="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
 
     <Window.Resources>
         <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
