@@ -5127,5 +5127,118 @@ class C
     private void bar(IFormattable s) { }
 }");
         }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnNonSealedClass()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+public class MyContext : DbContext, IDisposable
+{
+    void IDisposable.Dispose()
+    {
+        Console.WriteLine(""Derived called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnNonReadOnlyStruct()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public struct DbContext : IDisposable
+{
+    public int DisposeCount;
+    public void Dispose()
+    {
+        DisposeCount++'
+    }
+}
+
+class C
+{
+    private DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestOnInterfaceCallOnReadOnlyStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public struct DbContext : IDisposable
+{
+    public int DisposeCount;
+    public void Dispose()
+    {
+        DisposeCount++'
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}",
+
+@"
+using System;
+
+public struct DbContext : IDisposable
+{
+    public int DisposeCount;
+    public void Dispose()
+    {
+        DisposeCount++'
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        _dbContext.Dispose();
+    }
+}");
+        }
     }
 }

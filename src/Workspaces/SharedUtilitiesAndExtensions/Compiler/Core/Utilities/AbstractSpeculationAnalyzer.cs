@@ -826,13 +826,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TExpressionSyntax newExpression,
             SemanticModel speculativeSemanticModel)
         {
-            // If this is an interface member, we have to be careful. In general,
-            // we have to treat an interface member as incompatible with the new member
-            // due to virtual dispatch. I.e. A member in a sub class may be preferred
-            // at runtime and we have no way of knowing that at compile-time.
+            // If this is an interface member, we have to be careful. In general, we have to treat an interface member
+            // as incompatible with the new member due to virtual dispatch. I.e. A member in a derived class may be
+            // preferred at runtime and we have no way of knowing that at compile-time.
             //
-            // However, there are special circumstances where we can be sure
-            // that the interface member won't result in virtual dispatch:
+            // However, there are special circumstances where we can be sure that the interface member won't result in
+            // virtual dispatch:
             //
             //     * The new member is on an effectively sealed class, i.e. at least one of the following is true for the containing type:
             //          (a) It is a sealed class.
@@ -847,9 +846,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var newSymbolContainingType = newSymbol.ContainingType;
             if (newSymbolContainingType == null)
-            {
                 return false;
-            }
 
             var newReceiver = GetReceiver(newExpression);
             var newReceiverType = newReceiver != null ?
@@ -857,18 +854,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 newSymbolContainingType;
 
             if (newReceiverType == null)
-            {
                 return false;
-            }
 
-            if (newReceiverType.IsReferenceType &&
-                !IsEffectivelySealedClass(newReceiverType) &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Array &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Delegate &&
-                newSymbolContainingType.SpecialType != SpecialType.System_Enum &&
-                !IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel))
-            {
+            var implementationMember = newSymbolContainingType.FindImplementationForInterfaceMember(symbol);
+            if (implementationMember == null)
                 return false;
+
+            if (!newSymbol.Equals(implementationMember))
+                return false;
+
+            if (!SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression))
+                return false;
+
+            // it at least looks possible that we could get rid of the interface cast.
+
+            if (newReceiverType.IsReferenceType)
+            {
+                return IsEffectivelySealedClass(newReceiverType) ||
+                       newSymbolContainingType.SpecialType == SpecialType.System_Array ||
+                       newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
+                       newSymbolContainingType.SpecialType == SpecialType.System_Enum;
             }
 
             if (newReceiverType.IsValueType && newReceiverType.SpecialType == SpecialType.None)
@@ -880,42 +885,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            var implementationMember = newSymbolContainingType.FindImplementationForInterfaceMember(symbol);
-            if (implementationMember == null)
-            {
-                return false;
-            }
-
-            if (!newSymbol.Equals(implementationMember))
-            {
-                return false;
-            }
-
-            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression);
+            return true;
         }
 
         private static bool IsEffectivelySealedClass(ITypeSymbol type)
         {
-            var namedType = type as INamedTypeSymbol;
-            if (namedType == null)
-            {
+            if (!(type is INamedTypeSymbol namedType))
                 return false;
-            }
 
             if (namedType.IsSealed)
-            {
                 return true;
-            }
 
-            if (!namedType.GetTypeMembers().Any<INamedTypeSymbol>(nestedType => nestedType.TypeKind == TypeKind.Class))
+            if (!namedType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class))
             {
                 // No nested classes.
 
                 // A class with no nested classes and no accessible instance constructors is effectively sealed.
                 if (namedType.InstanceConstructors.All<IMethodSymbol>(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
-                {
                     return true;
-                }
 
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
