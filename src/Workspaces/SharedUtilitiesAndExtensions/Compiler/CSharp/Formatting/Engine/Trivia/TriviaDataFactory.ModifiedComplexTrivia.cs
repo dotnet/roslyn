@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }
