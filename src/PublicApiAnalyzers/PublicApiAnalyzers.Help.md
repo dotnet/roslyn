@@ -35,7 +35,7 @@ For example when using the [`#if` preprocessor directive](https://docs.microsoft
 
 To correctly model the API differences between target frameworks (or any other property), use multiple instances of the `PublicAPI.*.txt` files.
 
-For example, if you target both `net48` and `netcoreapp3.0` target frameworks, and APIs differ between each, then you would have the following:
+If you have multiple target frameworks and APIs differ between them, use the following in your project file:
 
 ```xml
   <ItemGroup>
