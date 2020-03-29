@@ -6259,5 +6259,121 @@ Fourth")
   IL_039b:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
+        public void AssignmentToFieldOfStaticFieldOfStruct()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        A.b.x = await Write(""Hello"");
+        Console.WriteLine(A.b.x);
+
+        async Task<int> Write(string s)
+        {
+            await Task.Yield();
+            Console.WriteLine(s);
+            return 5;
+        }
+    }
+}
+
+struct A
+{
+    public static B b;
+}
+
+struct B
+{
+    public int x;
+}";
+            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"Hello
+5")
+                .VerifyIL("Program.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      174 (0xae)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0043
+    IL_000a:  ldstr      ""Hello""
+    IL_000f:  call       ""System.Threading.Tasks.Task<int> Program.<Main>g__Write|0_0(string)""
+    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0019:  stloc.2
+    IL_001a:  ldloca.s   V_2
+    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0021:  brtrue.s   IL_005f
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.2
+    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Main>d__0.<>u__1""
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+    IL_0039:  ldloca.s   V_2
+    IL_003b:  ldarg.0
+    IL_003c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Main>d__0)""
+    IL_0041:  leave.s    IL_00ad
+    IL_0043:  ldarg.0
+    IL_0044:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Main>d__0.<>u__1""
+    IL_0049:  stloc.2
+    IL_004a:  ldarg.0
+    IL_004b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Main>d__0.<>u__1""
+    IL_0050:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.m1
+    IL_0058:  dup
+    IL_0059:  stloc.0
+    IL_005a:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_005f:  ldloca.s   V_2
+    IL_0061:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0066:  stloc.1
+    IL_0067:  ldsflda    ""B A.b""
+    IL_006c:  ldloc.1
+    IL_006d:  stfld      ""int B.x""
+    IL_0072:  ldsflda    ""B A.b""
+    IL_0077:  ldfld      ""int B.x""
+    IL_007c:  call       ""void System.Console.WriteLine(int)""
+    IL_0081:  leave.s    IL_009a
+  }
+  catch System.Exception
+  {
+    IL_0083:  stloc.3
+    IL_0084:  ldarg.0
+    IL_0085:  ldc.i4.s   -2
+    IL_0087:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+    IL_0092:  ldloc.3
+    IL_0093:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0098:  leave.s    IL_00ad
+  }
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.s   -2
+  IL_009d:  stfld      ""int Program.<Main>d__0.<>1__state""
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+  IL_00a8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00ad:  ret
+}");
+        }
     }
 }
