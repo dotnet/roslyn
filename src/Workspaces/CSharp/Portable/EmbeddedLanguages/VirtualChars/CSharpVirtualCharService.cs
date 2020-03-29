@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             using var _1 = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
 
-            // First pass, just convert everything in the string (i.e. escapes) to plan 16-bit characters.
+            // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
             var offset = token.SpanStart;
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
