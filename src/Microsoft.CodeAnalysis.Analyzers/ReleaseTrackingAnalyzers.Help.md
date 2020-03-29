@@ -130,7 +130,7 @@ This can be done in couple of ways, which is detailed in below sections.
 ### Manual steps
 This can be done by:
 
-- In Visual Studio, right click project in Solution Explorer, and choose "Add -> New Items", then select "Text File" in "Add new item" dialog.
+- In Visual Studio, right-click the project in Solution Explorer, choose "Add -> New Item...", and then select "Text File" in the "Add New Item" dialog. Then right-click each file, select "Properties", and choose "C# analyzer additional file" for "Build Action" in the "Properties" window.
 - Or, create these two files at the location you desire, then add the following text to your project/target file (replace file path with its actual location):
 
 ```xml
