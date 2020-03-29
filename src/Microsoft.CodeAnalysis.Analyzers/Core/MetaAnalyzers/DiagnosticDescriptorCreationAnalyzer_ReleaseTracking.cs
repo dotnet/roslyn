@@ -159,6 +159,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new DiagnosticDescriptor(
+            id: DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId,
+            title: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle,
+            messageFormat: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleMessage,
+            category: DiagnosticCategory.MicrosoftCodeAnalysisReleaseTracking,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleDescription,
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         private static bool TryGetReleaseTrackingData(
             ImmutableArray<AdditionalText> additionalTexts,
             CancellationToken cancellationToken,
@@ -169,8 +180,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             if (!TryGetReleaseTrackingFiles(additionalTexts, cancellationToken, out var shippedText, out var unshippedText))
             {
                 // TODO: Report a diagnostic that both must be specified if either shippedText or unshippedText is non-null.
-                shippedData = default;
-                unshippedData = default;
+                shippedData = shippedText != null ? ReleaseTrackingData.Default : null;
+                unshippedData = unshippedText != null ? ReleaseTrackingData.Default : null;
                 invalidFileDiagnostics = null;
                 return false;
             }

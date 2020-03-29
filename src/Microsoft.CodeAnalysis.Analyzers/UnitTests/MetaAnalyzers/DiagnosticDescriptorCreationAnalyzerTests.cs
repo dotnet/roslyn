@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task RS1007_RS1015_CSharp_VerifyDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -54,7 +55,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -83,7 +84,7 @@ End Class
         [Fact]
         public async Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -121,7 +122,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -154,7 +155,7 @@ End Class
         [Fact]
         public async Task RS1007_RS1015_CSharp_NoDiagnosticCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -195,7 +196,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_NoDiagnosticCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -232,7 +233,7 @@ End Class
         [Fact]
         public async Task RS1017_RS1019_CSharp_VerifyDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -294,7 +295,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
         [Fact]
         public async Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelper()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -353,7 +354,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
         [Fact]
         public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -403,7 +404,7 @@ End Class
         [Fact]
         public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelper()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -450,7 +451,7 @@ End Class
         [Fact]
         public async Task RS1017_RS1019_CSharp_NoDiagnosticCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -493,7 +494,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelper()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -533,7 +534,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -567,7 +568,7 @@ End Class
         [Fact]
         public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelper()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -676,7 +677,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetCSharpRS1028ResultAt(28, 9),
                         GetCSharpRS1018ExpectedDiagnostic(28, 34, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -751,7 +753,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetCSharpRS1018ExpectedDiagnostic(25, 43, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                         GetCSharpRS1018ExpectedDiagnostic(28, 43, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -818,7 +821,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetBasicRS1028ResultAt(17, 71),
                         GetBasicRS1018ExpectedDiagnostic(17, 92, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -880,7 +884,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetBasicRS1018ExpectedDiagnostic(16, 101, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                         GetBasicRS1018ExpectedDiagnostic(17, 101, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -962,7 +967,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetCSharpRS1028ResultAt(31, 9),
                         GetCSharpRS1028ResultAt(34, 9),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -1033,7 +1039,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, additionalText) }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -1098,7 +1105,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetBasicRS1028ResultAt(18, 71),
                         GetBasicRS1028ResultAt(19, 71),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -1153,7 +1161,8 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                 {
                     Sources = { source },
                     AdditionalFiles = { (AdditionalFileName, additionalText) }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -1260,7 +1269,8 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
                         GetCSharpRS1028ResultAt(25, 9),
                         GetCSharpRS1028ResultAt(28, 9),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -1270,7 +1280,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         [Fact]
         public async Task ReportOnMissingCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -1288,7 +1298,7 @@ public class MyAnalyzer
                 GetCSharpRS1015ExpectedDiagnostic(6, 50),
                 GetCSharpRS1028ResultAt(6, 50));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Public Class MyAnalyzer
     Friend Shared Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False)
@@ -1307,7 +1317,7 @@ End Class",
         [Fact]
         public async Task DoNotReportOnNamedCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -1329,7 +1339,7 @@ public class MyAnalyzer
         [Fact]
         public async Task DoNotReportOnCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -1349,7 +1359,7 @@ public class MyAnalyzer
                 GetCSharpRS1007ExpectedDiagnostic(8, 50),
                 GetCSharpRS1015ExpectedDiagnostic(8, 132));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Public Class MyAnalyzer
     Friend Shared Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False, Nothing, Nothing, """")
@@ -1372,7 +1382,7 @@ End Class",
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_AlreadyUsedId_Diagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -1420,7 +1430,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpRS1029ResultAt(25, 34, "CS00000000000000000000"),
                 GetCSharpRS1029ResultAt(28, 34, "BC00000000000000000000"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1458,7 +1468,7 @@ End Class",
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -1500,7 +1510,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }");
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1532,7 +1542,7 @@ End Class");
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -1565,7 +1575,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }");
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1641,6 +1651,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 SolutionTransforms =
                 {
                     (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                    WithoutEnableReleaseTrackingWarning,
                 },
             }.RunAsync();
 
@@ -1671,7 +1682,8 @@ End Class",
                 SolutionTransforms =
                 {
                     (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
-                },
+                    WithoutEnableReleaseTrackingWarning,
+                }
             }.RunAsync();
         }
 
@@ -1759,6 +1771,50 @@ End Class",
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
                 .WithLocation(line, column)
                 .WithArguments(ruleId);
+
+        private static async Task VerifyCSharpAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+            };
+
+            test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static async Task VerifyBasicAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+            };
+
+            test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static readonly ImmutableDictionary<string, ReportDiagnostic> s_enableReleaseTrackingWarningDisabled = ImmutableDictionary<string, ReportDiagnostic>.Empty
+            .Add(DiagnosticDescriptorCreationAnalyzer.EnableAnalyzerReleaseTrackingRule.Id, ReportDiagnostic.Suppress);
+
+        private static Solution WithoutEnableReleaseTrackingWarning(Solution solution, ProjectId projectId)
+        {
+            var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
+            compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_enableReleaseTrackingWarningDisabled));
+            return solution.WithProjectCompilationOptions(projectId, compilationOptions);
+        }
 
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
 
