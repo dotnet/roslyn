@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
     internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public const string Negated = nameof(Negated);
-        public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var diagnostic = context.Diagnostics.First();
             if (IsSupportedDiagnostic(diagnostic))
             {
-                var negated = diagnostic.Properties.ContainsKey(Negated);
+                var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
                 var title = negated ? GetIsNotNullTitle() : GetIsNullTitle();
 
                 context.RegisterCodeFix(
@@ -68,8 +65,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 }
 
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-                var negate = diagnostic.Properties.ContainsKey(Negated);
-                var isUnconstrainedGeneric = diagnostic.Properties.ContainsKey(UnconstrainedGeneric);
+                var negate = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
+                var isUnconstrainedGeneric = diagnostic.Properties.ContainsKey(UseIsNullConstants.UnconstrainedGeneric);
 
                 var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
                 var argument = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(arguments[0]))
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)

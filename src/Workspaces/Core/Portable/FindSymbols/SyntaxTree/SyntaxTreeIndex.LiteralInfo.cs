@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct LiteralInfo
+        private readonly struct LiteralInfo
         {
             private readonly BloomFilter _literalsFilter;
 

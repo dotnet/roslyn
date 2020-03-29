@@ -1787,16 +1787,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">Ustaw podprocedurę jako asynchroniczną</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Użyj sprawdzania „Is Nothing”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Użyj sprawdzania „IsNot Nothing”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
         <target state="translated">Konwertuj na wyrażenie „Select Case”</target>

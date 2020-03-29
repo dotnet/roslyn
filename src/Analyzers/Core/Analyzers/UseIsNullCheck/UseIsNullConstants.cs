@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public const string Kind = nameof(Kind);
         public const string ReferenceEqualsKey = nameof(ReferenceEqualsKey);
         public const string CastAndEqualityKey = nameof(CastAndEqualityKey);
+        public const string Negated = nameof(Negated);
+        public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
     }
 }
