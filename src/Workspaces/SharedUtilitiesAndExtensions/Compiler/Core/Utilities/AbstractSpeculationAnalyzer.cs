@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
         {
-            return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
+            return semanticRootOfOriginalExpression.ReplaceNode<SyntaxNode>(this.OriginalExpression, annotatedReplacedExpression);
         }
 
         private void EnsureReplacedExpressionAndSemanticRoot()
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // expression in its parent, we annotate it here to allow us to get back to
                 // it after replace.
                 var annotation = new SyntaxAnnotation();
-                var annotatedExpression = _newExpressionForReplace.WithAdditionalAnnotations(annotation);
+                var annotatedExpression = _newExpressionForReplace.WithAdditionalAnnotations<TExpressionSyntax>(annotation);
                 _lazySemanticRootOfReplacedExpression = GetSemanticRootOfReplacedExpression(this.SemanticRootOfOriginalExpression, annotatedExpression);
                 _lazyReplacedExpression = (TExpressionSyntax)_lazySemanticRootOfReplacedExpression.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
             }
@@ -288,7 +289,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return SymbolsAreCompatibleCore(symbol, newSymbol, performEquivalenceCheck: !_isNewSemanticModelSpeculativeModel, requireNonNullSymbols: requireNonNullSymbols);
         }
 
-        private static bool SymbolsAreCompatibleCore(ISymbol symbol, ISymbol newSymbol, bool performEquivalenceCheck, bool requireNonNullSymbols = false)
+        private static bool SymbolsAreCompatibleCore(
+            ISymbol symbol,
+            ISymbol newSymbol,
+            bool performEquivalenceCheck,
+            bool requireNonNullSymbols = false)
         {
             if (symbol == null && newSymbol == null)
             {
@@ -321,38 +326,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // We are comparing symbols across two semantic models (where neither is the speculative model of other one).
                 // We will use the SymbolEquivalenceComparer to check if symbols are equivalent.
-
-                switch (symbol.Kind)
-                {
-                    // SymbolEquivalenceComparer performs Location equality checks for Locals, Labels and RangeVariables.
-                    // As we are comparing symbols from different semantic models, locations will differ.
-                    // Hence perform minimal checks for these symbol kinds.
-                    case SymbolKind.Local:
-                        return newSymbol.Kind == SymbolKind.Local &&
-                            newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
-                            string.Equals(symbol.Name, newSymbol.Name, StringComparison.Ordinal) &&
-                            ((ILocalSymbol)newSymbol).Type.Equals(((ILocalSymbol)symbol).Type);
-
-                    case SymbolKind.Label:
-                    case SymbolKind.RangeVariable:
-                        return newSymbol.Kind == symbol.Kind && string.Equals(newSymbol.Name, symbol.Name, StringComparison.Ordinal);
-
-                    case SymbolKind.Parameter:
-                        if (newSymbol.Kind == SymbolKind.Parameter && symbol.ContainingSymbol.IsAnonymousFunction())
-                        {
-                            var param = (IParameterSymbol)symbol;
-                            var newParam = (IParameterSymbol)newSymbol;
-                            return param.IsRefOrOut() == newParam.IsRefOrOut() &&
-                                param.Name == newParam.Name &&
-                                SymbolEquivalenceComparer.Instance.Equals(param.Type, newParam.Type) &&
-                                newSymbol.ContainingSymbol.IsAnonymousFunction();
-                        }
-
-                        goto default;
-
-                    default:
-                        return SymbolEquivalenceComparer.Instance.Equals(symbol, newSymbol);
-                }
+                return CompareAcrossSemanticModels(symbol, newSymbol);
             }
 
             if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
@@ -360,12 +334,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            // Handle equivalence of special built-in comparison operators between enum types and 
-            // it's underlying enum type.
-            if (symbol.Kind == SymbolKind.Method && newSymbol.Kind == SymbolKind.Method)
+            if (symbol is IMethodSymbol methodSymbol && newSymbol is IMethodSymbol newMethodSymbol)
             {
-                var methodSymbol = (IMethodSymbol)symbol;
-                var newMethodSymbol = (IMethodSymbol)newSymbol;
+                // If we have local functions, we can't use normal symbol equality for them (since that checks locations).
+                // Have to defer to SymbolEquivalence instead.
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction && newMethodSymbol.MethodKind == MethodKind.LocalFunction)
+                    return CompareAcrossSemanticModels(methodSymbol, newMethodSymbol);
+
+                // Handle equivalence of special built-in comparison operators between enum types and 
+                // it's underlying enum type.
                 if (methodSymbol.TryGetPredefinedComparisonOperator(out var originalOp) &&
                     newMethodSymbol.TryGetPredefinedComparisonOperator(out var newOp) &&
                     originalOp == newOp)
@@ -384,6 +361,53 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return false;
+        }
+
+        private static bool CompareAcrossSemanticModels(ISymbol symbol, ISymbol newSymbol)
+        {
+            // SymbolEquivalenceComparer performs Location equality checks for locals, labels, range-variables and local
+            // functions. As we are comparing symbols from different semantic models, locations will differ. Hence
+            // perform minimal checks for these symbol kinds.
+
+            if (symbol.Kind != newSymbol.Kind)
+                return false;
+
+            if (symbol is ILocalSymbol localSymbol && newSymbol is ILocalSymbol newLocalSymbol)
+            {
+                return newSymbol.IsImplicitlyDeclared == symbol.IsImplicitlyDeclared &&
+                       symbol.Name == newSymbol.Name &&
+                       CompareAcrossSemanticModels(localSymbol.Type, newLocalSymbol.Type);
+            }
+
+            if (symbol is ILabelSymbol && newSymbol is ILabelSymbol)
+                return symbol.Name == newSymbol.Name;
+
+            if (symbol is IRangeVariableSymbol && newSymbol is IRangeVariableSymbol)
+                return symbol.Name == newSymbol.Name;
+
+            if (symbol is IParameterSymbol parameterSymbol &&
+                newSymbol is IParameterSymbol newParameterSymbol &&
+                parameterSymbol.ContainingSymbol.IsAnonymousOrLocalFunction() &&
+                newParameterSymbol.ContainingSymbol.IsAnonymousOrLocalFunction())
+            {
+                return symbol.Name == newSymbol.Name &&
+                       parameterSymbol.IsRefOrOut() == newParameterSymbol.IsRefOrOut() &&
+                       CompareAcrossSemanticModels(parameterSymbol.Type, newParameterSymbol.Type);
+            }
+
+            if (symbol is IMethodSymbol methodSymbol &&
+                newSymbol is IMethodSymbol newMethodSymbol &&
+                methodSymbol.IsLocalFunction() &&
+                newMethodSymbol.IsLocalFunction())
+            {
+                return symbol.Name == newSymbol.Name &&
+                       methodSymbol.Parameters.Length == newMethodSymbol.Parameters.Length &&
+                       CompareAcrossSemanticModels(methodSymbol.ReturnType, newMethodSymbol.ReturnType) &&
+                       methodSymbol.Parameters.Zip(newMethodSymbol.Parameters, (p1, p2) => (p1, p2)).All(
+                           t => CompareAcrossSemanticModels(t.p1, t.p2));
+            }
+
+            return SymbolEquivalenceComparer.Instance.Equals(symbol, newSymbol);
         }
 
         private static bool EnumTypesAreCompatible(INamedTypeSymbol type1, INamedTypeSymbol type2)
@@ -883,12 +907,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            if (!namedType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class))
+            if (!namedType.GetTypeMembers().Any<INamedTypeSymbol>(nestedType => nestedType.TypeKind == TypeKind.Class))
             {
                 // No nested classes.
 
                 // A class with no nested classes and no accessible instance constructors is effectively sealed.
-                if (namedType.InstanceConstructors.All(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
+                if (namedType.InstanceConstructors.All<IMethodSymbol>(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
                 {
                     return true;
                 }
@@ -896,7 +920,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
                     namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
+                    !namedType.ContainingType.GetTypeMembers().Any<INamedTypeSymbol>(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
                 {
                     return true;
                 }

@@ -244,6 +244,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol != null && symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
         }
 
+        public static bool IsAnonymousOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol.IsAnonymousFunction() || symbol.IsLocalFunction();
+
         public static bool IsModuleMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return symbol != null && symbol.ContainingSymbol is INamedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Module;

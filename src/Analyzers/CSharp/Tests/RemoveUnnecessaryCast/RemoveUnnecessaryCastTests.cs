@@ -4910,5 +4910,79 @@ class C
     }
 }");
         }
+
+        [WorkItem(38347, "https://github.com/dotnet/roslyn/issues/38347")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestArgToLocalFunction1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope([|(decimal)a|] + (decimal)b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}",
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope(a + (decimal)b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}");
+        }
+
+        [WorkItem(38347, "https://github.com/dotnet/roslyn/issues/38347")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestArgToLocalFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope((decimal)a + [|(decimal)b|]);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}",
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope((decimal)a + b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}");
+        }
     }
 }
