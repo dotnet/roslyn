@@ -220,17 +220,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public DataGrid Members => _dialog.Members;
 
-            public DialogButton OKButton => _dialog.OKButton;
+            public Button OKButton => _dialog.OKButton;
 
-            public DialogButton CancelButton => _dialog.CancelButton;
+            public Button CancelButton => _dialog.CancelButton;
 
-            public DialogButton DownButton => _dialog.DownButton;
+            public Button DownButton => _dialog.DownButton;
 
-            public DialogButton UpButton => _dialog.UpButton;
+            public Button UpButton => _dialog.UpButton;
 
-            public DialogButton RemoveButton => _dialog.RemoveButton;
+            public Button RemoveButton => _dialog.RemoveButton;
 
-            public DialogButton RestoreButton => _dialog.RestoreButton;
+            public Button RestoreButton => _dialog.RestoreButton;
         }
     }
 }
