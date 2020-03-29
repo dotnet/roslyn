@@ -25,90 +25,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(SnippetCompletionProvider);
-        }
+            => typeof(SnippetCompletionProvider);
 
         protected override ComposableCatalog GetExportCatalog()
-        {
-            return base.GetExportCatalog().WithPart(typeof(MockSnippetInfoService));
-        }
+            => base.GetExportCatalog().WithPart(typeof(MockSnippetInfoService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInEmptyFile()
-        {
-            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetDescriptions()
-        {
-            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription + Environment.NewLine + string.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, MockSnippetInfoService.SnippetShortcut), SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription + Environment.NewLine + string.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, MockSnippetInfoService.SnippetShortcut), SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInNamespace()
-        {
-            await VerifyItemExistsAsync(@"namespace NS { $$ }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"namespace NS { $$ }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInClass()
-        {
-            await VerifyItemExistsAsync(@"namespace NS { class C { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"namespace NS { class C { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInMethod()
-        {
-            await VerifyItemExistsAsync(@"namespace NS { class C { void M() { $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"namespace NS { class C { void M() { $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsNotInLocalDeclarationIdentifier()
-        {
-            await VerifyItemIsAbsentAsync(@"namespace NS { class C { void M() { int $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemIsAbsentAsync(@"namespace NS { class C { void M() { int $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsNotInEnum()
-        {
-            await VerifyItemIsAbsentAsync(@"namespace NS { enum E { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemIsAbsentAsync(@"namespace NS { enum E { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SnippetsInExpression()
-        {
-            await VerifyItemExistsAsync(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
-        {
-            await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608860")]
         public async Task SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
-        {
-            await VerifyItemIsAbsentAsync(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemIsAbsentAsync(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(770156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770156")]
         public async Task SnippetsNotInPreProcessorContextDirectiveNameAlreadyTyped()
-        {
-            await VerifyItemIsAbsentAsync(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemIsAbsentAsync(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(839555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")]
         public async Task ShowRegionSnippetWithHashRTyped()
-        {
-            await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
-        }
+            => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
 
         [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -193,9 +165,7 @@ class C
             }
 
             public bool ShouldFormatSnippet(SnippetInfo snippetInfo)
-            {
-                return false;
-            }
+                => false;
         }
     }
 }
