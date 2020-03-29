@@ -17,8 +17,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
+        /// <summary>
+        /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
+        /// <c>}}</c>.  If so, <paramref name="span"/> will contain the span of those two characters (based on <paramref
+        /// name="tokenText"/> starting at <paramref name="offset"/>).
+        /// </summary>
         protected static bool IsLegalBraceEscape(
-            string tokenText, int offset, int index, out TextSpan span)
+            string tokenText, int index, int offset, out TextSpan span)
         {
             if (index + 1 < tokenText.Length)
             {
@@ -148,7 +153,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 }
                 else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
                 {
-                    if (!IsLegalBraceEscape(tokenText, offset, index, out var span))
+                    if (!IsLegalBraceEscape(tokenText, index, offset, out var span))
                         return default;
 
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));

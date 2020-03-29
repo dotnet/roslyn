@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
                 else if (escapeBraces && IsOpenOrCloseBrace(ch))
                 {
-                    if (!IsLegalBraceEscape(tokenText, offset, index, out var braceSpan))
+                    if (!IsLegalBraceEscape(tokenText, index, offset, out var braceSpan))
                         return default;
 
                     charResults.Add((ch, braceSpan));
