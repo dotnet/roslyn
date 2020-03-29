@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         Main,
 
         /// <summary>
-        /// The database that is in memory and caches values before being transfered to <see
+        /// An in-memory database that caches values before being transferred to <see
         /// cref="Main"/>.  Does not persist across VS sessions.
         /// </summary>
         WriteCache,
