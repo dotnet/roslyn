@@ -257,7 +257,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 var statement = resettableStatement.Statement;
 
-                // Binding indices are 1-based.
                 BindFirstParameter(statement, dataId);
 
                 var stepResult = statement.Step();
