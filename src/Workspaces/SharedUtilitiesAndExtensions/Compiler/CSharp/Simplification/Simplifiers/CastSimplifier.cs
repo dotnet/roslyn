@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // First, check to see if the node ultimately parenting this cast has any
             // syntax errors. If so, we bail.
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
-            {
                 return false;
-            }
 
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
@@ -49,17 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Case:
             // 1 . Console.WriteLine(await (dynamic)task); Any Dynamic Cast will not be removed.
             if (castType == null || castType.Kind == SymbolKind.DynamicType || castType.IsErrorType())
-            {
                 return false;
-            }
 
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
             if (EnumCastDefinitelyCantBeRemoved(castNode, expressionType, castType))
-            {
                 return false;
-            }
 
             // We do not remove any cast on 
             // 1. Dynamic Expressions
@@ -76,14 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             if (PointerCastDefinitelyCantBeRemoved(castNode, castedExpressionNode))
-            {
                 return false;
-            }
 
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
-            {
                 return false;
-            }
+
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
 
             // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             // in order to call string.Format(...) anyway.
@@ -91,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
             {
                 return true;
-            }
-
-            if (speculationAnalyzer.ReplacementChangesSemantics())
-            {
-                return false;
             }
 
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
