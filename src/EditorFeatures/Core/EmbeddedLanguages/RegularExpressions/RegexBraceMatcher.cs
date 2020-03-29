@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var ch = virtualChar.Value;
-            switch (ch.Rune.Value)
+            switch (ch.Value)
             {
                 case '(':
                 case ')':
