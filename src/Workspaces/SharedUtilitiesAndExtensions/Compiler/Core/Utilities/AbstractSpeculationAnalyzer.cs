@@ -858,9 +858,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (newReceiverType.IsValueType)
             {
+                // Presume builtin value types are all immutable, and thus will have the same semantics when you call
+                // interface members on them directly instead of through a boxed copy.
                 if (newReceiverType.SpecialType != SpecialType.None)
                     return true;
 
+                // For non-builtins, only remove the boxing if we know we have a copy already.
                 return newReceiver != null && IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel);
             }
 
