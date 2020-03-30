@@ -75,9 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
                 return false;
 
-            if (speculationAnalyzer.ReplacementChangesSemantics())
-                return false;
-
             // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             // in order to call string.Format(...) anyway.
             if (castType?.SpecialType == SpecialType.System_Object &&
@@ -85,6 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 return true;
             }
+
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+                return false;
 
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(castNode, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
