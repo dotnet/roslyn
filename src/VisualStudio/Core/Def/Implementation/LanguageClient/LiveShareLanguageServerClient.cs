@@ -27,4 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
     }
+    
+    public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
 }
