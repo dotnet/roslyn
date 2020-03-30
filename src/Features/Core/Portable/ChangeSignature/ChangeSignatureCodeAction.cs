@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     internal class ChangeSignatureCodeAction : CodeActionWithOptions
     {
         private readonly AbstractChangeSignatureService _changeSignatureService;
-        private readonly ChangeSignatureAnalyzedContext _context;
+        private readonly ChangeSignatureAnalyzedSucceedContext _context;
 
-        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalyzedContext context)
+        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalyzedSucceedContext context)
         {
             _changeSignatureService = changeSignatureService;
             _context = context;
@@ -27,18 +27,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return _changeSignatureService.GetChangeSignatureOptions(_context);
+            return _changeSignatureService.GetChangeSignatureOptions(_context)
+                ?? new ChangeSignatureOptionsResult(null!, false);
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is ChangeSignatureOptionsResult changeSignatureOptions && !changeSignatureOptions.IsCancelled)
+            if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
             {
                 var changeSignatureResult = _changeSignatureService.ChangeSignatureWithContext(_context, changeSignatureOptions, cancellationToken);
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution)));
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution!)));
                 }
             }
 
