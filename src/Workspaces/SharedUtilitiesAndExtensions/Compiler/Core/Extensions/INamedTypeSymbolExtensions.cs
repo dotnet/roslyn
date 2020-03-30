@@ -86,9 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
-        {
-            return classOrStructType.FindImplementationForInterfaceMember(member) != null;
-        }
+            => classOrStructType.FindImplementationForInterfaceMember(member) != null;
 
         private static bool IsImplemented(
             this INamedTypeSymbol classOrStructType,
@@ -242,9 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsImplementable(ISymbol m)
-        {
-            return m.IsVirtual || m.IsAbstract;
-        }
+            => m.IsVirtual || m.IsAbstract;
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
             this INamedTypeSymbol classOrStructType,
@@ -322,9 +318,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
-        {
-            return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
-        }
+            => accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
@@ -493,9 +487,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ImmutableArray<ISymbol> GetMembers(INamedTypeSymbol type, ISymbol within)
-        {
-            return type.GetMembers();
-        }
+            => type.GetMembers();
 
         /// <summary>
         /// Gets the set of members in the inheritance chain of <paramref name="containingType"/> that
@@ -602,8 +594,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
-        {
-            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
-        }
+            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
     }
 }

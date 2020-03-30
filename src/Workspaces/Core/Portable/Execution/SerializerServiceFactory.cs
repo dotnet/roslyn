@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SerializerService(workspaceServices);
-        }
+            => new SerializerService(workspaceServices);
     }
 }

@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private Checksum(HashData hash)
-        {
-            _checksum = hash;
-        }
+            => _checksum = hash;
 
         public bool Equals(Checksum other)
         {
@@ -128,14 +126,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool operator ==(Checksum left, Checksum right)
-        {
-            return EqualityComparer<Checksum>.Default.Equals(left, right);
-        }
+            => EqualityComparer<Checksum>.Default.Equals(left, right);
 
         public static bool operator !=(Checksum left, Checksum right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
@@ -146,14 +140,10 @@ namespace Microsoft.CodeAnalysis
             => new Checksum(HashData.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
-        {
-            return checksum.ToString();
-        }
+            => checksum.ToString();
 
         public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-        {
-            return string.Join("|", checksums.Select(c => c.ToString()));
-        }
+            => string.Join("|", checksums.Select(c => c.ToString()));
 
         /// <summary>
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of

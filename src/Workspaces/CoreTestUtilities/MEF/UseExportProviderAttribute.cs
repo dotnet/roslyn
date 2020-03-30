@@ -195,9 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         private static MefHostServices CreateRemoteHostServices()
-        {
-            return new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
-        }
+            => new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
         {
@@ -210,19 +208,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            {
-                return _vsHostServices.CreateWorkspaceServices(workspace);
-            }
+                => _vsHostServices.CreateWorkspaceServices(workspace);
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
-            {
-                return _vsHostServices.GetExports<TExtension, TMetadata>();
-            }
+                => _vsHostServices.GetExports<TExtension, TMetadata>();
 
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-            {
-                return _vsHostServices.GetExports<TExtension>();
-            }
+                => _vsHostServices.GetExports<TExtension>();
         }
     }
 }

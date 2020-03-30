@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d));
 
             public override bool Equals(object obj)
-            {
-                return Equals(obj as Reference);
-            }
+                => Equals(obj as Reference);
 
             public bool Equals(Reference other)
             {
@@ -75,9 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.CombineValues(SearchResult.NameParts);
-            }
+                => Hash.CombineValues(SearchResult.NameParts);
 
             protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
                 SyntaxNode contextNode, Document document, CancellationToken cancellationToken)

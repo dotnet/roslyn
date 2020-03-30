@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         internal override bool IsExtractableMember(ISymbol m)
-        {
-            return base.IsExtractableMember(m) && !m.ExplicitInterfaceImplementations().Any();
-        }
+            => base.IsExtractableMember(m) && !m.ExplicitInterfaceImplementations().Any();
 
         internal override bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode)
         {

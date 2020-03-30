@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
-        {
-            return new DocumentAnalysisResults(rudeEdits);
-        }
+            => new DocumentAnalysisResults(rudeEdits);
 
         public static DocumentAnalysisResults Unchanged(
             ImmutableArray<ActiveStatement> activeStatements,

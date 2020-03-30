@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Determines if the symbol is purely a code generation symbol.
         /// </summary>
         public static bool IsCodeGenerationSymbol(this ISymbol symbol)
-        {
-            return symbol is CodeGenerationSymbol;
-        }
+            => symbol is CodeGenerationSymbol;
 
         /// <summary>
         /// Creates an event symbol that can be used to describe an event declaration.
@@ -311,17 +309,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a pointer type symbol that can be used to describe a pointer type reference.
         /// </summary>
         public static IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-        {
-            return new CodeGenerationPointerTypeSymbol(pointedAtType);
-        }
+            => new CodeGenerationPointerTypeSymbol(pointedAtType);
 
         /// <summary>
         /// Creates an array type symbol that can be used to describe an array type reference.
         /// </summary>
         public static IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-        {
-            return new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
-        }
+            => new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
 
         internal static IMethodSymbol CreateAccessorSymbol(
             IMethodSymbol accessor,

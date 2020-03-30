@@ -31,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         }
 
         private string GetKeyName()
-        {
-            return "InstalledProducts\\" + _productName;
-        }
+            => "InstalledProducts\\" + _productName;
 
         public override void Register(RegistrationContext context)
         {
@@ -51,8 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         }
 
         public override void Unregister(RegistrationContext context)
-        {
-            context.RemoveKey(GetKeyName());
-        }
+            => context.RemoveKey(GetKeyName());
     }
 }

@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
-                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, cancellationToken),
+                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Workspace, cancellationToken),
                 cancellationToken);
         }
 
-        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
+        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, Workspace workspace, CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
+            var editor = new SyntaxEditor(root, workspace);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.
@@ -121,7 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
             // tuple expression.
             return SyntaxFactory.ForEachVariableStatement(
+#if !CODE_STYLE // ForEachStatementSyntax.AttributeLists is not available in the version of Microsoft.CodeAnalysis used by CodeStyle layer
+                // https://github.com/dotnet/roslyn/issues/41462#issuecomment-595893953 tracks removing these conditional directives.
                 forEachStatement.AttributeLists,
+#endif
                 forEachStatement.AwaitKeyword,
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
@@ -187,10 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     SyntaxFactory.SingleVariableDesignation(node.Identifier)));
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Deconstruct_variable_declaration, createChangedDocument, FeaturesResources.Deconstruct_variable_declaration)
+                : base(CSharpAnalyzersResources.Deconstruct_variable_declaration, createChangedDocument, CSharpAnalyzersResources.Deconstruct_variable_declaration)
             {
             }
         }

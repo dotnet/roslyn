@@ -117,14 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected void AddSuppressWrappingIfOnSingleLineOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
-        {
-            AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
-        }
+            => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
 
         protected void AddSuppressAllOperationIfOnMultipleLine(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
-        {
-            AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
-        }
+            => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
 
         protected void AddSuppressOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
         {
@@ -155,14 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected AdjustNewLinesOperation CreateAdjustNewLinesOperation(int line, AdjustNewLinesOption option)
-        {
-            return FormattingOperations.CreateAdjustNewLinesOperation(line, option);
-        }
+            => FormattingOperations.CreateAdjustNewLinesOperation(line, option);
 
         protected AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
-        {
-            return FormattingOperations.CreateAdjustSpacesOperation(space, option);
-        }
+            => FormattingOperations.CreateAdjustSpacesOperation(space, option);
 
         protected void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {

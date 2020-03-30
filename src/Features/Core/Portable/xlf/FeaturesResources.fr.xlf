@@ -2305,16 +2305,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Le passage d'une expression lambda à une fonction locale empêche la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Déconstruire la déclaration de variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">La déclaration de variable peut être déconstruite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Ajouter le nom d'argument '{0}' (ainsi que les arguments de fin)</target>

@@ -155,9 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
-        {
-            return argument.NameColon != null;
-        }
+            => argument.NameColon != null;
 
         protected override ITypeSymbol GetArgumentType(
             SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
@@ -172,9 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         }
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
-        }
+            => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
 
         internal override IMethodSymbol GetDelegatingConstructor(
             State state,

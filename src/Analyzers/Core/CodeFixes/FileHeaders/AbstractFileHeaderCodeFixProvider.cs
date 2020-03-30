@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
-        }
+            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
         private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
@@ -242,9 +240,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
 
             public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
-            {
-                _codeFixProvider = codeFixProvider;
-            }
+                => _codeFixProvider = codeFixProvider;
 
             protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
 

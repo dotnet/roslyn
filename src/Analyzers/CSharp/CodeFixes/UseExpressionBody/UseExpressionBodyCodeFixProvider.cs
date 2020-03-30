@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExpressionBodyCodeFixProvider()
-        {
-            FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
-        }
+            => FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed ||

@@ -466,9 +466,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAssignmentStatement()
-        {
-            VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
-        }
+            => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
 
         [Fact]
         public void TestExpressionStatement()
@@ -507,15 +505,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAwaitExpressions()
-        {
-            VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
-        }
+            => VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
 
         [Fact]
         public void TestNameOfExpressions()
-        {
-            VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
-        }
+            => VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
 
         [Fact]
         public void TestTupleExpression()
@@ -1822,19 +1816,13 @@ public class C { } // end").Members[0];
         }
 
         private void AssertNamesEqual(string name, IEnumerable<SyntaxNode> actualNodes)
-        {
-            AssertNamesEqual(new[] { name }, actualNodes);
-        }
+            => AssertNamesEqual(new[] { name }, actualNodes);
 
         private void AssertMemberNamesEqual(string[] expectedNames, SyntaxNode declaration)
-        {
-            AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
 
         private void AssertMemberNamesEqual(string expectedName, SyntaxNode declaration)
-        {
-            AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
 
         [Fact]
         public void TestAddNamespaceImports()
@@ -1857,9 +1845,7 @@ public class C { } // end").Members[0];
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
 
         private void TestRemoveNamespaceImport(SyntaxNode declaration, string name, string[] remainingNames)
         {
@@ -1996,9 +1982,7 @@ public class C
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
 
         private void TestRemoveMember(SyntaxNode declaration, string name, string[] remainingNames)
         {

@@ -91,18 +91,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private static bool HasGetPrefix(SyntaxToken identifier)
-        {
-            return HasGetPrefix(identifier.ValueText);
-        }
+            => HasGetPrefix(identifier.ValueText);
 
         private static bool HasGetPrefix(string text)
-        {
-            return HasPrefix(text, GetPrefix);
-        }
+            => HasPrefix(text, GetPrefix);
         private static bool HasPrefix(string text, string prefix)
-        {
-            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
-        }
+            => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
         private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {

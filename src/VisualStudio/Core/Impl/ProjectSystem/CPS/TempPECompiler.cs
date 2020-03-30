@@ -27,9 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TempPECompiler(VisualStudioWorkspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public async Task<bool> CompileAsync(IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
         {

@@ -239,9 +239,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         private bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
-        {
-            return subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
-        }
+            => subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
 
         private async Task<Document> InvertIfAsync(
             Document document,

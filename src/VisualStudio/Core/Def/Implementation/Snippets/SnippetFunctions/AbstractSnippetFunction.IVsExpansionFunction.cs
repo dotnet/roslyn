@@ -12,19 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
     {
         int IVsExpansionFunction.GetDefaultValue(out string bstrValue, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]out int fHasDefaultValue)
-        {
-            return GetDefaultValue(CancellationToken.None, out bstrValue, out fHasDefaultValue);
-        }
+            => GetDefaultValue(CancellationToken.None, out bstrValue, out fHasDefaultValue);
 
         int IVsExpansionFunction.GetCurrentValue(out string bstrValue, out int fHasCurrentValue)
-        {
-            return GetCurrentValue(CancellationToken.None, out bstrValue, out fHasCurrentValue);
-        }
+            => GetCurrentValue(CancellationToken.None, out bstrValue, out fHasCurrentValue);
 
         int IVsExpansionFunction.FieldChanged(string bstrField, out int fRequeryFunction)
-        {
-            return FieldChanged(bstrField, out fRequeryFunction);
-        }
+            => FieldChanged(bstrField, out fRequeryFunction);
 
         int IVsExpansionFunction.GetFunctionType(out uint funcType)
         {

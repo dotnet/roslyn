@@ -163,9 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         #region Initialization
 
         public string GetConfiguration()
-        {
-            return null;
-        }
+            => null;
 
         private IInteractiveWindow GetCurrentWindowOrThrow()
         {
@@ -278,18 +276,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
-        {
-            return new SourceFileResolver(searchPaths, baseDirectory);
-        }
+            => new SourceFileResolver(searchPaths, baseDirectory);
 
         #endregion
 
         #region Workspace
 
         private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
-        {
-            AddSubmission(args.NewBuffer, this.LanguageName);
-        }
+            => AddSubmission(args.NewBuffer, this.LanguageName);
 
         // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
         private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
@@ -557,9 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         #region Paths, Resolvers
 
         private void UpdateResolvers(RemoteExecutionResult result)
-        {
-            UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
-        }
+            => UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
 
         private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)
         {

@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IAnalyzerAssemblyLoader GetLoader()
-        {
-            return _loader;
-        }
+            => _loader;
     }
 }

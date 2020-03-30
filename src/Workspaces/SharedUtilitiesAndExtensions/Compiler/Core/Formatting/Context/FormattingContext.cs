@@ -406,9 +406,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int GetBaseIndentation(SyntaxToken token)
-        {
-            return GetBaseIndentation(token.SpanStart);
-        }
+            => GetBaseIndentation(token.SpanStart);
 
         public int GetBaseIndentation(int position)
         {
@@ -423,9 +421,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
-        {
-            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
-        }
+            => _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
         {
@@ -644,9 +640,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public bool IsFormattingDisabled(TextSpan textSpan)
-        {
-            return _suppressFormattingTree.HasIntervalThatIntersectsWith(textSpan.Start, textSpan.Length);
-        }
+            => _suppressFormattingTree.HasIntervalThatIntersectsWith(textSpan.Start, textSpan.Length);
 
         public bool IsFormattingDisabled(int pairIndex)
         {

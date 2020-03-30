@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly ISyntaxFactsService _syntaxFacts;
 
             public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
-            {
-                _syntaxFacts = syntaxFacts;
-            }
+                => _syntaxFacts = syntaxFacts;
 
             /// <summary>
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.

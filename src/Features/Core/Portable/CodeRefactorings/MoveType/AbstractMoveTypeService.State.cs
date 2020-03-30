@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
             private State(SemanticDocument document)
-            {
-                SemanticDocument = document;
-            }
+                => SemanticDocument = document;
 
             internal static State Generate(
                 SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,

@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         }
 
         protected override void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node)
-        {
-            editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia | SyntaxRemoveOptions.AddElasticMarker);
-        }
+            => editor.RemoveNode(node, SyntaxRemoveOptions.KeepExteriorTrivia | SyntaxRemoveOptions.AddElasticMarker);
     }
 }

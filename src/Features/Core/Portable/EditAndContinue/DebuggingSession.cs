@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // test only
         internal void Test_SetNonRemappableRegions(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-        {
-            NonRemappableRegions = nonRemappableRegions;
-        }
+            => NonRemappableRegions = nonRemappableRegions;
 
         // test only
         internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)

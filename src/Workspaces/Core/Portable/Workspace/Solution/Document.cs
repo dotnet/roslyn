@@ -65,9 +65,7 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("Use TextDocument.HasTextChanged")]
         internal bool HasTextChanged(Document otherDocument)
-        {
-            return HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
-        }
+            => HasTextChanged(otherDocument, ignoreUnchangeableDocument: false);
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
@@ -120,9 +118,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the version of the document's top level signature if it is already loaded and available.
         /// </summary>
         internal bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
-        {
-            return DocumentState.TryGetTopLevelChangeTextVersion(out version);
-        }
+            => DocumentState.TryGetTopLevelChangeTextVersion(out version);
 
         /// <summary>
         /// Gets the version of the syntax tree. This is generally the newer of the text version and the project's version.
@@ -326,41 +322,31 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this document updated to have the source code kind specified.
         /// </summary>
         public Document WithSourceCodeKind(SourceCodeKind kind)
-        {
-            return this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the text specified.
         /// </summary>
         public Document WithText(SourceText text)
-        {
-            return this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
         /// </summary>
         public Document WithSyntaxRoot(SyntaxNode root)
-        {
-            return this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified name.
         /// </summary>
         public Document WithName(string name)
-        {
-            return this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified folders.
         /// </summary>
         public Document WithFolders(IEnumerable<string> folders)
-        {
-            return this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified file path.
@@ -370,9 +356,7 @@ namespace Microsoft.CodeAnalysis
         // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
         // document back to null?
         public Document WithFilePath(string filePath)
-        {
-            return this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
-        }
+            => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
 
         /// <summary>
         /// Get the text changes between this document and a prior version of the same document.
@@ -482,9 +466,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return this.Name;
-        }
+            => this.Name;
 
         private AsyncLazy<DocumentOptionSet>? _cachedOptions;
 
@@ -496,9 +478,7 @@ namespace Microsoft.CodeAnalysis
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
         public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
-        {
-            return GetOptionsAsync(Project.Solution.Options, cancellationToken);
-        }
+            => GetOptionsAsync(Project.Solution.Options, cancellationToken);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", AllowCaptures = false)]
         internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet solutionOptions, CancellationToken cancellationToken)
@@ -529,8 +509,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
-        {
-            return DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
-        }
+            => DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
     }
 }

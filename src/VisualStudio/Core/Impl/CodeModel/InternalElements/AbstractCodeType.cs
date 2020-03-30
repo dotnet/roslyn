@@ -49,19 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal INamedTypeSymbol LookupTypeSymbol()
-        {
-            return (INamedTypeSymbol)LookupSymbol();
-        }
+            => (INamedTypeSymbol)LookupSymbol();
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetTypeExtenderNames();
-        }
+            => CodeModelService.GetTypeExtenderNames();
 
         protected override object GetExtender(string name)
-        {
-            return CodeModelService.GetTypeExtender(name, this);
-        }
+            => CodeModelService.GetTypeExtender(name, this);
 
         public override object Parent
         {

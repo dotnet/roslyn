@@ -2305,16 +2305,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Bir lambda ile yerel işlev arasında geçiş yapmak, hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Değişken bildirimini ayrıştır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Değişken bildirimi ayrıştırılabilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>

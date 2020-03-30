@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        {
-            return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
-        }
+            => s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
 
         protected override async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
@@ -123,9 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             }
 
             protected override bool IsNewLine(char c)
-            {
-                return SyntaxFacts.IsNewLine(c);
-            }
+                => SyntaxFacts.IsNewLine(c);
         }
     }
 }

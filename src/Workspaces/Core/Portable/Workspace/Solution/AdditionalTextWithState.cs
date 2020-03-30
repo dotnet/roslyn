@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="documentState"/> should be non-null.
         /// </summary>
         public AdditionalTextWithState(TextDocumentState documentState)
-        {
-            _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
-        }
+            => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
 
         /// <summary>
         /// Resolved path of the document.

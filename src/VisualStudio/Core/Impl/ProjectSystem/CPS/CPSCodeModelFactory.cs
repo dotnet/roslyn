@@ -19,13 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public EnvDTE.CodeModel GetCodeModel(IWorkspaceProjectContext context, EnvDTE.Project project)
-        {
-            return ((CPSProject)context).GetCodeModel(project);
-        }
+            => ((CPSProject)context).GetCodeModel(project);
 
         public EnvDTE.FileCodeModel GetFileCodeModel(IWorkspaceProjectContext context, EnvDTE.ProjectItem item)
-        {
-            return ((CPSProject)context).GetFileCodeModel(item);
-        }
+            => ((CPSProject)context).GetFileCodeModel(item);
     }
 }

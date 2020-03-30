@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
-        {
-            return s_instance;
-        }
+            => s_instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
@@ -167,9 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
-            {
-                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
-            }
+                => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
