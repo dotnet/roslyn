@@ -3810,7 +3810,7 @@ expectedIL: @"{
 
         [Fact]
         [WorkItem(31665, "https://github.com/dotnet/roslyn/issues/31665")]
-        public void TestQuestionableSequencePoints_31665()
+        public void TestSequencePoints_31665()
         {
             var source = @"
 using System;
@@ -3885,7 +3885,7 @@ internal class Program
 
         [Fact]
         [WorkItem(17076, "https://github.com/dotnet/roslyn/issues/17076")]
-        public void TestQuestionableSequencePoints_17076()
+        public void TestSequencePoints_17076()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -4139,7 +4139,7 @@ class B : Node { }
 
         [Fact]
         [WorkItem(28288, "https://github.com/dotnet/roslyn/issues/28288")]
-        public void TestQuestionableSequencePoints_28288()
+        public void TestSequencePoints_28288()
         {
             var source = @"
 using System.Threading.Tasks;
