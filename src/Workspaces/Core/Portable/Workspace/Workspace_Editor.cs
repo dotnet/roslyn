@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
 #nullable enable
 
         /// <summary>
-        /// Gets the ids for documents associated with a text container using the <see cref="CurrentSolution"/> snapshot.
+        /// Gets the ids for documents in the <see cref="CurrentSolution"/> snapshot associated with the given <paramref name="container"/>.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
         public virtual IEnumerable<DocumentId> GetRelatedDocumentIds(SourceTextContainer container)
