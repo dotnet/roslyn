@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
-using System.Windows;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
-using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -41,7 +38,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    ((IntellisenseTextBox)dialog.NameContentControl.Content).Text = parameterName;
+                    dialog.NameContentControl.Text = parameterName;
                 });
             }
         }
@@ -54,7 +51,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    ((IntellisenseTextBox)dialog.TypeContentControl.Content).Text = typeName;
+                    dialog.TypeContentControl.Text = typeName;
                 });
             }
         }

@@ -37,15 +37,18 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Label x:Name="TypeNameLabelName" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
-            <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="0,5,0,5" MinHeight="19">
-                <ContentControl x:Name="TypeContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeOrNameContentControl_PreviewKeyDown" KeyUp="TypeOrNameContentControl_KeyUp" AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
-            </Border>
-            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
-            <Border Grid.Row="3" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="0,5,0,5">
-                <ContentControl x:Name="NameContentControl" Height="16" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeOrNameContentControl_PreviewKeyDown" KeyUp="TypeOrNameContentControl_KeyUp" AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
-            </Border>
-            <Label x:Name="ParameterKindLabelName" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
+            <Label x:Name="TypeNameLabelName" Grid.Row="0" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
+            <TextBox x:Name="TypeContentControl" 
+                     Grid.Row="1" 
+                     Margin="0,5,0,5" 
+                     MinHeight="19"
+                     AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
+            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+            <TextBox x:Name="NameContentControl"
+                     Grid.Row="3" 
+                     Margin="0,5,0,5"
+                     AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
+            <Label x:Name="ParameterKindLabelName" Grid.Row="4" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
             <RadioButton x:Name="RequiredParameterRadioButton" Grid.Row="5" Margin="5" GroupName="ParameterKind" IsChecked="True" Content="{Binding ElementName=dialog, Path=Required}" />
             <Grid Grid.Row="6" Margin="5">
                 <Grid.ColumnDefinitions>

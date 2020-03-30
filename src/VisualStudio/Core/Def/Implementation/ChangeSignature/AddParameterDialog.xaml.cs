@@ -3,12 +3,7 @@
 #nullable enable
 
 using System.Windows;
-using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -45,23 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            var changeSignatureViewModelFactoryService = _viewModel.Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-            changeSignatureViewModelFactoryService.CreateAndSetViewModelsAsync(
-                    _viewModel.Document,
-                    _viewModel.InsertPosition,
-                    this.TypeContentControl,
-                    this.NameContentControl).Wait();
-
-            this.MinHeight = this.Height;
+            MinHeight = Height;
+            TypeContentControl.Focus();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            // TODO take these values from IntellisenseTextBoxViewModels not from controls.
-            // https://github.com/dotnet/roslyn/issues/41149
-
-            _viewModel.UpdateTypeSymbol(((IntellisenseTextBox)TypeContentControl.Content).Text);
-            _viewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
+            _viewModel.UpdateTypeSymbol(TypeContentControl.Text);
+            _viewModel.ParameterName = NameContentControl.Text;
 
             _viewModel.IsRequired = RequiredParameterRadioButton.IsChecked ?? false;
             _viewModel.DefaultValue = _viewModel.IsRequired ? "" : DefaultValue.Text;
@@ -81,61 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
-        }
-
-        private void TypeOrNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            var elementWithFocus = Keyboard.FocusedElement as UIElement;
-            if (elementWithFocus is IWpfTextView)
-            {
-                var typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
-                if (typeOrNameTextBox != null)
-                {
-                    if (e.Key == Key.Escape && !typeOrNameTextBox.HasActiveIntellisenseSession)
-                    {
-                        e.Handled = true;
-                    }
-                    else if (e.Key == Key.Enter && !typeOrNameTextBox.HasActiveIntellisenseSession)
-                    {
-                        // Do nothing. This case is handled in parent control KeyDown events.
-                    }
-                    else if (e.Key == Key.Tab && !typeOrNameTextBox.HasActiveIntellisenseSession)
-                    {
-                        // Do nothing. This case is handled in parent control KeyDown events.
-                    }
-                    else if (e.Key == Key.Space &&
-                        typeOrNameTextBox.ContainerName.Equals(NameContentControl.Name))
-                    {
-                        // Do nothing. We disallow spaces in the name field for both C# and VB.
-                        e.Handled = true;
-                    }
-                    else
-                    {
-                        // Let the editor control handle the keystrokes
-                        e.Handled = typeOrNameTextBox.HandleKeyDown();
-                    }
-                }
-            }
-        }
-
-        private void TypeOrNameContentControl_KeyUp(object sender, KeyEventArgs e)
-        {
-            var elementWithFocus = Keyboard.FocusedElement as UIElement;
-            if (elementWithFocus is IWpfTextView)
-            {
-                // We disable Intellisense in the name field in either of the following scenarios:
-                //     1. The type field is empty.
-                //     2. We're in a VB project, since VB doesn't give name suggestions.
-                var typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
-                if (typeOrNameTextBox != null && typeOrNameTextBox.ContainerName.Equals(NameContentControl.Name))
-                {
-                    var typeFieldIsEmpty = string.IsNullOrWhiteSpace(((IntellisenseTextBox)TypeContentControl.Content).Text);
-                    if (typeFieldIsEmpty || _viewModel.Document.Project.Language == LanguageNames.VisualBasic)
-                    {
-                        typeOrNameTextBox.ShutDownIntellisenseSessions();
-                    }
-                }
-            }
         }
 
         internal TestAccessor GetTestAccessor()
