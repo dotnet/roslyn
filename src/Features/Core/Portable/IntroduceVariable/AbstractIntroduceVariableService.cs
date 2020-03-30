@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract int DetermineConstantInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
 
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
-        {
-            return block.OverlapsHiddenPosition(cancellationToken);
-        }
+            => block.OverlapsHiddenPosition(cancellationToken);
 
         public async Task<CodeAction> IntroduceVariableAsync(
             Document document,

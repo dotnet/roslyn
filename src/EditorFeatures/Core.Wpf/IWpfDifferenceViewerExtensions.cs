@@ -123,9 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             private static bool IsNormal(double value)
-            {
-                return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
-            }
+                => !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
         }
 
         public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0, CancellationToken cancellationToken = default)

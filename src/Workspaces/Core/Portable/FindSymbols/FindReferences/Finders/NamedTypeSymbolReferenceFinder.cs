@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<INamedTypeSymbol>
     {
         protected override bool CanFind(INamedTypeSymbol symbol)
-        {
-            return symbol.TypeKind != TypeKind.Error;
-        }
+            => symbol.TypeKind != TypeKind.Error;
 
         protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,

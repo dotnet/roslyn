@@ -37,59 +37,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public bool IsReadOnly => false;
 
             public void Add(OptionKey2 key, object value)
-            {
-                _map.Add(key, value);
-            }
+                => _map.Add(key, value);
 
             public void Add(KeyValuePair<OptionKey2, object> item)
-            {
-                _map.Add(item.Key, item.Value);
-            }
+                => _map.Add(item.Key, item.Value);
 
             public void Clear()
-            {
-                _map.Clear();
-            }
+                => _map.Clear();
 
             public bool Contains(KeyValuePair<OptionKey2, object> item)
-            {
-                return _map.Contains(item);
-            }
+                => _map.Contains(item);
 
             public bool ContainsKey(OptionKey2 key)
-            {
-                return _map.ContainsKey(key);
-            }
+                => _map.ContainsKey(key);
 
             public void CopyTo(KeyValuePair<OptionKey2, object>[] array, int arrayIndex)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public IEnumerator<KeyValuePair<OptionKey2, object>> GetEnumerator()
-            {
-                return _map.GetEnumerator();
-            }
+                => _map.GetEnumerator();
 
             public bool Remove(OptionKey2 key)
-            {
-                return _map.Remove(key);
-            }
+                => _map.Remove(key);
 
             public bool Remove(KeyValuePair<OptionKey2, object> item)
-            {
-                return _map.Remove(item.Key);
-            }
+                => _map.Remove(item.Key);
 
             public bool TryGetValue(OptionKey2 key, out object value)
-            {
-                return _map.TryGetValue(key, out value);
-            }
+                => _map.TryGetValue(key, out value);
 
             IEnumerator IEnumerable.GetEnumerator()
-            {
-                return _map.GetEnumerator();
-            }
+                => _map.GetEnumerator();
         }
     }
 }

@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             private readonly ITextBuffer _textBuffer;
 
             public InertClassifier(ITextBuffer textBuffer)
-            {
-                _textBuffer = textBuffer;
-            }
+                => _textBuffer = textBuffer;
 
 #pragma warning disable 67
             public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged;

@@ -24,26 +24,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Factory();
-        }
+            => new Factory();
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
             public bool ShouldUseBaseIndentation(Document document)
-            {
-                return IsContainedDocument(document);
-            }
+                => IsContainedDocument(document);
 
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
-            {
-                return IsContainedDocument(document);
-            }
+                => IsContainedDocument(document);
 
             private bool IsContainedDocument(Document document)
             {

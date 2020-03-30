@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentSymbolsHandler()
         {
         }

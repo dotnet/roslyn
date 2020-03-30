@@ -66,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         private void ChangeSignatureDialog_Loaded(object sender, RoutedEventArgs e)
-        {
-            Members.Focus();
-        }
+            => Members.Focus();
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
@@ -79,9 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
@@ -238,9 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             private readonly ChangeSignatureDialog _dialog;
 
             public TestAccessor(ChangeSignatureDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public ChangeSignatureDialogViewModel ViewModel => _dialog._viewModel;
 

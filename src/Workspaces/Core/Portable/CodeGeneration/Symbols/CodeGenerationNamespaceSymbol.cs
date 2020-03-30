@@ -24,36 +24,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsType => false;
 
         protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationNamespaceSymbol(this.Name, _members);
-        }
+            => new CodeGenerationNamespaceSymbol(this.Name, _members);
 
         public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
-        {
-            return _members;
-        }
+            => _members;
 
         IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
-        {
-            return GetMembers().Where(m => m.Name == name);
-        }
+            => GetMembers().Where(m => m.Name == name);
 
         public IEnumerable<INamespaceSymbol> GetNamespaceMembers()
-        {
-            return GetMembers().OfType<INamespaceSymbol>();
-        }
+            => GetMembers().OfType<INamespaceSymbol>();
 
         public bool IsGlobalNamespace
         {

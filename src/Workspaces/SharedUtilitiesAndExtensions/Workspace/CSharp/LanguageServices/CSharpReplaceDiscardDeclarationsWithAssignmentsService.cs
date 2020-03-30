@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
         private const string DiscardVariableName = "_";
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpReplaceDiscardDeclarationsWithAssignmentsService()
         {
         }

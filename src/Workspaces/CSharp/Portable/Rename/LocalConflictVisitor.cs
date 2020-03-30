@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly ConflictingIdentifierTracker _tracker;
 
         public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
-        {
-            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-        }
+            => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
         public override void DefaultVisit(SyntaxNode node)
         {
@@ -40,9 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitBlock(BlockSyntax node)
-        {
-            VisitBlockStatements(node, node.Statements);
-        }
+            => VisitBlockStatements(node, node.Statements);
 
         private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
         {
@@ -131,9 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
-        {
-            VisitQueryInternal(node.FromClause, node.Body);
-        }
+            => VisitQueryInternal(node.FromClause, node.Body);
 
         private void VisitQueryInternal(FromClauseSyntax fromClause, QueryBodySyntax body)
         {

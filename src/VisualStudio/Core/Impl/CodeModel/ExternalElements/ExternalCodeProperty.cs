@@ -31,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<ExternalCodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         public override EnvDTE.vsCMElement Kind
         {

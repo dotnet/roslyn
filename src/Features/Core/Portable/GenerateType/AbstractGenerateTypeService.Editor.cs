@@ -222,9 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
-            {
-                return "Global." + namespaceToBeGenerated;
-            }
+                => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
             private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)

@@ -122,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
-            {
-                return jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
-            }
+                => jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
 
             protected override bool ReadOnlyFieldAllowed()
             {

@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQPointerType(RQType elementType) : base(elementType) { }
 
         public override SimpleTreeNode ToSimpleTree()
-        {
-            return new SimpleGroupNode(RQNameStrings.Pointer, ElementType.ToSimpleTree());
-        }
+            => new SimpleGroupNode(RQNameStrings.Pointer, ElementType.ToSimpleTree());
     }
 }

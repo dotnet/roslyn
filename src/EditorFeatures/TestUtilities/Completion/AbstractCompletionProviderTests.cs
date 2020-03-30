@@ -280,14 +280,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected bool CompareItems(string actualItem, string expectedItem)
-        {
-            return GetStringComparer().Equals(actualItem, expectedItem);
-        }
+            => GetStringComparer().Equals(actualItem, expectedItem);
 
         protected virtual IEqualityComparer<string> GetStringComparer()
-        {
-            return StringComparer.Ordinal;
-        }
+            => StringComparer.Ordinal;
 
         private protected async Task VerifyItemExistsAsync(
             string markup, string expectedItem, string expectedDescriptionOrNull = null,

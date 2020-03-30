@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
         protected override ParseOptions GetScriptOptions()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,

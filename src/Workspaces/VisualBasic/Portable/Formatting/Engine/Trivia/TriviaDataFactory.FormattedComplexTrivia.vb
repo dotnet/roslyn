@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return Me._textChanges
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Return _formatter.FormatToSyntaxTrivia(cancellationToken)
             End Function
 

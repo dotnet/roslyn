@@ -129,13 +129,9 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
-        {
-            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
-        }
+            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
 
         internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
-        {
-            return optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
-        }
+            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
     }
 }

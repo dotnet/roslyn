@@ -24,14 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
     internal class InteractiveCommandCompletionServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveCommandCompletionServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
     }
 
     internal class InteractiveCommandCompletionService : CompletionServiceWithProviders
