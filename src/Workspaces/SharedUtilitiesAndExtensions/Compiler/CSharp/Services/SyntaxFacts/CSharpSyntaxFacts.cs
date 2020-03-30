@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
-            => CSharpSyntaxGenerator.GetAttributeLists(node);
+            => node.GetAttributeLists();
 
         public override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
             => node.IsKind(SyntaxKind.XmlElement) &&

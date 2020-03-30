@@ -112,21 +112,6 @@
         <target state="new">Call site</target>
         <note />
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">분류</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIndicator">
-        <source>&lt;new&gt;</source>
-        <target state="new">&lt;new&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
-        <source>TODO</source>
-        <target state="new">TODO</target>
-        <note>"TODO" is an indication that there is work to be done still</note>
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">'{0}'에 대한 코드 분석이 완료되었습니다.</target>
@@ -719,9 +704,9 @@
       </trans-unit>
       <trans-unit id="Value_to_inject_at_call_sites_colon">
         <source>Value to inject at call sites:</source>
+        <target state="new">Value to inject at call sites:</target>
         <note />
       </trans-unit>
-      <target state="new">Value to inject at call sites:</target>
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
         <target state="new">Visual Studio 2017</target>

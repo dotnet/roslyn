@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
         protected override SyntaxGenerator Generator => CSharpSyntaxGenerator.Instance;
-        protected override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
             SyntaxKind.MethodDeclaration,
@@ -453,13 +454,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var equalsValueClause = addedParameter.HasDefaultValue
                 ? EqualsValueClause(ParseExpression(addedParameter.DefaultValue))
-                : default;
+                : null;
 
             return Parameter(
                 attributeLists: default,
                 modifiers: default,
                 type: skipParameterType
-                    ? default
+                    ? null
                     : addedParameter.Type.GenerateTypeSyntax()
                         .WithTrailingTrivia(ElasticSpace),
                 Identifier(addedParameter.Name),

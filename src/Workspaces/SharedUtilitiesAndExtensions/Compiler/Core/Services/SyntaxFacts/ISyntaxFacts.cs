@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsParameterNameXmlElementSyntax(SyntaxNode node);
 
         SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
-        
+
         bool CanHaveAccessibility(SyntaxNode declaration);
 
         /// <summary>

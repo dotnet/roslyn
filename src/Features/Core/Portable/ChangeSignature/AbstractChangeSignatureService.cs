@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // 5. Add the params argument with the first value:
-            if (paramsArrayArgument != default)
+            if (paramsArrayArgument != null)
             {
                 var param = argumentToParameterMap[paramsArrayArgument];
                 if (seenNamedArgument && !paramsArrayArgument.IsNamed)
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         protected abstract SyntaxGenerator Generator { get; }
-        protected abstract ISyntaxFactsService SyntaxFacts { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         protected SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
             ISymbol declarationSymbol,
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         fullList.Add(
                             Generator.Argument(
-                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : default,
+                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
                         separators.Add(CommaTokenWithElasticSpace());

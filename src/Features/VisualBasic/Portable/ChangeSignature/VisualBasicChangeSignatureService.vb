@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
@@ -624,9 +625,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
             Get
-                Return VisualBasicSyntaxFactsService.Instance
+                Return VisualBasicSyntaxFacts.Instance
             End Get
         End Property
 

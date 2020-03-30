@@ -112,21 +112,6 @@
         <target state="new">Call site</target>
         <note />
       </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="translated">Classificações</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIndicator">
-        <source>&lt;new&gt;</source>
-        <target state="new">&lt;new&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
-        <source>TODO</source>
-        <target state="new">TODO</target>
-        <note>"TODO" is an indication that there is work to be done still</note>
-      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">Análise de código concluída para '{0}'.</target>
