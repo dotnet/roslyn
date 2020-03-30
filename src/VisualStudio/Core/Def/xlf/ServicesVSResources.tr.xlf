@@ -12,9 +12,29 @@
         <target state="translated">Yeni bir ad alanı oluşturulacak</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_type_and_name_must_be_provided">
+        <source>A type and name must be provided.</source>
+        <target state="new">A type and name must be provided.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="new">_Add</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
+      <trans-unit id="Add_Parameter">
+        <source>Add Parameter</source>
+        <target state="new">Add Parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Geçerli _dosyaya ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="new">Added parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -82,6 +102,26 @@
         <target state="translated">Bağımlılar hesaplanıyor...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_site_value">
+        <source>Call site value:</source>
+        <target state="new">Call site value:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Callsite">
+        <source>Call site</source>
+        <target state="new">Call site</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIndicator">
+        <source>&lt;new&gt;</source>
+        <target state="new">&lt;new&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>TODO</source>
+        <target state="new">TODO</target>
+        <note>"TODO" is an indication that there is work to be done still</note>
+      </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
         <target state="translated">'{0}' için kod analizi tamamlandı.</target>
@@ -111,6 +151,16 @@
         <source>Current document</source>
         <target state="translated">Geçerli belge</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Edit">
+        <source>_Edit</source>
+        <target state="new">_Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_0">
+        <source>Edit {0}</source>
+        <target state="new">Edit {0}</target>
+        <note>{0} is a parameter description</note>
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
@@ -155,6 +205,16 @@
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">Diğer işleçlerde</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Index">
+        <source>Index</source>
+        <target state="new">Index</target>
+        <note>Index of parameter in original signature</note>
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="new">Inserting call site value '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
@@ -382,9 +442,29 @@
         <target state="translated">Açık belgeler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_Details">
+        <source>Parameter Details</source>
+        <target state="new">Parameter Details</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Name">
+        <source>Parameter name:</source>
+        <target state="new">Parameter name:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_name_contains_invalid_characters">
+        <source>Parameter name contains invalid character(s).</source>
+        <target state="new">Parameter name contains invalid character(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Parametre tercihleri:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_type_contains_invalid_characters">
+        <source>Parameter type contains invalid character(s).</source>
+        <target state="new">Parameter type contains invalid character(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -552,6 +632,11 @@
         <target state="translated">Bu geçersiz bir ad alanı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type name:</source>
+        <target state="new">Type name:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Kullanılmayan değer açıkça kullanılmayan bir yerele atandı</target>
@@ -616,6 +701,11 @@
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Bu çalışma alanı Visual Basic derleme seçeneklerinin güncelleştirilmesini desteklemiyor.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="new">You must change the signature</target>
+        <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
