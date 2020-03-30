@@ -20,6 +20,7 @@ Public Class DiagnosticAnalyzerDriverTests
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+            AccessSupportedDiagnostics(analyzer)
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, New TextSpan(0, document.GetTextAsync().Result.Length))
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
@@ -86,6 +87,12 @@ End Class
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
         analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)
+        AccessSupportedDiagnostics(analyzer)
+    End Sub
+
+    Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
+        Dim diagnosticService = New HostDiagnosticAnalyzers({New AnalyzerImageReference(ImmutableArray.Create(analyzer))})
+        diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache())
     End Sub
 
     <Fact>
