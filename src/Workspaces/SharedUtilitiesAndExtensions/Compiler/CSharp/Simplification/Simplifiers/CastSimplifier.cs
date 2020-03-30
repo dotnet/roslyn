@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castNode.Parent is AssignmentExpressionSyntax assignmentExpression &&
                 assignmentExpression.Right == castNode)
             {
-                // Identity fp conversion is safe if this is a write toa fp field/array
+                // Identity fp conversion is safe if this is a write to a fp field/array
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
