@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal GeneratorDriver(Compilation compilation, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(compilation, parseOptions, generators, additionalTexts, ImmutableDictionary<ISourceGenerator, GeneratorState>.Empty, ImmutableArray<PendingEdit>.Empty, finalCompilation: null, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, generators, additionalTexts, ImmutableDictionary<ISourceGenerator, GeneratorState>.Empty, ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(state.Compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
+                    var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
                     stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }
@@ -266,9 +266,7 @@ namespace Microsoft.CodeAnalysis
             outputCompilation = compilation.AddSyntaxTrees(trees);
             trees.Free();
 
-            state = state.With(compilation: compilation,
-                               finalCompilation: outputCompilation,
-                               edits: ImmutableArray<PendingEdit>.Empty,
+            state = state.With(edits: ImmutableArray<PendingEdit>.Empty,
                                editsFailed: false);
             return FromState(state);
         }

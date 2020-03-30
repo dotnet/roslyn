@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: (CSharpCompilationOptions)options ?? s_defaultOptions);
         }
 
-        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType)
+        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType)
         {
             return CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
@@ -37,20 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalsType: hostObjectType);
         }
 
-        Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
-        {
-            var compilationRef = reference as CompilationReference;
-            return compilationRef?.Compilation;
-        }
-
-        bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
-
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
         {
             return s_defaultOptions;
+        }
+
+        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+        {
+            // PROTOTYPE: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return null;
+            }
+            return new CSharpGeneratorDriver(parseOptions, generators, additionalTexts);
         }
     }
 }

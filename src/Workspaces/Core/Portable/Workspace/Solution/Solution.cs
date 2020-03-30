@@ -741,8 +741,12 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            // avoid enumerating multiple times:
-            var collection = analyzerReferences?.ToCollection();
+            if (analyzerReferences is null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReferences));
+            }
+
+            var collection = analyzerReferences.ToImmutableArray();
 
             PublicContract.RequireUniqueNonNullItems(collection, nameof(analyzerReferences));
 

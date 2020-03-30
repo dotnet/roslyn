@@ -37,7 +37,7 @@ class C { }
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
@@ -63,7 +63,7 @@ class C { }
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
             Assert.Null(receiver);
@@ -86,7 +86,7 @@ class C { }
                 onExecute: (e) => { }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out _, out _);
 
             void Initialize(InitializationContext initContext)
@@ -127,7 +127,7 @@ class C
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
@@ -167,7 +167,7 @@ class C
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(compilation, parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), ImmutableArray<AdditionalText>.Empty);
             driver = driver.RunFullGeneration(compilation, out _, out _);
 
             Assert.NotNull(receiver);
