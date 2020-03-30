@@ -21,6 +21,7 @@ MicrosoftCodeAnalysisDocumentation: RS1000-RS1999
 MicrosoftCodeAnalysisLocalization: RS1000-RS1999
 MicrosoftCodeAnalysisPerformance: RS1000-RS1999
 MicrosoftCodeAnalysisCompatibility: RS1000-RS1999
+MicrosoftCodeAnalysisReleaseTracking: RS2000-RS2100
 
 # Roslyn specific rules
 RoslynDiagnosticsDesign: RS0000-RS0999

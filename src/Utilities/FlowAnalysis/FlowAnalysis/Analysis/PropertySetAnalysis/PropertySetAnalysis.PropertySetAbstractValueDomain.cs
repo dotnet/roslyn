@@ -62,7 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     for (int i = 0; i < maxKnownCount; i++)
                     {
-                        builder.Add(this.MergeKind(value1[i], value2[i]));
+                        builder.Add(MergeKind(value1[i], value2[i]));
                     }
 
                     return PropertySetAbstractValue.GetInstance(builder);
@@ -73,7 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            private PropertySetAbstractValueKind MergeKind(PropertySetAbstractValueKind kind1, PropertySetAbstractValueKind kind2)
+            private static PropertySetAbstractValueKind MergeKind(PropertySetAbstractValueKind kind1, PropertySetAbstractValueKind kind2)
             {
                 if (kind1 == kind2)
                 {
