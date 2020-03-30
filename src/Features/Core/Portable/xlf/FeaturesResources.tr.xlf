@@ -2075,16 +2075,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Değişken bildirimi satır içine alınabilir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Açıkça sağlanan demet öğesi adını tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Açıkça sağlanan demet adını kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">{0}' belgesini kaldır</target>
@@ -2313,16 +2303,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">Bir lambda ile yerel işlev arasında geçiş yapmak, hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Değişken bildirimini ayrıştır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Değişken bildirimi ayrıştırılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

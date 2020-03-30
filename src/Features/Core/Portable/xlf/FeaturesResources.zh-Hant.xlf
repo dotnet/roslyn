@@ -2075,16 +2075,6 @@ This version used in: {2}</source>
         <target state="translated">變數宣告可內置</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">建議使用明確提供的元組元素名稱</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">使用明確提供的元組名稱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">移除文件 '{0}'</target>
@@ -2313,16 +2303,6 @@ This version used in: {2}</source>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">在 lambda 和區域函式之間切換會讓偵錯工作階段無法繼續進行。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">解構變數宣告</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">變數宣告可進行解構</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

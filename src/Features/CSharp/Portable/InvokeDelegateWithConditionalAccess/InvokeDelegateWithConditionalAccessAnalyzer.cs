@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
             // Fade out the code up to the expression statement.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                 Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)),
                 additionalLocations, properties));
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             // If the if-statement extends past the expression statement, then fade out the rest.
             if (nextToken.Span.Start < ifStatement.Span.End)
             {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                     Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
                     additionalLocations, properties));
             }

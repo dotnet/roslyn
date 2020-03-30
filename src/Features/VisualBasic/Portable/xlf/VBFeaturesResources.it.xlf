@@ -1787,16 +1787,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Rendi asincrona la funzione sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Usa controllo 'Is Nothing'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Usa controllo 'IsNot Nothing'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
         <target state="translated">Converti in 'Select Case'</target>

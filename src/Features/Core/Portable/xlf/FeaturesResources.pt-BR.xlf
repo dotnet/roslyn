@@ -2075,16 +2075,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">A declaração de variável pode ser embutida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Preferir o nome do elemento de tupla fornecido explicitamente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Usar o nome de tupla fornecido explicitamente</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Remover documento '{0}'</target>
@@ -2313,16 +2303,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">Alternar entre um lambda e uma função local impedirá que a sessão de depuração continue.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Desconstruir declaração de variável</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">A declaração de variável pode ser desconstruída</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

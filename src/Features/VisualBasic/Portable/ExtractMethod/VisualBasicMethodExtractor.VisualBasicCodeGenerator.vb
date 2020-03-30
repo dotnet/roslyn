@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Options
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -157,11 +158,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var builder = ImmutableArray.CreateBuilder<MetadataReference>();
 
+                    // used to eliminate duplicates
+                    var _ = PooledHashSet<MetadataReference>.GetInstance(out var set);
+
                     for (var index = 0; index < _metadataReferences.Length; index++)
                     {
-                        if (!_indicesToRemove.Contains(index))
+                        var reference = _metadataReferences[index];
+                        if (!_indicesToRemove.Contains(index) && set.Add(reference))
                         {
-                            builder.Add(_metadataReferences[index]);
+                            builder.Add(reference);
                         }
                     }
 

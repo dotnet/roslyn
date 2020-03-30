@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(conditionMemberAccess, out var conditionExpression, out var conditionSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out var unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out _);
 
             if (conditionName != nameof(Nullable<int>.HasValue))
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(whenPartMemberAccess, out var whenPartExpression, out var whenPartSimpleName);
-            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out unused);
+            syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out _);
 
             if (whenPartName != nameof(Nullable<int>.Value))
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             // actually looking at something Nullable (and not some type that uses a similar 
             // syntactic pattern).
             var semanticModel = context.SemanticModel;
-            var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName);
+            var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName!);
             if (nullableType == null)
             {
                 return;

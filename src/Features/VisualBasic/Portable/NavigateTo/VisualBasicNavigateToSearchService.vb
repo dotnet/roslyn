@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NavigateTo
         Inherits AbstractNavigateToSearchService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
     End Class

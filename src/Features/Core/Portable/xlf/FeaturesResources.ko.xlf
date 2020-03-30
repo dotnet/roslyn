@@ -2075,16 +2075,6 @@ This version used in: {2}</source>
         <target state="translated">변수 선언은 인라인될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">명시적으로 제공된 튜플 요소 이름 기본 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">명시적으로 제공된 튜플 이름 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">문서 '{0}' 제거</target>
@@ -2313,16 +2303,6 @@ This version used in: {2}</source>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">람다와 로컬 함수 간에 전환하면 디버그 세션을 계속할 수 없게 됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">변수 선언 분해</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">변수 선언을 분해할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

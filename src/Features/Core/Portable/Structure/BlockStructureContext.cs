@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public void AddBlockSpan(BlockSpan span)
-        {
-            _spans.Add(span);
-        }
+            => _spans.Add(span);
     }
 }

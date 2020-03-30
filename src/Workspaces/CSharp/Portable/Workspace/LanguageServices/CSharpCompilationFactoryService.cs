@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompilationFactoryService()
         {
         }
@@ -43,13 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
+            => reference is CompilationReference;
 
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
-        {
-            return s_defaultOptions;
-        }
+            => s_defaultOptions;
     }
 }

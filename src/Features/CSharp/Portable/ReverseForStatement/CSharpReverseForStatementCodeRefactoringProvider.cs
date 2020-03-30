@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpReverseForStatementCodeRefactoringProvider()
         {
         }

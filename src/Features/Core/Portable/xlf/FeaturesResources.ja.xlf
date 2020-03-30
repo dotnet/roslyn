@@ -2075,16 +2075,6 @@ This version used in: {2}</source>
         <target state="translated">変数の宣言をインライン化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">明示的に提供されたタプル要素名を優先します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">明示的に提供されたタプル名を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">ドキュメント '{0}' の削除</target>
@@ -2313,16 +2303,6 @@ This version used in: {2}</source>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">ラムダとローカル関数を切り替えると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">変数の宣言を分解</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">変数の宣言を分解できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

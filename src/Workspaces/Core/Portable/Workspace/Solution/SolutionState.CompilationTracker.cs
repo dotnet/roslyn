@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private State ReadState()
-            {
-                return Volatile.Read(ref _stateDoNotAccessDirectly);
-            }
+                => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(State state, SolutionState solution)
             {
@@ -155,9 +153,7 @@ namespace Microsoft.CodeAnalysis
             /// Creates a fork with the same final project.
             /// </summary>
             public CompilationTracker Clone()
-            {
-                return this.Fork(this.ProjectState, clone: true);
-            }
+                => this.Fork(this.ProjectState, clone: true);
 
             public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
@@ -244,9 +240,6 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = compilation;
                 }
 
-                // first remove all project from the project and compilation.
-                inProgressProject = inProgressProject.WithProjectReferences(ImmutableArray.Create<ProjectReference>());
-
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
                 // that the in-progress project only reports a reference to another project if it
@@ -294,7 +287,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
+                inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences);
                 inProgressCompilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(inProgressCompilation, metadataReferences, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();

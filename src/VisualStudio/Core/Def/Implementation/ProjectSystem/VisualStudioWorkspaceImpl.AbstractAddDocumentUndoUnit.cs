@@ -42,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             protected abstract Project AddDocument(Project fromProject);
 
             public override void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(FeaturesResources.Add_document_0, DocumentInfo.Name);
-            }
+                => pBstr = string.Format(FeaturesResources.Add_document_0, DocumentInfo.Name);
         }
     }
 }

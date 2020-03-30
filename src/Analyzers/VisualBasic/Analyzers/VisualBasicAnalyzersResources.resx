@@ -120,4 +120,10 @@
   <data name="Imports_statement_is_unnecessary" xml:space="preserve">
     <value>Imports statement is unnecessary.</value>
   </data>
+  <data name="Use_Is_Nothing_check" xml:space="preserve">
+    <value>Use 'Is Nothing' check</value>
+  </data>
+  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
+    <value>Use 'IsNot Nothing' check</value>
+  </data>
 </root>

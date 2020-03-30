@@ -2075,16 +2075,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Deklaraci proměnné je možné vložit do řádku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Preferovat výslovně zadaný název prvku řazené kolekce členů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Použít výslovně zadaný název řazené kolekce členů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Odebrat dokument {0}</target>
@@ -2313,16 +2303,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
         <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
         <target state="translated">Přepínání mezi lambda a lokální funkcí zabrání v pokračování ladicí relace.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Dekonstruovat deklaraci proměnné</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Deklaraci proměnné je možné dekonstruovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

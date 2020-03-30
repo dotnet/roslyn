@@ -30,14 +30,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
 
-        /// <summary>
-        /// Mapping from a document to the list of reference locations found in it.  Kept around so
-        /// we only notify the callback once when a location is found for a reference (in case
-        /// multiple finders find the same reference location for a symbol).
-        /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
-
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,
@@ -60,9 +52,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
+                await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
                 var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
@@ -73,7 +66,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
         }
@@ -139,8 +131,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
-        {
-            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
-        }
+            => _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
     }
 }

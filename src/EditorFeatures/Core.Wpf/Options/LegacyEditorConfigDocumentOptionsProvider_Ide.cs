@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             new ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>>();
 
         partial void OnCodingConventionContextCreated(DocumentId documentId, ICodingConventionContext context)
-        {
-            context.CodingConventionsChangedAsync += (sender, e) => HandleCodingConventionsChangedAsync(documentId, sender, e);
-        }
+            => context.CodingConventionsChangedAsync += (sender, e) => HandleCodingConventionsChangedAsync(documentId, sender, e);
 
         private Task HandleCodingConventionsChangedAsync(DocumentId documentId, object sender, CodingConventionsChangedEventArgs e)
         {

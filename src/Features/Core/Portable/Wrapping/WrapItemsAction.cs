@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             var operationsList = operations.ToList();
 
-            operationsList.Add(new RecordCodeActionOperation(this.SortTitle, this.ParentTitle));
+            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
             return operationsList;
         }
 

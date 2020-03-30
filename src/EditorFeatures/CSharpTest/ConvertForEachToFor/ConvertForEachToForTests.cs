@@ -1132,7 +1132,7 @@ class List : IList
         {
             var text = @"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" CommonReferenceFacadeSystemRuntime = ""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
     <MetadataReference>" + typeof(ImmutableArray<>).Assembly.Location + @"</MetadataReference>
         <Document>
 using System;

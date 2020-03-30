@@ -18,8 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         public static string GetEscapedFullName(this ISymbol symbol)
-        {
-            return symbol.ToDisplayString(s_fullNameWithEscapedKeywordsFormat);
-        }
+            => symbol.ToDisplayString(s_fullNameWithEscapedKeywordsFormat);
     }
 }

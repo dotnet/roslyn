@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference
             = ImmutableArray.Create(CS0012);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddMissingReferenceCodeFixProvider()
         {
         }

@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
