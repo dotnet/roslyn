@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // truncate it to 32bits.
             //
             // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
-            // times are when we're loading or storing into a location we know has the same size that the cast size
+            // times are when we're loading or storing into a location we know has the same size as the cast size
             // (i.e. reading/writing into a field).
             if (expressionType.SpecialType != SpecialType.System_Double &&
                 expressionType.SpecialType != SpecialType.System_Single &&
