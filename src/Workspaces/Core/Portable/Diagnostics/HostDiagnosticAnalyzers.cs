@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return null;
         }
 
-        private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(Project project)
+        private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(IReadOnlyList<AnalyzerReference> projectAnalyzerReferences)
             => CreateAnalyzerReferencesMap(projectAnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.ContainsKey(reference.Id)));
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(

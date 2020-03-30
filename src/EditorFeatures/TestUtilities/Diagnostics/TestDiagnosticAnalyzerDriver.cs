@@ -90,6 +90,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
             => GetDiagnosticsAsync(project, document: null, filterSpan: null, getDocumentDiagnostics: false, getProjectDiagnostics: true);
-        }
     }
 }
