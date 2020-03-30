@@ -102,6 +102,21 @@
         <target state="translated">Конструктор делает ненаследуемый базовый класс наследуемым</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Все открытые элементы должны использовать ссылочные типы, допускающие или не допускающие значение null, но не игнорируемые ссылочные типы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">Символ "{0}" использует некоторые игнорируемые ссылочные типы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Открытые элементы не должны использовать игнорируемые типы</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">Символ "{0}" нарушает требование обратной совместимости: "Открытый API с необязательными параметрами должен иметь основную часть параметров среди своих открытых перегрузок". Дополнительные сведения см. в "{1}".</target>

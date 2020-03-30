@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return Remove(item.Key);
         }
 
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes. https://github.com/dotnet/roslyn/issues/42552
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.
         {
             Debug.Assert(!IsDisposed);
             return _coreAnalysisData.TryGetValue(key, out value);

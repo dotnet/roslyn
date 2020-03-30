@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task RS1007_RS1015_CSharp_VerifyDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -54,7 +55,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -83,7 +84,7 @@ End Class
         [Fact]
         public async Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -121,7 +122,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -154,7 +155,7 @@ End Class
         [Fact]
         public async Task RS1007_RS1015_CSharp_NoDiagnosticCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -195,7 +196,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task RS1007_RS1015_VisualBasic_NoDiagnosticCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -232,7 +233,7 @@ End Class
         [Fact]
         public async Task RS1017_RS1019_CSharp_VerifyDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -292,9 +293,68 @@ class MyAnalyzer2 : DiagnosticAnalyzer
         }
 
         [Fact]
+        public async Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelper()
+        {
+            await VerifyCSharpAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly string NonConstantDiagnosticId = ""NonConstantDiagnosticId"";
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor =
+        DiagnosticDescriptorHelper.Create(NonConstantDiagnosticId, dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor, descriptor2);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer2 : DiagnosticAnalyzer
+{
+    private static LocalizableString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor =
+        DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"");
+
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}" + CSharpDiagnosticDescriptorCreationHelper,
+                GetCSharpRS1017ExpectedDiagnostic(14, 43, "descriptor"),
+                GetCSharpRS1019ExpectedDiagnostic(38, 43, "DuplicateDiagnosticId", "MyAnalyzer"));
+        }
+
+        [Fact]
         public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -342,9 +402,56 @@ End Class
         }
 
         [Fact]
+        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelper()
+        {
+            await VerifyBasicAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+	Inherits DiagnosticAnalyzer
+    Private Shared ReadOnly NonConstantDiagnosticId = ""NonConstantDiagnosticId""
+    Private Shared ReadOnly dummyLocalizableTitle As LocalizableString = Nothing
+    Private Shared ReadOnly descriptor As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(NonConstantDiagnosticId, dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"")
+
+	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+		Get
+			Return ImmutableArray.Create(descriptor, descriptor2)
+		End Get
+	End Property
+
+	Public Overrides Sub Initialize(context As AnalysisContext)
+	End Sub
+End Class
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer2
+	Inherits DiagnosticAnalyzer
+    Private Shared ReadOnly dummyLocalizableTitle As LocalizableString = Nothing
+    Private Shared ReadOnly descriptor As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"")
+
+	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+		Get
+			Return ImmutableArray.Create(descriptor)
+		End Get
+	End Property
+
+	Public Overrides Sub Initialize(context As AnalysisContext)
+	End Sub
+End Class
+" + VisualBasicDiagnosticDescriptorCreationHelper,
+                GetBasicRS1017ExpectedDiagnostic(12, 100, "descriptor"),
+                GetBasicRS1019ExpectedDiagnostic(29, 100, "DuplicateDiagnosticId", "MyAnalyzer"));
+        }
+
+        [Fact]
         public async Task RS1017_RS1019_CSharp_NoDiagnosticCases()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -385,9 +492,49 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
+        public async Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelper()
+        {
+            await VerifyCSharpAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private const string ConstantDiagnosticId = ""ConstantDiagnosticId"";
+    private static LocalizableString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor =
+        DiagnosticDescriptorHelper.Create(ConstantDiagnosticId, dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"");
+
+    // Allow multiple descriptors with same rule ID in the same analyzer.
+    private static readonly DiagnosticDescriptor descriptor3 =
+        DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage2"", ""MyDiagnosticCategory"");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor, descriptor2, descriptor3);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}
+" + CSharpDiagnosticDescriptorCreationHelper);
+        }
+
+        [Fact]
         public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -416,6 +563,37 @@ End Class
                 GetBasicRS1028ResultAt(12, 70),
                 GetBasicRS1028ResultAt(13, 71),
                 GetBasicRS1028ResultAt(15, 71));
+        }
+
+        [Fact]
+        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelper()
+        {
+            await VerifyBasicAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+	Inherits DiagnosticAnalyzer
+    Const ConstantDiagnosticId As String = ""ConstantDiagnosticId""
+    Private Shared ReadOnly dummyLocalizableTitle As LocalizableString = Nothing
+    Private Shared ReadOnly descriptor As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(ConstantDiagnosticId, dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"")
+    ' Allow multiple descriptors with same rule ID in the same analyzer.
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""DuplicateDiagnosticId"", dummyLocalizableTitle, ""MyDiagnosticMessage2"", ""MyDiagnosticCategory"")
+
+	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+		Get
+			Return ImmutableArray.Create(descriptor, descriptor2, descriptor3)
+		End Get
+	End Property
+
+	Public Overrides Sub Initialize(context As AnalysisContext)
+	End Sub
+End Class
+" + VisualBasicDiagnosticDescriptorCreationHelper);
         }
 
         #endregion
@@ -499,7 +677,84 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetCSharpRS1028ResultAt(28, 9),
                         GetCSharpRS1018ExpectedDiagnostic(28, 34, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1018_RS1020_CSharp_VerifyDiagnostic_CreateHelper()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor =
+        DiagnosticDescriptorHelper.Create(""Id1"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        DiagnosticDescriptorHelper.Create(""DifferentPrefixId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"");
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        DiagnosticDescriptorHelper.Create(""Prefix200"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithRange"");
+
+    private static readonly DiagnosticDescriptor descriptor4 =
+        DiagnosticDescriptorHelper.Create(""Prefix101"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithId"");
+
+    private static readonly DiagnosticDescriptor descriptor5 =
+        DiagnosticDescriptorHelper.Create(""MySecondPrefix400"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"");
+
+    private static readonly DiagnosticDescriptor descriptor6 =
+        DiagnosticDescriptorHelper.Create(""MyThirdPrefix"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor, descriptor2, descriptor3, descriptor4, descriptor5, descriptor6);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}" + CSharpDiagnosticDescriptorCreationHelper;
+
+            string additionalText = @"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+CategoryWithNoIdRangeOrFormat
+CategoryWithPrefix: Prefix
+CategoryWithRange: Prefix000-Prefix099
+CategoryWithId: Prefix100
+CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+                    ExpectedDiagnostics =
+                    {
+                        GetCSharpRS1020ExpectedDiagnostic(13, 96, "NotAllowedCategory", AdditionalFileName),
+                        GetCSharpRS1018ExpectedDiagnostic(16, 43, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetCSharpRS1018ExpectedDiagnostic(19, 43, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetCSharpRS1018ExpectedDiagnostic(22, 43, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetCSharpRS1018ExpectedDiagnostic(25, 43, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetCSharpRS1018ExpectedDiagnostic(28, 43, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName)
+                    }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -566,7 +821,71 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetBasicRS1028ResultAt(17, 71),
                         GetBasicRS1018ExpectedDiagnostic(17, 92, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1018_RS1020_VisualBasic_VerifyDiagnostic_CreateHelper()
+        {
+            var source = @"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Id1"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""DifferentPrefixId"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix200"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithRange"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix101"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithId"")
+    Private Shared ReadOnly descriptor5 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""MySecondPrefix400"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"")
+    Private Shared ReadOnly descriptor6 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""MyThirdPrefix"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor, descriptor2, descriptor3, descriptor4, descriptor5, descriptor6)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class
+" + VisualBasicDiagnosticDescriptorCreationHelper;
+
+            string additionalText = @"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+CategoryWithNoIdRangeOrFormat
+CategoryWithPrefix: Prefix
+CategoryWithRange: Prefix000-Prefix099
+CategoryWithId: Prefix100
+CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+                    ExpectedDiagnostics =
+                    {
+                        GetBasicRS1020ExpectedDiagnostic(12, 153, "NotAllowedCategory", AdditionalFileName),
+                        GetBasicRS1018ExpectedDiagnostic(13, 101, "DifferentPrefixId", "CategoryWithPrefix", "PrefixXXXX", AdditionalFileName),
+                        GetBasicRS1018ExpectedDiagnostic(14, 101, "Prefix200", "CategoryWithRange", "Prefix0-Prefix99", AdditionalFileName),
+                        GetBasicRS1018ExpectedDiagnostic(15, 101, "Prefix101", "CategoryWithId", "Prefix100-Prefix100", AdditionalFileName),
+                        GetBasicRS1018ExpectedDiagnostic(16, 101, "MySecondPrefix400", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                        GetBasicRS1018ExpectedDiagnostic(17, 101, "MyThirdPrefix", "CategoryWithPrefixRangeAndId", "MyFirstPrefixXXXX, MySecondPrefix0-MySecondPrefix99, MySecondPrefix300-MySecondPrefix300", AdditionalFileName),
+                    }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -648,7 +967,80 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetCSharpRS1028ResultAt(31, 9),
                         GetCSharpRS1028ResultAt(34, 9),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1018_RS1020_CSharp_NoDiagnosticCases_CreateHelper()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor =
+        DiagnosticDescriptorHelper.Create(""Id1"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithNoIdRangeOrFormat"");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        DiagnosticDescriptorHelper.Create(""Prefix"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"");
+
+    private static readonly DiagnosticDescriptor descriptor2_2 =
+        DiagnosticDescriptorHelper.Create(""Prefix101"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"");
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        DiagnosticDescriptorHelper.Create(""Prefix001"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithRange"");
+
+    private static readonly DiagnosticDescriptor descriptor4 =
+        DiagnosticDescriptorHelper.Create(""Prefix100"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithId"");
+
+    private static readonly DiagnosticDescriptor descriptor5 =
+        DiagnosticDescriptorHelper.Create(""MyFirstPrefix001"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"");
+
+    private static readonly DiagnosticDescriptor descriptor6 =
+        DiagnosticDescriptorHelper.Create(""MySecondPrefix050"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"");
+
+    private static readonly DiagnosticDescriptor descriptor7 =
+        DiagnosticDescriptorHelper.Create(""MySecondPrefix300"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor, descriptor2, descriptor2_2, descriptor3, descriptor4, descriptor5, descriptor6, descriptor7);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}" + CSharpDiagnosticDescriptorCreationHelper;
+
+            string additionalText = @"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+CategoryWithNoIdRangeOrFormat
+CategoryWithPrefix: Prefix
+CategoryWithRange: Prefix000-Prefix099
+CategoryWithId: Prefix100
+CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -713,7 +1105,64 @@ CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099
                         GetBasicRS1028ResultAt(18, 71),
                         GetBasicRS1028ResultAt(19, 71),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1018_RS1020_VisualBasic_NoDiagnosticCases_CreateHelper()
+        {
+            var source = @"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Id1"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithNoIdRangeOrFormat"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"")
+    Private Shared ReadOnly descriptor2_2 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefix"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix001"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithRange"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""Prefix100"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithId"")
+    Private Shared ReadOnly descriptor5 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""MyFirstPrefix001"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"")
+    Private Shared ReadOnly descriptor6 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""MySecondPrefix050"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"")
+    Private Shared ReadOnly descriptor7 As DiagnosticDescriptor = DiagnosticDescriptorHelper.Create(""MySecondPrefix300"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""CategoryWithPrefixRangeAndId"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor, descriptor2, descriptor2_2, descriptor3, descriptor4, descriptor5, descriptor6, descriptor7)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class
+" + VisualBasicDiagnosticDescriptorCreationHelper;
+
+            string additionalText = @"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+CategoryWithNoIdRangeOrFormat
+CategoryWithPrefix: Prefix
+CategoryWithRange: Prefix000-Prefix099
+CategoryWithId: Prefix100
+CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -820,7 +1269,8 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
                         GetCSharpRS1028ResultAt(25, 9),
                         GetCSharpRS1028ResultAt(28, 9),
                     }
-                }
+                },
+                SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
         }
 
@@ -830,7 +1280,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         [Fact]
         public async Task ReportOnMissingCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -848,7 +1298,7 @@ public class MyAnalyzer
                 GetCSharpRS1015ExpectedDiagnostic(6, 50),
                 GetCSharpRS1028ResultAt(6, 50));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Public Class MyAnalyzer
     Friend Shared Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False)
@@ -867,7 +1317,7 @@ End Class",
         [Fact]
         public async Task DoNotReportOnNamedCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -889,7 +1339,7 @@ public class MyAnalyzer
         [Fact]
         public async Task DoNotReportOnCustomTags()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -909,7 +1359,7 @@ public class MyAnalyzer
                 GetCSharpRS1007ExpectedDiagnostic(8, 50),
                 GetCSharpRS1015ExpectedDiagnostic(8, 132));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Public Class MyAnalyzer
     Friend Shared Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False, Nothing, Nothing, """")
@@ -932,7 +1382,7 @@ End Class",
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_AlreadyUsedId_Diagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -980,7 +1430,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpRS1029ResultAt(25, 34, "CS00000000000000000000"),
                 GetCSharpRS1029ResultAt(28, 34, "BC00000000000000000000"));
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1018,7 +1468,7 @@ End Class",
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -1060,7 +1510,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }");
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1092,7 +1542,7 @@ End Class");
         [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnostic()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -1125,7 +1575,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }");
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -1201,6 +1651,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 SolutionTransforms =
                 {
                     (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                    WithoutEnableReleaseTrackingWarning,
                 },
             }.RunAsync();
 
@@ -1231,7 +1682,8 @@ End Class",
                 SolutionTransforms =
                 {
                     (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
-                },
+                    WithoutEnableReleaseTrackingWarning,
+                }
             }.RunAsync();
         }
 
@@ -1320,7 +1772,70 @@ End Class",
                 .WithLocation(line, column)
                 .WithArguments(ruleId);
 
+        private static async Task VerifyCSharpAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+            };
+
+            test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static async Task VerifyBasicAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+            };
+
+            test.SolutionTransforms.Add(WithoutEnableReleaseTrackingWarning);
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static readonly ImmutableDictionary<string, ReportDiagnostic> s_enableReleaseTrackingWarningDisabled = ImmutableDictionary<string, ReportDiagnostic>.Empty
+            .Add(DiagnosticDescriptorCreationAnalyzer.EnableAnalyzerReleaseTrackingRule.Id, ReportDiagnostic.Suppress);
+
+        private static Solution WithoutEnableReleaseTrackingWarning(Solution solution, ProjectId projectId)
+        {
+            var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
+            compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(s_enableReleaseTrackingWarningDisabled));
+            return solution.WithProjectCompilationOptions(projectId, compilationOptions);
+        }
+
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
+
+        private const string CSharpDiagnosticDescriptorCreationHelper = @"
+internal static class DiagnosticDescriptorHelper
+{
+    // Dummy DiagnosticDescriptor creation helper.
+    public static DiagnosticDescriptor Create(
+        string id,
+        LocalizableString title,
+        LocalizableString messageFormat,
+        string category)
+    => null;
+}";
+        private const string VisualBasicDiagnosticDescriptorCreationHelper = @"
+Friend Partial Module DiagnosticDescriptorHelper
+    ' Dummy DiagnosticDescriptor creation helper.
+    Function Create(id As String, title As LocalizableString, messageFormat As LocalizableString, category As String) As DiagnosticDescriptor
+        Return Nothing
+    End Function
+End Module";
 
         #endregion
     }

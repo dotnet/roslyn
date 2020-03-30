@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             });
         }
 
-        private void HandleOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        private static void HandleOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
         {
             if (context.Operation is IBinaryOperation)
             {

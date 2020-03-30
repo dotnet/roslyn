@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "AnnotatePublicApiFix"), Shared]
     public sealed class AnnotatePublicApiFix : CodeFixProvider
     {
+        private const char ObliviousMarker = '~';
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
 
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             for (int i = 0; i < lines.Count; i++)
             {
-                if (changes.TryGetValue(lines[i], out string newLine))
+                if (changes.TryGetValue(lines[i].Trim(ObliviousMarker), out string newLine))
                 {
                     lines.Insert(i, newLine);
                     lines.RemoveAt(i + 1);
@@ -134,6 +136,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
+                            if (diagnostic.Id != DeclarePublicApiAnalyzer.AnnotateApiRule.Id)
+                            {
+                                continue;
+                            }
+
                             string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
                             string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                             bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";

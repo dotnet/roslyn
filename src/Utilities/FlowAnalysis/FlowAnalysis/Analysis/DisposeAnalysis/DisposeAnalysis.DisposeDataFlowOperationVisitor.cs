@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
-                    !location.LocationTypeOpt.IsValueType &&
+                    (!location.LocationTypeOpt.IsValueType || location.LocationTypeOpt.IsRefLikeType) &&
                     IsDisposable(location.LocationTypeOpt))
                 {
                     CurrentAnalysisData[location] = value;
@@ -93,6 +93,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
                 if (TaskNamedType != null &&
                     instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
+                {
+                    return defaultValue;
+                }
+
+                // StringReader doesn't need to be disposed: https://docs.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
+                if (StringReaderType != null &&
+                    instanceType.Equals(StringReaderType))
                 {
                     return defaultValue;
                 }
