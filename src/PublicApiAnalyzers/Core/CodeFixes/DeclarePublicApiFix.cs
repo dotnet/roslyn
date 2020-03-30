@@ -80,11 +80,26 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (string name in newSymbolNames)
             {
-                InsertInList(lines, name);
+                insertInList(lines, name);
             }
 
             SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + GetEndOfFileText(sourceText));
             return newSourceText;
+
+            // Insert name at the first suitable position
+            static void insertInList(List<string> list, string name)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
+                    {
+                        list.Insert(i, name);
+                        return;
+                    }
+                }
+
+                list.Add(name);
+            }
         }
 
         private static SourceText RemoveSymbolNamesFromSourceText(SourceText sourceText, ImmutableHashSet<string> linesToRemove)
@@ -115,23 +130,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             return lines;
-        }
-
-        /// <summary>
-        /// Insert name at the first suitable position
-        /// </summary>
-        private static void InsertInList(List<string> list, string name)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
-                {
-                    list.Insert(i, name);
-                    return;
-                }
-            }
-
-            list.Add(name);
         }
 
         /// <summary>
@@ -223,7 +221,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
-                            if (diagnostic.Id == DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule.Id)
+                            if (diagnostic.Id == DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule.Id ||
+                                diagnostic.Id == DeclarePublicApiAnalyzer.ObliviousApiRule.Id)
                             {
                                 continue;
                             }

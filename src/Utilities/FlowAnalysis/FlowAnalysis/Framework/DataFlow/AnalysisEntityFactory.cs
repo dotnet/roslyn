@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public AnalysisEntity ThisOrMeInstance { get; }
 
-        private ImmutableArray<AbstractIndex> CreateAbstractIndices<T>(ImmutableArray<T> indices)
+        private static ImmutableArray<AbstractIndex> CreateAbstractIndices<T>(ImmutableArray<T> indices)
             where T : IOperation
         {
             if (indices.Length > 0)
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return analysisEntity != null;
         }
 
-        private void GetSymbolAndIndicesForMemberReference(IMemberReferenceOperation memberReference, ref ISymbol? symbolOpt, ref ImmutableArray<AbstractIndex> indices)
+        private static void GetSymbolAndIndicesForMemberReference(IMemberReferenceOperation memberReference, ref ISymbol? symbolOpt, ref ImmutableArray<AbstractIndex> indices)
         {
             switch (memberReference)
             {

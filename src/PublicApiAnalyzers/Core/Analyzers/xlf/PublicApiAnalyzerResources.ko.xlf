@@ -102,6 +102,21 @@
         <target state="translated">생성자가 상속할 수 없는 기본 클래스를 상속할 수 있도록 만듭니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">모든 public 멤버는 nullable 또는 nullable이 아닌 참조 형식을 사용해야 하지만, 인식 불가능한 참조 형식은 사용하면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">public 멤버는 인식 불가능한 형식을 사용하면 안 됨</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">'{0}' 기호가 backcompat 요구 사항인 '선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 가장 많은 매개 변수를 보유해야 합니다.'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
