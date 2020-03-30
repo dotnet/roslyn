@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Transactions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -3155,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Binds an expression-bodied member with expression e as either { return e;} or { e; }.
+        /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
         internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
                                                       DiagnosticBag diagnostics)
@@ -3179,7 +3177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Binds a lambda with expression e as either { return e;} or { e; }.
+        /// Binds a lambda with expression e as either { return e; } or { e; }.
         /// </summary>
         public BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
@@ -3193,6 +3191,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
+        }
+
+        public BoundBlock BindLambdaExpressionAsBlockContinued(ExpressionSyntax body, BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            Binder bodyBinder = this.GetBinder(body);
+            Debug.Assert(bodyBinder != null);
+
+            Debug.Assert(body.Kind() != SyntaxKind.RefExpression);
+            return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), RefKind.None, expression, body, diagnostics);
         }
 
         private BindValueKind GetRequiredReturnValueKind(RefKind refKind)
