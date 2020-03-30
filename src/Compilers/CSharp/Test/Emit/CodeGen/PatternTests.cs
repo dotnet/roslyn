@@ -4056,7 +4056,9 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(42912, "https://github.com/dotnet/roslyn/issues/42912")]
+        [Fact]
+        [WorkItem(42912, "https://github.com/dotnet/roslyn/issues/42912")]
+        [WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
         public void NoRedundantNullCheckForNullableConstantPattern_04()
         {
             // Note that we do not produce the same code for `x is 1` and `x == 1`.
