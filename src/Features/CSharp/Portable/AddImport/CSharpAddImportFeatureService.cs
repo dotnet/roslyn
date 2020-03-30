@@ -263,14 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         private bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
-        {
-            return InfoBoundSuccessfully(symbolInfo.Symbol);
-        }
+            => InfoBoundSuccessfully(symbolInfo.Symbol);
 
         private bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
-        {
-            return InfoBoundSuccessfully(semanticInfo.OperationInfo);
-        }
+            => InfoBoundSuccessfully(semanticInfo.OperationInfo);
 
         private static bool InfoBoundSuccessfully(ISymbol operation)
         {
@@ -279,9 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override string GetDescription(IReadOnlyList<string> nameParts)
-        {
-            return $"using { string.Join(".", nameParts) };";
-        }
+            => $"using { string.Join(".", nameParts) };";
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,

@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             };
 
         private bool CheckGlobalStatement()
-        {
-            return true;
-        }
+            => true;
 
         private bool CheckBlock(BlockSyntax block)
         {

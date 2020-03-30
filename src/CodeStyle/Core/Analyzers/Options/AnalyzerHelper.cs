@@ -22,18 +22,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option2<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            return GetOption<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
-        }
+            => GetOption<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
 
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption2<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            return GetOption<T>(analyzerOptions, (IOption2)option, language, syntaxTree, cancellationToken);
-        }
+            => GetOption<T>(analyzerOptions, (IOption2)option, language, syntaxTree, cancellationToken);
 
         public static AnalyzerConfigOptions GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            return analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-        }
+            => analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
     }
 }

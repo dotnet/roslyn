@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExecuteWorkspaceCommandHandler([ImportMany] IEnumerable<Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> executeCommandHandlers)
-        {
-            _executeCommandHandlers = CreateMap(executeCommandHandlers);
-        }
+            => _executeCommandHandlers = CreateMap(executeCommandHandlers);
 
         private static ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> CreateMap(
             IEnumerable<Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> requestHandlers)

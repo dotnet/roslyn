@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
-        }
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
     }
 }

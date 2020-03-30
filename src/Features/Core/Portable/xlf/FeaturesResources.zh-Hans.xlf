@@ -2305,16 +2305,6 @@ This version used in: {2}</source>
         <target state="translated">在 lambda 与本地函数之间切换可能会导致无法继续调试会话。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">析构变量声明</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">可以析构变量声明</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">添加参数名“{0}”(包括尾随参数)</target>

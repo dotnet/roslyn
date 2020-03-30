@@ -67,18 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public const _LIB_LISTFLAGS ClassView = _LIB_LISTFLAGS.LLF_TRUENESTING;
 
         public static bool IsClassView(uint flags)
-        {
-            return (flags & (uint)_LIB_LISTFLAGS.LLF_TRUENESTING) != 0;
-        }
+            => (flags & (uint)_LIB_LISTFLAGS.LLF_TRUENESTING) != 0;
 
         public static bool IsFindSymbol(uint flags)
-        {
-            return (flags & (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER) != 0;
-        }
+            => (flags & (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER) != 0;
 
         internal static bool IsObjectBrowser(uint flags)
-        {
-            return (flags & ((uint)_LIB_LISTFLAGS.LLF_TRUENESTING | (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER | (uint)_LIB_LISTFLAGS.LLF_RESOURCEVIEW)) == 0;
-        }
+            => (flags & ((uint)_LIB_LISTFLAGS.LLF_TRUENESTING | (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER | (uint)_LIB_LISTFLAGS.LLF_RESOURCEVIEW)) == 0;
     }
 }

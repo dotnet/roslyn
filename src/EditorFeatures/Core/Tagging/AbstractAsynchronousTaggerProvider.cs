@@ -165,9 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
         /// </summary>
         protected virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return textViewOpt?.GetCaretPoint(subjectBuffer);
-        }
+            => textViewOpt?.GetCaretPoint(subjectBuffer);
 
         /// <summary>
         /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
@@ -227,9 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
 
         protected virtual void ProduceTagsSynchronously(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
@@ -273,9 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
 
             public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
-            {
-                _provider = provider;
-            }
+                => _provider = provider;
 
             internal Task ProduceTagsAsync(TaggerContext<TTag> context)
                 => _provider.ProduceTagsAsync(context);

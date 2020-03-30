@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
-        {
-            _updateActionOpt = updateActionOpt;
-        }
+            => _updateActionOpt = updateActionOpt;
 
         public Task AddItemsAsync(int count)
         {

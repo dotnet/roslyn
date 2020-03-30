@@ -40,30 +40,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         public CommandState GetCommandState(CommentSelectionCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         /// <summary>
         /// Comment the selected spans, and reset the selection.
         /// </summary>
         public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
-        {
-            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
-        }
+            => this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
 
         public CommandState GetCommandState(UncommentSelectionCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         /// <summary>
         /// Uncomment the selected spans, and reset the selection.
         /// </summary>
         public bool ExecuteCommand(UncommentSelectionCommandArgs args, CommandExecutionContext context)
-        {
-            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
-        }
+            => this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 

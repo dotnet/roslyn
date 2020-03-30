@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(OverrideCompletionProvider);
-        }
+            => typeof(OverrideCompletionProvider);
 
         protected override OptionSet WithChangedOptions(OptionSet options)
         {

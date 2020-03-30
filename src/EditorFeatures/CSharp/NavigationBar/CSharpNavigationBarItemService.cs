@@ -349,19 +349,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
         [Conditional("DEBUG")]
         private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
-        {
-            Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
-        }
+            => Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
 
         [Conditional("DEBUG")]
         private static void ValidateSpan(ITextSnapshot snapshot, int start, int length)
-        {
-            ValidateSpanFromBounds(snapshot, start, start + length);
-        }
+            => ValidateSpanFromBounds(snapshot, start, start + length);
 
         public override void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-        {
-            NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);
-        }
+            => NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);
     }
 }

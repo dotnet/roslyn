@@ -3760,9 +3760,7 @@ class C
         }
 
         internal override ICommandHandler GetCommandHandler(TestWorkspace workspace)
-        {
-            return workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
-        }
+            => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
         [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]

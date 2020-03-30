@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
-        {
-            return _lazyAllOptions.Value;
-        }
+            => _lazyAllOptions.Value;
 
         public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
         {

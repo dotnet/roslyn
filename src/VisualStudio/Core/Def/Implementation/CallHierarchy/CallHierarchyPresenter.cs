@@ -22,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CallHierarchy
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyPresenter(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = (IServiceProvider)serviceProvider;
-        }
+            => _serviceProvider = (IServiceProvider)serviceProvider;
 
         public void PresentRoot(CallHierarchyItem root)
         {

@@ -95,9 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             }
 
             private bool IsFirstBlockStatement()
-            {
-                return _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
-            }
+                => _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
 
             private void AddCurrentDeclaration()
             {

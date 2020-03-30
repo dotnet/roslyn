@@ -119,9 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         public SyntaxNode WithElseIfAndElseClausesOf(SyntaxNode ifStatement, SyntaxNode otherIfStatement)
-        {
-            return ((IfStatementSyntax)ifStatement).WithElse(((IfStatementSyntax)otherIfStatement).Else);
-        }
+            => ((IfStatementSyntax)ifStatement).WithElse(((IfStatementSyntax)otherIfStatement).Else);
 
         public SyntaxNode ToIfStatement(SyntaxNode ifOrElseIf)
             => ifOrElseIf;

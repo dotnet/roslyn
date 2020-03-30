@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            listenerProvider.GetListener(FeatureAttribute.LightBulb);
-        }
+            => listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
         public Solution GetFix(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,

@@ -206,9 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 enterKeyRule: EnterKeyRule.Never);
 
         internal virtual CompletionItemRules GetRules()
-        {
-            return s_defaultRules;
-        }
+            => s_defaultRules;
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);

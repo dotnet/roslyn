@@ -83,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
-            {
-                return Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
-            }
+                => Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
 
             private int CombineHashCodes(IFieldSymbol x, int currentHash)
             {
@@ -102,14 +100,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(ILocalSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
-            }
+                => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
             private static int CombineHashCodes<T>(ImmutableArray<T> array, int currentHash, Func<int, T, int> func)
-            {
-                return array.Aggregate<int, T>(currentHash, func);
-            }
+                => array.Aggregate<int, T>(currentHash, func);
 
             private int CombineHashCodes(IMethodSymbol x, int currentHash)
             {
@@ -143,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IModuleSymbol x, int currentHash)
-            {
-                return CombineHashCodes(x.ContainingAssembly, Hash.Combine(x.Name, currentHash));
-            }
+                => CombineHashCodes(x.ContainingAssembly, Hash.Combine(x.Name, currentHash));
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
             {
@@ -294,14 +286,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
-            }
+                => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
             private int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.GetHashCode(), currentHash);
-            }
+                => Hash.Combine(x.GetHashCode(), currentHash);
         }
     }
 }

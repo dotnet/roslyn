@@ -232,9 +232,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
+            => nameof(Path) + " = " + Path;
 
         private static void ValidateFileLength(Workspace workspace, string path)
         {

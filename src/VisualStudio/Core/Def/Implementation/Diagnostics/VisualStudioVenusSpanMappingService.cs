@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioVenusSpanMappingService(VisualStudioWorkspaceImpl workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public void GetAdjustedDiagnosticSpan(
             DocumentId documentId, Location location,

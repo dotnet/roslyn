@@ -19,23 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared
         }
 
         public bool SupportsCodeFixes(ITextBuffer textBuffer)
-        {
-            return true;
-        }
+            => true;
 
         public bool SupportsRefactorings(ITextBuffer textBuffer)
-        {
-            return true;
-        }
+            => true;
 
         public bool SupportsRename(ITextBuffer textBuffer)
-        {
-            return true;
-        }
+            => true;
 
         public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
-        {
-            return true;
-        }
+            => true;
     }
 }

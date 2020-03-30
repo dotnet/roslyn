@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly DocumentationComment _underlyingObject;
 
         public VSTypeScriptDocumentationCommentWrapper(DocumentationComment underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptDocumentationCommentWrapper FromXmlFragment(string xml)
             => new VSTypeScriptDocumentationCommentWrapper(DocumentationComment.FromXmlFragment(xml));

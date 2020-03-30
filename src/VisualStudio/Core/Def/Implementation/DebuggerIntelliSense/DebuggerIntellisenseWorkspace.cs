@@ -21,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
-        {
-            this.OnDocumentOpened(documentId, textContainer);
-        }
+            => this.OnDocumentOpened(documentId, textContainer);
     }
 }

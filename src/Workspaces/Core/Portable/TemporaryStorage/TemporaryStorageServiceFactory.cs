@@ -106,29 +106,19 @@ namespace Microsoft.CodeAnalysis.Host
             private long _offset;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
-            {
-                _textFactory = textFactory;
-            }
+                => _textFactory = textFactory;
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this);
-            }
+                => new TemporaryTextStorage(this);
 
             public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this, storageName, offset, size, encoding);
-            }
+                => new TemporaryTextStorage(this, storageName, offset, size, encoding);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this);
-            }
+                => new TemporaryStreamStorage(this);
 
             public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this, storageName, offset, size);
-            }
+                => new TemporaryStreamStorage(this, storageName, offset, size);
 
             /// <summary>
             /// Allocate shared storage of a specified size.
@@ -177,9 +167,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
+                => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
             private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
@@ -188,9 +176,7 @@ namespace Microsoft.CodeAnalysis.Host
                 private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
                 public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding encoding)
                 {
@@ -299,9 +285,7 @@ namespace Microsoft.CodeAnalysis.Host
                 private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryStreamStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
                 public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
                 {
@@ -354,9 +338,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
-                {
-                    return WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
-                }
+                    => WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
 
                 private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
                 {

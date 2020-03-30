@@ -12,15 +12,11 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public readonly RQUnconstructedType ContainingType;
 
         public RQMember(RQUnconstructedType containingType)
-        {
-            ContainingType = containingType;
-        }
+            => ContainingType = containingType;
 
         public abstract string MemberName { get; }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
-        {
-            childList.Add(ContainingType.ToSimpleTree());
-        }
+            => childList.Add(ContainingType.ToSimpleTree());
     }
 }

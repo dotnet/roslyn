@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public void Dispose()
-            {
-                _storage.ReleaseConnection(Connection);
-            }
+                => _storage.ReleaseConnection(Connection);
         }
     }
 }

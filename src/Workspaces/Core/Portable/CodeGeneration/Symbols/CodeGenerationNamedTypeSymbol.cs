@@ -105,9 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
         public ImmutableArray<ISymbol> CandidateSymbols
         {
@@ -153,14 +151,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
-        {
-            return ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
-        }
+            => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        {
-            return ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
-        }
+            => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {

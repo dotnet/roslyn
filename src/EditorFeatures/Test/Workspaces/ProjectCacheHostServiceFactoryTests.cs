@@ -249,9 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             private MockHostServices() { }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            {
-                return new MockHostWorkspaceServices(this, workspace);
-            }
+                => new MockHostWorkspaceServices(this, workspace);
         }
 
         private sealed class MockTaskSchedulerProvider : ITaskSchedulerProvider
@@ -288,9 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public override Workspace Workspace => _workspace;
 
             public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
-            {
-                return ImmutableArray<TLanguageService>.Empty;
-            }
+                => ImmutableArray<TLanguageService>.Empty;
 
             public override TWorkspaceService GetService<TWorkspaceService>()
             {

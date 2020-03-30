@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         }
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            return new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new NewLinesViewModel(o, s));
-        }
+            => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new NewLinesViewModel(o, s));
     }
 }
