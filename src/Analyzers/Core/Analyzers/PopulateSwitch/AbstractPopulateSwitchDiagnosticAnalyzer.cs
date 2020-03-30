@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, this.OperationKind);
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {

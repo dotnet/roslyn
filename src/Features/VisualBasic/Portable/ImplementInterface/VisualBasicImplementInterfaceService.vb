@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Inherits AbstractImplementInterfaceService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

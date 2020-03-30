@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioMetadataReferenceManagerFactory(SVsServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

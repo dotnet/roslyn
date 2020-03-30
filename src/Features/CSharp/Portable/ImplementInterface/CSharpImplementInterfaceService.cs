@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpImplementInterfaceService()
         {
         }

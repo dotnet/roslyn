@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal class TestDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestDynamicFileInfoProvider()
             {
             }

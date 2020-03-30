@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                this.Descriptor,
+                Descriptor,
                 owningSymbol.Locations[0],
                 option.Notification.Severity,
                 new[] { operationLocation, declarationLocation },

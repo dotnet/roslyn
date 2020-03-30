@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
         {
-            var referencesOnTheRight = GetReferences(tree, positionInDocument, caretOnLeft: true);
+            var referencesOnTheRight = GetReferences(tree, positionInDocument);
             if (!referencesOnTheRight.IsEmpty)
             {
                 return referencesOnTheRight;
@@ -56,12 +56,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // Nothing was on the right of the caret.  Return anything we were able to find on 
             // the left of the caret.
-            var referencesOnTheLeft = GetReferences(tree, positionInDocument - 1, caretOnLeft: false);
+            var referencesOnTheLeft = GetReferences(tree, positionInDocument - 1);
             return referencesOnTheLeft;
         }
 
-        private ImmutableArray<HighlightSpan> GetReferences(
-            RegexTree tree, int position, bool caretOnLeft)
+        private ImmutableArray<HighlightSpan> GetReferences(RegexTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
             if (virtualChar == null)
@@ -112,19 +111,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             => new HighlightSpan(textSpan, HighlightSpanKind.None);
 
         private RegexToken GetCaptureToken(RegexEscapeNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case RegexBackreferenceEscapeNode backReference:
-                    return backReference.NumberToken;
-                case RegexCaptureEscapeNode captureEscape:
-                    return captureEscape.CaptureToken;
-                case RegexKCaptureEscapeNode kCaptureEscape:
-                    return kCaptureEscape.CaptureToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                RegexBackreferenceEscapeNode backReference => backReference.NumberToken,
+                RegexCaptureEscapeNode captureEscape => captureEscape.CaptureToken,
+                RegexKCaptureEscapeNode kCaptureEscape => kCaptureEscape.CaptureToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {

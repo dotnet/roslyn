@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertLinqQueryToForEachProvider()
         {
         }
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         var identifier = ((QueryBodySyntax)selectClause.Parent).Continuation.Identifier;
                         return AddToBlockTop(CreateLocalDeclarationStatement(identifier, selectClause.Expression, generateTypeFromExpression: true), statement);
                     default:
-                        throw new ArgumentException($"Unexpected node kind {node.Kind().ToString()}");
+                        throw new ArgumentException($"Unexpected node kind {node.Kind()}");
                 }
             }
 
@@ -956,8 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     Stack = new Stack<CSharpSyntaxNode>();
                     Stack.Push(fromClause);
-                    IdentifierNames = new HashSet<string>();
-                    IdentifierNames.Add((fromClause.Identifier.ValueText));
+                    IdentifierNames = new HashSet<string> { fromClause.Identifier.ValueText };
                 }
 
                 public bool TryAdd(CSharpSyntaxNode node, SyntaxToken identifier)

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -50,14 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         /// <summary>
-        /// Reports an event any time the semantics have changed such that this 
-        /// <paramref name="subjectBuffer"/> should be retagged.  Semantics are considered changed 
-        /// for a buffer if an edit happens directly in that buffer, or if a top level visible 
-        /// change happens in any sibling document or in any dependent projects' documents.
+        /// Reports an event any time the workspace changes.
         /// </summary>
-        public static ITaggerEventSource OnSemanticChanged(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService)
+        public static ITaggerEventSource OnWorkspaceChanged(
+            ITextBuffer subjectBuffer, TaggerDelay delay, IAsynchronousOperationListener listener)
         {
-            return new SemanticChangedEventSource(subjectBuffer, delay, notificationService);
+            return new WorkspaceChangedEventSource(subjectBuffer, delay, listener);
         }
 
         public static ITaggerEventSource OnDocumentActiveContextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)

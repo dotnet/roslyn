@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -86,16 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<int> UseEnhancedColors = new Option2<int>(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
-
-        // Note: no storage location since this is intentionally a session variable
-        public static readonly Option2<bool> AcceptedDecompilerDisclaimer = new Option2<bool>(
-            nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);
     }
 
     [ExportOptionProvider, Shared]
     internal class FeatureOnOffOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FeatureOnOffOptionsProvider()
         {
         }
@@ -119,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
-            FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
             FeatureOnOffOptions.UseEnhancedColors);
     }
 }

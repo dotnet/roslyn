@@ -45,17 +45,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(Diagnostic value) => new Arg(value);
 
             private static string ToString(ProjectAnalysisSummary summary)
-            {
-                switch (summary)
+                => summary switch
                 {
-                    case ProjectAnalysisSummary.CompilationErrors: return nameof(ProjectAnalysisSummary.CompilationErrors);
-                    case ProjectAnalysisSummary.NoChanges: return nameof(ProjectAnalysisSummary.NoChanges);
-                    case ProjectAnalysisSummary.RudeEdits: return nameof(ProjectAnalysisSummary.RudeEdits);
-                    case ProjectAnalysisSummary.ValidChanges: return nameof(ProjectAnalysisSummary.ValidChanges);
-                    case ProjectAnalysisSummary.ValidInsignificantChanges: return nameof(ProjectAnalysisSummary.ValidInsignificantChanges);
-                    default: return null;
-                }
-            }
+                    ProjectAnalysisSummary.CompilationErrors => nameof(ProjectAnalysisSummary.CompilationErrors),
+                    ProjectAnalysisSummary.NoChanges => nameof(ProjectAnalysisSummary.NoChanges),
+                    ProjectAnalysisSummary.RudeEdits => nameof(ProjectAnalysisSummary.RudeEdits),
+                    ProjectAnalysisSummary.ValidChanges => nameof(ProjectAnalysisSummary.ValidChanges),
+                    ProjectAnalysisSummary.ValidInsignificantChanges => nameof(ProjectAnalysisSummary.ValidInsignificantChanges),
+                    _ => null,
+                };
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]

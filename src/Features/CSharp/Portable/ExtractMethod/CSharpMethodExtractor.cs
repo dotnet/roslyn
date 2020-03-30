@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
-                if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
+                if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
                 {
                     return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
                 }

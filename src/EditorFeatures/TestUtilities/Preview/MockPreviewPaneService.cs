@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
     internal class MockPreviewPaneService : IPreviewPaneService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MockPreviewPaneService()
         {
         }
