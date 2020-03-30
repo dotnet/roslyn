@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
-                }
+                    => UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
 
                 public DocumentId DocumentId => _newState.Attributes.Id;
             }
@@ -37,9 +35,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly ImmutableArray<DocumentState> _documents;
 
                 public RemoveDocumentsAction(ImmutableArray<DocumentState> documents)
-                {
-                    _documents = documents;
-                }
+                    => _documents = documents;
 
                 public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
@@ -59,9 +55,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly ImmutableArray<DocumentState> _documents;
 
                 public AddDocumentsAction(ImmutableArray<DocumentState> documents)
-                {
-                    _documents = documents;
-                }
+                    => _documents = documents;
 
                 public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
@@ -81,9 +75,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly ProjectState _state;
 
                 public ReplaceAllSyntaxTreesAction(ProjectState state)
-                {
-                    _state = state;
-                }
+                    => _state = state;
 
                 public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
@@ -104,14 +96,10 @@ namespace Microsoft.CodeAnalysis
                 private readonly CompilationOptions _options;
 
                 public ProjectCompilationOptionsAction(CompilationOptions options)
-                {
-                    _options = options;
-                }
+                    => _options = options;
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.WithOptions(_options));
-                }
+                    => Task.FromResult(oldCompilation.WithOptions(_options));
             }
 
             internal sealed class ProjectAssemblyNameAction : CompilationTranslationAction
@@ -119,14 +107,10 @@ namespace Microsoft.CodeAnalysis
                 private readonly string _assemblyName;
 
                 public ProjectAssemblyNameAction(string assemblyName)
-                {
-                    _assemblyName = assemblyName;
-                }
+                    => _assemblyName = assemblyName;
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
-                }
+                    => Task.FromResult(oldCompilation.WithAssemblyName(_assemblyName));
             }
         }
     }

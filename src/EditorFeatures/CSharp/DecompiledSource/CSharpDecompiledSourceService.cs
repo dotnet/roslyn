@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
         public CSharpDecompiledSourceService(HostLanguageServices provider)
-        {
-            this.provider = provider;
-        }
+            => this.provider = provider;
 
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {

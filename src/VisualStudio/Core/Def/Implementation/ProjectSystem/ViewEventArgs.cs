@@ -12,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsTextView _textView;
 
         public ViewEventArgs(IVsTextView textView)
-        {
-            _textView = textView;
-        }
+            => _textView = textView;
 
         public IVsTextView TextView { get { return _textView; } }
     }

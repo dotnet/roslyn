@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
-        {
-            return solution.GetTextDocument(documentId)?.Kind;
-        }
+            => solution.GetTextDocument(documentId)?.Kind;
 
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {

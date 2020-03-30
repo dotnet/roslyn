@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly Func<string, MetadataReferenceProperties, MetadataReference> _createReference;
 
         public MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
-        {
-            _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
-        }
+            => _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)
         {
@@ -48,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Host
                 = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
 
             public ReferenceSet(MetadataReferenceCache cache)
-            {
-                _cache = cache;
-            }
+                => _cache = cache;
 
             public MetadataReference GetAddOrUpdate(string path, MetadataReferenceProperties properties)
             {

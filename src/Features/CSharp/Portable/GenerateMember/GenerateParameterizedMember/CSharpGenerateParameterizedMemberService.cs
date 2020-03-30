@@ -154,9 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 => _invocationExpression.ArgumentList.Arguments.Select(a => false).ToImmutableArray();
 
             protected override bool IsIdentifierName()
-            {
-                return State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;
-            }
+                => State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;
 
             protected override bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
             {

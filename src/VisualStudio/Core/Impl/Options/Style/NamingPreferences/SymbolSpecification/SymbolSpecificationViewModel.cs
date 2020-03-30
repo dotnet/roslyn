@@ -161,9 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         // For screen readers
         public override string ToString()
-        {
-            return _symbolSpecName;
-        }
+            => _symbolSpecName;
 
         internal interface ISymbolSpecificationViewModelPart
         {

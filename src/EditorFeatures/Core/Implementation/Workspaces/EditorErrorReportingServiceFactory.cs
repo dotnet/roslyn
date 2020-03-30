@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

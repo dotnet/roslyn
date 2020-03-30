@@ -2102,9 +2102,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static int CompareLineChanges(LineChange x, LineChange y)
-        {
-            return x.OldLine.CompareTo(y.OldLine);
-        }
+            => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
 
@@ -2129,9 +2127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+                => obj.Identity.GetHashCode();
         }
 
         protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
@@ -3409,14 +3405,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
-        {
-            return local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-        }
+            => local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
 
         private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
-        {
-            return member.Locations.First().SourceSpan;
-        }
+            => member.Locations.First().SourceSpan;
 
         private TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
@@ -3875,9 +3867,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
-        {
-            return root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
-        }
+            => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
 
         private static bool TryGetTextSpan(TextLineCollection lines, LinePositionSpan lineSpan, out TextSpan span)
         {
@@ -3905,9 +3895,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
 
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
-            {
-                _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
-            }
+                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
             internal void AnalyzeSyntax(
                 EditScript<SyntaxNode> script,

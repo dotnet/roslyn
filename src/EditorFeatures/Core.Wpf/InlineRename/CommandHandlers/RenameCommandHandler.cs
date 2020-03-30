@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private CommandState GetCommandState()
-        {
-            return _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
-        }
+            => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
 
         private void HandlePossibleTypingCommand(EditorCommandArgs args, Action nextHandler, Action<SnapshotSpan> actionIfInsideActiveSpan)
         {

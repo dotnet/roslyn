@@ -222,19 +222,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private IDisposable EnableCaching(ProjectId projectId)
-                {
-                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-                }
+                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
-                {
-                    return _registration.Workspace.GetOpenDocumentIds();
-                }
+                    => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                {
-                    _logAggregator = new LogAggregator();
-                }
+                    => _logAggregator = new LogAggregator();
 
                 private void ReportPendingWorkItemCount()
                 {

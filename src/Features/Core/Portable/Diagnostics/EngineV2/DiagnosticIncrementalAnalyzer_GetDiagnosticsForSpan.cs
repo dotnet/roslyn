@@ -214,9 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
-            }
+                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
@@ -447,14 +445,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
 
             public bool Equals(Diagnostic x, Diagnostic y)
-            {
-                return x.Id == y.Id && x.Location == y.Location;
-            }
+                => x.Id == y.Id && x.Location == y.Location;
 
             public int GetHashCode(Diagnostic obj)
-            {
-                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
-            }
+                => Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
         }
 #endif
     }

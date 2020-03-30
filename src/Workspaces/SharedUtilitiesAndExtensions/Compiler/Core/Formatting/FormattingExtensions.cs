@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
-        {
-            return SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
-        }
+            => SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
 
         public static void AddRange<T>(this IList<T> list, IEnumerable<T> values)
         {
@@ -87,29 +85,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static bool IsOn(this IndentBlockOption option, IndentBlockOption flag)
-        {
-            return (option & flag) == flag;
-        }
+            => (option & flag) == flag;
 
         public static bool IsMaskOn(this IndentBlockOption option, IndentBlockOption mask)
-        {
-            return (option & mask) != 0x0;
-        }
+            => (option & mask) != 0x0;
 
         public static bool IsOn(this SuppressOption option, SuppressOption flag)
-        {
-            return (option & flag) == flag;
-        }
+            => (option & flag) == flag;
 
         public static bool IsMaskOn(this SuppressOption option, SuppressOption mask)
-        {
-            return (option & mask) != 0x0;
-        }
+            => (option & mask) != 0x0;
 
         public static SuppressOption RemoveFlag(this SuppressOption option, SuppressOption flag)
-        {
-            return option & ~flag;
-        }
+            => option & ~flag;
 
         public static string CreateIndentationString(this int desiredIndentation, bool useTab, int tabSize)
         {

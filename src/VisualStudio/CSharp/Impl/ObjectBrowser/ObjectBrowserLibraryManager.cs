@@ -26,8 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
         }
 
         internal override AbstractListItemFactory CreateListItemFactory()
-        {
-            return new ListItemFactory();
-        }
+            => new ListItemFactory();
     }
 }

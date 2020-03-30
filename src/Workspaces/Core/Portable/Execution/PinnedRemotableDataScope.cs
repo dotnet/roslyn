@@ -66,9 +66,7 @@ namespace Microsoft.CodeAnalysis.Execution
         ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
         public void AddAdditionalAsset(CustomAsset asset)
-        {
-            _storage.AddAdditionalAsset(asset);
-        }
+            => _storage.AddAdditionalAsset(asset);
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {

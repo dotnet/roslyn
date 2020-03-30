@@ -31,14 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-        {
-            return ch == '<' || ch == ',';
-        }
+            => ch == '<' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == '>';
-        }
+            => ch == '>';
 
         protected virtual bool TryGetGenericIdentifier(
             SyntaxNode root, int position,

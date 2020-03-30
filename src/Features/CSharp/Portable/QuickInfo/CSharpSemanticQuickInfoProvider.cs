@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
-        {
-            return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
-        }
+            => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
         protected override ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {

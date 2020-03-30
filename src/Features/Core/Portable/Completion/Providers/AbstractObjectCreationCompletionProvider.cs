@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
-        }
+            => GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
 
         protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)

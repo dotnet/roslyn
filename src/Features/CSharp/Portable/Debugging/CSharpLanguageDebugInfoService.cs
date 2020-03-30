@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         }
 
         public Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken);
-        }
+            => LocationInfoGetter.GetInfoAsync(document, position, cancellationToken);
 
         public Task<DebugDataTipInfo> GetDataTipInfoAsync(
             Document document, int position, CancellationToken cancellationToken)

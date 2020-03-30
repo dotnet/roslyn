@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
-        {
-            _metadataAsSourceFileService = metadataAsSourceFileService;
-        }
+            => _metadataAsSourceFileService = metadataAsSourceFileService;
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
             ISymbol symbol, Project project,
