@@ -7,6 +7,16 @@
         <target state="new">Imports statement is unnecessary.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="new">Use 'IsNot Nothing' check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="new">Use 'Is Nothing' check</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

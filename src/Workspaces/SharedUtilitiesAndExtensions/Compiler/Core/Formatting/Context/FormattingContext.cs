@@ -53,16 +53,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         // what indentation to use as a starting indentation. (we always use 0 for formatting whole tree case)
         private List<IndentBlockOperation> _initialIndentBlockOperations;
 
-        private readonly string _language;
-
-        public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream, string language)
+        public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream)
         {
             Contract.ThrowIfNull(engine);
             Contract.ThrowIfNull(tokenStream);
 
             _engine = engine;
             _tokenStream = tokenStream;
-            _language = language;
 
             _relativeIndentationTree = new ContextIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 

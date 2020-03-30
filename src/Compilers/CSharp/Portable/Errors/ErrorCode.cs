@@ -1775,6 +1775,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
+        WRN_GivenExpressionAlwaysMatchesPattern = 8793,
+        WRN_IsPatternAlways = 8794,
 
         #endregion diagnostics introduced for C# 9.0
 

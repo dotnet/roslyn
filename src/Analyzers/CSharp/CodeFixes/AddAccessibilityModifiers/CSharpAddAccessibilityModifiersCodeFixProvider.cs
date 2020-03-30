@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     internal class CSharpAddAccessibilityModifiersCodeFixProvider : AbstractAddAccessibilityModifiersCodeFixProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddAccessibilityModifiersCodeFixProvider()
         {
         }

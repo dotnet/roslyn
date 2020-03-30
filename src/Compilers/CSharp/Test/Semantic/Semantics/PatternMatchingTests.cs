@@ -4279,7 +4279,8 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -5012,7 +5013,7 @@ class Derived : Base
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
@@ -5038,7 +5039,7 @@ public class Program
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
@@ -5127,7 +5128,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
             CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
@@ -5576,10 +5577,10 @@ namespace System
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 2:     // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
-                // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int _:  // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );
@@ -6337,7 +6338,8 @@ internal class Program
 ";
             var expectedOutput = @"Exception";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6620,9 +6622,13 @@ public class C
         throw null;
     }
 }").VerifyDiagnostics(
+                // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
+                //         if (outer is ({} and var x) and Span<int> inner)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
                 // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref inner[5];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                );
         }
 
         [Fact]
@@ -7011,24 +7017,44 @@ public class C
     }
 }
 ").VerifyDiagnostics(
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
                 // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
                 // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
                 // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
                 // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
                 // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and var (x, y)) return x; // error 5
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
                 // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and { } x) return x; // error 6
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
                 // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)

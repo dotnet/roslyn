@@ -2004,6 +2004,9 @@ class Animal { }
                 // (23,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is Point(var y8, _) or Animal _) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y8").WithLocation(23, 28),
+                // (24,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //         if (o is object or (1 or var y9)) { }
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y9)").WithArguments("object").WithLocation(24, 13),
                 // (24,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is object or (1 or var y9)) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y9").WithLocation(24, 38)
@@ -2456,13 +2459,13 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 1L or 2L: Console.Write(2); break;
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1L or 2L").WithLocation(9, 18),
                 // (14,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         _ = o switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(14, 15),
-                // (17,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (17,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             1L or 2L => 2,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1L or 2L").WithLocation(17, 13)
                 );
@@ -2594,7 +2597,7 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                // (14,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case >= 0m: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, ">= 0m").WithLocation(14, 18)
                 );
@@ -2678,10 +2681,10 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (7,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         'a'                                    => true, // error 1
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "'a'").WithLocation(7, 9),
-                // (8,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (8,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         > 'k' and < 'o'                        => true, // error 2
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "> 'k' and < 'o'").WithLocation(8, 9)
                 );
@@ -2706,7 +2709,7 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (12,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (12,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(12, 9)
                 );
@@ -3022,7 +3025,7 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics(
-                // (23,9): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                // (23,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         _ => 7, // 1
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(23, 9)
                 );

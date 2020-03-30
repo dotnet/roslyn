@@ -6,7 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using EnvDTE;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly JoinableTaskCollection _deferredCleanupTasks;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ProjectCodeModelFactory(VisualStudioWorkspace visualStudioWorkspace, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IThreadingContext threadingContext)
         {
             _visualStudioWorkspace = visualStudioWorkspace;

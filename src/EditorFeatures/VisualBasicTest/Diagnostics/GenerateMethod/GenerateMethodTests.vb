@@ -756,6 +756,7 @@ Interface ISibling
 End Interface")
         End Function
 
+        <WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
@@ -769,7 +770,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function

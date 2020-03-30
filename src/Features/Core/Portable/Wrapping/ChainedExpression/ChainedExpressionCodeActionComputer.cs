@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    this.GetSmartIndentationAfter(firstPeriod)));
+                    GetSmartIndentationAfter(firstPeriod)));
 
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }

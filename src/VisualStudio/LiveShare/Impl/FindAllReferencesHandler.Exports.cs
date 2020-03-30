@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -15,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynFindAllReferencesHandler : FindAllReferencesHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynFindAllReferencesHandler(IThreadingContext threadingContext) : base(threadingContext)
         {
         }
@@ -24,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpFindAllReferencesHandler : FindAllReferencesHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpFindAllReferencesHandler(IThreadingContext threadingContext) : base(threadingContext)
         {
         }
@@ -33,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicFindAllReferencesHandler : FindAllReferencesHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicFindAllReferencesHandler(IThreadingContext threadingContext) : base(threadingContext)
         {
         }
@@ -42,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptFindAllReferencesHandler : FindAllReferencesHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFindAllReferencesHandler(IThreadingContext threadingContext) : base(threadingContext)
         {
         }

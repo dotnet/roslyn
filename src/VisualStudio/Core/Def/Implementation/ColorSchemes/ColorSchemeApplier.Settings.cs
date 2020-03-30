@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
@@ -199,6 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             internal class HasThemeBeenDefaultedOptionProvider : IOptionProvider
             {
                 [ImportingConstructor]
+                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
                 public HasThemeBeenDefaultedOptionProvider()
                 {
                 }
