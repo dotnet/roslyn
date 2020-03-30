@@ -687,6 +687,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectReferences(null!, new[] { projectRef }));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(ProjectId.CreateNewId(), new[] { projectRef }));
+
+            // cycles:
+            Assert.Throws<InvalidOperationException>(() => solution2.WithProjectReferences(projectId2, new[] { new ProjectReference(projectId) }));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
         [Fact]
@@ -741,29 +745,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // dup:
             Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId3, new[] { projectRef2 }));
 
-            // cycle:
+            // cycles:
             Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId2, new[] { projectRef3 }));
-        }
-
-        [Fact]
-        public void AddProjectReferences_Submissions()
-        {
-            var solution = CreateSolution();
-            var projectId1 = ProjectId.CreateNewId();
-            var projectId2 = ProjectId.CreateNewId();
-            var projectId3 = ProjectId.CreateNewId();
-
-            solution = solution
-                .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "submission1", assemblyName: "submission1.dll", LanguageNames.CSharp, isSubmission: true))
-                .AddProject(ProjectInfo.Create(projectId2, VersionStamp.Default, name: "submission2", assemblyName: "submission2.dll", LanguageNames.CSharp, isSubmission: true))
-                .AddProject(ProjectInfo.Create(projectId3, VersionStamp.Default, name: "submission3", assemblyName: "submission3.dll", LanguageNames.CSharp, isSubmission: true))
-                .AddProjectReference(projectId2, new ProjectReference(projectId1));
-
-            // submission may be referenced from multiple submissions (forming a tree):
-            _ = solution.AddProjectReferences(projectId3, new[] { new ProjectReference(projectId1) });
-
-            // submission can't reference multiple submissions:
-            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId2, new[] { new ProjectReference(projectId3) }));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
         [Fact]
@@ -798,6 +782,40 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // project not in solution:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveProjectReference(ProjectId.CreateNewId(), projectRef2));
+        }
+
+        [Fact]
+        public void ProjectReferences_Submissions()
+        {
+            var solution = CreateSolution();
+
+            var projectId0 = ProjectId.CreateNewId();
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            solution = solution
+                .AddProject(projectId0, "proj1", "proj1.dll", LanguageNames.CSharp)
+                .AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, name: "submission1", assemblyName: "submission1.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProject(ProjectInfo.Create(projectId2, VersionStamp.Default, name: "submission2", assemblyName: "submission2.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProject(ProjectInfo.Create(projectId3, VersionStamp.Default, name: "submission3", assemblyName: "submission3.dll", LanguageNames.CSharp, isSubmission: true))
+                .AddProjectReference(projectId2, new ProjectReference(projectId1));
+
+            // submission may be referenced from multiple submissions (forming a tree):
+            _ = solution.AddProjectReferences(projectId3, new[] { new ProjectReference(projectId1) });
+            _ = solution.WithProjectReferences(projectId3, new[] { new ProjectReference(projectId1) });
+
+            // submission may reference a non-submission project:
+            _ = solution.AddProjectReferences(projectId3, new[] { new ProjectReference(projectId0) });
+            _ = solution.WithProjectReferences(projectId3, new[] { new ProjectReference(projectId0) });
+
+            // submission can't reference multiple submissions:
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId2, new[] { new ProjectReference(projectId3) }));
+            _ = solution.WithProjectReferences(projectId2, new[] { new ProjectReference(projectId3) });
+
+            // non-submission project can't reference a submission:
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjectReferences(projectId0, new[] { new ProjectReference(projectId1) }));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId0, new[] { new ProjectReference(projectId1) }));
         }
 
         [Fact]
