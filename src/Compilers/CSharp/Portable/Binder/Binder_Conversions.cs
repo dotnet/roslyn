@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = node.Syntax;
             switch (type.TypeKind)
             {
+                case TypeKind.Enum:
                 case TypeKind.Struct:
                 case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
                     return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
@@ -202,19 +203,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
                 case TypeKind.Delegate:
                     return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, diagnostics);
-                case TypeKind.Array:
-                case TypeKind.Enum:
-                case TypeKind.Class:
-                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
-                    goto case TypeKind.Error;
                 case TypeKind.Interface:
-                    Error(diagnostics, ErrorCode.ERR_NoNewAbstract, syntax, type);
+                    return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                case TypeKind.Array:
+                case TypeKind.Class:
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Pointer:
                     Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
-                    goto case TypeKind.Error;
-                case TypeKind.Dynamic:
-                    Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Error:
                     return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);

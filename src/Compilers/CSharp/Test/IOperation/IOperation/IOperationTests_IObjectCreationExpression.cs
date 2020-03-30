@@ -1366,37 +1366,33 @@ class C
     }
 }
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(18,33): error CS0144: Cannot create an instance of the abstract class or interface 'IInterface'
-                //         IInterface iinterface = new() /*<bind>*/{ 1, 2, 3 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new() /*<bind>*/{ 1, 2, 3 }").WithArguments("IInterface").WithLocation(18, 33)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             string expectedOperationTree = @"
-IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: IInterface, IsInvalid) (Syntax: '{ 1, 2, 3 }')
+IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: IInterface) (Syntax: '{ 1, 2, 3 }')
   Initializers(3):
-      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
         Instance Receiver: 
-          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsInvalid, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
+          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
         Arguments(1):
-            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '2')
+      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
         Instance Receiver: 
-          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsInvalid, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
+          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
         Arguments(1):
-            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '2')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '3')
+      IInvocationOperation (virtual void IInterface.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
         Instance Receiver: 
-          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsInvalid, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
+          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: IInterface, IsImplicit) (Syntax: 'new() /*<bi ... { 1, 2, 3 }')
         Arguments(1):
-            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '3')
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
