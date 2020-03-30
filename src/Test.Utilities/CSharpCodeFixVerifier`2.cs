@@ -51,5 +51,20 @@ namespace Test.Utilities
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
+
+        public static async Task VerifyAnalyzerAsync(
+            ReferenceAssemblies referenceAssemblies,
+            string source,
+            params DiagnosticResult[] expected)
+        {
+            var test = new Test
+            {
+                TestCode = source,
+                ReferenceAssemblies = referenceAssemblies,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
     }
 }

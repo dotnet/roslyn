@@ -102,6 +102,21 @@
         <target state="translated">O construtor transforma a classe base não herdável em herdável</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Todos os membros públicos devem usar tipos de referência que permitem valor nulo ou não anuláveis, mas nenhum tipo de referência inconsistente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">O símbolo '{0}' usa alguns tipos de referência inconsistentes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Os membros públicos não devem usar tipos inconsistentes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">O símbolo '{0}' viola o requisito de backcompat: 'A API pública com parâmetros opcionais deve ter a maioria dos parâmetros entre suas sobrecargas públicas. Confira '{1}' para obter detalhes.</target>
