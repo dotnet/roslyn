@@ -16,6 +16,7 @@ namespace Analyzer.Utilities
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
+        public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
@@ -244,6 +245,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnDeserializingAttribute = "System.Runtime.Serialization.OnDeserializingAttribute";
         public const string SystemRuntimeSerializationOnDeserializedAttribute = "System.Runtime.Serialization.OnDeserializedAttribute";
         public const string SystemCollectionsIHashCodeProvider = "System.Collections.IHashCodeProvider";
+        public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
         public const string SystemRuntimeSerializationDataMemberAttribute = "System.Runtime.Serialization.DataMemberAttribute";
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";

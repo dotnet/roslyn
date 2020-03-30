@@ -2,6 +2,7 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0040 | RoslynDiagnosticsReliability | Warning | DefaultableTypeShouldHaveDefaultableFieldsAnalyzer
+RS0042 | RoslynDiagnosticsReliability | Warning | DoNotCopyValue
 
 ### Changed Rules
 Rule ID | New Category | New Severity | Old Category | Old Severity | Notes

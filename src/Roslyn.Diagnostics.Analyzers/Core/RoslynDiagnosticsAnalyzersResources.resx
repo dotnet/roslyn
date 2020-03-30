@@ -279,4 +279,37 @@
   <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
     <value>Defaultable types should have defaultable fields</value>
   </data>
+  <data name="DoNotCopyValueDescription" xml:space="preserve">
+    <value>Do not copy value</value>
+  </data>
+  <data name="DoNotCopyValueMessage" xml:space="preserve">
+    <value>Do not copy value</value>
+  </data>
+  <data name="DoNotCopyValueTitle" xml:space="preserve">
+    <value>Do not copy value</value>
+  </data>
+  <data name="DoNotCopyValueNoBoxingDescription" xml:space="preserve">
+    <value>Do not box non-copyable value types.</value>
+  </data>
+  <data name="DoNotCopyValueNoBoxingMessage" xml:space="preserve">
+    <value>Do not box non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueUnsupportedUseDescription" xml:space="preserve">
+    <value>Unsupported use of non-copyable type</value>
+  </data>
+  <data name="DoNotCopyValueUnsupportedUseMessage" xml:space="preserve">
+    <value>Unsupported use of non-copyable type '{0}' in '{1}' operation</value>
+  </data>
+  <data name="DoNotCopyValueNoUnboxingDescription" xml:space="preserve">
+    <value>Do not unbox non-copyable value types.</value>
+  </data>
+  <data name="DoNotCopyValueNoUnboxingMessage" xml:space="preserve">
+    <value>Do not unbox non-copyable type '{0}'</value>
+  </data>
+  <data name="DoNotCopyValueAvoidNullableWrapperDescription" xml:space="preserve">
+    <value>Avoid nullable wrapper</value>
+  </data>
+  <data name="DoNotCopyValueAvoidNullableWrapperMessage" xml:space="preserve">
+    <value>Do not wrap non-copyable type '{0}' in '{1)' operation</value>
+  </data>
 </root>
