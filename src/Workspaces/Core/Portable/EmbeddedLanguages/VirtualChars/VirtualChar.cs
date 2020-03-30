@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         /// <summary>
         /// The unpaired high or low surrogate character that was encountered that could not be represented in <see
-        /// cref="Rune"/>.  If <see cref="Rune"/> is not <see cref="Rune.ReplacementChar"/> this will be <c>0</c>.
+        /// cref="Rune"/>.  If <see cref="Rune"/> is not <see cref="Rune.ReplacementChar"/>, this will be <c>0</c>.
         /// </summary>
         public readonly char SurrogateChar;
 
