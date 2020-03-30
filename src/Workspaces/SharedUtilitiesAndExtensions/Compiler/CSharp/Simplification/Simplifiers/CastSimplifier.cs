@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                      equalsValue.Value == castNode &&
                      equalsValue.Parent is VariableDeclaratorSyntax variableDeclarator)
             {
-                // Identity fp conversion is safe if this is in an field initializer.
+                // Identity fp conversion is safe if this is in a field initializer.
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
                 if (symbol?.Kind == SymbolKind.Field)
                     return false;
