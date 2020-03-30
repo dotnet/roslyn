@@ -160,7 +160,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return this.GetFromMap<SinkInfo>(sinkKind, this.SinkSymbolMap);
         }
 
-        public bool HasTaintArraySource(SinkKind sinkKind)
+        public static bool HasTaintArraySource(SinkKind sinkKind)
         {
             return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
         }

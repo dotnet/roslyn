@@ -179,6 +179,25 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0041": {
+          "id": "RS0041",
+          "shortDescription": "Public members should not use oblivious types",
+          "fullDescription": "All public members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
