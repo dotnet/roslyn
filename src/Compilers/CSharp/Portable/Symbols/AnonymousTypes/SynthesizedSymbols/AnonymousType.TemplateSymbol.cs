@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol
         {
             /// <summary> Name to be used as metadata name during emit </summary>
-            private NameAndIndex _nameAndIndex;
+            private NameAndIndex? _nameAndIndex;
 
             private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
             private readonly ImmutableArray<Symbol> _members;
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             /// <summary> Smallest location of the template, actually contains the smallest location 
             /// of all the anonymous type instances created using this template during EMIT </summary>
-            private Location _smallestLocation;
+            private Location? _smallestLocation;
 
             /// <summary> Key pf the anonymous type descriptor </summary>
             internal readonly string TypeDescriptorKey;
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Property related symbols
                     membersBuilder.Add(property);
-                    membersBuilder.Add(property.BackingField);
+                    membersBuilder.Add(property.BackingField!);
                     membersBuilder.Add(property.GetMethod);
                 }
 
@@ -141,12 +144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    Debug.Assert(_smallestLocation != null);
+                    RoslynDebug.Assert(_smallestLocation != null);
                     return _smallestLocation;
                 }
             }
 
-            internal NameAndIndex NameAndIndex
+            [DisallowNull]
+            internal NameAndIndex? NameAndIndex
             {
                 get
                 {
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var oldValue = Interlocked.CompareExchange(ref _nameAndIndex, value, null);
                     Debug.Assert(oldValue == null ||
-                        ((oldValue.Name == value.Name) && (oldValue.Index == value.Index)));
+                        ((oldValue.Name == value!.Name) && (oldValue.Index == value.Index)));
                 }
             }
 
@@ -173,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Loop until we managed to set location OR we detected that we don't need to set it 
                     // in case 'location' in type descriptor is bigger that the one in smallestLocation
 
-                    Location currentSmallestLocation = _smallestLocation;
+                    Location? currentSmallestLocation = _smallestLocation;
                     if (currentSmallestLocation != null && this.Manager.Compilation.CompareSourceLocations(currentSmallestLocation, location) < 0)
                     {
                         // The template's smallest location do not need to be changed
@@ -247,7 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name
             {
+#nullable disable // Can '_nameAndIndex' be null? https://github.com/dotnet/roslyn/issues/39166
                 get { return _nameAndIndex.Name; }
+#nullable enable
             }
 
             internal override bool HasSpecialName
@@ -325,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return Accessibility.Internal; }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -395,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+            internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             {
                 get { return null; }
             }
@@ -435,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
