@@ -102,6 +102,21 @@
         <target state="translated">Konstruktor činí z nedědičné základní třídy dědičnou.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Všechny veřejné členy by měly používat odkazové typy s možnou hodnotou null, nebo bez ní, ale ne odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">Symbol {0} používá některé odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Veřejné členy by neměly používat typy bez určení možnosti použití hodnoty null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">Symbol {0} porušuje požadavek na zpětnou kompatibilitu: Veřejné rozhraní API s nepovinnými parametry by mělo mít ze všech veřejných přetížení nejvíce parametrů. Podrobnosti najdete tady: {1}</target>

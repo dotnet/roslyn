@@ -41,6 +41,24 @@ namespace Analyzer.Utilities.PooledObjects
             return result;
         }
 
+        public ImmutableDictionary<TKey, TValue> ToImmutableDictionaryAndFree<TKey, TValue>(
+           Func<KeyValuePair<K, V>, TKey> keySelector, Func<KeyValuePair<K, V>, TValue> elementSelector, IEqualityComparer<TKey> comparer)
+        {
+            ImmutableDictionary<TKey, TValue> result;
+            if (Count == 0)
+            {
+                result = ImmutableDictionary<TKey, TValue>.Empty;
+            }
+            else
+            {
+                result = this.ToImmutableDictionary(keySelector, elementSelector, comparer);
+                this.Clear();
+            }
+
+            _pool?.Free(this);
+            return result;
+        }
+
         public void Free()
         {
             this.Clear();

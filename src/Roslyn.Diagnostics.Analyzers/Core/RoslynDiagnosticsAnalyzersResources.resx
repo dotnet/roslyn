@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -254,5 +254,29 @@
   </data>
   <data name="FixNumberedComments" xml:space="preserve">
     <value>Fix numbered comments</value>
+  </data>
+  <data name="PreferNullLiteralDescription" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for reference types.</value>
+  </data>
+  <data name="PreferNullLiteralMessage" xml:space="preserve">
+    <value>Use 'null' instead of 'default' for reference types</value>
+  </data>
+  <data name="PreferNullLiteralTitle" xml:space="preserve">
+    <value>Prefer null literal</value>
+  </data>
+  <data name="PreferNullLiteralCodeFix" xml:space="preserve">
+    <value>Use 'null' instead of 'default'</value>
+  </data>
+  <data name="RelaxTestNamingSuppressorJustification" xml:space="preserve">
+    <value>Asynchronous test methods do not require the 'Async' suffix.</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsDescription" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsMessage" xml:space="preserve">
+    <value>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</value>
+  </data>
+  <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
+    <value>Defaultable types should have defaultable fields</value>
   </data>
 </root>

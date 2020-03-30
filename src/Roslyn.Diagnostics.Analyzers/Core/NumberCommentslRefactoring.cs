@@ -44,7 +44,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
+        private static async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
         {
             var newValueText = FixComments(stringLiteral.Token.ValueText, prefixOpt: null);
             var oldText = stringLiteral.Token.Text;
