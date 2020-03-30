@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static TypeInfo GetTypeInfoAndVerifyIOperation(this SemanticModel model, SyntaxNode expression)
         {
             var typeInfo = model.GetTypeInfo(expression);
-            var iop = model.GetOperation(expression);
+            var iop = getOperation(model, expression);
             if (typeInfo.Type is null)
             {
                 Assert.True(iop?.Type is null ||
@@ -388,6 +388,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             return typeInfo;
+
+            static IOperation getOperation(SemanticModel model, SyntaxNode expression)
+            {
+                // Nullable suppressions are not directly represented in the bound tree. Rather, they are set
+                // as flags on the bound node underlying the node. Therefore, there is similarly no representation
+                // in the IOperation tree, and we should retrieve the IOperation node underlying the suppression.
+                if (expression.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+                {
+                    expression = ((PostfixUnaryExpressionSyntax)expression).Operand;
+                }
+
+                return model.GetOperation(expression);
+            }
         }
 
         /// <summary>

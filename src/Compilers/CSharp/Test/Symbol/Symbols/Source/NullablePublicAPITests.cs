@@ -4229,18 +4229,10 @@ class C
             var suppressions = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Where(p => p.IsKind(SyntaxKind.SuppressNullableWarningExpression)).ToList();
             Assert.Equal(3, suppressions.Count);
 
-            var iop = model.GetOperation(suppressions[0]);
-            Assert.NotNull(iop);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, iop.Type.NullableAnnotation);
-
-            iop = model.GetOperation(suppressions[1]);
-            Assert.NotNull(iop);
-            Assert.Null(iop.Type);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, iop.Parent.Type.NullableAnnotation);
-
-            iop = model.GetOperation(suppressions[2]);
-            Assert.NotNull(iop);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, iop.Type.NullableAnnotation);
+            foreach (var s in suppressions)
+            {
+                Assert.Null(model.GetOperation(s));
+            }
         }
     }
 }
