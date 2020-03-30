@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(CrefCompletionProvider);
-        }
+            => typeof(CrefCompletionProvider);
 
         private protected override async Task VerifyWorkerAsync(
             string code, int position,

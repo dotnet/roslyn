@@ -113,8 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
-        {
-            StopTracking(e.Document.Id);
-        }
+            => StopTracking(e.Document.Id);
     }
 }

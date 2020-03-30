@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PartialTypeCompletionProvider()
         {
         }
@@ -56,14 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
-        {
-            return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
-        }
+            => tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
 
         protected override Task<SyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
-        }
+            => Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
 
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
             INamedTypeSymbol symbol, SyntaxContext context)
@@ -82,9 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
-        {
-            return syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
-        }
+            => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
 
         protected override ImmutableDictionary<string, string> GetProperties(
             INamedTypeSymbol symbol, SyntaxContext context)

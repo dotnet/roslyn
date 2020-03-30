@@ -50,13 +50,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static string Supported(bool supported)
-        {
-            return supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
-        }
+            => supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
 
         public bool HasValidAndInvalidProjects()
-        {
-            return InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
-        }
+            => InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
     }
 }

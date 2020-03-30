@@ -49,14 +49,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
-        {
-            Parse(args.Document);
-        }
+            => Parse(args.Document);
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
-        {
-            CancelParse(args.Document.Id);
-        }
+            => CancelParse(args.Document.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {

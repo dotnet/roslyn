@@ -212,11 +212,6 @@
         <target state="translated">zaman uyumsuz using bildirimi</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">'If' deyimi basitleştirilebilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt; lambda ifadesi &gt;</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
         <target state="translated">Kullanılmayan işlevi kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">is null' denetimini kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">

@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public readonly SqlStatement Statement;
 
         public ResettableSqlStatement(SqlStatement statement)
-        {
-            Statement = statement;
-        }
+            => Statement = statement;
 
         public void Dispose()
             => Statement.Reset();

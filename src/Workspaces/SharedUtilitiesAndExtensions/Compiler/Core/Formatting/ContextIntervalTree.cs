@@ -30,19 +30,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
 
         public T GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
 
         public T GetSmallestContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _containPredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _containPredicate);
 
         private bool ContainsEdgeExclusive(T value, int start, int length)
         {

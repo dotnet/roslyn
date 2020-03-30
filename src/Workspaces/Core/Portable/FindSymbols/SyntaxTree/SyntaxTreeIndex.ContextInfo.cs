@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct ContextInfo
+        private readonly struct ContextInfo
         {
             private readonly int _predefinedTypes;
             private readonly int _predefinedOperators;

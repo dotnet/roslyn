@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
         private const string CS1718 = nameof(CS1718); // Comparison made to same variable; did you mean to compare something else?
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpDisambiguateSameVariableCodeFixProvider()
         {
         }

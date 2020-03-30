@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         }
 
         private MoveToNamespaceAnalysisResult()
-        {
-            CanPerform = false;
-        }
+            => CanPerform = false;
 
     }
 }

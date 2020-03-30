@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpProgressionLanguageService()
         {
         }
@@ -87,14 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
         }
 
         public string GetDescriptionForSymbol(ISymbol symbol, bool includeContainingSymbol)
-        {
-            return GetSymbolText(symbol, includeContainingSymbol, s_descriptionFormat);
-        }
+            => GetSymbolText(symbol, includeContainingSymbol, s_descriptionFormat);
 
         public string GetLabelForSymbol(ISymbol symbol, bool includeContainingSymbol)
-        {
-            return GetSymbolText(symbol, includeContainingSymbol, s_labelFormat);
-        }
+            => GetSymbolText(symbol, includeContainingSymbol, s_labelFormat);
 
         private static string GetSymbolText(ISymbol symbol, bool includeContainingSymbol, SymbolDisplayFormat displayFormat)
         {
@@ -129,8 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
         }
 
         private static bool IncludeReturnType(IMethodSymbol f)
-        {
-            return f.MethodKind == MethodKind.Ordinary || f.MethodKind == MethodKind.ExplicitInterfaceImplementation;
-        }
+            => f.MethodKind == MethodKind.Ordinary || f.MethodKind == MethodKind.ExplicitInterfaceImplementation;
     }
 }

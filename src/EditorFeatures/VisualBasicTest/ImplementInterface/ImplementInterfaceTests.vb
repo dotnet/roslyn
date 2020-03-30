@@ -466,7 +466,7 @@ NotInheritable Class X : Implements IComparer
     Private x As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return Me.x.Compare(x, y)
+        Return DirectCast(Me.x, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -487,7 +487,7 @@ NotInheritable Class X : Implements IComparer
     Private a As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return a.Compare(x, y)
+        Return DirectCast(a, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)

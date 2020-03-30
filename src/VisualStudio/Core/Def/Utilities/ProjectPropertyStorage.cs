@@ -49,9 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 => this._propertyStorage = propertyStorage;
 
             public override void SetProperty(string buildPropertyName, string configurationPropertyName, string value)
-            {
-                _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
-            }
+                => _propertyStorage.SetPropertyValue(buildPropertyName, null, (uint)_PersistStorageType.PST_PROJECT_FILE, value);
         }
 
         private sealed class PerConfigurationPropertyStorage : ProjectPropertyStorage

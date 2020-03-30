@@ -59,19 +59,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

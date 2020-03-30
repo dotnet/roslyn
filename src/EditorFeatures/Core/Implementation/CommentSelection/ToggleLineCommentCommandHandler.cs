@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         public CommandState GetCommandState(ToggleLineCommentCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         public bool ExecuteCommand(ToggleLineCommentCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);

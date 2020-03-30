@@ -411,14 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool HasFormattableBracketParent(SyntaxToken token)
-        {
-            return token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
-        }
+            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
         private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
-        {
-            return (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
-        }
+            => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
 
         private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
