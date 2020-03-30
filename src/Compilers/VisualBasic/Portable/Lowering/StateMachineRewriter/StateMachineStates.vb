@@ -8,11 +8,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend MustInherit Class StateMachineRewriter(Of TProxy)
 
-    Friend Module StateMachineStates
-        Public Const FinishedStateMachine As Integer = -2
-        Public Const NotStartedStateMachine As Integer = -1
-        Public Const FirstUnusedState As Integer = 0
-    End Module
+        Friend Enum StateMachineStates As Integer
+            FinishedStateMachine = -2
+            NotStartedStateMachine = -1
+            FirstUnusedState = 0
+        End Enum
+
+    End Class
 
 End Namespace
