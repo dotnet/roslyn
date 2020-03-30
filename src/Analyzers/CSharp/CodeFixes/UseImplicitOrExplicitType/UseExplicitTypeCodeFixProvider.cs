@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                     .WithTrailingTrivia(node.GetTrailingTrivia());
                 Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
-                editor.ReplaceNode(node, typeName);
+                editor.ReplaceNode(declarationContext, typeName);
             }
             else
             {
