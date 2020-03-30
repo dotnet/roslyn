@@ -29,5 +29,6 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisLocalization = nameof(MicrosoftCodeAnalysisLocalization);
         public const string MicrosoftCodeAnalysisPerformance = nameof(MicrosoftCodeAnalysisPerformance);
         public const string MicrosoftCodeAnalysisCompatibility = nameof(MicrosoftCodeAnalysisCompatibility);
+        public const string MicrosoftCodeAnalysisReleaseTracking = nameof(MicrosoftCodeAnalysisReleaseTracking);
     }
 }
