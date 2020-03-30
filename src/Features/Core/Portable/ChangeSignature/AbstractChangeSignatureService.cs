@@ -159,19 +159,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            // TODO: Remove if unneeded
-            //if (declarationChangeSignatureService == null)
-            //{
-            //    return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationLanguageServiceNotFound);
-            //}
-
             int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
-
-            // TODO: Remove if unneeded
-            //if (insertPosition == null)
-            //{
-            //    return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DeclarationMethodPositionNotFound);
-            //}
 
             var parameterConfiguration = ParameterConfiguration.Create(
                 symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
