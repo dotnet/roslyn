@@ -1375,9 +1375,7 @@ End Class";
         }
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
-        {
-            return provider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        }
+            => provider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
         private static void SetOptions(Workspace workspace)
         {
@@ -1445,14 +1443,10 @@ End Class";
             public readonly IIncrementalAnalyzer Analyzer;
 
             public AnalyzerProvider(IIncrementalAnalyzer analyzer)
-            {
-                Analyzer = analyzer;
-            }
+                => Analyzer = analyzer;
 
             public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            {
-                return Analyzer;
-            }
+                => Analyzer;
         }
 
         internal class Metadata : IncrementalAnalyzerProviderMetadata
@@ -1546,30 +1540,20 @@ End Class";
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption;
-            }
+                => e.Option == TestOption;
 
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
             #endregion
         }
 

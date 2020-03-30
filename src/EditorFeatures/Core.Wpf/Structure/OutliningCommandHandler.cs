@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OutliningCommandHandler(IOutliningManagerService outliningManagerService)
-        {
-            _outliningManagerService = outliningManagerService;
-        }
+            => _outliningManagerService = outliningManagerService;
 
         public string DisplayName => EditorFeaturesResources.Outlining;
 

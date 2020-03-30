@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {

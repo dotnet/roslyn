@@ -130,14 +130,10 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         }
 
         public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
-        {
-            AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
-        }
+            => AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
 
         public void AddSemanticDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
-        {
-            AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
-        }
+            => AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
 
         public void AddCompilationDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {

@@ -25,14 +25,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
         }
 
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
-        {
-            return new StreamStorage();
-        }
+            => new StreamStorage();
 
         public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
-        {
-            return new TextStorage();
-        }
+            => new TextStorage();
 
         internal class StreamStorage : ITemporaryStreamStorage
         {
@@ -99,14 +95,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             }
 
             public SourceText ReadText(CancellationToken cancellationToken = default)
-            {
-                return SourceText.From(_text, _encoding);
-            }
+                => SourceText.From(_text, _encoding);
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+                => Task.FromResult(ReadText(cancellationToken));
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
         Inherits AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(Of SyntaxKind)
 
         Public Sub New()
-            MyBase.New(VBFeaturesResources.Use_Is_Nothing_check)
+            MyBase.New(VisualBasicAnalyzersResources.Use_Is_Nothing_check)
         End Sub
 
         Protected Overrides Function IsLanguageVersionSupported(options As ParseOptions) As Boolean

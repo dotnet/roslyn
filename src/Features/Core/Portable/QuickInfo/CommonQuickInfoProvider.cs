@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)
-        {
-            return true;
-        }
+            => true;
 
         private async Task<QuickInfoItem?> GetQuickInfoAsync(
             Document document,

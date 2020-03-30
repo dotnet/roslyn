@@ -21,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
         private readonly string _externalLocation;
 
         private CodeTypeLocationExtender(string externalLocation)
-        {
-            _externalLocation = externalLocation;
-        }
+            => _externalLocation = externalLocation;
 
         public string ExternalLocation
         {

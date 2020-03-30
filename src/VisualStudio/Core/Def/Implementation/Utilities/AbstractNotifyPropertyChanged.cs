@@ -12,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     {
         public event PropertyChangedEventHandler PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         /// <returns>True if the property was updated</returns>
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")

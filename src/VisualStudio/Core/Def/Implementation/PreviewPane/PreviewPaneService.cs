@@ -39,9 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
 
         private static Image GetSeverityIconForDiagnostic(DiagnosticData diagnostic)
         {

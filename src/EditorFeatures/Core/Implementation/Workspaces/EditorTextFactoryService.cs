@@ -79,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         }
 
         private ITextBuffer CreateTextBuffer(TextReader reader)
-        {
-            return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
-        }
+            => _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
 
         private SourceText CreateTextInternal(Stream stream, Encoding encoding, CancellationToken cancellationToken)
         {

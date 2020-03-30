@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IChainedCommandHandler<TypeCharCommandArgs>
     {
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+            => GetCommandState(nextHandler);
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

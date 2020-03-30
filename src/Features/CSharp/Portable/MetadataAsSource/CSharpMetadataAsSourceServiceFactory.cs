@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpMetadataAsSourceService(provider);
-        }
+            => new CSharpMetadataAsSourceService(provider);
     }
 }

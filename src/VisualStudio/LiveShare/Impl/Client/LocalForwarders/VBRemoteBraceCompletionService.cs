@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return languageServices.GetOriginalLanguageService<IEditorBraceCompletionSessionFactory>();
-        }
+            => languageServices.GetOriginalLanguageService<IEditorBraceCompletionSessionFactory>();
     }
 }

@@ -16,19 +16,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
 
             public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
-            {
-                _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-            }
+                => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
 
             public IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>> GetEnumerator()
-            {
-                return new Enumerator(_tokensIncludingZeroWidth);
-            }
+                => new Enumerator(_tokensIncludingZeroWidth);
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+                => GetEnumerator();
 
             private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
             {

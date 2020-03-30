@@ -472,8 +472,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         private static bool IsIdentifierSeparator(char element)
-        {
-            return s_metadataNameSeparators.IndexOf(element) != -1;
-        }
+            => s_metadataNameSeparators.IndexOf(element) != -1;
     }
 }

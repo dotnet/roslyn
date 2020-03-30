@@ -31,14 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-        {
-            return ch == '<' || ch == ',';
-        }
+            => ch == '<' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == '>';
-        }
+            => ch == '>';
 
         protected virtual bool TryGetGenericIdentifier(
             SyntaxNode root, int position,
@@ -118,12 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
                        .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                       .Sort(symbolDisplayService, semanticModel, genericIdentifier.SpanStart);
+                       .Sort(semanticModel, genericIdentifier.SpanStart);
 
             if (!accessibleSymbols.Any())
             {
@@ -136,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                Convert(s, lessThanToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -171,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol symbol,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
@@ -183,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    symbolDisplayService, anonymousTypeDisplayService,
+                    anonymousTypeDisplayService,
                     false,
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
@@ -196,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 var method = (IMethodSymbol)symbol;
                 item = CreateItem(
                     symbol, semanticModel, position,
-                    symbolDisplayService, anonymousTypeDisplayService,
+                    anonymousTypeDisplayService,
                     false,
                     c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                     GetPreambleParts(method, semanticModel, position),

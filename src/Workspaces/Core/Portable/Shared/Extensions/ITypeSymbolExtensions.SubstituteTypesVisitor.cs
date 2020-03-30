@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             private ITypeSymbol VisitType(ITypeSymbol symbol)
             {
@@ -42,14 +40,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return VisitType(symbol);
-            }
+                => VisitType(symbol);
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return VisitType(symbol);
-            }
+                => VisitType(symbol);
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {

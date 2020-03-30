@@ -108,9 +108,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly MetadataReader _pdbReader;
 
             public Portable(MetadataReader pdbReader)
-            {
-                _pdbReader = pdbReader;
-            }
+                => _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 

@@ -64,19 +64,13 @@ namespace Microsoft.CodeAnalysis
         internal string? DebugName => _debugName;
 
         internal string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
-        }
+            => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
 
         public override string ToString()
-        {
-            return GetDebuggerDisplay();
-        }
+            => GetDebuggerDisplay();
 
         public override bool Equals(object? obj)
-        {
-            return this.Equals(obj as DocumentId);
-        }
+            => this.Equals(obj as DocumentId);
 
         public bool Equals(DocumentId? other)
         {
@@ -88,19 +82,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.ProjectId, this.Id.GetHashCode());
-        }
+            => Hash.Combine(this.ProjectId, this.Id.GetHashCode());
 
         public static bool operator ==(DocumentId? left, DocumentId? right)
-        {
-            return EqualityComparer<DocumentId?>.Default.Equals(left, right);
-        }
+            => EqualityComparer<DocumentId?>.Default.Equals(left, right);
 
         public static bool operator !=(DocumentId? left, DocumentId? right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 

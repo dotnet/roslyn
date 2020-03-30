@@ -333,9 +333,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private static TextSpan GetElasticSpan(SyntaxToken token)
-        {
-            return GetSpan(token, token);
-        }
+            => GetSpan(token, token);
 
         private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
         {

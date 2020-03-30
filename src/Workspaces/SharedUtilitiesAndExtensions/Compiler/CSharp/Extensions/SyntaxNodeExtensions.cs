@@ -745,9 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                equalsValue.Value == node;
 
         public static BlockSyntax? FindInnermostCommonBlock(this IEnumerable<SyntaxNode> nodes)
-        {
-            return nodes.FindInnermostCommonNode<BlockSyntax>();
-        }
+            => nodes.FindInnermostCommonNode<BlockSyntax>();
 
         public static IEnumerable<SyntaxNode> GetAncestorsOrThis(this SyntaxNode? node, Func<SyntaxNode, bool> predicate)
         {

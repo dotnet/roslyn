@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,24 +54,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return start;
         }
 
-        private static int GetCollapsibleEnd(SyntaxToken lastToken)
+        private static (int spanEnd, int hintEnd) GetCollapsibleEnd(SyntaxToken lastToken, bool compressEmptyLines)
         {
             // If the token has any trailing comments, we use the end of the token;
-            // otherwise, we skip to the start of the first new line trivia.
+            // otherwise, the behavior depends on 'compressEmptyLines':
+            //   false: skip to the start of the first new line trivia
+            //   true: skip to the start of the last new line trivia preceding a non-whitespace line
+            //
+            // The hint span never includes the compressed empty lines.
+
+            var trailingTrivia = lastToken.TrailingTrivia;
+            var nextLeadingTrivia = compressEmptyLines ? lastToken.GetNextToken(includeZeroWidth: true, includeSkipped: true).LeadingTrivia : default;
 
             var end = lastToken.Span.End;
+            int? hintEnd = null;
 
-            if (lastToken.HasTrailingTrivia &&
-                !lastToken.TrailingTrivia.Any(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
+            foreach (var trivia in trailingTrivia)
             {
-                var firstNewLineTrivia = lastToken.TrailingTrivia.GetFirstNewLine();
-                if (firstNewLineTrivia != null)
-                {
-                    end = firstNewLineTrivia.Value.SpanStart;
-                }
+                if (!ProcessTrivia(trivia, compressEmptyLines, ref end, ref hintEnd))
+                    return (end, hintEnd ?? end);
             }
 
-            return end;
+            foreach (var trivia in nextLeadingTrivia)
+            {
+                if (!ProcessTrivia(trivia, compressEmptyLines, ref end, ref hintEnd))
+                    return (end, hintEnd ?? end);
+            }
+
+            return (end, hintEnd ?? end);
+
+            // Return true to keep processing trivia; otherwise, false to return the current 'end'
+            static bool ProcessTrivia(SyntaxTrivia trivia, bool compressEmptyLines, ref int end, ref int? hintEnd)
+            {
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    end = trivia.SpanStart;
+                    hintEnd ??= end;
+                    if (!compressEmptyLines)
+                        return false;
+                }
+                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    // We want this trivia to be visible even when the element is collapsed
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         public static SyntaxToken GetLastInlineMethodBlockToken(SyntaxNode node)
@@ -387,18 +417,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken,
+            SyntaxNode node, SyntaxToken syntaxToken, bool compressEmptyLines,
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                node, syntaxToken, node.GetLastToken(),
+                node, syntaxToken, node.GetLastToken(), compressEmptyLines,
                 bannerText, autoCollapse, type, isCollapsible);
         }
 
         public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken,
-            int endPos, string bannerText, bool autoCollapse,
+            int spanEndPos, int hintEndPos, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
             // If the SyntaxToken is actually missing, don't attempt to create an outlining region.
@@ -411,8 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // that it collapses properly. However, the hint span begins at the start
             // of the next token so indentation in the tooltip is accurate.
 
-            var span = TextSpan.FromBounds(GetCollapsibleStart(startToken), endPos);
-            var hintSpan = GetHintSpan(node, endPos);
+            var span = TextSpan.FromBounds(GetCollapsibleStart(startToken), spanEndPos);
+            var hintSpan = GetHintSpan(node, hintEndPos);
 
             return CreateBlockSpan(
                 span,
@@ -442,11 +472,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken,
-            SyntaxToken endToken, string bannerText, bool autoCollapse,
+            SyntaxToken endToken, bool compressEmptyLines, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
+            var (spanEnd, hintEnd) = GetCollapsibleEnd(endToken, compressEmptyLines);
             return CreateBlockSpan(
-                node, startToken, GetCollapsibleEnd(endToken),
+                node, startToken, spanEnd, hintEnd,
                 bannerText, autoCollapse, type, isCollapsible);
         }
 
@@ -464,11 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken,
+            SyntaxNode node, SyntaxToken syntaxToken, bool compressEmptyLines,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                node, syntaxToken,
+                node, syntaxToken, compressEmptyLines,
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
                 type: type,
@@ -478,11 +509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken,
+            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken, bool compressEmptyLines,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                node, startToken, endToken,
+                node, startToken, endToken, compressEmptyLines,
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
                 type: type,
@@ -493,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // snippet shown is the text from the first line of the first 
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
-            IEnumerable<SyntaxNode> syntaxList, bool autoCollapse,
+            IEnumerable<SyntaxNode> syntaxList, bool compressEmptyLines, bool autoCollapse,
             string type, bool isCollapsible)
         {
             if (syntaxList.IsEmpty())
@@ -501,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return null;
             }
 
-            var end = GetCollapsibleEnd(syntaxList.Last().GetLastToken());
+            var (end, hintEnd) = GetCollapsibleEnd(syntaxList.Last().GetLastToken(), compressEmptyLines);
 
             var spanStart = syntaxList.First().GetFirstToken().FullSpan.End;
             var spanEnd = end >= spanStart
@@ -509,8 +540,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 : spanStart;
 
             var hintSpanStart = syntaxList.First().SpanStart;
-            var hintSpanEnd = end >= hintSpanStart
-                ? end
+            var hintSpanEnd = hintEnd >= hintSpanStart
+                ? hintEnd
                 : hintSpanStart;
 
             return CreateBlockSpan(

@@ -3575,16 +3575,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Al cambiar entre una expresión lambda y una función local, se impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Desconstruir la declaración de variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">La declaración de variables se puede desconstruir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Agregar el nombre de argumento "{0}" (incluidos los argumentos finales)</target>

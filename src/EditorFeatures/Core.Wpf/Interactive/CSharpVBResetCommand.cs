@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ResetCommand(IStandardClassificationService registry)
-        {
-            _registry = registry;
-        }
+            => _registry = registry;
 
         public string Description
         {

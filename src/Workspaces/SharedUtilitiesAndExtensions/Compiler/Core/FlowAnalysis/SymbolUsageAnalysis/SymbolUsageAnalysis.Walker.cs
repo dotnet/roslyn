@@ -247,9 +247,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             public override void VisitParameterReference(IParameterReferenceOperation operation)
-            {
-                OnReferenceFound(operation.Parameter, operation);
-            }
+                => OnReferenceFound(operation.Parameter, operation);
 
             public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
             {

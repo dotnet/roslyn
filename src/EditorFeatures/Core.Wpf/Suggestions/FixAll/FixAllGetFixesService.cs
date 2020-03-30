@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
 
         public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
         {

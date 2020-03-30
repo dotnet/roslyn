@@ -3575,16 +3575,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Przełączanie między wyrażeniem lambda a funkcją lokalną uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Zdekonstruuj deklarację zmiennej</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Deklaracja zmiennej może zostać zdekonstruowana</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Dodaj nazwę argumentu „{0}” (w tym końcowe argumenty)</target>

@@ -91,9 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentHandlerShim(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, request, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
@@ -114,9 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentRangeHandlerShim(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentRangeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, request, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
@@ -137,9 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentOnTypeHandlerShim(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public Task<TextEdit[]> HandleAsync(DocumentOnTypeFormattingParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, request, requestContext?.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
@@ -167,9 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFindImplementationsHandlerShim(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public Task<object> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
             => base.HandleRequestAsync(requestContext.Context, request, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);

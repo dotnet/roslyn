@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
         protected override string RoslynLanguageName => StringConstants.CSharpLspLanguageName;
 
         protected override IEnumerable<IVsEditorFactory> CreateEditorFactories()
-        {
-            return SpecializedCollections.EmptyEnumerable<IVsEditorFactory>();
-        }
+            => SpecializedCollections.EmptyEnumerable<IVsEditorFactory>();
 
         protected override CSharpLspLanguageService CreateLanguageService() => new CSharpLspLanguageService(this);
 

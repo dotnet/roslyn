@@ -3575,16 +3575,6 @@ Questa versione è usata {2}</target>
         <target state="translated">Se si passa da un'espressione lambda a una funzione locale e viceversa, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Decostruisci la dichiarazione di variabile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">La dichiarazione di variabile può essere decostruita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Aggiungi il nome di argomento '{0}' (inclusi gli argomenti finali)</target>

@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         internal const string SyntaxClassificationsMethodName = "roslyn/syntaxClassifications";
 
         protected override async Task AddClassificationsAsync(IClassificationService classificationService, Document document, TextSpan textSpan, List<ClassifiedSpan> spans, CancellationToken cancellationToken)
-        {
-            await classificationService.AddSyntacticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
-        }
+            => await classificationService.AddSyntacticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, SyntaxClassificationsMethodName)]

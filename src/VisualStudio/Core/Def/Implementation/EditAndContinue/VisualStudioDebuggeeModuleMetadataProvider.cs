@@ -64,9 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDebuggeeModuleMetadataProvider()
-        {
-            _baselineMetadata = new DebuggeeModuleInfoCache();
-        }
+            => _baselineMetadata = new DebuggeeModuleInfoCache();
 
         private void OnModuleInstanceUnload(Guid mvid)
             => _baselineMetadata.Remove(mvid);

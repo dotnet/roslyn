@@ -18,18 +18,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
-        {
-            return oldSequence[oldIndex] == newSequence[newIndex];
-        }
+            => oldSequence[oldIndex] == newSequence[newIndex];
 
         public static double ComputeDistance(string oldValue, string newValue)
-        {
-            return s_instance.ComputeDistance(oldValue, oldValue.Length, newValue, newValue.Length);
-        }
+            => s_instance.ComputeDistance(oldValue, oldValue.Length, newValue, newValue.Length);
 
         public static IEnumerable<SequenceEdit> GetEdits(string oldValue, string newValue)
-        {
-            return s_instance.GetEdits(oldValue, oldValue.Length, newValue, newValue.Length);
-        }
+            => s_instance.GetEdits(oldValue, oldValue.Length, newValue, newValue.Length);
     }
 }

@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         private CancellationTokenSource? _lastNavigationCancellationSource;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFindSymbolMonikerUsagesService(
             [Import(AllowDefault = true)] ICodeIndexProvider? codeIndexProvider)
         {

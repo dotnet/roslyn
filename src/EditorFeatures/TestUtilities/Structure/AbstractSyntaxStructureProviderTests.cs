@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             => options.WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
-        {
-            return GetBlockSpansWorkerAsync(document, position);
-        }
+            => GetBlockSpansWorkerAsync(document, position);
 
         internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
 
@@ -75,14 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         }
 
         protected RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-        {
-            return new RegionData(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
-        }
+            => new RegionData(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         protected RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-        {
-            return new RegionData(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
-        }
+            => new RegionData(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         private static BlockSpan CreateBlockSpan(
             RegionData regionData,
@@ -174,19 +168,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             => value.Second;
 
         public static bool operator ==(Either<T1, T2> left, Either<T1, T2> right)
-        {
-            return EqualityComparer<Either<T1, T2>>.Default.Equals(left, right);
-        }
+            => EqualityComparer<Either<T1, T2>>.Default.Equals(left, right);
 
         public static bool operator !=(Either<T1, T2> left, Either<T1, T2> right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as Either<T1, T2>);
-        }
+            => Equals(obj as Either<T1, T2>);
 
         public bool Equals(Either<T1, T2> other)
         {

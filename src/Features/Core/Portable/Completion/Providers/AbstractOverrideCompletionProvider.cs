@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             out SyntaxToken nextToken);
 
         protected bool IsOnStartLine(int position, SourceText text, int startLine)
-        {
-            return text.Lines.IndexOf(position) == startLine;
-        }
+            => text.Lines.IndexOf(position) == startLine;
 
         protected ITypeSymbol GetReturnType(ISymbol symbol)
             => symbol.Kind switch

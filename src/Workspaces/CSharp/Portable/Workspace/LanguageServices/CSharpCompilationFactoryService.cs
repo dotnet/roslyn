@@ -44,13 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
+            => reference is CompilationReference;
 
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
-        {
-            return s_defaultOptions;
-        }
+            => s_defaultOptions;
     }
 }

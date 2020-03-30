@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             private readonly List<Task> _tasks = new List<Task>();
 
             public SleepHelper()
-            {
-                _tokenSource = new CancellationTokenSource();
-            }
+                => _tokenSource = new CancellationTokenSource();
 
             public void Dispose()
             {

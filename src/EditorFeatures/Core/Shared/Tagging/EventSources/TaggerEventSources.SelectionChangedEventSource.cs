@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public override void Connect()
-            {
-                _textView.Selection.SelectionChanged += OnSelectionChanged;
-            }
+                => _textView.Selection.SelectionChanged += OnSelectionChanged;
 
             public override void Disconnect()
-            {
-                _textView.Selection.SelectionChanged -= OnSelectionChanged;
-            }
+                => _textView.Selection.SelectionChanged -= OnSelectionChanged;
 
             private void OnSelectionChanged(object sender, EventArgs args)
-            {
-                RaiseChanged();
-            }
+                => RaiseChanged();
         }
     }
 }

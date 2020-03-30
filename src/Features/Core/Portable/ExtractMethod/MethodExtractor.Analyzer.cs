@@ -510,9 +510,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
-            {
-                variableInfoMap.Add(localOrParameter, variableInfo);
-            }
+                => variableInfoMap.Add(localOrParameter, variableInfo);
 
             private bool TryGetVariableStyle(
                 bool bestEffort,

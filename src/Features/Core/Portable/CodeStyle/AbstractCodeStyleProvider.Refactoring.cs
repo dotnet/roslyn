@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public readonly TCodeStyleProvider _codeStyleProvider;
 
             protected CodeRefactoringProvider()
-            {
-                _codeStyleProvider = new TCodeStyleProvider();
-            }
+                => _codeStyleProvider = new TCodeStyleProvider();
 
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
                 => _codeStyleProvider.ComputeRefactoringsAsync(context);

@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices);
-        }
+            => new CSharpCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices);
     }
 }
